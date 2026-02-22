@@ -153,7 +153,18 @@ const BookPage = () => {
               <Label className="text-sm font-medium text-muted-foreground mb-4 block">Select Date</Label>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal h-12", !date && "text-muted-foreground")}>
+                  <Button
+                    variant="outline"
+                    disabled={!selectedActivity}
+                    className={cn(
+                      "w-full justify-start text-left font-normal h-12",
+                      !selectedActivity && "opacity-50 cursor-not-allowed",
+                      !date && "text-muted-foreground",
+                      date && selectedBrand === "tennis" && "border-brand-tennis shadow-[0_0_12px_hsl(212_70%_55%/0.3)]",
+                      date && selectedBrand === "basketball" && "border-brand-basketball shadow-[0_0_12px_hsl(262_50%_55%/0.3)]",
+                      date && selectedBrand === "wellness" && "border-brand-wellness shadow-[0_0_12px_hsl(100_22%_60%/0.3)]",
+                    )}
+                  >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {date ? format(date, "PPP") : "Pick a date"}
                   </Button>
@@ -196,10 +207,10 @@ const BookPage = () => {
                         ? "border-border text-muted-foreground/40 cursor-not-allowed opacity-50"
                         : selectedTime === time
                           ? selectedBrand === "tennis"
-                            ? "border-brand-tennis bg-brand-tennis/10 text-brand-tennis"
+                            ? "border-brand-tennis bg-brand-tennis/10 text-brand-tennis shadow-[0_0_12px_hsl(212_70%_55%/0.3)]"
                             : selectedBrand === "wellness"
-                              ? "border-brand-wellness bg-brand-wellness/10 text-brand-wellness"
-                              : "border-brand-basketball bg-brand-basketball/10 text-brand-basketball"
+                              ? "border-brand-wellness bg-brand-wellness/10 text-brand-wellness shadow-[0_0_12px_hsl(100_22%_60%/0.3)]"
+                              : "border-brand-basketball bg-brand-basketball/10 text-brand-basketball shadow-[0_0_12px_hsl(262_50%_55%/0.3)]"
                           : "border-border text-muted-foreground hover:border-muted-foreground/50 hover:text-foreground"
                     )}
                   >
