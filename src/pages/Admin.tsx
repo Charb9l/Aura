@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { motion } from "framer-motion";
 import { format, subDays, startOfDay } from "date-fns";
-import { Users, CalendarCheck, TrendingUp, Activity, ShieldCheck, LogIn } from "lucide-react";
+import { Users, CalendarCheck, TrendingUp, Activity, ShieldCheck, LogIn, UserPlus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -127,6 +127,64 @@ const AdminLoginForm = () => {
   );
 };
 
+const CreateAdminForm = () => {
+  const [newEmail, setNewEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [newName, setNewName] = useState("");
+  const [creating, setCreating] = useState(false);
+
+  const handleCreateAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreating(true);
+
+    const { data, error } = await supabase.functions.invoke("manage-admin", {
+      body: { email: newEmail, password: newPassword, full_name: newName },
+    });
+
+    setCreating(false);
+    if (error || data?.error) {
+      toast.error(data?.error || error?.message || "Failed to create admin");
+    } else {
+      toast.success(`Admin account created for ${newEmail}`);
+      setNewEmail("");
+      setNewPassword("");
+      setNewName("");
+    }
+  };
+
+  return (
+    <Card className="bg-card border-border max-w-lg">
+      <CardHeader>
+        <CardTitle className="text-lg flex items-center gap-2">
+          <UserPlus className="h-5 w-5 text-primary" />
+          Create Admin Account
+        </CardTitle>
+        <p className="text-sm text-muted-foreground">Create a new account with admin privileges.</p>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleCreateAdmin} className="space-y-4">
+          <div>
+            <Label htmlFor="new-name">Full Name</Label>
+            <Input id="new-name" placeholder="John Doe" value={newName} onChange={(e) => setNewName(e.target.value)} className="h-12 bg-secondary border-border mt-1" />
+          </div>
+          <div>
+            <Label htmlFor="new-email">Email</Label>
+            <Input id="new-email" type="email" placeholder="admin@example.com" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} required className="h-12 bg-secondary border-border mt-1" />
+          </div>
+          <div>
+            <Label htmlFor="new-password">Password</Label>
+            <Input id="new-password" type="password" placeholder="••••••••" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required minLength={6} className="h-12 bg-secondary border-border mt-1" />
+          </div>
+          <Button type="submit" disabled={creating} className="w-full h-12 text-base font-semibold glow">
+            <UserPlus className="h-4 w-4 mr-2" />
+            {creating ? "Creating..." : "Create Admin Account"}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  );
+};
+
 const AdminDashboard = () => {
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [profiles, setProfiles] = useState<ProfileRow[]>([]);
@@ -212,6 +270,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="bookings">All Bookings</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="admins">Manage Admins</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview">
@@ -309,6 +368,10 @@ const AdminDashboard = () => {
                 </Table>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="admins">
+            <CreateAdminForm />
           </TabsContent>
         </Tabs>
       </div>
