@@ -11,17 +11,29 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Navbar from "@/components/Navbar";
 
-import tennisImg from "@/assets/tennis-card.jpg";
-import basketballImg from "@/assets/basketball-card.jpg";
-import yogaImg from "@/assets/aerial-yoga-card.jpg";
-import pilatesImg from "@/assets/pilates-card.jpg";
+import tennisImg from "@/assets/tennis-court.png";
+import basketballImg from "@/assets/basketball-court.png";
+import yogaImg from "@/assets/aerial-yoga-studio.png";
+import pilatesImg from "@/assets/pilates-studio.png";
 
 const activities = [
-  { slug: "tennis", name: "Tennis Court", image: tennisImg },
-  { slug: "basketball", name: "Basketball Court", image: basketballImg },
-  { slug: "aerial-yoga", name: "Aerial Yoga (Kids)", image: yogaImg },
-  { slug: "pilates", name: "Reformer Pilates", image: pilatesImg },
+  { slug: "tennis", name: "Tennis Court", image: tennisImg, brand: "tennis" as const },
+  { slug: "basketball", name: "Basketball Court", image: basketballImg, brand: "basketball" as const },
+  { slug: "aerial-yoga", name: "Aerial Yoga (Kids)", image: yogaImg, brand: "wellness" as const },
+  { slug: "pilates", name: "Reformer Pilates", image: pilatesImg, brand: "wellness" as const },
 ];
+
+const brandBorder = {
+  tennis: "border-brand-tennis",
+  basketball: "border-brand-basketball",
+  wellness: "border-brand-wellness",
+};
+
+const brandGlow = {
+  tennis: "shadow-[0_0_20px_hsl(212_70%_55%/0.3)]",
+  basketball: "shadow-[0_0_20px_hsl(262_50%_55%/0.3)]",
+  wellness: "shadow-[0_0_20px_hsl(100_22%_60%/0.3)]",
+};
 
 const timeSlots = [
   "08:00", "09:00", "10:00", "11:00", "12:00",
@@ -41,6 +53,8 @@ const BookPage = () => {
   const [phone, setPhone] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
+  const selectedBrand = activities.find(a => a.slug === selectedActivity)?.brand;
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
@@ -51,11 +65,7 @@ const BookPage = () => {
       <div className="min-h-screen">
         <Navbar />
         <div className="flex min-h-screen items-center justify-center px-6 pt-20">
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="text-center"
-          >
+          <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center">
             <CheckCircle2 className="h-20 w-20 text-primary mx-auto mb-6" />
             <h1 className="font-heading text-4xl font-bold text-foreground mb-3">Booking Confirmed!</h1>
             <p className="text-muted-foreground text-lg mb-2">
@@ -90,7 +100,7 @@ const BookPage = () => {
                   className={cn(
                     "relative overflow-hidden rounded-xl border-2 transition-all aspect-[3/4]",
                     selectedActivity === a.slug
-                      ? "border-primary glow"
+                      ? cn(brandBorder[a.brand], brandGlow[a.brand])
                       : "border-border hover:border-muted-foreground/50"
                   )}
                 >
@@ -110,26 +120,13 @@ const BookPage = () => {
               <Label className="text-sm font-medium text-muted-foreground mb-4 block">Select Date</Label>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal h-12",
-                      !date && "text-muted-foreground"
-                    )}
-                  >
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal h-12", !date && "text-muted-foreground")}>
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {date ? format(date, "PPP") : "Pick a date"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={date}
-                    onSelect={setDate}
-                    disabled={(d) => d < new Date()}
-                    initialFocus
-                    className="p-3 pointer-events-auto"
-                  />
+                  <Calendar mode="single" selected={date} onSelect={setDate} disabled={(d) => d < new Date()} initialFocus className="p-3 pointer-events-auto" />
                 </PopoverContent>
               </Popover>
             </div>
@@ -161,38 +158,14 @@ const BookPage = () => {
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="space-y-4">
             <Label className="text-sm font-medium text-muted-foreground mb-4 block">Your Details</Label>
             <div className="grid md:grid-cols-3 gap-4">
-              <Input
-                placeholder="Full Name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                className="h-12 bg-secondary border-border"
-              />
-              <Input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="h-12 bg-secondary border-border"
-              />
-              <Input
-                type="tel"
-                placeholder="Phone"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                required
-                className="h-12 bg-secondary border-border"
-              />
+              <Input placeholder="Full Name" value={name} onChange={(e) => setName(e.target.value)} required className="h-12 bg-secondary border-border" />
+              <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required className="h-12 bg-secondary border-border" />
+              <Input type="tel" placeholder="Phone" value={phone} onChange={(e) => setPhone(e.target.value)} required className="h-12 bg-secondary border-border" />
             </div>
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-            <Button
-              type="submit"
-              disabled={!selectedActivity || !date || !selectedTime || !name || !email || !phone}
-              className="h-14 px-10 text-lg font-bold rounded-xl glow"
-            >
+            <Button type="submit" disabled={!selectedActivity || !date || !selectedTime || !name || !email || !phone} className="h-14 px-10 text-lg font-bold rounded-xl glow">
               Confirm Booking
             </Button>
           </motion.div>
