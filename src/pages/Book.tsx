@@ -178,7 +178,11 @@ const BookPage = () => {
                       !selectedActivity
                         ? "border-border text-muted-foreground/40 cursor-not-allowed opacity-50"
                         : selectedTime === time
-                          ? "border-primary bg-primary/10 text-primary"
+                          ? selectedBrand === "tennis"
+                            ? "border-brand-tennis bg-brand-tennis/10 text-brand-tennis"
+                            : selectedBrand === "wellness"
+                              ? "border-brand-wellness bg-brand-wellness/10 text-brand-wellness"
+                              : "border-brand-basketball bg-brand-basketball/10 text-brand-basketball"
                           : "border-border text-muted-foreground hover:border-muted-foreground/50 hover:text-foreground"
                     )}
                   >
