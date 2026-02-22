@@ -31,6 +31,13 @@ const ACTIVITY_PRICES: Record<string, number> = {
   pilates: 45,
 };
 
+const ALL_CATEGORIES = [
+  { key: "basketball", label: "Basketball" },
+  { key: "pilates", label: "Pilates" },
+  { key: "aerial-yoga", label: "Aerial Yoga" },
+  { key: "tennis", label: "Tennis" },
+];
+
 const CHART_COLORS = [
   "hsl(262, 50%, 55%)",
   "hsl(212, 70%, 55%)",
@@ -296,8 +303,8 @@ const AdminDashboard = () => {
       return isWithinInterval(d, { start, end });
     });
     const grouped: Record<string, number> = {};
-    filtered.forEach(b => { grouped[b.activity_name] = (grouped[b.activity_name] || 0) + 1; });
-    return Object.entries(grouped).map(([name, value]) => ({ name, value }));
+    filtered.forEach(b => { grouped[b.activity] = (grouped[b.activity] || 0) + 1; });
+    return ALL_CATEGORIES.map(c => ({ name: c.label, value: grouped[c.key] || 0 }));
   }, [bookings, bookingRange, bookingCustomDate]);
 
   const revenueByCategoryFiltered = useMemo(() => {
@@ -314,8 +321,8 @@ const AdminDashboard = () => {
       return isWithinInterval(d, { start, end });
     });
     const grouped: Record<string, number> = {};
-    filtered.forEach(b => { grouped[b.activity_name] = (grouped[b.activity_name] || 0) + (ACTIVITY_PRICES[b.activity] || 0); });
-    return Object.entries(grouped).map(([name, value]) => ({ name, value }));
+    filtered.forEach(b => { grouped[b.activity] = (grouped[b.activity] || 0) + (ACTIVITY_PRICES[b.activity] || 0); });
+    return ALL_CATEGORIES.map(c => ({ name: c.label, value: grouped[c.key] || 0 }));
   }, [bookings, revenueRange, bookingCustomDate, revenueCustomRange]);
 
   if (loadingData) {
@@ -426,19 +433,17 @@ const AdminDashboard = () => {
                 <DateRangeFilter value={bookingRange} onChange={setBookingRange} showCustomDate customDate={bookingCustomDate} onCustomDateChange={setBookingCustomDate} />
               </CardHeader>
               <CardContent>
-                {bookingChartData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={bookingChartData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(240, 6%, 18%)" />
-                      <XAxis dataKey="name" tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} />
-                      <YAxis allowDecimals={false} tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} />
-                      <Tooltip contentStyle={{ background: "hsl(240, 8%, 10%)", border: "1px solid hsl(240, 6%, 18%)", borderRadius: 8, color: "hsl(0, 0%, 95%)" }} />
-                      <Bar dataKey="value" name="Bookings" radius={[4, 4, 0, 0]}>
-                        {bookingChartData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                ) : <p className="text-muted-foreground text-center py-12">No bookings for this period.</p>}
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={bookingChartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(240, 6%, 18%)" />
+                    <XAxis dataKey="name" tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} />
+                    <YAxis allowDecimals={false} tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} />
+                    <Tooltip contentStyle={{ background: "hsl(240, 8%, 10%)", border: "1px solid hsl(240, 6%, 18%)", borderRadius: 8, color: "hsl(0, 0%, 95%)" }} />
+                    <Bar dataKey="value" name="Bookings" radius={[4, 4, 0, 0]}>
+                      {bookingChartData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
               </CardContent>
             </Card>
 
@@ -448,19 +453,17 @@ const AdminDashboard = () => {
                 <DateRangeFilter value={revenueRange} onChange={setRevenueRange} showCustomDate customDate={bookingCustomDate} onCustomDateChange={setBookingCustomDate} showCustomRange customRange={revenueCustomRange} onCustomRangeChange={(r) => setRevenueCustomRange({ from: r.from, to: r.to })} />
               </CardHeader>
               <CardContent>
-                {revenueByCategoryFiltered.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={revenueByCategoryFiltered}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(240, 6%, 18%)" />
-                      <XAxis dataKey="name" tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} />
-                      <YAxis tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} />
-                      <Tooltip contentStyle={{ background: "hsl(240, 8%, 10%)", border: "1px solid hsl(240, 6%, 18%)", borderRadius: 8, color: "hsl(0, 0%, 95%)" }} formatter={(v: number) => [`$${v}`, "Revenue"]} />
-                      <Bar dataKey="value" name="Revenue" radius={[4, 4, 0, 0]}>
-                        {revenueByCategoryFiltered.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                ) : <p className="text-muted-foreground text-center py-12">No revenue for this period.</p>}
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={revenueByCategoryFiltered}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(240, 6%, 18%)" />
+                    <XAxis dataKey="name" tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} />
+                    <YAxis tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} />
+                    <Tooltip contentStyle={{ background: "hsl(240, 8%, 10%)", border: "1px solid hsl(240, 6%, 18%)", borderRadius: 8, color: "hsl(0, 0%, 95%)" }} formatter={(v: number) => [`$${v}`, "Revenue"]} />
+                    <Bar dataKey="value" name="Revenue" radius={[4, 4, 0, 0]}>
+                      {revenueByCategoryFiltered.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
               </CardContent>
             </Card>
           </motion.div>
