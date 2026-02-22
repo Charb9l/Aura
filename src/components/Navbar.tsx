@@ -10,8 +10,10 @@ const Navbar = () => {
       className="fixed top-0 left-0 right-0 z-50 glass"
     >
       <div className="container mx-auto flex items-center justify-between px-6 py-4">
-        <Link to="/" className="font-heading text-2xl font-bold tracking-tight text-foreground">
-          COURT<span className="text-gradient">SIDE</span>
+        <Link to="/" className="font-heading font-bold tracking-tight text-foreground">
+          <span className="text-xl font-bold">ELEVATE</span>
+          <br />
+          <span className="text-[10px] font-medium tracking-[0.25em] text-muted-foreground">WELLNESS HUB</span>
         </Link>
         <div className="hidden md:flex items-center gap-8">
           <Link to="/" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
@@ -26,9 +28,9 @@ const Navbar = () => {
         </div>
         <Link
           to="/book"
-          className="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:glow"
+          className="rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:glow"
         >
-          Book a Session
+          Elevate Wellness Hub
         </Link>
       </div>
     </motion.nav>
