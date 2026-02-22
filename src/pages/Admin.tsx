@@ -8,11 +8,12 @@ import { Users, CalendarCheck, TrendingUp, Activity, ShieldCheck, LogIn, UserPlu
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/sonner";
+import AdminNavbar from "@/components/AdminNavbar";
 import Navbar from "@/components/Navbar";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell
@@ -189,6 +190,7 @@ const AdminDashboard = () => {
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [profiles, setProfiles] = useState<ProfileRow[]>([]);
   const [loadingData, setLoadingData] = useState(true);
+  const [activeTab, setActiveTab] = useState("overview");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -206,7 +208,7 @@ const AdminDashboard = () => {
   if (loadingData) {
     return (
       <div className="min-h-screen">
-        <Navbar />
+        <AdminNavbar activeTab={activeTab} onTabChange={setActiveTab} />
         <div className="flex items-center justify-center min-h-screen">
           <p className="text-muted-foreground">Loading...</p>
         </div>
@@ -237,44 +239,86 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen">
-      <Navbar />
+      <AdminNavbar activeTab={activeTab} onTabChange={setActiveTab} />
       <div className="container mx-auto px-6 pt-28 pb-16">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Admin Dashboard</h1>
-          <p className="text-muted-foreground mb-8">Overview of your business metrics.</p>
-        </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
-          {[
-            { label: "Registered Users", value: totalUsers, icon: Users, color: "text-accent" },
-            { label: "Total Bookings", value: totalBookings, icon: CalendarCheck, color: "text-primary" },
-            { label: "Today's Bookings", value: todayBookings, icon: Activity, color: "text-brand-wellness" },
-            { label: "Total Revenue", value: `$${totalRevenue.toLocaleString()}`, icon: TrendingUp, color: "text-brand-tennis" },
-          ].map((stat, i) => (
-            <motion.div key={stat.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-              <Card className="bg-card border-border">
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">{stat.label}</CardTitle>
-                  <stat.icon className={`h-5 w-5 ${stat.color}`} />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold font-heading text-foreground">{stat.value}</div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
+        {/* Dashboard / Overview */}
+        {activeTab === "overview" && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="overview">
+            <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Dashboard</h1>
+            <p className="text-muted-foreground mb-8">Overview of your business metrics.</p>
 
-        <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="bg-secondary">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="bookings">All Bookings</TabsTrigger>
-            <TabsTrigger value="users">Users</TabsTrigger>
-            <TabsTrigger value="admins">Manage Admins</TabsTrigger>
-          </TabsList>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+              {[
+                { label: "Registered Users", value: totalUsers, icon: Users, color: "text-accent" },
+                { label: "Total Bookings", value: totalBookings, icon: CalendarCheck, color: "text-primary" },
+                { label: "Today's Bookings", value: todayBookings, icon: Activity, color: "text-brand-wellness" },
+                { label: "Total Revenue", value: `$${totalRevenue.toLocaleString()}`, icon: TrendingUp, color: "text-brand-tennis" },
+              ].map((stat, i) => (
+                <motion.div key={stat.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
+                  <Card className="bg-card border-border">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground">{stat.label}</CardTitle>
+                      <stat.icon className={`h-5 w-5 ${stat.color}`} />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-3xl font-bold font-heading text-foreground">{stat.value}</div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        )}
 
-          <TabsContent value="overview">
-            <div className="grid lg:grid-cols-2 gap-6">
+        {/* Users */}
+        {activeTab === "users" && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="users">
+            <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Users</h1>
+            <p className="text-muted-foreground mb-8">All registered customers.</p>
+            <Card className="bg-card border-border">
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Phone</TableHead>
+                      <TableHead>Joined</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {profiles.length === 0 ? (
+                      <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-8">No users yet.</TableCell></TableRow>
+                    ) : profiles.map((p) => (
+                      <TableRow key={p.user_id}>
+                        <TableCell className="font-medium">{p.full_name || "—"}</TableCell>
+                        <TableCell>{p.phone || "—"}</TableCell>
+                        <TableCell>{format(new Date(p.created_at), "PPP")}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Admins */}
+        {activeTab === "admins" && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="admins">
+            <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Admins</h1>
+            <p className="text-muted-foreground mb-8">Create and manage admin accounts.</p>
+            <CreateAdminForm />
+          </motion.div>
+        )}
+
+        {/* Reporting */}
+        {activeTab === "reporting" && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="reporting">
+            <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Reporting</h1>
+            <p className="text-muted-foreground mb-8">Detailed booking analytics.</p>
+
+            <div className="grid lg:grid-cols-2 gap-6 mb-6">
               <Card className="bg-card border-border">
                 <CardHeader><CardTitle className="text-lg">Daily Bookings (Last 14 Days)</CardTitle></CardHeader>
                 <CardContent>
@@ -308,10 +352,9 @@ const AdminDashboard = () => {
                 </CardContent>
               </Card>
             </div>
-          </TabsContent>
 
-          <TabsContent value="bookings">
             <Card className="bg-card border-border">
+              <CardHeader><CardTitle className="text-lg">All Bookings</CardTitle></CardHeader>
               <CardContent className="p-0">
                 <Table>
                   <TableHeader>
@@ -341,39 +384,35 @@ const AdminDashboard = () => {
                 </Table>
               </CardContent>
             </Card>
-          </TabsContent>
+          </motion.div>
+        )}
 
-          <TabsContent value="users">
+        {/* Settings */}
+        {activeTab === "settings" && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="settings">
+            <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Settings</h1>
+            <p className="text-muted-foreground mb-8">Configure your application settings.</p>
             <Card className="bg-card border-border">
-              <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Phone</TableHead>
-                      <TableHead>Joined</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {profiles.length === 0 ? (
-                      <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-8">No users yet.</TableCell></TableRow>
-                    ) : profiles.map((p) => (
-                      <TableRow key={p.user_id}>
-                        <TableCell className="font-medium">{p.full_name || "—"}</TableCell>
-                        <TableCell>{p.phone || "—"}</TableCell>
-                        <TableCell>{format(new Date(p.created_at), "PPP")}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+              <CardContent className="py-12 text-center text-muted-foreground">
+                Settings coming soon.
               </CardContent>
             </Card>
-          </TabsContent>
+          </motion.div>
+        )}
 
-          <TabsContent value="admins">
-            <CreateAdminForm />
-          </TabsContent>
-        </Tabs>
+        {/* Promotions */}
+        {activeTab === "promotions" && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="promotions">
+            <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Promotions</h1>
+            <p className="text-muted-foreground mb-8">Manage deals and promotional offers.</p>
+            <Card className="bg-card border-border">
+              <CardContent className="py-12 text-center text-muted-foreground">
+                Promotions coming soon.
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
       </div>
     </div>
   );
