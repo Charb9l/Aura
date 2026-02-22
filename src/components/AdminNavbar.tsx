@@ -52,11 +52,14 @@ const AdminNavbar = ({ activeTab, onTabChange }: AdminNavbarProps) => {
       <div className="container mx-auto flex items-center justify-between px-6 py-4">
         {/* Left: Logo + Dropdown */}
         <div className="flex items-center gap-6">
-          <Link to="/" className="font-heading font-bold tracking-tight text-foreground">
+          <button
+            onClick={() => onTabChange("overview")}
+            className="font-heading font-bold tracking-tight text-foreground cursor-pointer"
+          >
             <span className="text-xl font-bold">ELEVATE</span>
             <br />
             <span className="text-[10px] font-medium tracking-[0.25em] text-muted-foreground">WELLNESS HUB</span>
-          </Link>
+          </button>
 
           {/* Dropdown menu */}
           <div className="relative" ref={menuRef}>
