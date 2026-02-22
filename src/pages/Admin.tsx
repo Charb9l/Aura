@@ -4,10 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { motion } from "framer-motion";
 import { format, subDays, startOfDay } from "date-fns";
-import { Users, CalendarCheck, TrendingUp, Activity, ShieldCheck, LogIn, UserPlus } from "lucide-react";
+import { Users, CalendarCheck, TrendingUp, Activity, ShieldCheck, LogIn, UserPlus, Pencil } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,6 +52,14 @@ interface ProfileRow {
   user_id: string;
   full_name: string | null;
   phone: string | null;
+  created_at: string;
+}
+
+interface UserWithEmail {
+  user_id: string;
+  email: string;
+  full_name: string;
+  phone: string;
   created_at: string;
 }
 
@@ -189,21 +198,68 @@ const CreateAdminForm = () => {
 const AdminDashboard = () => {
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [profiles, setProfiles] = useState<ProfileRow[]>([]);
+  const [allUsers, setAllUsers] = useState<UserWithEmail[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
 
+  // Edit user state
+  const [editUser, setEditUser] = useState<UserWithEmail | null>(null);
+  const [editEmail, setEditEmail] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [editPassword, setEditPassword] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
+
   useEffect(() => {
     const fetchData = async () => {
-      const [bRes, pRes] = await Promise.all([
+      const [bRes, pRes, uRes] = await Promise.all([
         supabase.from("bookings").select("*").order("created_at", { ascending: false }),
         supabase.from("profiles").select("*").order("created_at", { ascending: false }),
+        supabase.functions.invoke("admin-users?action=list"),
       ]);
       if (bRes.data) setBookings(bRes.data);
       if (pRes.data) setProfiles(pRes.data);
+      if (uRes.data?.users) setAllUsers(uRes.data.users);
       setLoadingData(false);
     };
     fetchData();
   }, []);
+
+  const openEditDialog = (u: UserWithEmail) => {
+    setEditUser(u);
+    setEditEmail(u.email);
+    setEditPhone(u.phone || "");
+    setEditPassword("");
+  };
+
+  const handleSaveUser = async () => {
+    if (!editUser) return;
+    setEditSaving(true);
+
+    const body: Record<string, string> = { user_id: editUser.user_id };
+    if (editEmail !== editUser.email) body.email = editEmail;
+    if (editPhone !== (editUser.phone || "")) body.phone = editPhone;
+    if (editPassword) body.password = editPassword;
+
+    const { data, error } = await supabase.functions.invoke("admin-users?action=update", {
+      body,
+    });
+
+    setEditSaving(false);
+    if (error || data?.error) {
+      toast.error(data?.error || error?.message || "Update failed");
+    } else {
+      toast.success("User updated successfully");
+      // Update local state
+      setAllUsers((prev) =>
+        prev.map((u) =>
+          u.user_id === editUser.user_id
+            ? { ...u, email: editEmail || u.email, phone: editPhone }
+            : u
+        )
+      );
+      setEditUser(null);
+    }
+  };
 
   if (loadingData) {
     return (
@@ -291,24 +347,56 @@ const AdminDashboard = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Name</TableHead>
+                      <TableHead>Email</TableHead>
                       <TableHead>Phone</TableHead>
-                      <TableHead>Joined</TableHead>
+                      <TableHead className="w-[80px]">Edit</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {profiles.length === 0 ? (
-                      <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-8">No users yet.</TableCell></TableRow>
-                    ) : profiles.map((p) => (
-                      <TableRow key={p.user_id}>
-                        <TableCell className="font-medium">{p.full_name || "—"}</TableCell>
-                        <TableCell>{p.phone || "—"}</TableCell>
-                        <TableCell>{format(new Date(p.created_at), "PPP")}</TableCell>
+                    {allUsers.length === 0 ? (
+                      <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">No users yet.</TableCell></TableRow>
+                    ) : allUsers.map((u) => (
+                      <TableRow key={u.user_id}>
+                        <TableCell className="font-medium">{u.full_name || "—"}</TableCell>
+                        <TableCell>{u.email}</TableCell>
+                        <TableCell>{u.phone || "—"}</TableCell>
+                        <TableCell>
+                          <Button variant="ghost" size="icon" onClick={() => openEditDialog(u)}>
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
               </CardContent>
             </Card>
+
+            {/* Edit User Dialog */}
+            <Dialog open={!!editUser} onOpenChange={(open) => !open && setEditUser(null)}>
+              <DialogContent className="bg-card border-border">
+                <DialogHeader>
+                  <DialogTitle className="font-heading">Edit User — {editUser?.full_name || editUser?.email}</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 pt-2">
+                  <div>
+                    <Label htmlFor="edit-email">Email</Label>
+                    <Input id="edit-email" type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} className="h-12 bg-secondary border-border mt-1" />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-phone">Phone</Label>
+                    <Input id="edit-phone" type="tel" value={editPhone} onChange={(e) => setEditPhone(e.target.value)} className="h-12 bg-secondary border-border mt-1" />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-password">New Password <span className="text-muted-foreground text-xs">(leave empty to keep current)</span></Label>
+                    <Input id="edit-password" type="password" placeholder="••••••••" value={editPassword} onChange={(e) => setEditPassword(e.target.value)} className="h-12 bg-secondary border-border mt-1" />
+                  </div>
+                  <Button onClick={handleSaveUser} disabled={editSaving} className="w-full h-12 text-base font-semibold glow">
+                    {editSaving ? "Saving..." : "Save Changes"}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
           </motion.div>
         )}
 
