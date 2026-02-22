@@ -39,10 +39,13 @@ const Navbar = () => {
         <div className="flex items-center gap-3">
           {user ? (
             <>
-              <span className="hidden md:inline text-sm text-muted-foreground">
-                <User className="inline h-4 w-4 mr-1" />
+              <Link
+                to="/profile"
+                className="hidden md:flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <User className="h-4 w-4" />
                 {user.user_metadata?.full_name || user.email}
-              </span>
+              </Link>
               <button
                 onClick={handleSignOut}
                 className="rounded-full bg-secondary px-4 py-2.5 text-sm font-medium text-secondary-foreground hover:bg-secondary/80 transition-all flex items-center gap-2"
