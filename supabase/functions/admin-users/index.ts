@@ -46,7 +46,14 @@ Deno.serve(async (req) => {
     }
 
     const url = new URL(req.url);
-    const action = url.searchParams.get("action");
+    let action = url.searchParams.get("action");
+    let body: Record<string, unknown> = {};
+
+    // Parse body once
+    try {
+      body = await req.json();
+      if (!action && body?.action) action = body.action as string;
+    } catch { /* no body */ }
 
     // GET: list users with emails
     if (action === "list" || action === "list-admins") {
@@ -94,7 +101,7 @@ Deno.serve(async (req) => {
 
     // POST: update user
     if (action === "update") {
-      const { user_id, email, phone, password } = await req.json();
+      const { user_id, email, phone, password } = body as Record<string, string>;
 
       if (!user_id) {
         return new Response(JSON.stringify({ error: "user_id required" }), {
