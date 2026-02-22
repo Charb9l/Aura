@@ -234,8 +234,8 @@ const AdminDashboard = () => {
       const [bRes, pRes, uRes, aRes] = await Promise.all([
         supabase.from("bookings").select("*").order("created_at", { ascending: false }),
         supabase.from("profiles").select("*").order("created_at", { ascending: false }),
-        supabase.functions.invoke("admin-users?action=list"),
-        supabase.functions.invoke("admin-users?action=list-admins"),
+        supabase.functions.invoke("admin-users", { body: { action: "list" } }),
+        supabase.functions.invoke("admin-users", { body: { action: "list-admins" } }),
       ]);
       if (bRes.data) setBookings(bRes.data);
       if (pRes.data) setProfiles(pRes.data);
@@ -262,8 +262,8 @@ const AdminDashboard = () => {
     if (editPhone !== (editUser.phone || "")) body.phone = editPhone;
     if (editPassword) body.password = editPassword;
 
-    const { data, error } = await supabase.functions.invoke("admin-users?action=update", {
-      body,
+    const { data, error } = await supabase.functions.invoke("admin-users", {
+      body: { ...body, action: "update" },
     });
 
     setEditSaving(false);
@@ -296,7 +296,7 @@ const AdminDashboard = () => {
       toast.success(`Admin account created for ${newAdminEmail}`);
       setNewAdminName(""); setNewAdminEmail(""); setNewAdminPassword(""); setNewAdminPhone("");
       setShowCreateAdmin(false);
-      const { data: aRes } = await supabase.functions.invoke("admin-users?action=list-admins");
+      const { data: aRes } = await supabase.functions.invoke("admin-users", { body: { action: "list-admins" } });
       if (aRes?.users) setAdminUsers(aRes.users);
     }
   };
