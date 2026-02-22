@@ -16,6 +16,7 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -31,7 +32,7 @@ const Auth = () => {
       email,
       password,
       options: {
-        data: { full_name: fullName },
+        data: { full_name: fullName, phone },
         emailRedirectTo: window.location.origin,
       },
     });
@@ -122,17 +123,31 @@ const Auth = () => {
                 className="space-y-5"
               >
                 {!isLogin && (
-                  <div className="space-y-2">
-                    <Label htmlFor="name" className="text-muted-foreground">Full Name</Label>
-                    <Input
-                      id="name"
-                      placeholder="Your full name"
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      required={!isLogin}
-                      className="h-12 bg-secondary border-border"
-                    />
-                  </div>
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="name" className="text-muted-foreground">Full Name</Label>
+                      <Input
+                        id="name"
+                        placeholder="Your full name"
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        required={!isLogin}
+                        className="h-12 bg-secondary border-border"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="phone" className="text-muted-foreground">Phone Number</Label>
+                      <Input
+                        id="phone"
+                        type="tel"
+                        placeholder="+961 XX XXX XXX"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        required={!isLogin}
+                        className="h-12 bg-secondary border-border"
+                      />
+                    </div>
+                  </>
                 )}
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-muted-foreground">Email</Label>
