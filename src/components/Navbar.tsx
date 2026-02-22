@@ -1,10 +1,12 @@
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
-import { LogOut, User } from "lucide-react";
+import { useAdminRole } from "@/hooks/useAdminRole";
+import { LogOut, User, ShieldCheck } from "lucide-react";
 
 const Navbar = () => {
   const { user, signOut } = useAuth();
+  const { isAdmin } = useAdminRole();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -38,6 +40,12 @@ const Navbar = () => {
           <Link to="/loyalty" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             Loyalty Program
           </Link>
+          {isAdmin && (
+            <Link to="/admin" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
+              <ShieldCheck className="h-4 w-4" />
+              Admin
+            </Link>
+          )}
         </div>
         <div className="flex items-center gap-3">
           {user ? (
