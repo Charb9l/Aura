@@ -1,13 +1,16 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import heroBg from "@/assets/hero-bg.jpg";
+import heroBg from "@/assets/basketball-court.png";
+import beirutLogo from "@/assets/beirut-logo.png";
+import hardcourtLogo from "@/assets/hardcourt-logo.png";
+import enformeLogo from "@/assets/enforme-logo.png";
 
 const HeroSection = () => {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       <div className="absolute inset-0">
-        <img src={heroBg} alt="Sports facility" className="h-full w-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/50 to-background" />
+        <img src={heroBg} alt="Beirut Sports Club basketball court" className="h-full w-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background" />
       </div>
 
       <div className="relative z-10 container mx-auto px-6 text-center">
@@ -16,6 +19,18 @@ const HeroSection = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
         >
+          {/* Brand logos */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="flex items-center justify-center gap-6 md:gap-10 mb-10"
+          >
+            <img src={beirutLogo} alt="Beirut Sports Club" className="h-16 md:h-24 w-auto drop-shadow-2xl" />
+            <img src={hardcourtLogo} alt="Hard Court Tennis" className="h-16 md:h-24 w-auto drop-shadow-2xl" />
+            <img src={enformeLogo} alt="En Forme Studio" className="h-16 md:h-24 w-auto drop-shadow-2xl" />
+          </motion.div>
+
           <h1 className="font-heading text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight text-foreground mb-6">
             YOUR GAME.
             <br />

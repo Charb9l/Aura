@@ -9,13 +9,20 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import Navbar from "@/components/Navbar";
 
-import tennisImg from "@/assets/tennis-card.jpg";
-import basketballImg from "@/assets/basketball-card.jpg";
+import tennisImg from "@/assets/tennis-court.png";
+import basketballImg from "@/assets/basketball-court.png";
+import hardcourtLogo from "@/assets/hardcourt-logo.png";
+import beirutLogo from "@/assets/beirut-logo.png";
 
 const sports = [
-  { slug: "tennis", name: "Tennis Academy", image: tennisImg, description: "Master your strokes with professional coaching. Programs for beginners to advanced players." },
-  { slug: "basketball", name: "Basketball Academy", image: basketballImg, description: "Develop your game with elite trainers. Skill-building, team play, and competitive preparation." },
+  { slug: "tennis", name: "Hard Court Tennis Academy", image: tennisImg, logo: hardcourtLogo, brand: "tennis" as const, description: "Master your strokes with professional coaching on our blue hard courts." },
+  { slug: "basketball", name: "Beirut Basketball Academy", image: basketballImg, logo: beirutLogo, brand: "basketball" as const, description: "Develop your game with elite trainers at Beirut Sports Club." },
 ];
+
+const brandBorder = {
+  tennis: "border-brand-tennis shadow-[0_0_20px_hsl(212_70%_55%/0.3)]",
+  basketball: "border-brand-basketball shadow-[0_0_20px_hsl(262_50%_55%/0.3)]",
+};
 
 const AcademyPage = () => {
   const [searchParams] = useSearchParams();
@@ -77,13 +84,16 @@ const AcademyPage = () => {
                   className={cn(
                     "relative overflow-hidden rounded-xl border-2 transition-all text-left",
                     selectedSport === s.slug
-                      ? "border-primary glow"
+                      ? brandBorder[s.brand]
                       : "border-border hover:border-muted-foreground/50"
                   )}
                 >
                   <div className="aspect-video overflow-hidden">
                     <img src={s.image} alt={s.name} className="h-full w-full object-cover" />
                     <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
+                  </div>
+                  <div className="absolute top-3 right-3">
+                    <img src={s.logo} alt={s.name} className="h-10 w-10 rounded-full object-cover shadow-lg" />
                   </div>
                   <div className="absolute bottom-0 left-0 right-0 p-5">
                     <h3 className="font-heading text-xl font-bold text-foreground mb-1">{s.name}</h3>

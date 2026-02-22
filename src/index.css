@@ -6,50 +6,55 @@
 
 @layer base {
   :root {
-    --background: 160 10% 6%;
+    --background: 240 10% 6%;
     --foreground: 0 0% 95%;
 
-    --card: 160 8% 10%;
+    --card: 240 8% 10%;
     --card-foreground: 0 0% 95%;
 
-    --popover: 160 8% 10%;
+    --popover: 240 8% 10%;
     --popover-foreground: 0 0% 95%;
 
-    --primary: 142 72% 50%;
-    --primary-foreground: 160 10% 6%;
+    --primary: 262 50% 55%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 160 6% 16%;
+    --secondary: 240 6% 16%;
     --secondary-foreground: 0 0% 90%;
 
-    --muted: 160 6% 14%;
-    --muted-foreground: 160 5% 55%;
+    --muted: 240 6% 14%;
+    --muted-foreground: 240 5% 55%;
 
-    --accent: 142 72% 50%;
-    --accent-foreground: 160 10% 6%;
+    --accent: 212 70% 55%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 160 6% 18%;
-    --input: 160 6% 18%;
-    --ring: 142 72% 50%;
+    --border: 240 6% 18%;
+    --input: 240 6% 18%;
+    --ring: 262 50% 55%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 160 8% 8%;
+    --sidebar-background: 240 8% 8%;
     --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 142 72% 50%;
-    --sidebar-primary-foreground: 160 10% 6%;
-    --sidebar-accent: 160 6% 14%;
+    --sidebar-primary: 262 50% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 6% 14%;
     --sidebar-accent-foreground: 0 0% 90%;
-    --sidebar-border: 160 6% 18%;
-    --sidebar-ring: 142 72% 50%;
+    --sidebar-border: 240 6% 18%;
+    --sidebar-ring: 262 50% 55%;
 
     --font-heading: 'Space Grotesk', sans-serif;
     --font-body: 'Inter', sans-serif;
 
-    --glow-primary: 0 0 30px hsl(142 72% 50% / 0.3);
-    --glow-primary-lg: 0 0 60px hsl(142 72% 50% / 0.2);
+    /* Brand colors */
+    --brand-basketball: 262 50% 55%;
+    --brand-tennis: 212 70% 55%;
+    --brand-wellness: 100 22% 60%;
+
+    --glow-primary: 0 0 30px hsl(262 50% 55% / 0.3);
+    --glow-primary-lg: 0 0 60px hsl(262 50% 55% / 0.2);
   }
 }
 
@@ -71,7 +76,12 @@
 @layer utilities {
   .text-gradient {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, hsl(142 72% 50%), hsl(142 72% 70%));
+    background-image: linear-gradient(135deg, hsl(262 50% 55%), hsl(212 70% 55%));
+  }
+
+  .text-gradient-wellness {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, hsl(100 22% 60%), hsl(100 30% 70%));
   }
 
   .glow {
@@ -80,6 +90,14 @@
 
   .glow-lg {
     box-shadow: var(--glow-primary-lg);
+  }
+
+  .glow-tennis {
+    box-shadow: 0 0 30px hsl(212 70% 55% / 0.3);
+  }
+
+  .glow-wellness {
+    box-shadow: 0 0 30px hsl(100 22% 60% / 0.3);
   }
 
   .glass {

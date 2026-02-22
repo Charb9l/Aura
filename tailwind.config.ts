@@ -51,6 +51,11 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        brand: {
+          basketball: "hsl(var(--brand-basketball))",
+          tennis: "hsl(var(--brand-tennis))",
+          wellness: "hsl(var(--brand-wellness))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",

@@ -3,37 +3,53 @@ import HeroSection from "@/components/HeroSection";
 import ActivityCard from "@/components/ActivityCard";
 import { motion } from "framer-motion";
 
-import tennisImg from "@/assets/tennis-card.jpg";
-import basketballImg from "@/assets/basketball-card.jpg";
-import yogaImg from "@/assets/aerial-yoga-card.jpg";
-import pilatesImg from "@/assets/pilates-card.jpg";
+import tennisCourtImg from "@/assets/tennis-court.png";
+import basketballCourtImg from "@/assets/basketball-court.png";
+import yogaImg from "@/assets/aerial-yoga-studio.png";
+import pilatesImg from "@/assets/pilates-studio.png";
+
+import hardcourtLogo from "@/assets/hardcourt-logo.png";
+import beirutLogo from "@/assets/beirut-logo.png";
+import enformeLogo from "@/assets/enforme-logo.png";
 
 const activities = [
   {
     title: "Tennis Court",
-    description: "Indoor & outdoor courts with premium surfaces. Singles or doubles.",
-    image: tennisImg,
+    subtitle: "Hard Court",
+    description: "Blue hard courts with premium surfaces. Singles or doubles.",
+    image: tennisCourtImg,
+    logo: hardcourtLogo,
     slug: "tennis",
     hasAcademy: true,
+    brandColor: "tennis" as const,
   },
   {
     title: "Basketball Court",
+    subtitle: "Beirut Sports Club",
     description: "Full-size courts with pro-grade flooring. Open play or team bookings.",
-    image: basketballImg,
+    image: basketballCourtImg,
+    logo: beirutLogo,
     slug: "basketball",
     hasAcademy: true,
+    brandColor: "basketball" as const,
   },
   {
     title: "Aerial Yoga — Kids",
+    subtitle: "En Forme",
     description: "Fun, safe aerial sessions designed for children ages 5–12.",
     image: yogaImg,
+    logo: enformeLogo,
     slug: "aerial-yoga",
+    brandColor: "wellness" as const,
   },
   {
     title: "Reformer Pilates",
+    subtitle: "En Forme",
     description: "Precision training on state-of-the-art reformer machines.",
     image: pilatesImg,
+    logo: enformeLogo,
     slug: "pilates",
+    brandColor: "wellness" as const,
   },
 ];
 
