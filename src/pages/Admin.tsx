@@ -1,14 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { motion } from "framer-motion";
-import { format, subDays, startOfDay } from "date-fns";
-import { Users, CalendarCheck, TrendingUp, Activity, ShieldCheck, LogIn, UserPlus, Pencil } from "lucide-react";
+import { format, subDays, startOfDay, startOfWeek, startOfMonth, endOfDay, isWithinInterval, parseISO } from "date-fns";
+import { CalendarCheck, TrendingUp, ShieldCheck, LogIn, UserPlus, Pencil, DollarSign } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -261,6 +265,60 @@ const AdminDashboard = () => {
     }
   };
 
+  // Date range state for charts (must be before early returns)
+  const [bookingRange, setBookingRange] = useState<string>("today");
+  const [revenueRange, setRevenueRange] = useState<string>("daily");
+  const [bookingCustomDate, setBookingCustomDate] = useState<Date | undefined>(new Date());
+  const [revenueCustomRange, setRevenueCustomRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: subDays(new Date(), 6), to: new Date() });
+
+  const todayStr = format(new Date(), "yyyy-MM-dd");
+  const dailyRevenue = bookings.filter(b => b.booking_date === todayStr).reduce((sum, b) => sum + (ACTIVITY_PRICES[b.activity] || 0), 0);
+  const totalRevenue = bookings.reduce((sum, b) => sum + (ACTIVITY_PRICES[b.activity] || 0), 0);
+
+  const revenueByCategoryData = useMemo(() => {
+    const grouped: Record<string, number> = {};
+    bookings.forEach(b => {
+      grouped[b.activity_name] = (grouped[b.activity_name] || 0) + (ACTIVITY_PRICES[b.activity] || 0);
+    });
+    return Object.entries(grouped).map(([name, value]) => ({ name, value }));
+  }, [bookings]);
+
+  const bookingChartData = useMemo(() => {
+    const now = new Date();
+    let start: Date, end: Date;
+    if (bookingRange === "today") { start = startOfDay(now); end = endOfDay(now); }
+    else if (bookingRange === "weekly") { start = startOfWeek(now, { weekStartsOn: 1 }); end = endOfDay(now); }
+    else if (bookingRange === "monthly") { start = startOfMonth(now); end = endOfDay(now); }
+    else if (bookingRange === "custom" && bookingCustomDate) { start = startOfDay(bookingCustomDate); end = endOfDay(bookingCustomDate); }
+    else { start = startOfDay(now); end = endOfDay(now); }
+    const filtered = bookings.filter(b => {
+      const d = parseISO(b.booking_date);
+      return isWithinInterval(d, { start, end });
+    });
+    const grouped: Record<string, number> = {};
+    filtered.forEach(b => { grouped[b.activity_name] = (grouped[b.activity_name] || 0) + 1; });
+    return Object.entries(grouped).map(([name, value]) => ({ name, value }));
+  }, [bookings, bookingRange, bookingCustomDate]);
+
+  const revenueChartData = useMemo(() => {
+    let start: Date, end: Date;
+    if (revenueRange === "daily") { start = subDays(new Date(), 13); end = new Date(); }
+    else if (revenueRange === "weekly") { start = subDays(new Date(), 6 * 7); end = new Date(); }
+    else if (revenueRange === "monthly") { start = subDays(new Date(), 29); end = new Date(); }
+    else if (revenueRange === "custom-range" && revenueCustomRange.from && revenueCustomRange.to) { start = revenueCustomRange.from; end = revenueCustomRange.to; }
+    else { start = subDays(new Date(), 13); end = new Date(); }
+    const days: { date: string; revenue: number }[] = [];
+    let current = startOfDay(start);
+    const endDay = startOfDay(end);
+    while (current <= endDay) {
+      const dateStr = format(current, "yyyy-MM-dd");
+      const dayRev = bookings.filter(b => b.booking_date === dateStr).reduce((sum, b) => sum + (ACTIVITY_PRICES[b.activity] || 0), 0);
+      days.push({ date: format(current, "MMM dd"), revenue: dayRev });
+      current = new Date(current.getTime() + 86400000);
+    }
+    return days;
+  }, [bookings, revenueRange, revenueCustomRange]);
+
   if (loadingData) {
     return (
       <div className="min-h-screen">
@@ -272,26 +330,64 @@ const AdminDashboard = () => {
     );
   }
 
-  const totalUsers = profiles.length;
-  const totalBookings = bookings.length;
-  const totalRevenue = bookings.reduce((sum, b) => sum + (ACTIVITY_PRICES[b.activity] || 0), 0);
-
-  const categoryData = Object.entries(
-    bookings.reduce<Record<string, number>>((acc, b) => {
-      acc[b.activity_name] = (acc[b.activity_name] || 0) + 1;
-      return acc;
-    }, {})
-  ).map(([name, value]) => ({ name, value }));
-
-  const last14 = Array.from({ length: 14 }, (_, i) => {
-    const d = startOfDay(subDays(new Date(), 13 - i));
-    const dateStr = format(d, "yyyy-MM-dd");
-    const count = bookings.filter(b => b.booking_date === dateStr).length;
-    return { date: format(d, "MMM dd"), count };
-  });
-
-  const todayStr = format(new Date(), "yyyy-MM-dd");
-  const todayBookings = bookings.filter(b => b.booking_date === todayStr).length;
+  const DateRangeFilter = ({ value, onChange, showCustomDate, customDate, onCustomDateChange, showCustomRange, customRange, onCustomRangeChange }: {
+    value: string; onChange: (v: string) => void;
+    showCustomDate?: boolean; customDate?: Date; onCustomDateChange?: (d: Date | undefined) => void;
+    showCustomRange?: boolean; customRange?: { from?: Date; to?: Date }; onCustomRangeChange?: (r: { from?: Date; to?: Date }) => void;
+  }) => (
+    <div className="flex items-center gap-2 flex-wrap">
+      <Select value={value} onValueChange={onChange}>
+        <SelectTrigger className="w-[140px] h-9 bg-secondary border-border text-sm">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="today">Today</SelectItem>
+          <SelectItem value="weekly">This Week</SelectItem>
+          <SelectItem value="monthly">This Month</SelectItem>
+          {showCustomDate && <SelectItem value="custom">Custom Date</SelectItem>}
+          {showCustomRange && <SelectItem value="custom-range">Custom Range</SelectItem>}
+        </SelectContent>
+      </Select>
+      {showCustomDate && value === "custom" && (
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" size="sm" className={cn("h-9 text-sm", !customDate && "text-muted-foreground")}>
+              <CalendarCheck className="h-3.5 w-3.5 mr-1.5" />
+              {customDate ? format(customDate, "MMM dd, yyyy") : "Pick date"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar mode="single" selected={customDate} onSelect={onCustomDateChange} initialFocus className={cn("p-3 pointer-events-auto")} />
+          </PopoverContent>
+        </Popover>
+      )}
+      {showCustomRange && value === "custom-range" && (
+        <div className="flex items-center gap-1.5">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className={cn("h-9 text-sm", !customRange?.from && "text-muted-foreground")}>
+                {customRange?.from ? format(customRange.from, "MMM dd") : "From"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar mode="single" selected={customRange?.from} onSelect={(d) => onCustomRangeChange?.({ ...customRange, from: d })} initialFocus className={cn("p-3 pointer-events-auto")} />
+            </PopoverContent>
+          </Popover>
+          <span className="text-muted-foreground text-xs">→</span>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className={cn("h-9 text-sm", !customRange?.to && "text-muted-foreground")}>
+                {customRange?.to ? format(customRange.to, "MMM dd") : "To"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar mode="single" selected={customRange?.to} onSelect={(d) => onCustomRangeChange?.({ ...customRange, to: d })} initialFocus className={cn("p-3 pointer-events-auto")} />
+            </PopoverContent>
+          </Popover>
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div className="min-h-screen">
@@ -302,37 +398,86 @@ const AdminDashboard = () => {
         {activeTab === "overview" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="overview">
             <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Dashboard</h1>
-            <p className="text-muted-foreground mb-8">Overview of your business metrics.</p>
+            <p className="text-muted-foreground mb-8">Revenue overview and booking analytics.</p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
-              {[
-                { label: "Registered Users", value: totalUsers, icon: Users, color: "text-accent", link: "users" },
-                { label: "Total Bookings", value: totalBookings, icon: CalendarCheck, color: "text-primary", link: null },
-                { label: "Today's Bookings", value: todayBookings, icon: Activity, color: "text-brand-wellness", link: null },
-                { label: "Total Revenue", value: `$${totalRevenue.toLocaleString()}`, icon: TrendingUp, color: "text-brand-tennis", link: null },
-              ].map((stat, i) => (
-                <motion.div key={stat.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-                  <Card className="bg-card border-border">
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                      {stat.link ? (
-                        <CardTitle
-                          className="text-sm font-medium text-muted-foreground hover:text-foreground hover:underline cursor-pointer transition-colors"
-                          onClick={() => setActiveTab(stat.link)}
-                        >
-                          {stat.label}
-                        </CardTitle>
-                      ) : (
-                        <CardTitle className="text-sm font-medium text-muted-foreground">{stat.label}</CardTitle>
-                      )}
-                      <stat.icon className={`h-5 w-5 ${stat.color}`} />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-3xl font-bold font-heading text-foreground">{stat.value}</div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+                <Card className="bg-card border-border">
+                  <CardHeader className="flex flex-row items-center justify-between pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">Today's Revenue</CardTitle>
+                    <DollarSign className="h-5 w-5 text-brand-tennis" />
+                  </CardHeader>
+                  <CardContent><div className="text-3xl font-bold font-heading text-foreground">${dailyRevenue.toLocaleString()}</div></CardContent>
+                </Card>
+              </motion.div>
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
+                <Card className="bg-card border-border">
+                  <CardHeader className="flex flex-row items-center justify-between pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">Total Revenue</CardTitle>
+                    <TrendingUp className="h-5 w-5 text-primary" />
+                  </CardHeader>
+                  <CardContent><div className="text-3xl font-bold font-heading text-foreground">${totalRevenue.toLocaleString()}</div></CardContent>
+                </Card>
+              </motion.div>
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+                <Card className="bg-card border-border">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">Revenue per Category</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-1.5">
+                    {revenueByCategoryData.length > 0 ? revenueByCategoryData.map((c, i) => (
+                      <div key={c.name} className="flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-2">
+                          <div className="h-2.5 w-2.5 rounded-full" style={{ background: CHART_COLORS[i % CHART_COLORS.length] }} />
+                          <span className="text-foreground">{c.name}</span>
+                        </div>
+                        <span className="font-semibold text-foreground">${c.value.toLocaleString()}</span>
+                      </div>
+                    )) : <p className="text-muted-foreground text-sm">No data yet.</p>}
+                  </CardContent>
+                </Card>
+              </motion.div>
             </div>
+
+            <Card className="bg-card border-border mb-6">
+              <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <CardTitle className="text-lg">Bookings by Category</CardTitle>
+                <DateRangeFilter value={bookingRange} onChange={setBookingRange} showCustomDate customDate={bookingCustomDate} onCustomDateChange={setBookingCustomDate} />
+              </CardHeader>
+              <CardContent>
+                {bookingChartData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={bookingChartData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(240, 6%, 18%)" />
+                      <XAxis dataKey="name" tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} />
+                      <YAxis allowDecimals={false} tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} />
+                      <Tooltip contentStyle={{ background: "hsl(240, 8%, 10%)", border: "1px solid hsl(240, 6%, 18%)", borderRadius: 8, color: "hsl(0, 0%, 95%)" }} />
+                      <Bar dataKey="value" name="Bookings" radius={[4, 4, 0, 0]}>
+                        {bookingChartData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : <p className="text-muted-foreground text-center py-12">No bookings for this period.</p>}
+              </CardContent>
+            </Card>
+
+            <Card className="bg-card border-border">
+              <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <CardTitle className="text-lg">Daily Revenue</CardTitle>
+                <DateRangeFilter value={revenueRange} onChange={setRevenueRange} showCustomRange customRange={revenueCustomRange} onCustomRangeChange={(r) => setRevenueCustomRange({ from: r.from, to: r.to })} />
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={revenueChartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(240, 6%, 18%)" />
+                    <XAxis dataKey="date" tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} />
+                    <YAxis tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} />
+                    <Tooltip contentStyle={{ background: "hsl(240, 8%, 10%)", border: "1px solid hsl(240, 6%, 18%)", borderRadius: 8, color: "hsl(0, 0%, 95%)" }} formatter={(v: number) => [`$${v}`, "Revenue"]} />
+                    <Bar dataKey="revenue" fill="hsl(262, 50%, 55%)" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
           </motion.div>
         )}
 
@@ -417,15 +562,15 @@ const AdminDashboard = () => {
 
             <div className="grid lg:grid-cols-2 gap-6 mb-6">
               <Card className="bg-card border-border">
-                <CardHeader><CardTitle className="text-lg">Daily Bookings (Last 14 Days)</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-lg">Daily Revenue</CardTitle></CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={280}>
-                    <BarChart data={last14}>
+                    <BarChart data={revenueChartData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(240, 6%, 18%)" />
                       <XAxis dataKey="date" tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} />
-                      <YAxis allowDecimals={false} tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} />
-                      <Tooltip contentStyle={{ background: "hsl(240, 8%, 10%)", border: "1px solid hsl(240, 6%, 18%)", borderRadius: 8, color: "hsl(0, 0%, 95%)" }} />
-                      <Bar dataKey="count" fill="hsl(262, 50%, 55%)" radius={[4, 4, 0, 0]} />
+                      <YAxis tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} />
+                      <Tooltip contentStyle={{ background: "hsl(240, 8%, 10%)", border: "1px solid hsl(240, 6%, 18%)", borderRadius: 8, color: "hsl(0, 0%, 95%)" }} formatter={(v: number) => [`$${v}`, "Revenue"]} />
+                      <Bar dataKey="revenue" fill="hsl(262, 50%, 55%)" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </CardContent>
@@ -434,11 +579,11 @@ const AdminDashboard = () => {
               <Card className="bg-card border-border">
                 <CardHeader><CardTitle className="text-lg">Bookings by Category</CardTitle></CardHeader>
                 <CardContent className="flex items-center justify-center">
-                  {categoryData.length > 0 ? (
+                  {bookingChartData.length > 0 ? (
                     <ResponsiveContainer width="100%" height={280}>
                       <PieChart>
-                        <Pie data={categoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}>
-                          {categoryData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                        <Pie data={bookingChartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}>
+                          {bookingChartData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
                         </Pie>
                         <Tooltip contentStyle={{ background: "hsl(240, 8%, 10%)", border: "1px solid hsl(240, 6%, 18%)", borderRadius: 8, color: "hsl(0, 0%, 95%)" }} />
                       </PieChart>
