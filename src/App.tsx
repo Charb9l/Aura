@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import BookPage from "./pages/Book";
 import AcademyPage from "./pages/Academy";
 import AuthPage from "./pages/Auth";
+import ResetPasswordPage from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ const App = () => (
             <Route path="/book" element={<BookPage />} />
             <Route path="/academy" element={<AcademyPage />} />
             <Route path="/auth" element={<AuthPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
