@@ -267,7 +267,7 @@ const AdminDashboard = () => {
 
   // Date range state for charts (must be before early returns)
   const [bookingRange, setBookingRange] = useState<string>("today");
-  const [revenueRange, setRevenueRange] = useState<string>("daily");
+  const [revenueRange, setRevenueRange] = useState<string>("today");
   const [bookingCustomDate, setBookingCustomDate] = useState<Date | undefined>(new Date());
   const [revenueCustomRange, setRevenueCustomRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: subDays(new Date(), 6), to: new Date() });
 
@@ -300,24 +300,23 @@ const AdminDashboard = () => {
     return Object.entries(grouped).map(([name, value]) => ({ name, value }));
   }, [bookings, bookingRange, bookingCustomDate]);
 
-  const revenueChartData = useMemo(() => {
+  const revenueByCategoryFiltered = useMemo(() => {
+    const now = new Date();
     let start: Date, end: Date;
-    if (revenueRange === "daily") { start = subDays(new Date(), 13); end = new Date(); }
-    else if (revenueRange === "weekly") { start = subDays(new Date(), 6 * 7); end = new Date(); }
-    else if (revenueRange === "monthly") { start = subDays(new Date(), 29); end = new Date(); }
-    else if (revenueRange === "custom-range" && revenueCustomRange.from && revenueCustomRange.to) { start = revenueCustomRange.from; end = revenueCustomRange.to; }
-    else { start = subDays(new Date(), 13); end = new Date(); }
-    const days: { date: string; revenue: number }[] = [];
-    let current = startOfDay(start);
-    const endDay = startOfDay(end);
-    while (current <= endDay) {
-      const dateStr = format(current, "yyyy-MM-dd");
-      const dayRev = bookings.filter(b => b.booking_date === dateStr).reduce((sum, b) => sum + (ACTIVITY_PRICES[b.activity] || 0), 0);
-      days.push({ date: format(current, "MMM dd"), revenue: dayRev });
-      current = new Date(current.getTime() + 86400000);
-    }
-    return days;
-  }, [bookings, revenueRange, revenueCustomRange]);
+    if (revenueRange === "today") { start = startOfDay(now); end = endOfDay(now); }
+    else if (revenueRange === "weekly") { start = startOfWeek(now, { weekStartsOn: 1 }); end = endOfDay(now); }
+    else if (revenueRange === "monthly") { start = startOfMonth(now); end = endOfDay(now); }
+    else if (revenueRange === "custom" && bookingCustomDate) { start = startOfDay(bookingCustomDate); end = endOfDay(bookingCustomDate); }
+    else if (revenueRange === "custom-range" && revenueCustomRange.from && revenueCustomRange.to) { start = startOfDay(revenueCustomRange.from); end = endOfDay(revenueCustomRange.to); }
+    else { start = startOfDay(now); end = endOfDay(now); }
+    const filtered = bookings.filter(b => {
+      const d = parseISO(b.booking_date);
+      return isWithinInterval(d, { start, end });
+    });
+    const grouped: Record<string, number> = {};
+    filtered.forEach(b => { grouped[b.activity_name] = (grouped[b.activity_name] || 0) + (ACTIVITY_PRICES[b.activity] || 0); });
+    return Object.entries(grouped).map(([name, value]) => ({ name, value }));
+  }, [bookings, revenueRange, bookingCustomDate, revenueCustomRange]);
 
   if (loadingData) {
     return (
@@ -400,7 +399,7 @@ const AdminDashboard = () => {
             <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Dashboard</h1>
             <p className="text-muted-foreground mb-8">Revenue overview and booking analytics.</p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
                 <Card className="bg-card border-border">
                   <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -417,24 +416,6 @@ const AdminDashboard = () => {
                     <TrendingUp className="h-5 w-5 text-primary" />
                   </CardHeader>
                   <CardContent><div className="text-3xl font-bold font-heading text-foreground">${totalRevenue.toLocaleString()}</div></CardContent>
-                </Card>
-              </motion.div>
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-                <Card className="bg-card border-border">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">Revenue per Category</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-1.5">
-                    {revenueByCategoryData.length > 0 ? revenueByCategoryData.map((c, i) => (
-                      <div key={c.name} className="flex items-center justify-between text-sm">
-                        <div className="flex items-center gap-2">
-                          <div className="h-2.5 w-2.5 rounded-full" style={{ background: CHART_COLORS[i % CHART_COLORS.length] }} />
-                          <span className="text-foreground">{c.name}</span>
-                        </div>
-                        <span className="font-semibold text-foreground">${c.value.toLocaleString()}</span>
-                      </div>
-                    )) : <p className="text-muted-foreground text-sm">No data yet.</p>}
-                  </CardContent>
                 </Card>
               </motion.div>
             </div>
@@ -463,19 +444,23 @@ const AdminDashboard = () => {
 
             <Card className="bg-card border-border">
               <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <CardTitle className="text-lg">Daily Revenue</CardTitle>
-                <DateRangeFilter value={revenueRange} onChange={setRevenueRange} showCustomRange customRange={revenueCustomRange} onCustomRangeChange={(r) => setRevenueCustomRange({ from: r.from, to: r.to })} />
+                <CardTitle className="text-lg">Revenue</CardTitle>
+                <DateRangeFilter value={revenueRange} onChange={setRevenueRange} showCustomDate customDate={bookingCustomDate} onCustomDateChange={setBookingCustomDate} showCustomRange customRange={revenueCustomRange} onCustomRangeChange={(r) => setRevenueCustomRange({ from: r.from, to: r.to })} />
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={revenueChartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(240, 6%, 18%)" />
-                    <XAxis dataKey="date" tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} />
-                    <YAxis tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} />
-                    <Tooltip contentStyle={{ background: "hsl(240, 8%, 10%)", border: "1px solid hsl(240, 6%, 18%)", borderRadius: 8, color: "hsl(0, 0%, 95%)" }} formatter={(v: number) => [`$${v}`, "Revenue"]} />
-                    <Bar dataKey="revenue" fill="hsl(262, 50%, 55%)" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+                {revenueByCategoryFiltered.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={revenueByCategoryFiltered}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(240, 6%, 18%)" />
+                      <XAxis dataKey="name" tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} />
+                      <YAxis tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} />
+                      <Tooltip contentStyle={{ background: "hsl(240, 8%, 10%)", border: "1px solid hsl(240, 6%, 18%)", borderRadius: 8, color: "hsl(0, 0%, 95%)" }} formatter={(v: number) => [`$${v}`, "Revenue"]} />
+                      <Bar dataKey="value" name="Revenue" radius={[4, 4, 0, 0]}>
+                        {revenueByCategoryFiltered.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : <p className="text-muted-foreground text-center py-12">No revenue for this period.</p>}
               </CardContent>
             </Card>
           </motion.div>
@@ -562,15 +547,17 @@ const AdminDashboard = () => {
 
             <div className="grid lg:grid-cols-2 gap-6 mb-6">
               <Card className="bg-card border-border">
-                <CardHeader><CardTitle className="text-lg">Daily Revenue</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-lg">Revenue by Category</CardTitle></CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={280}>
-                    <BarChart data={revenueChartData}>
+                    <BarChart data={revenueByCategoryFiltered}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(240, 6%, 18%)" />
-                      <XAxis dataKey="date" tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} />
+                      <XAxis dataKey="name" tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} />
                       <YAxis tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} />
                       <Tooltip contentStyle={{ background: "hsl(240, 8%, 10%)", border: "1px solid hsl(240, 6%, 18%)", borderRadius: 8, color: "hsl(0, 0%, 95%)" }} formatter={(v: number) => [`$${v}`, "Revenue"]} />
-                      <Bar dataKey="revenue" fill="hsl(262, 50%, 55%)" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="value" name="Revenue" radius={[4, 4, 0, 0]}>
+                        {revenueByCategoryFiltered.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                      </Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 </CardContent>
