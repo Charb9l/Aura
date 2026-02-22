@@ -13,7 +13,7 @@ async function verifyAdmin(req: Request) {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-  const callerClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_PUBLISHABLE_KEY")!, {
+  const callerClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
     global: { headers: { Authorization: authHeader } },
   });
   const { data: { user } } = await callerClient.auth.getUser();
@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
     const action = url.searchParams.get("action");
 
     // GET: list users with emails
-    if (req.method === "GET" && action === "list") {
+    if (action === "list") {
       const { data: { users }, error } = await adminClient.auth.admin.listUsers({ perPage: 1000 });
       if (error) {
         return new Response(JSON.stringify({ error: error.message }), {
@@ -79,7 +79,7 @@ Deno.serve(async (req) => {
     }
 
     // POST: update user
-    if (req.method === "POST" && action === "update") {
+    if (action === "update") {
       const { user_id, email, phone, password } = await req.json();
 
       if (!user_id) {
