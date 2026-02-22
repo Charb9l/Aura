@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
     const action = url.searchParams.get("action");
 
     // GET: list users with emails
-    if (action === "list") {
+    if (action === "list" || action === "list-admins") {
       const { data: { users }, error } = await adminClient.auth.admin.listUsers({ perPage: 1000 });
       if (error) {
         return new Response(JSON.stringify({ error: error.message }), {
@@ -58,19 +58,33 @@ Deno.serve(async (req) => {
         });
       }
 
+      // Get admin user_ids if filtering admins
+      let adminUserIds: Set<string> | null = null;
+      if (action === "list-admins") {
+        const { data: roles } = await adminClient
+          .from("user_roles")
+          .select("user_id")
+          .eq("role", "admin");
+        adminUserIds = new Set((roles || []).map(r => r.user_id));
+      }
+
       const { data: profiles } = await adminClient
         .from("profiles")
         .select("user_id, full_name, phone, created_at");
 
       const profileMap = new Map((profiles || []).map(p => [p.user_id, p]));
 
-      const combined = users.map(u => ({
+      let combined = users.map(u => ({
         user_id: u.id,
         email: u.email || "",
         full_name: profileMap.get(u.id)?.full_name || u.user_metadata?.full_name || "",
-        phone: profileMap.get(u.id)?.phone || "",
+        phone: profileMap.get(u.id)?.phone || u.user_metadata?.phone || "",
         created_at: profileMap.get(u.id)?.created_at || u.created_at,
       }));
+
+      if (adminUserIds) {
+        combined = combined.filter(u => adminUserIds!.has(u.user_id));
+      }
 
       return new Response(JSON.stringify({ users: combined }), {
         status: 200,

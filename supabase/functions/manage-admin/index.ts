@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { email, password, full_name } = await req.json();
+    const { email, password, full_name, phone } = await req.json();
 
     if (!email || !password) {
       return new Response(JSON.stringify({ error: "Email and password are required" }), {
@@ -64,7 +64,7 @@ Deno.serve(async (req) => {
       email,
       password,
       email_confirm: true,
-      user_metadata: { full_name: full_name || "" },
+      user_metadata: { full_name: full_name || "", phone: phone || "" },
     });
 
     if (createError) {
@@ -83,6 +83,11 @@ Deno.serve(async (req) => {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // Update profile with phone if provided
+    if (phone) {
+      await adminClient.from("profiles").update({ phone }).eq("user_id", newUser.user.id);
     }
 
     return new Response(

@@ -220,16 +220,27 @@ const AdminDashboard = () => {
   const [editPassword, setEditPassword] = useState("");
   const [editSaving, setEditSaving] = useState(false);
 
+  // Admin list & create state
+  const [adminUsers, setAdminUsers] = useState<UserWithEmail[]>([]);
+  const [showCreateAdmin, setShowCreateAdmin] = useState(false);
+  const [newAdminName, setNewAdminName] = useState("");
+  const [newAdminEmail, setNewAdminEmail] = useState("");
+  const [newAdminPassword, setNewAdminPassword] = useState("");
+  const [newAdminPhone, setNewAdminPhone] = useState("");
+  const [creatingAdmin, setCreatingAdmin] = useState(false);
+
   useEffect(() => {
     const fetchData = async () => {
-      const [bRes, pRes, uRes] = await Promise.all([
+      const [bRes, pRes, uRes, aRes] = await Promise.all([
         supabase.from("bookings").select("*").order("created_at", { ascending: false }),
         supabase.from("profiles").select("*").order("created_at", { ascending: false }),
         supabase.functions.invoke("admin-users?action=list"),
+        supabase.functions.invoke("admin-users?action=list-admins"),
       ]);
       if (bRes.data) setBookings(bRes.data);
       if (pRes.data) setProfiles(pRes.data);
       if (uRes.data?.users) setAllUsers(uRes.data.users);
+      if (aRes.data?.users) setAdminUsers(aRes.data.users);
       setLoadingData(false);
     };
     fetchData();
@@ -269,6 +280,24 @@ const AdminDashboard = () => {
         )
       );
       setEditUser(null);
+    }
+  };
+
+  const handleCreateAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreatingAdmin(true);
+    const { data, error } = await supabase.functions.invoke("manage-admin", {
+      body: { email: newAdminEmail, password: newAdminPassword, full_name: newAdminName, phone: newAdminPhone },
+    });
+    setCreatingAdmin(false);
+    if (error || data?.error) {
+      toast.error(data?.error || error?.message || "Failed to create admin");
+    } else {
+      toast.success(`Admin account created for ${newAdminEmail}`);
+      setNewAdminName(""); setNewAdminEmail(""); setNewAdminPassword(""); setNewAdminPhone("");
+      setShowCreateAdmin(false);
+      const { data: aRes } = await supabase.functions.invoke("admin-users?action=list-admins");
+      if (aRes?.users) setAdminUsers(aRes.users);
     }
   };
 
@@ -536,9 +565,72 @@ const AdminDashboard = () => {
         {/* Admins */}
         {activeTab === "admins" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="admins">
-            <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Admins</h1>
-            <p className="text-muted-foreground mb-8">Create and manage admin accounts.</p>
-            <CreateAdminForm />
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Admins</h1>
+                <p className="text-muted-foreground">Manage admin accounts.</p>
+              </div>
+              <Button onClick={() => setShowCreateAdmin(true)} className="h-11 px-5 font-semibold glow">
+                <UserPlus className="h-4 w-4 mr-2" />
+                Add Admin
+              </Button>
+            </div>
+
+            <Card className="bg-card border-border">
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Phone</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {adminUsers.length === 0 ? (
+                      <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-8">No admins yet.</TableCell></TableRow>
+                    ) : adminUsers.map((u) => (
+                      <TableRow key={u.user_id}>
+                        <TableCell className="font-medium">{u.full_name || "—"}</TableCell>
+                        <TableCell>{u.email}</TableCell>
+                        <TableCell>{u.phone || "—"}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+
+            {/* Create Admin Dialog */}
+            <Dialog open={showCreateAdmin} onOpenChange={setShowCreateAdmin}>
+              <DialogContent className="bg-card border-border">
+                <DialogHeader>
+                  <DialogTitle className="font-heading">Add Admin</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleCreateAdmin} className="space-y-4 pt-2">
+                  <div>
+                    <Label htmlFor="new-name">Full Name</Label>
+                    <Input id="new-name" placeholder="John Doe" value={newAdminName} onChange={(e) => setNewAdminName(e.target.value)} required className="h-12 bg-secondary border-border mt-1" />
+                  </div>
+                  <div>
+                    <Label htmlFor="new-email">Email</Label>
+                    <Input id="new-email" type="email" placeholder="admin@example.com" value={newAdminEmail} onChange={(e) => setNewAdminEmail(e.target.value)} required className="h-12 bg-secondary border-border mt-1" />
+                  </div>
+                  <div>
+                    <Label htmlFor="new-password">Password</Label>
+                    <Input id="new-password" type="password" placeholder="••••••••" value={newAdminPassword} onChange={(e) => setNewAdminPassword(e.target.value)} required minLength={6} className="h-12 bg-secondary border-border mt-1" />
+                  </div>
+                  <div>
+                    <Label htmlFor="new-phone">Phone Number</Label>
+                    <Input id="new-phone" type="tel" placeholder="+1 234 567 890" value={newAdminPhone} onChange={(e) => setNewAdminPhone(e.target.value)} className="h-12 bg-secondary border-border mt-1" />
+                  </div>
+                  <Button type="submit" disabled={creatingAdmin} className="w-full h-12 text-base font-semibold glow">
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    {creatingAdmin ? "Creating..." : "Create Admin"}
+                  </Button>
+                </form>
+              </DialogContent>
+            </Dialog>
           </motion.div>
         )}
 
