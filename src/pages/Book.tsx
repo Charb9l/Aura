@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { CalendarIcon, Clock, CheckCircle2 } from "lucide-react";
@@ -42,8 +43,14 @@ const timeSlots = [
 ];
 
 const BookPage = () => {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const preselected = searchParams.get("activity") || "";
+
+  useEffect(() => {
+    if (!loading && !user) navigate("/auth");
+  }, [user, loading, navigate]);
 
   const [selectedActivity, setSelectedActivity] = useState(preselected);
   const [date, setDate] = useState<Date>();

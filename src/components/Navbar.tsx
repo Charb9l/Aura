@@ -1,7 +1,17 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useAuth } from "@/contexts/AuthContext";
+import { LogOut, User } from "lucide-react";
 
 const Navbar = () => {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
+
   return (
     <motion.nav
       initial={{ y: -20, opacity: 0 }}
@@ -26,12 +36,30 @@ const Navbar = () => {
             Academy
           </Link>
         </div>
-        <Link
-          to="/book"
-          className="rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:glow"
-        >
-          Elevate Wellness Hub
-        </Link>
+        <div className="flex items-center gap-3">
+          {user ? (
+            <>
+              <span className="hidden md:inline text-sm text-muted-foreground">
+                <User className="inline h-4 w-4 mr-1" />
+                {user.user_metadata?.full_name || user.email}
+              </span>
+              <button
+                onClick={handleSignOut}
+                className="rounded-full bg-secondary px-4 py-2.5 text-sm font-medium text-secondary-foreground hover:bg-secondary/80 transition-all flex items-center gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                Sign Out
+              </button>
+            </>
+          ) : (
+            <Link
+              to="/auth"
+              className="rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:glow"
+            >
+              Login / Sign Up
+            </Link>
+          )}
+        </div>
       </div>
     </motion.nav>
   );
