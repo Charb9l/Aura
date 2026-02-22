@@ -51,13 +51,13 @@ const HeroSection = () => {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="flex items-center justify-center gap-4 md:gap-6 mb-10"
           >
-            <div className="h-20 w-20 md:h-24 md:w-24 rounded-lg overflow-hidden shadow-2xl bg-background/30 backdrop-blur-sm p-1">
+            <div className="h-20 w-20 md:h-24 md:w-24 overflow-hidden shadow-2xl">
               <img src={beirutLogo} alt="Beirut Sports Club" className="h-full w-full object-contain" />
             </div>
-            <div className="h-20 w-20 md:h-24 md:w-24 rounded-lg overflow-hidden shadow-2xl bg-white p-2">
+            <div className="h-20 w-20 md:h-24 md:w-24 overflow-hidden shadow-2xl">
               <img src={hardcourtLogo} alt="Hard Court Tennis" className="h-full w-full object-contain" />
             </div>
-            <div className="h-20 w-20 md:h-24 md:w-24 rounded-lg overflow-hidden shadow-2xl bg-white p-2">
+            <div className="h-20 w-20 md:h-24 md:w-24 overflow-hidden shadow-2xl">
               <img src={enformeLogo} alt="En Forme Studio" className="h-full w-full object-contain" />
             </div>
           </motion.div>
