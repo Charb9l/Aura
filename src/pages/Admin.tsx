@@ -437,9 +437,9 @@ const AdminDashboard = () => {
                   <BarChart data={bookingChartData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(240, 6%, 18%)" />
                     <XAxis dataKey="name" tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} />
-                    <YAxis allowDecimals={false} tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} />
+                    <YAxis allowDecimals={false} domain={[0, 12]} ticks={[0, 3, 6, 9, 12]} tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} />
                     <Tooltip contentStyle={{ background: "hsl(240, 8%, 10%)", border: "1px solid hsl(240, 6%, 18%)", borderRadius: 8, color: "hsl(0, 0%, 95%)" }} />
-                    <Bar dataKey="value" name="Bookings" radius={[4, 4, 0, 0]}>
+                    <Bar dataKey="value" name="Bookings" radius={[4, 4, 0, 0]} animationDuration={800} animationEasing="ease-out">
                       {bookingChartData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
                     </Bar>
                   </BarChart>
@@ -457,9 +457,9 @@ const AdminDashboard = () => {
                   <BarChart data={revenueByCategoryFiltered}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(240, 6%, 18%)" />
                     <XAxis dataKey="name" tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} />
-                    <YAxis tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} />
+                    <YAxis domain={[0, 1000]} ticks={[0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]} tickFormatter={(v: number) => `$${v}`} tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} />
                     <Tooltip contentStyle={{ background: "hsl(240, 8%, 10%)", border: "1px solid hsl(240, 6%, 18%)", borderRadius: 8, color: "hsl(0, 0%, 95%)" }} formatter={(v: number) => [`$${v}`, "Revenue"]} />
-                    <Bar dataKey="value" name="Revenue" radius={[4, 4, 0, 0]}>
+                    <Bar dataKey="value" name="Revenue" radius={[4, 4, 0, 0]} animationDuration={800} animationEasing="ease-out">
                       {revenueByCategoryFiltered.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
                     </Bar>
                   </BarChart>
