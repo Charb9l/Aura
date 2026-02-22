@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { CalendarIcon, Clock, CheckCircle2 } from "lucide-react";
@@ -10,6 +11,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { toast } from "@/components/ui/sonner";
 import Navbar from "@/components/Navbar";
 
 import tennisImg from "@/assets/tennis-court.png";
@@ -55,16 +57,40 @@ const BookPage = () => {
   const [selectedActivity, setSelectedActivity] = useState(preselected);
   const [date, setDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState("");
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [name, setName] = useState(user?.user_metadata?.full_name || "");
+  const [email, setEmail] = useState(user?.email || "");
   const [phone, setPhone] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const selectedBrand = activities.find(a => a.slug === selectedActivity)?.brand;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    if (!user || !date) return;
+    setSubmitting(true);
+
+    const activityName = activities.find(a => a.slug === selectedActivity)?.name || selectedActivity;
+
+    const { error } = await supabase.from("bookings").insert({
+      user_id: user.id,
+      activity: selectedActivity,
+      activity_name: activityName,
+      booking_date: format(date, "yyyy-MM-dd"),
+      booking_time: selectedTime,
+      full_name: name,
+      email,
+      phone,
+    });
+
+    setSubmitting(false);
+    if (error) {
+      toast.error("Booking failed: " + error.message);
+    } else {
+      // Also update profile phone if not set
+      await supabase.from("profiles").update({ phone, full_name: name }).eq("user_id", user.id);
+      setSubmitted(true);
+    }
   };
 
   if (submitted) {
@@ -172,8 +198,8 @@ const BookPage = () => {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-            <Button type="submit" disabled={!selectedActivity || !date || !selectedTime || !name || !email || !phone} className="h-14 px-10 text-lg font-bold rounded-xl glow">
-              Confirm Booking
+            <Button type="submit" disabled={!selectedActivity || !date || !selectedTime || !name || !email || !phone || submitting} className="h-14 px-10 text-lg font-bold rounded-xl glow">
+              {submitting ? "Booking..." : "Confirm Booking"}
             </Button>
           </motion.div>
         </form>

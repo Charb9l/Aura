@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      bookings: {
+        Row: {
+          activity: string
+          activity_name: string
+          booking_date: string
+          booking_time: string
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          phone: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          activity: string
+          activity_name: string
+          booking_date: string
+          booking_time: string
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          phone: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          activity?: string
+          activity_name?: string
+          booking_date?: string
+          booking_time?: string
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          phone?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
