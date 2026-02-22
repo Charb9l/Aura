@@ -171,12 +171,15 @@ const BookPage = () => {
                   <button
                     type="button"
                     key={time}
-                    onClick={() => setSelectedTime(time)}
+                    onClick={() => selectedActivity && setSelectedTime(time)}
+                    disabled={!selectedActivity}
                     className={cn(
                       "flex items-center justify-center gap-1 rounded-lg border px-3 py-2.5 text-sm font-medium transition-all",
-                      selectedTime === time
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-border text-muted-foreground hover:border-muted-foreground/50 hover:text-foreground"
+                      !selectedActivity
+                        ? "border-border text-muted-foreground/40 cursor-not-allowed opacity-50"
+                        : selectedTime === time
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border text-muted-foreground hover:border-muted-foreground/50 hover:text-foreground"
                     )}
                   >
                     <Clock className="h-3 w-3" />
