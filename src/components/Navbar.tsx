@@ -51,10 +51,12 @@ const Navbar = () => {
             <>
               <Link
                 to="/profile"
-                className="hidden md:flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 <User className="h-4 w-4" />
-                {user.user_metadata?.full_name || user.email}
+                <span className="hidden md:inline">
+                  {user.user_metadata?.full_name || user.email}
+                </span>
               </Link>
               <button
                 onClick={handleSignOut}
