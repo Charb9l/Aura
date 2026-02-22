@@ -250,15 +250,24 @@ const AdminDashboard = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
               {[
-                { label: "Registered Users", value: totalUsers, icon: Users, color: "text-accent" },
-                { label: "Total Bookings", value: totalBookings, icon: CalendarCheck, color: "text-primary" },
-                { label: "Today's Bookings", value: todayBookings, icon: Activity, color: "text-brand-wellness" },
-                { label: "Total Revenue", value: `$${totalRevenue.toLocaleString()}`, icon: TrendingUp, color: "text-brand-tennis" },
+                { label: "Registered Users", value: totalUsers, icon: Users, color: "text-accent", link: "users" },
+                { label: "Total Bookings", value: totalBookings, icon: CalendarCheck, color: "text-primary", link: null },
+                { label: "Today's Bookings", value: todayBookings, icon: Activity, color: "text-brand-wellness", link: null },
+                { label: "Total Revenue", value: `$${totalRevenue.toLocaleString()}`, icon: TrendingUp, color: "text-brand-tennis", link: null },
               ].map((stat, i) => (
                 <motion.div key={stat.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
                   <Card className="bg-card border-border">
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">{stat.label}</CardTitle>
+                      {stat.link ? (
+                        <CardTitle
+                          className="text-sm font-medium text-muted-foreground hover:text-foreground hover:underline cursor-pointer transition-colors"
+                          onClick={() => setActiveTab(stat.link)}
+                        >
+                          {stat.label}
+                        </CardTitle>
+                      ) : (
+                        <CardTitle className="text-sm font-medium text-muted-foreground">{stat.label}</CardTitle>
+                      )}
                       <stat.icon className={`h-5 w-5 ${stat.color}`} />
                     </CardHeader>
                     <CardContent>
