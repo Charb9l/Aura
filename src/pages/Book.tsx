@@ -159,7 +159,24 @@ const BookPage = () => {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar mode="single" selected={date} onSelect={setDate} disabled={(d) => d < new Date()} initialFocus className="p-3 pointer-events-auto" />
+                  <Calendar
+                    mode="single"
+                    selected={date}
+                    onSelect={setDate}
+                    disabled={(d) => d < new Date()}
+                    initialFocus
+                    className="p-3 pointer-events-auto"
+                    classNames={{
+                      day_selected: cn(
+                        "text-white hover:text-white focus:text-white",
+                        selectedBrand === "tennis"
+                          ? "bg-brand-tennis hover:bg-brand-tennis focus:bg-brand-tennis"
+                          : selectedBrand === "wellness"
+                            ? "bg-brand-wellness hover:bg-brand-wellness focus:bg-brand-wellness"
+                            : "bg-brand-basketball hover:bg-brand-basketball focus:bg-brand-basketball"
+                      ),
+                    }}
+                  />
                 </PopoverContent>
               </Popover>
             </div>
