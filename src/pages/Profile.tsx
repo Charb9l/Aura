@@ -5,9 +5,14 @@ import { format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
-import { Calendar, Trophy, Star, Clock, ArrowRight } from "lucide-react";
+import { Trophy, Star, Clock, ArrowRight, Gift, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+
+import tennisImg from "@/assets/tennis-court.png";
+import basketballImg from "@/assets/basketball-court.png";
+import yogaImg from "@/assets/aerial-yoga-studio.png";
+import pilatesImg from "@/assets/pilates-studio.png";
 
 interface Booking {
   id: string;
@@ -24,12 +29,11 @@ interface Profile {
   phone: string | null;
 }
 
-// Loyalty tiers - placeholder until user defines the real program
-const LOYALTY_TIERS = [
-  { name: "Bronze", minBookings: 0, icon: "🥉" },
-  { name: "Silver", minBookings: 5, icon: "🥈" },
-  { name: "Gold", minBookings: 15, icon: "🥇" },
-  { name: "Platinum", minBookings: 30, icon: "💎" },
+const ACTIVITIES = [
+  { slug: "tennis", name: "Tennis", image: tennisImg, accent: "hsl(212 70% 55%)" },
+  { slug: "basketball", name: "Basketball", image: basketballImg, accent: "hsl(262 50% 55%)" },
+  { slug: "aerial-yoga", name: "Aerial Yoga", image: yogaImg, accent: "hsl(100 22% 60%)" },
+  { slug: "pilates", name: "Pilates", image: pilatesImg, accent: "hsl(100 22% 60%)" },
 ];
 
 const ProfilePage = () => {
@@ -80,18 +84,12 @@ const ProfilePage = () => {
   }
 
   const totalBookings = bookings.length;
-  const currentTier = [...LOYALTY_TIERS].reverse().find(t => totalBookings >= t.minBookings) || LOYALTY_TIERS[0];
-  const nextTier = LOYALTY_TIERS.find(t => t.minBookings > totalBookings);
-  const bookingsToNext = nextTier ? nextTier.minBookings - totalBookings : 0;
-  const progressPercent = nextTier
-    ? ((totalBookings - currentTier.minBookings) / (nextTier.minBookings - currentTier.minBookings)) * 100
-    : 100;
 
-  // Activity breakdown
-  const activityCounts = bookings.reduce((acc, b) => {
-    acc[b.activity_name] = (acc[b.activity_name] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+  // Count bookings per activity (use modulo 10 for cycling rewards)
+  const activityPoints: Record<string, number> = {};
+  ACTIVITIES.forEach(a => {
+    activityPoints[a.slug] = bookings.filter(b => b.activity === a.slug).length;
+  });
 
   return (
     <div className="min-h-screen">
@@ -105,84 +103,140 @@ const ProfilePage = () => {
           <p className="text-muted-foreground text-lg">Your activity hub & loyalty progress.</p>
         </motion.div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Loyalty Card */}
+        {/* Loyalty Trackers — 4 activities, 10 stages each */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="mb-10"
+        >
+          <div className="flex items-center gap-3 mb-6">
+            <Trophy className="h-6 w-6 text-primary" />
+            <h2 className="font-heading text-xl font-bold text-foreground">Loyalty Progress</h2>
+            <Link to="/loyalty" className="ml-auto text-sm text-primary hover:underline flex items-center gap-1">
+              How it works <ArrowRight className="h-3 w-3" />
+            </Link>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-5">
+            {ACTIVITIES.map((activity, idx) => {
+              const rawPoints = activityPoints[activity.slug] || 0;
+              const cyclePoints = rawPoints % 10; // resets after 10
+              const completedCycles = Math.floor(rawPoints / 10);
+              const at5 = cyclePoints >= 5;
+              const at10 = cyclePoints === 0 && rawPoints > 0 && completedCycles > 0;
+
+              return (
+                <motion.div
+                  key={activity.slug}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.15 + idx * 0.05 }}
+                  className="rounded-2xl border border-border bg-card p-5 overflow-hidden"
+                >
+                  <div className="flex items-center gap-3 mb-4">
+                    <img
+                      src={activity.image}
+                      alt={activity.name}
+                      className="w-10 h-10 rounded-lg object-cover"
+                    />
+                    <div className="flex-1">
+                      <p className="font-heading font-bold text-foreground text-sm">{activity.name}</p>
+                      <p className="text-xs text-muted-foreground">{rawPoints} total booking{rawPoints !== 1 ? "s" : ""}</p>
+                    </div>
+                    {cyclePoints >= 5 && cyclePoints < 10 && (
+                      <span className="flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-primary/10 text-primary">
+                        <Gift className="h-3 w-3" /> 50% off available!
+                      </span>
+                    )}
+                  </div>
+
+                  {/* 10-stage tracker */}
+                  <div className="flex items-center gap-1.5 mb-3">
+                    {Array.from({ length: 10 }, (_, i) => {
+                      const filled = i < cyclePoints;
+                      const is5Mark = i === 4;
+                      const is10Mark = i === 9;
+
+                      return (
+                        <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                          <motion.div
+                            initial={{ scale: 0.8 }}
+                            animate={{ scale: 1 }}
+                            transition={{ delay: 0.2 + i * 0.03 }}
+                            className={cn(
+                              "w-full h-8 rounded-md flex items-center justify-center text-[10px] font-bold transition-all relative",
+                              filled
+                                ? "text-primary-foreground"
+                                : "border border-border text-muted-foreground/40"
+                            )}
+                            style={filled ? { backgroundColor: activity.accent } : {}}
+                          >
+                            {is5Mark && !filled && <Gift className="h-3 w-3" />}
+                            {is10Mark && !filled && <Zap className="h-3 w-3" />}
+                            {filled && (i + 1)}
+                            {!filled && !is5Mark && !is10Mark && (i + 1)}
+                          </motion.div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="flex justify-between text-[10px] text-muted-foreground">
+                    <span>{cyclePoints}/10 this cycle</span>
+                    <div className="flex gap-3">
+                      <span className={cn(cyclePoints >= 5 ? "text-primary font-medium" : "")}>
+                        5 = 50% off
+                      </span>
+                      <span className={cn(cyclePoints >= 10 || at10 ? "text-accent font-medium" : "")}>
+                        10 = FREE
+                      </span>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </motion.div>
+
+        {/* Quick stats + Book button */}
+        <div className="grid lg:grid-cols-3 gap-8 mb-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="lg:col-span-2 rounded-2xl border border-border bg-card p-8"
+            transition={{ delay: 0.3 }}
+            className="rounded-2xl border border-border bg-card p-6"
           >
-            <div className="flex items-center gap-3 mb-6">
-              <Trophy className="h-6 w-6 text-primary" />
-              <h2 className="font-heading text-xl font-bold text-foreground">Loyalty Program</h2>
-            </div>
-
-            <div className="flex items-center gap-4 mb-6">
-              <span className="text-5xl">{currentTier.icon}</span>
-              <div>
-                <p className="font-heading text-2xl font-bold text-foreground">{currentTier.name} Member</p>
-                <p className="text-muted-foreground">{totalBookings} total booking{totalBookings !== 1 ? "s" : ""}</p>
-              </div>
-            </div>
-
-            {nextTier && (
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Progress to {nextTier.name}</span>
-                  <span className="text-foreground font-medium">{bookingsToNext} booking{bookingsToNext !== 1 ? "s" : ""} to go</span>
-                </div>
-                <div className="h-3 rounded-full bg-secondary overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${progressPercent}%` }}
-                    transition={{ duration: 1, delay: 0.3 }}
-                    className="h-full rounded-full bg-gradient-to-r from-primary to-accent"
-                  />
-                </div>
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>{currentTier.name}</span>
-                  <span>{nextTier.name} {nextTier.icon}</span>
-                </div>
-              </div>
-            )}
-
-            {!nextTier && (
-              <p className="text-primary font-medium flex items-center gap-2">
-                <Star className="h-4 w-4" /> You've reached the highest tier! 🎉
-              </p>
-            )}
+            <p className="text-sm text-muted-foreground mb-1">Total Bookings</p>
+            <p className="font-heading text-4xl font-bold text-foreground">{totalBookings}</p>
           </motion.div>
 
-          {/* Quick Stats */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="space-y-4"
+            transition={{ delay: 0.35 }}
+            className="rounded-2xl border border-border bg-card p-6"
           >
-            <div className="rounded-2xl border border-border bg-card p-6">
-              <p className="text-sm text-muted-foreground mb-1">Total Bookings</p>
-              <p className="font-heading text-4xl font-bold text-foreground">{totalBookings}</p>
-            </div>
-
-            {Object.entries(activityCounts).length > 0 && (
-              <div className="rounded-2xl border border-border bg-card p-6">
-                <p className="text-sm text-muted-foreground mb-3">By Activity</p>
-                <div className="space-y-2">
-                  {Object.entries(activityCounts).map(([name, count]) => (
-                    <div key={name} className="flex justify-between items-center">
-                      <span className="text-sm text-foreground">{name}</span>
-                      <span className="text-sm font-bold text-primary">{count}</span>
-                    </div>
-                  ))}
+            <p className="text-sm text-muted-foreground mb-3">By Activity</p>
+            <div className="space-y-2">
+              {ACTIVITIES.map(a => (
+                <div key={a.slug} className="flex justify-between items-center">
+                  <span className="text-sm text-foreground">{a.name}</span>
+                  <span className="text-sm font-bold" style={{ color: a.accent }}>{activityPoints[a.slug] || 0}</span>
                 </div>
-              </div>
-            )}
+              ))}
+            </div>
+          </motion.div>
 
-            <Link to="/book">
-              <Button className="w-full h-12 rounded-xl glow font-bold">
-                Book a Session <ArrowRight className="ml-2 h-4 w-4" />
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="flex items-end"
+          >
+            <Link to="/book" className="w-full">
+              <Button className="w-full h-14 rounded-xl glow font-bold text-lg">
+                Book a Session <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
           </motion.div>
@@ -192,8 +246,7 @@ const ProfilePage = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="mt-10"
+          transition={{ delay: 0.45 }}
         >
           <h2 className="font-heading text-xl font-bold text-foreground mb-4 flex items-center gap-2">
             <Clock className="h-5 w-5 text-muted-foreground" /> Recent Bookings
