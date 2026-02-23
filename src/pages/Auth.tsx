@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/sonner";
 import Navbar from "@/components/Navbar";
+import PhoneInput from "@/components/PhoneInput";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect } from "react";
 
@@ -137,14 +138,11 @@ const Auth = () => {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="phone" className="text-muted-foreground">Phone Number</Label>
-                      <Input
+                      <PhoneInput
                         id="phone"
-                        type="tel"
-                        placeholder="+961 XX XXX XXX"
                         value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
+                        onChange={setPhone}
                         required={!isLogin}
-                        className="h-12 bg-secondary border-border"
                       />
                     </div>
                   </>
