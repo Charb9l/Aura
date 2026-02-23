@@ -723,60 +723,75 @@ const AdminDashboard = () => {
     value: string; onChange: (v: string) => void;
     showCustomDate?: boolean; customDate?: Date; onCustomDateChange?: (d: Date | undefined) => void;
     showCustomRange?: boolean; customRange?: { from?: Date; to?: Date }; onCustomRangeChange?: (r: { from?: Date; to?: Date }) => void;
-  }) => (
-    <div className="flex items-center gap-2 flex-wrap">
-      <Select value={value} onValueChange={onChange}>
-        <SelectTrigger className="w-[140px] h-9 bg-secondary border-border text-sm">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="today">Today</SelectItem>
-          <SelectItem value="weekly">This Week</SelectItem>
-          <SelectItem value="monthly">This Month</SelectItem>
-          {showCustomDate && <SelectItem value="custom">Custom Date</SelectItem>}
-          {showCustomRange && <SelectItem value="custom-range">Custom Range</SelectItem>}
-        </SelectContent>
-      </Select>
-      {showCustomDate && value === "custom" && (
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="outline" size="sm" className={cn("h-9 text-sm", !customDate && "text-muted-foreground")}>
-              <CalendarCheck className="h-3.5 w-3.5 mr-1.5" />
-              {customDate ? format(customDate, "MMM dd, yyyy") : "Pick date"}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar mode="single" selected={customDate} onSelect={onCustomDateChange} initialFocus className={cn("p-3 pointer-events-auto")} />
-          </PopoverContent>
-        </Popover>
-      )}
-      {showCustomRange && value === "custom-range" && (
-        <div className="flex items-center gap-1.5">
-          <Popover>
+  }) => {
+    const [customDateOpen, setCustomDateOpen] = useState(false);
+    const [fromOpen, setFromOpen] = useState(false);
+    const [toOpen, setToOpen] = useState(false);
+
+    const handleRangeChange = (v: string) => {
+      onChange(v);
+      if (v === "custom") {
+        // Clear the date so user must pick one, then open the popover
+        onCustomDateChange?.(undefined);
+        setTimeout(() => setCustomDateOpen(true), 100);
+      }
+    };
+
+    return (
+      <div className="flex items-center gap-2 flex-wrap">
+        <Select value={value} onValueChange={handleRangeChange}>
+          <SelectTrigger className="w-[140px] h-9 bg-secondary border-border text-sm">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="today">Today</SelectItem>
+            <SelectItem value="weekly">This Week</SelectItem>
+            <SelectItem value="monthly">This Month</SelectItem>
+            {showCustomDate && <SelectItem value="custom">Custom Date</SelectItem>}
+            {showCustomRange && <SelectItem value="custom-range">Custom Range</SelectItem>}
+          </SelectContent>
+        </Select>
+        {showCustomDate && value === "custom" && (
+          <Popover open={customDateOpen} onOpenChange={setCustomDateOpen}>
             <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className={cn("h-9 text-sm", !customRange?.from && "text-muted-foreground")}>
-                {customRange?.from ? format(customRange.from, "MMM dd") : "From"}
+              <Button variant="outline" size="sm" className={cn("h-9 text-sm", !customDate && "text-muted-foreground")}>
+                <CalendarCheck className="h-3.5 w-3.5 mr-1.5" />
+                {customDate ? format(customDate, "MMM dd, yyyy") : "Pick date"}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
-              <Calendar mode="single" selected={customRange?.from} onSelect={(d) => onCustomRangeChange?.({ ...customRange, from: d })} initialFocus className={cn("p-3 pointer-events-auto")} />
+              <Calendar mode="single" selected={customDate} onSelect={(d) => { onCustomDateChange?.(d); setCustomDateOpen(false); }} initialFocus className={cn("p-3 pointer-events-auto")} />
             </PopoverContent>
           </Popover>
-          <span className="text-muted-foreground text-xs">→</span>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className={cn("h-9 text-sm", !customRange?.to && "text-muted-foreground")}>
-                {customRange?.to ? format(customRange.to, "MMM dd") : "To"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar mode="single" selected={customRange?.to} onSelect={(d) => onCustomRangeChange?.({ ...customRange, to: d })} initialFocus className={cn("p-3 pointer-events-auto")} />
-            </PopoverContent>
-          </Popover>
-        </div>
-      )}
-    </div>
-  );
+        )}
+        {showCustomRange && value === "custom-range" && (
+          <div className="flex items-center gap-1.5">
+            <Popover open={fromOpen} onOpenChange={setFromOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className={cn("h-9 text-sm", !customRange?.from && "text-muted-foreground")}>
+                  {customRange?.from ? format(customRange.from, "MMM dd") : "From"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar mode="single" selected={customRange?.from} onSelect={(d) => { onCustomRangeChange?.({ ...customRange, from: d }); setFromOpen(false); }} initialFocus className={cn("p-3 pointer-events-auto")} />
+              </PopoverContent>
+            </Popover>
+            <span className="text-muted-foreground text-xs">→</span>
+            <Popover open={toOpen} onOpenChange={setToOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className={cn("h-9 text-sm", !customRange?.to && "text-muted-foreground")}>
+                  {customRange?.to ? format(customRange.to, "MMM dd") : "To"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar mode="single" selected={customRange?.to} onSelect={(d) => { onCustomRangeChange?.({ ...customRange, to: d }); setToOpen(false); }} initialFocus className={cn("p-3 pointer-events-auto")} />
+              </PopoverContent>
+            </Popover>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen">
