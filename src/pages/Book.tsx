@@ -75,12 +75,11 @@ const BookPage = () => {
         setBookedSlots([]);
         return;
       }
-      const { data } = await supabase
-        .from("bookings")
-        .select("booking_time")
-        .eq("activity", selectedActivity)
-        .eq("booking_date", format(date, "yyyy-MM-dd"));
-      setBookedSlots(data?.map(b => b.booking_time) || []);
+      const { data } = await supabase.rpc("get_booked_slots", {
+        _activity: selectedActivity,
+        _booking_date: format(date, "yyyy-MM-dd"),
+      });
+      setBookedSlots((data as string[]) || []);
     };
     fetchBookedSlots();
   }, [selectedActivity, date]);
