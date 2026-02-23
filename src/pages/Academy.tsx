@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import Navbar from "@/components/Navbar";
+import PhoneInput from "@/components/PhoneInput";
 
 import tennisImg from "@/assets/tennis-court.png";
 import basketballImg from "@/assets/basketball-court.png";
@@ -117,7 +118,7 @@ const AcademyPage = () => {
             <div className="grid md:grid-cols-2 gap-4">
               <Input placeholder="Full Name" value={name} onChange={(e) => setName(e.target.value)} required className="h-12 bg-secondary border-border" />
               <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required className="h-12 bg-secondary border-border" />
-              <Input type="tel" placeholder="Phone" value={phone} onChange={(e) => setPhone(e.target.value)} required className="h-12 bg-secondary border-border" />
+              <PhoneInput value={phone} onChange={setPhone} required />
               <Input type="number" placeholder="Age" value={age} onChange={(e) => setAge(e.target.value)} required className="h-12 bg-secondary border-border" />
             </div>
           </motion.div>

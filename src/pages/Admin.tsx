@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/sonner";
 import AdminNavbar from "@/components/AdminNavbar";
 import Navbar from "@/components/Navbar";
+import PhoneInput from "@/components/PhoneInput";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell
 } from "recharts";
@@ -713,7 +714,7 @@ const AdminDashboard = () => {
                   </div>
                   <div>
                     <Label htmlFor="edit-phone">Phone</Label>
-                    <Input id="edit-phone" type="tel" value={editPhone} onChange={(e) => setEditPhone(e.target.value)} className="h-12 bg-secondary border-border mt-1" />
+                    <PhoneInput id="edit-phone" value={editPhone} onChange={setEditPhone} className="mt-1" />
                   </div>
                   <div>
                     <Label htmlFor="edit-password">New Password <span className="text-muted-foreground text-xs">(leave empty to keep current)</span></Label>
@@ -797,7 +798,7 @@ const AdminDashboard = () => {
                     </div>
                     <div>
                       <Label htmlFor="edit-admin-phone">Phone</Label>
-                      <Input id="edit-admin-phone" type="tel" value={editAdminPhone} onChange={(e) => setEditAdminPhone(e.target.value)} className="h-12 bg-secondary border-border mt-1" />
+                      <PhoneInput id="edit-admin-phone" value={editAdminPhone} onChange={setEditAdminPhone} className="mt-1" />
                     </div>
                   </div>
                   <div>
@@ -847,7 +848,7 @@ const AdminDashboard = () => {
                   </div>
                   <div>
                     <Label htmlFor="new-phone">Phone Number</Label>
-                    <Input id="new-phone" type="tel" placeholder="+1 234 567 890" value={newAdminPhone} onChange={(e) => setNewAdminPhone(e.target.value)} className="h-12 bg-secondary border-border mt-1" />
+                    <PhoneInput id="new-phone" value={newAdminPhone} onChange={setNewAdminPhone} className="mt-1" />
                   </div>
                   <Button type="submit" disabled={creatingAdmin} className="w-full h-12 text-base font-semibold glow">
                     <UserPlus className="h-4 w-4 mr-2" />
