@@ -74,6 +74,23 @@ const BookPage = () => {
 
     const activityName = activities.find(a => a.slug === selectedActivity)?.name || selectedActivity;
 
+    // Calculate loyalty discount based on past bookings for this activity
+    let discountType: string | null = null;
+    const { count } = await supabase
+      .from("bookings")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .eq("activity", selectedActivity);
+
+    const bookingCount = count || 0;
+    // 10 points cycle: at position 9 (10th booking) = free, at position 4 (5th booking) = 50%
+    const positionInCycle = bookingCount % 10;
+    if (positionInCycle === 9) {
+      discountType = "free";
+    } else if (positionInCycle === 4) {
+      discountType = "50%";
+    }
+
     const { error } = await supabase.from("bookings").insert({
       user_id: user.id,
       activity: selectedActivity,
@@ -84,6 +101,7 @@ const BookPage = () => {
       email,
       phone,
       court_type: selectedActivity === "basketball" ? courtType : null,
+      discount_type: discountType,
     });
 
     setSubmitting(false);

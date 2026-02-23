@@ -32,10 +32,15 @@ const ACTIVITY_PRICES: Record<string, number> = {
 };
 
 const getBookingRevenue = (b: BookingRow): number => {
+  let base = 0;
   if (b.activity === "basketball") {
-    return b.court_type === "full" ? 90 : 45;
+    base = b.court_type === "full" ? 90 : 45;
+  } else {
+    base = ACTIVITY_PRICES[b.activity] || 0;
   }
-  return ACTIVITY_PRICES[b.activity] || 0;
+  if (b.discount_type === "free") return 0;
+  if (b.discount_type === "50%") return base * 0.5;
+  return base;
 };
 
 const ALL_CATEGORIES = [
@@ -65,6 +70,7 @@ interface BookingRow {
   created_at: string;
   user_id: string;
   court_type?: string | null;
+  discount_type?: string | null;
 }
 
 interface ProfileRow {
@@ -357,11 +363,20 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin }: { bookings: Boo
                       <button
                         key={b.id}
                         onClick={() => setSelectedBooking(b)}
-                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-sm font-medium hover:bg-primary/20 transition-colors cursor-pointer"
+                        className={cn(
+                          "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-primary/20 transition-colors cursor-pointer",
+                          b.discount_type ? "bg-accent/15 text-accent-foreground ring-1 ring-accent/30" : "bg-primary/10 text-primary"
+                        )}
                       >
                         <User className="h-3.5 w-3.5" />
                         <span>{b.full_name}</span>
                         <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{b.activity_name}</Badge>
+                        {b.discount_type === "50%" && (
+                          <Badge className="text-[10px] px-1.5 py-0 bg-amber-500/20 text-amber-400 border-amber-500/30">50% OFF</Badge>
+                        )}
+                        {b.discount_type === "free" && (
+                          <Badge className="text-[10px] px-1.5 py-0 bg-emerald-500/20 text-emerald-400 border-emerald-500/30">FREE</Badge>
+                        )}
                       </button>
                     ))}
                   </div>
@@ -405,6 +420,17 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin }: { bookings: Boo
                   <span className="text-foreground">{selectedBooking.activity_name}{selectedBooking.court_type ? ` — ${selectedBooking.court_type}` : ""}</span>
                 </div>
               </div>
+              {selectedBooking.discount_type && (
+                <div className="flex items-center justify-between pt-2 border-t border-border">
+                  <span className="text-xs text-muted-foreground">Loyalty Discount</span>
+                  {selectedBooking.discount_type === "50%" && (
+                    <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">50% OFF</Badge>
+                  )}
+                  {selectedBooking.discount_type === "free" && (
+                    <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">FREE</Badge>
+                  )}
+                </div>
+              )}
               <div className="flex items-center justify-between pt-2 border-t border-border">
                 <span className="text-xs text-muted-foreground">Status</span>
                 <Badge variant={selectedBooking.status === "confirmed" ? "default" : "secondary"}>

@@ -22,6 +22,7 @@ export type Database = {
           booking_time: string
           court_type: string | null
           created_at: string
+          discount_type: string | null
           email: string
           full_name: string
           id: string
@@ -36,6 +37,7 @@ export type Database = {
           booking_time: string
           court_type?: string | null
           created_at?: string
+          discount_type?: string | null
           email: string
           full_name: string
           id?: string
@@ -50,6 +52,7 @@ export type Database = {
           booking_time?: string
           court_type?: string | null
           created_at?: string
+          discount_type?: string | null
           email?: string
           full_name?: string
           id?: string
