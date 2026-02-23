@@ -2,12 +2,13 @@ import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
-import { LogOut, Menu, LayoutDashboard, Users, ShieldCheck, BarChart3, Settings, Tag } from "lucide-react";
+import { LogOut, Menu, LayoutDashboard, Users, ShieldCheck, BarChart3, Settings, Tag, Building2 } from "lucide-react";
 
 const menuItems = [
   { label: "Dashboard", icon: LayoutDashboard, tab: "overview" },
   { label: "Users", icon: Users, tab: "users" },
   { label: "Admins", icon: ShieldCheck, tab: "admins" },
+  { label: "Clubs & Partners", icon: Building2, tab: "clubs" },
   { label: "Reporting", icon: BarChart3, tab: "reporting" },
   { label: "Settings", icon: Settings, tab: "settings" },
   { label: "Promotions", icon: Tag, tab: "promotions" },

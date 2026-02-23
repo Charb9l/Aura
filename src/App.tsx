@@ -11,6 +11,7 @@ import AuthPage from "./pages/Auth";
 import ResetPasswordPage from "./pages/ResetPassword";
 import ProfilePage from "./pages/Profile";
 import LoyaltyPage from "./pages/Loyalty";
+import ClubsPage from "./pages/Clubs";
 import AdminPage from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/loyalty" element={<LoyaltyPage />} />
+            <Route path="/clubs" element={<ClubsPage />} />
             <Route path="/admin" element={<AdminPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
