@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      booking_audit_log: {
+        Row: {
+          activity: string
+          activity_name: string
+          booking_date: string
+          booking_id: string
+          booking_time: string
+          court_type: string | null
+          created_at: string
+          deleted_at: string
+          deleted_by: string
+          discount_type: string | null
+          email: string
+          full_name: string
+          id: string
+          phone: string
+          user_id: string
+        }
+        Insert: {
+          activity: string
+          activity_name: string
+          booking_date: string
+          booking_id: string
+          booking_time: string
+          court_type?: string | null
+          created_at: string
+          deleted_at?: string
+          deleted_by: string
+          discount_type?: string | null
+          email: string
+          full_name: string
+          id?: string
+          phone: string
+          user_id: string
+        }
+        Update: {
+          activity?: string
+          activity_name?: string
+          booking_date?: string
+          booking_id?: string
+          booking_time?: string
+          court_type?: string | null
+          created_at?: string
+          deleted_at?: string
+          deleted_by?: string
+          discount_type?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          phone?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           activity: string
