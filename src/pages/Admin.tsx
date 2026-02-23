@@ -79,6 +79,7 @@ interface UserWithEmail {
   full_name: string;
   phone: string;
   created_at: string;
+  club_id?: string | null;
 }
 
 const AdminLoginForm = () => {
@@ -318,18 +319,58 @@ const AdminDashboard = () => {
   const [newAdminPhone, setNewAdminPhone] = useState("");
   const [creatingAdmin, setCreatingAdmin] = useState(false);
 
+  // Admin edit state
+  const [editAdmin, setEditAdmin] = useState<UserWithEmail | null>(null);
+  const [editAdminEmail, setEditAdminEmail] = useState("");
+  const [editAdminPhone, setEditAdminPhone] = useState("");
+  const [editAdminPassword, setEditAdminPassword] = useState("");
+  const [editAdminClubId, setEditAdminClubId] = useState<string>("");
+  const [editAdminSaving, setEditAdminSaving] = useState(false);
+
+  // Clubs & current admin's club
+  const [clubs, setClubs] = useState<ClubRow[]>([]);
+  const [myClubId, setMyClubId] = useState<string | null>(null);
+
+  // Map club_id to activity slugs for filtering
+  const clubActivityMap = useMemo(() => {
+    const map: Record<string, string[]> = {};
+    clubs.forEach(c => {
+      const activities: string[] = [];
+      c.offerings.forEach(o => {
+        const lower = o.toLowerCase();
+        if (lower.includes("basketball")) activities.push("basketball");
+        if (lower.includes("tennis")) activities.push("tennis");
+        if (lower.includes("pilates")) activities.push("pilates");
+        if (lower.includes("yoga")) activities.push("aerial-yoga");
+      });
+      map[c.id] = activities;
+    });
+    return map;
+  }, [clubs]);
+
+  // Filter bookings by club assignment
+  const filteredBookings = useMemo(() => {
+    if (!myClubId) return bookings; // master admin sees all
+    const allowed = clubActivityMap[myClubId] || [];
+    return bookings.filter(b => allowed.includes(b.activity));
+  }, [bookings, myClubId, clubActivityMap]);
+
   useEffect(() => {
     const fetchData = async () => {
-      const [bRes, pRes, uRes, aRes] = await Promise.all([
+      const [bRes, pRes, uRes, aRes, cRes, mcRes] = await Promise.all([
         supabase.from("bookings").select("*").order("created_at", { ascending: false }),
         supabase.from("profiles").select("*").order("created_at", { ascending: false }),
         supabase.functions.invoke("admin-users", { body: { action: "list" } }),
         supabase.functions.invoke("admin-users", { body: { action: "list-admins" } }),
+        supabase.from("clubs").select("*").order("name"),
+        supabase.functions.invoke("admin-users", { body: { action: "my-club" } }),
       ]);
       if (bRes.data) setBookings(bRes.data);
       if (pRes.data) setProfiles(pRes.data);
       if (uRes.data?.users) setAllUsers(uRes.data.users);
       if (aRes.data?.users) setAdminUsers(aRes.data.users);
+      if (cRes.data) setClubs(cRes.data as unknown as ClubRow[]);
+      if (mcRes.data?.club_id) setMyClubId(mcRes.data.club_id);
       setLoadingData(false);
     };
     fetchData();
@@ -390,6 +431,42 @@ const AdminDashboard = () => {
     }
   };
 
+  const openEditAdmin = (u: UserWithEmail) => {
+    setEditAdmin(u);
+    setEditAdminEmail(u.email);
+    setEditAdminPhone(u.phone || "");
+    setEditAdminPassword("");
+    setEditAdminClubId(u.club_id || "");
+  };
+
+  const handleSaveAdmin = async () => {
+    if (!editAdmin) return;
+    setEditAdminSaving(true);
+
+    const body: Record<string, string | null> = { user_id: editAdmin.user_id, action: "update" };
+    if (editAdminEmail !== editAdmin.email) body.email = editAdminEmail;
+    if (editAdminPhone !== (editAdmin.phone || "")) body.phone = editAdminPhone;
+    if (editAdminPassword) body.password = editAdminPassword;
+    body.club_id = (editAdminClubId && editAdminClubId !== "none") ? editAdminClubId : null;
+
+    const { data, error } = await supabase.functions.invoke("admin-users", { body });
+
+    setEditAdminSaving(false);
+    if (error || data?.error) {
+      toast.error(data?.error || error?.message || "Update failed");
+    } else {
+      toast.success("Admin updated successfully");
+      setAdminUsers((prev) =>
+        prev.map((u) =>
+          u.user_id === editAdmin.user_id
+            ? { ...u, email: editAdminEmail || u.email, phone: editAdminPhone, club_id: (editAdminClubId && editAdminClubId !== "none") ? editAdminClubId : null }
+            : u
+        )
+      );
+      setEditAdmin(null);
+    }
+  };
+
   // Date range state for charts (must be before early returns)
   const [bookingRange, setBookingRange] = useState<string>("today");
   const [revenueRange, setRevenueRange] = useState<string>("today");
@@ -397,16 +474,16 @@ const AdminDashboard = () => {
   const [revenueCustomRange, setRevenueCustomRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: subDays(new Date(), 6), to: new Date() });
 
   const todayStr = format(new Date(), "yyyy-MM-dd");
-  const dailyRevenue = bookings.filter(b => b.booking_date === todayStr).reduce((sum, b) => sum + getBookingRevenue(b), 0);
-  const totalRevenue = bookings.reduce((sum, b) => sum + getBookingRevenue(b), 0);
+  const dailyRevenue = filteredBookings.filter(b => b.booking_date === todayStr).reduce((sum, b) => sum + getBookingRevenue(b), 0);
+  const totalRevenue = filteredBookings.reduce((sum, b) => sum + getBookingRevenue(b), 0);
 
   const revenueByCategoryData = useMemo(() => {
     const grouped: Record<string, number> = {};
-    bookings.forEach(b => {
+    filteredBookings.forEach(b => {
       grouped[b.activity_name] = (grouped[b.activity_name] || 0) + getBookingRevenue(b);
     });
     return Object.entries(grouped).map(([name, value]) => ({ name, value }));
-  }, [bookings]);
+  }, [filteredBookings]);
 
   const bookingChartData = useMemo(() => {
     const now = new Date();
@@ -416,14 +493,14 @@ const AdminDashboard = () => {
     else if (bookingRange === "monthly") { start = startOfMonth(now); end = endOfDay(now); }
     else if (bookingRange === "custom" && bookingCustomDate) { start = startOfDay(bookingCustomDate); end = endOfDay(bookingCustomDate); }
     else { start = startOfDay(now); end = endOfDay(now); }
-    const filtered = bookings.filter(b => {
+    const filtered = filteredBookings.filter(b => {
       const d = parseISO(b.booking_date);
       return isWithinInterval(d, { start, end });
     });
     const grouped: Record<string, number> = {};
     filtered.forEach(b => { grouped[b.activity] = (grouped[b.activity] || 0) + 1; });
     return ALL_CATEGORIES.map(c => ({ name: c.label, value: grouped[c.key] || 0 }));
-  }, [bookings, bookingRange, bookingCustomDate]);
+  }, [filteredBookings, bookingRange, bookingCustomDate]);
 
   const revenueByCategoryFiltered = useMemo(() => {
     const now = new Date();
@@ -434,7 +511,7 @@ const AdminDashboard = () => {
     else if (revenueRange === "custom" && bookingCustomDate) { start = startOfDay(bookingCustomDate); end = endOfDay(bookingCustomDate); }
     else if (revenueRange === "custom-range" && revenueCustomRange.from && revenueCustomRange.to) { start = startOfDay(revenueCustomRange.from); end = endOfDay(revenueCustomRange.to); }
     else { start = startOfDay(now); end = endOfDay(now); }
-    const filtered = bookings.filter(b => {
+    const filtered = filteredBookings.filter(b => {
       const d = parseISO(b.booking_date);
       return isWithinInterval(d, { start, end });
     });
@@ -673,22 +750,81 @@ const AdminDashboard = () => {
                       <TableHead>Name</TableHead>
                       <TableHead>Email</TableHead>
                       <TableHead>Phone</TableHead>
+                      <TableHead>Assigned Club</TableHead>
+                      <TableHead className="w-[80px]">Edit</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {adminUsers.length === 0 ? (
-                      <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-8">No admins yet.</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">No admins yet.</TableCell></TableRow>
                     ) : adminUsers.map((u) => (
                       <TableRow key={u.user_id}>
                         <TableCell className="font-medium">{u.full_name || "—"}</TableCell>
                         <TableCell>{u.email}</TableCell>
                         <TableCell>{u.phone || "—"}</TableCell>
+                        <TableCell>
+                          {u.club_id ? (
+                            <Badge variant="secondary" className="text-xs">
+                              {clubs.find(c => c.id === u.club_id)?.name || "Unknown"}
+                            </Badge>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">All Clubs (Master)</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Button variant="ghost" size="icon" onClick={() => openEditAdmin(u)}>
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
               </CardContent>
             </Card>
+
+            {/* Edit Admin Dialog - Large */}
+            <Dialog open={!!editAdmin} onOpenChange={(open) => !open && setEditAdmin(null)}>
+              <DialogContent className="bg-card border-border max-w-2xl w-[66vw] min-h-[50vh]">
+                <DialogHeader>
+                  <DialogTitle className="font-heading text-xl">Edit Admin — {editAdmin?.full_name || editAdmin?.email}</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-5 pt-4">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="edit-admin-email">Email</Label>
+                      <Input id="edit-admin-email" type="email" value={editAdminEmail} onChange={(e) => setEditAdminEmail(e.target.value)} className="h-12 bg-secondary border-border mt-1" />
+                    </div>
+                    <div>
+                      <Label htmlFor="edit-admin-phone">Phone</Label>
+                      <Input id="edit-admin-phone" type="tel" value={editAdminPhone} onChange={(e) => setEditAdminPhone(e.target.value)} className="h-12 bg-secondary border-border mt-1" />
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-admin-password">New Password <span className="text-muted-foreground text-xs">(leave empty to keep current)</span></Label>
+                    <Input id="edit-admin-password" type="password" placeholder="••••••••" value={editAdminPassword} onChange={(e) => setEditAdminPassword(e.target.value)} className="h-12 bg-secondary border-border mt-1" />
+                  </div>
+                  <div>
+                    <Label>Assigned Club</Label>
+                    <Select value={editAdminClubId} onValueChange={setEditAdminClubId}>
+                      <SelectTrigger className="h-12 bg-secondary border-border mt-1">
+                        <SelectValue placeholder="All Clubs (Master Admin)" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-card border-border z-50">
+                        <SelectItem value="none">All Clubs (Master Admin)</SelectItem>
+                        {clubs.map(c => (
+                          <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground mt-1.5">Assigning a club restricts this admin's dashboard to that club's data only.</p>
+                  </div>
+                  <Button onClick={handleSaveAdmin} disabled={editAdminSaving} className="w-full h-12 text-base font-semibold glow mt-4">
+                    {editAdminSaving ? "Saving..." : "Save Changes"}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
 
             {/* Create Admin Dialog */}
             <Dialog open={showCreateAdmin} onOpenChange={setShowCreateAdmin}>
@@ -781,9 +917,9 @@ const AdminDashboard = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {bookings.length === 0 ? (
+                    {filteredBookings.length === 0 ? (
                       <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No bookings yet.</TableCell></TableRow>
-                    ) : bookings.map((b) => (
+                    ) : filteredBookings.map((b) => (
                       <TableRow key={b.id}>
                         <TableCell className="font-medium">{b.full_name}</TableCell>
                         <TableCell>{b.activity_name}</TableCell>
