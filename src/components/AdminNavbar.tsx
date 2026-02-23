@@ -6,13 +6,13 @@ import { LogOut, Menu, LayoutDashboard, Users, ShieldCheck, BarChart3, Settings,
 
 const allMenuItems = [
   { label: "Dashboard", icon: LayoutDashboard, tab: "overview" },
+  { label: "Bookings", icon: CalendarCheck, tab: "bookings" },
   { label: "Users", icon: Users, tab: "users" },
   { label: "Admins", icon: ShieldCheck, tab: "admins" },
   { label: "Clubs & Partners", icon: Building2, tab: "clubs" },
   { label: "Reporting", icon: BarChart3, tab: "reporting" },
   { label: "Settings", icon: Settings, tab: "settings" },
   { label: "Promotions", icon: Tag, tab: "promotions" },
-  { label: "Bookings", icon: CalendarCheck, tab: "bookings" },
 ];
 
 const assignedAdminTabs = new Set(["overview", "promotions", "bookings"]);
