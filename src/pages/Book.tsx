@@ -55,6 +55,7 @@ const BookPage = () => {
   }, [user, loading, navigate]);
 
   const [selectedActivity, setSelectedActivity] = useState(preselected);
+  const [courtType, setCourtType] = useState<"half" | "full" | "">("");
   const [date, setDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState("");
   const [name, setName] = useState(user?.user_metadata?.full_name || "");
@@ -81,6 +82,7 @@ const BookPage = () => {
       full_name: name,
       email,
       phone,
+      court_type: selectedActivity === "basketball" ? courtType : null,
     });
 
     setSubmitting(false);
@@ -129,7 +131,7 @@ const BookPage = () => {
                 <button
                   type="button"
                   key={a.slug}
-                  onClick={() => setSelectedActivity(a.slug)}
+                  onClick={() => { setSelectedActivity(a.slug); setCourtType(""); setDate(undefined); setSelectedTime(""); }}
                   className={cn(
                     "relative overflow-hidden rounded-xl border-2 transition-all aspect-[3/4]",
                     selectedActivity === a.slug
@@ -146,6 +148,31 @@ const BookPage = () => {
               ))}
             </div>
           </motion.div>
+
+          {/* Court Type for Basketball */}
+          {selectedActivity === "basketball" && (
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+              <Label className="text-sm font-medium text-muted-foreground mb-4 block">Select Court Type</Label>
+              <div className="grid grid-cols-2 gap-3 max-w-sm">
+                {([{ value: "half" as const, label: "Half Court", price: "$45/hr" }, { value: "full" as const, label: "Full Court", price: "$90/hr" }]).map((ct) => (
+                  <button
+                    type="button"
+                    key={ct.value}
+                    onClick={() => setCourtType(ct.value)}
+                    className={cn(
+                      "rounded-xl border-2 px-4 py-4 text-left transition-all",
+                      courtType === ct.value
+                        ? "border-brand-basketball shadow-[0_0_20px_hsl(262_50%_55%/0.3)] bg-brand-basketball/10"
+                        : "border-border hover:border-muted-foreground/50"
+                    )}
+                  >
+                    <span className="font-heading text-sm font-semibold text-foreground block">{ct.label}</span>
+                    <span className="text-xs text-muted-foreground">{ct.price}</span>
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          )}
 
           {/* Date & Time */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="grid md:grid-cols-2 gap-8">
@@ -233,7 +260,7 @@ const BookPage = () => {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-            <Button type="submit" disabled={!selectedActivity || !date || !selectedTime || !name || !email || !phone || submitting} className="h-14 px-10 text-lg font-bold rounded-xl glow">
+            <Button type="submit" disabled={!selectedActivity || !date || !selectedTime || !name || !email || !phone || (selectedActivity === "basketball" && !courtType) || submitting} className="h-14 px-10 text-lg font-bold rounded-xl glow">
               {submitting ? "Booking..." : "Confirm Booking"}
             </Button>
           </motion.div>

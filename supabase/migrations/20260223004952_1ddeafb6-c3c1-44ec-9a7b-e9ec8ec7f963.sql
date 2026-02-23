@@ -1,0 +1,1 @@
+ALTER TABLE public.bookings ADD COLUMN court_type text DEFAULT NULL;

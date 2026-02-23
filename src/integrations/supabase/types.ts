@@ -20,6 +20,7 @@ export type Database = {
           activity_name: string
           booking_date: string
           booking_time: string
+          court_type: string | null
           created_at: string
           email: string
           full_name: string
@@ -33,6 +34,7 @@ export type Database = {
           activity_name: string
           booking_date: string
           booking_time: string
+          court_type?: string | null
           created_at?: string
           email: string
           full_name: string
@@ -46,6 +48,7 @@ export type Database = {
           activity_name?: string
           booking_date?: string
           booking_time?: string
+          court_type?: string | null
           created_at?: string
           email?: string
           full_name?: string
