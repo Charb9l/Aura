@@ -249,7 +249,7 @@ const timeSlots = Array.from({ length: CLOSE_HOUR - OPEN_HOUR }, (_, i) => {
   return { hour: h, label };
 });
 
-const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin }: { bookings: BookingRow[]; clubs?: ClubRow[]; isMasterAdmin?: boolean }) => {
+const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking }: { bookings: BookingRow[]; clubs?: ClubRow[]; isMasterAdmin?: boolean; onDeleteBooking?: (id: string) => void }) => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedBooking, setSelectedBooking] = useState<BookingRow | null>(null);
   const [clubFilter, setClubFilter] = useState<string>("all");
@@ -437,6 +437,26 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin }: { bookings: Boo
                   {selectedBooking.status}
                 </Badge>
               </div>
+              {onDeleteBooking && (
+                <div className="pt-4 border-t border-border">
+                  <Button
+                    variant="destructive"
+                    className="w-full"
+                    onClick={async () => {
+                      const { error } = await supabase.from("bookings").delete().eq("id", selectedBooking.id);
+                      if (error) {
+                        toast.error("Failed to delete booking: " + error.message);
+                      } else {
+                        toast.success("Booking deleted successfully");
+                        onDeleteBooking(selectedBooking.id);
+                        setSelectedBooking(null);
+                      }
+                    }}
+                  >
+                    Delete Booking
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </DialogContent>
@@ -1185,7 +1205,7 @@ const AdminDashboard = () => {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="bookings">
             <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Bookings</h1>
             <p className="text-muted-foreground mb-8">View daily bookings by time slot.</p>
-            <BookingsCalendarTab bookings={myClubId ? filteredBookings : bookings} clubs={clubs} isMasterAdmin={!myClubId} />
+            <BookingsCalendarTab bookings={myClubId ? filteredBookings : bookings} clubs={clubs} isMasterAdmin={!myClubId} onDeleteBooking={(id) => setBookings(prev => prev.filter(b => b.id !== id))} />
           </motion.div>
         )}
 

@@ -64,8 +64,26 @@ const BookPage = () => {
   const [phone, setPhone] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [bookedSlots, setBookedSlots] = useState<string[]>([]);
 
   const selectedBrand = activities.find(a => a.slug === selectedActivity)?.brand;
+
+  // Fetch booked time slots when activity or date changes
+  useEffect(() => {
+    const fetchBookedSlots = async () => {
+      if (!selectedActivity || !date) {
+        setBookedSlots([]);
+        return;
+      }
+      const { data } = await supabase
+        .from("bookings")
+        .select("booking_time")
+        .eq("activity", selectedActivity)
+        .eq("booking_date", format(date, "yyyy-MM-dd"));
+      setBookedSlots(data?.map(b => b.booking_time) || []);
+    };
+    fetchBookedSlots();
+  }, [selectedActivity, date]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -241,29 +259,34 @@ const BookPage = () => {
             <div>
               <Label className="text-sm font-medium text-muted-foreground mb-4 block">Select Time</Label>
               <div className="grid grid-cols-4 gap-2">
-                {timeSlots.map((time) => (
-                  <button
-                    type="button"
-                    key={time}
-                    onClick={() => selectedActivity && setSelectedTime(time)}
-                    disabled={!selectedActivity}
-                    className={cn(
-                      "flex items-center justify-center gap-1 rounded-lg border px-3 py-2.5 text-sm font-medium transition-all",
-                      !selectedActivity
-                        ? "border-border text-muted-foreground/40 cursor-not-allowed opacity-50"
-                        : selectedTime === time
-                          ? selectedBrand === "tennis"
-                            ? "border-brand-tennis bg-brand-tennis/10 text-brand-tennis shadow-[0_0_12px_hsl(212_70%_55%/0.3)]"
-                            : selectedBrand === "wellness"
-                              ? "border-brand-wellness bg-brand-wellness/10 text-brand-wellness shadow-[0_0_12px_hsl(100_22%_60%/0.3)]"
-                              : "border-brand-basketball bg-brand-basketball/10 text-brand-basketball shadow-[0_0_12px_hsl(262_50%_55%/0.3)]"
-                          : "border-border text-muted-foreground hover:border-muted-foreground/50 hover:text-foreground"
-                    )}
-                  >
-                    <Clock className="h-3 w-3" />
-                    {time}
-                  </button>
-                ))}
+                {timeSlots.map((time) => {
+                  const isBooked = bookedSlots.includes(time);
+                  return (
+                    <button
+                      type="button"
+                      key={time}
+                      onClick={() => selectedActivity && !isBooked && setSelectedTime(time)}
+                      disabled={!selectedActivity || isBooked}
+                      className={cn(
+                        "flex items-center justify-center gap-1 rounded-lg border px-3 py-2.5 text-sm font-medium transition-all",
+                        isBooked
+                          ? "border-border bg-muted text-muted-foreground/40 cursor-not-allowed opacity-50 line-through"
+                          : !selectedActivity
+                            ? "border-border text-muted-foreground/40 cursor-not-allowed opacity-50"
+                            : selectedTime === time
+                              ? selectedBrand === "tennis"
+                                ? "border-brand-tennis bg-brand-tennis/10 text-brand-tennis shadow-[0_0_12px_hsl(212_70%_55%/0.3)]"
+                                : selectedBrand === "wellness"
+                                  ? "border-brand-wellness bg-brand-wellness/10 text-brand-wellness shadow-[0_0_12px_hsl(100_22%_60%/0.3)]"
+                                  : "border-brand-basketball bg-brand-basketball/10 text-brand-basketball shadow-[0_0_12px_hsl(262_50%_55%/0.3)]"
+                              : "border-border text-muted-foreground hover:border-muted-foreground/50 hover:text-foreground"
+                      )}
+                    >
+                      <Clock className="h-3 w-3" />
+                      {time}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </motion.div>
