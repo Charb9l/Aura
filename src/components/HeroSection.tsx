@@ -84,6 +84,12 @@ const HeroSection = () => {
             >
               Join Our Academy
             </Link>
+            <Link
+              to="/loyalty"
+              className="rounded-full border border-border bg-card/60 backdrop-blur-sm px-8 py-4 text-lg font-medium text-foreground transition-all hover:bg-secondary"
+            >
+              Our Clubs &amp; Partners
+            </Link>
           </div>
         </motion.div>
       </div>
