@@ -60,7 +60,7 @@ const Navbar = () => {
               </Link>
               <button
                 onClick={handleSignOut}
-                className="rounded-full bg-secondary px-4 py-2.5 text-sm font-medium text-secondary-foreground hover:bg-secondary/80 transition-all flex items-center gap-2"
+                className="rounded-full bg-secondary px-3 py-2 text-xs md:px-4 md:py-2.5 md:text-sm font-medium text-secondary-foreground hover:bg-secondary/80 transition-all flex items-center gap-1.5 md:gap-2"
               >
                 <LogOut className="h-4 w-4" />
                 Sign Out

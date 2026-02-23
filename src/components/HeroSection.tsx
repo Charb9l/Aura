@@ -67,7 +67,7 @@ const HeroSection = () => {
             <br />
             MOVEMENT & <span className="text-gradient">MINDFULNESS.</span>
           </h1>
-          <p className="text-base md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
+          <p className="text-base md:text-xl text-foreground/80 font-medium max-w-2xl mx-auto mb-10">
             Book tennis courts, basketball courts, aerial yoga for kids, or reformer
             pilates sessions — all in one place.
           </p>
