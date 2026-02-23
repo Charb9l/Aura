@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { motion } from "framer-motion";
 import { GraduationCap, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -25,8 +26,14 @@ const brandBorder = {
 };
 
 const AcademyPage = () => {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const preselected = searchParams.get("sport") || "";
+
+  useEffect(() => {
+    if (!loading && !user) navigate("/auth");
+  }, [user, loading, navigate]);
 
   const [selectedSport, setSelectedSport] = useState(preselected);
   const [name, setName] = useState("");
