@@ -49,13 +49,12 @@ Deno.serve(async (req) => {
     let action = url.searchParams.get("action");
     let body: Record<string, unknown> = {};
 
-    // Parse body once
     try {
       body = await req.json();
       if (!action && body?.action) action = body.action as string;
     } catch { /* no body */ }
 
-    // GET: list users with emails
+    // LIST users or admins
     if (action === "list" || action === "list-admins") {
       const { data: { users }, error } = await adminClient.auth.admin.listUsers({ perPage: 1000 });
       if (error) {
@@ -65,15 +64,19 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Get admin user_ids if filtering admins
-      let adminUserIds: Set<string> | null = null;
+      // Get roles (with club_id) for admin filtering
+      let adminRoles: { user_id: string; club_id: string | null }[] = [];
       if (action === "list-admins") {
         const { data: roles } = await adminClient
           .from("user_roles")
-          .select("user_id")
+          .select("user_id, club_id")
           .eq("role", "admin");
-        adminUserIds = new Set((roles || []).map(r => r.user_id));
+        adminRoles = roles || [];
       }
+      const adminUserIds = action === "list-admins"
+        ? new Set(adminRoles.map(r => r.user_id))
+        : null;
+      const adminClubMap = new Map(adminRoles.map(r => [r.user_id, r.club_id]));
 
       const { data: profiles } = await adminClient
         .from("profiles")
@@ -87,6 +90,7 @@ Deno.serve(async (req) => {
         full_name: profileMap.get(u.id)?.full_name || u.user_metadata?.full_name || "",
         phone: profileMap.get(u.id)?.phone || u.user_metadata?.phone || "",
         created_at: profileMap.get(u.id)?.created_at || u.created_at,
+        club_id: adminClubMap.get(u.id) || null,
       }));
 
       if (adminUserIds) {
@@ -99,9 +103,36 @@ Deno.serve(async (req) => {
       });
     }
 
-    // POST: update user
+    // GET current admin's club_id
+    if (action === "my-club") {
+      // Re-get the caller to find their user_id
+      const authHeader = req.headers.get("Authorization")!;
+      const callerClient = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
+        global: { headers: { Authorization: authHeader } },
+      });
+      const { data: { user } } = await callerClient.auth.getUser();
+      if (!user) {
+        return new Response(JSON.stringify({ error: "Not authenticated" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const { data: role } = await adminClient
+        .from("user_roles")
+        .select("club_id")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+
+      return new Response(JSON.stringify({ club_id: role?.club_id || null }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // UPDATE user
     if (action === "update") {
-      const { user_id, email, phone, password } = body as Record<string, string>;
+      const { user_id, email, phone, password, club_id } = body as Record<string, string | null>;
 
       if (!user_id) {
         return new Response(JSON.stringify({ error: "user_id required" }), {
@@ -116,7 +147,7 @@ Deno.serve(async (req) => {
       if (password) authUpdate.password = password;
 
       if (Object.keys(authUpdate).length > 0) {
-        const { error: authError } = await adminClient.auth.admin.updateUserById(user_id, authUpdate);
+        const { error: authError } = await adminClient.auth.admin.updateUserById(user_id as string, authUpdate);
         if (authError) {
           return new Response(JSON.stringify({ error: authError.message }), {
             status: 400,
@@ -128,6 +159,15 @@ Deno.serve(async (req) => {
       // Update profile (phone)
       if (phone !== undefined) {
         await adminClient.from("profiles").update({ phone }).eq("user_id", user_id);
+      }
+
+      // Update club assignment if provided
+      if (club_id !== undefined) {
+        await adminClient
+          .from("user_roles")
+          .update({ club_id: club_id || null })
+          .eq("user_id", user_id)
+          .eq("role", "admin");
       }
 
       return new Response(JSON.stringify({ success: true }), {
