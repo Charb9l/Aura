@@ -29,6 +29,7 @@ interface Booking {
   created_at: string;
   court_type?: string | null;
   discount_type?: string | null;
+  attendance_status?: string | null;
 }
 
 interface Profile {
@@ -196,10 +197,12 @@ const ProfilePage = () => {
 
   const totalBookings = bookings.length;
 
-  // Count bookings per activity (use modulo 10 for cycling rewards)
+  // Loyalty: only "show" bookings count positively, "no_show" = -1 penalty
   const activityPoints: Record<string, number> = {};
   ACTIVITIES.forEach(a => {
-    activityPoints[a.slug] = bookings.filter(b => b.activity === a.slug).length;
+    const showCount = bookings.filter(b => b.activity === a.slug && b.attendance_status === "show").length;
+    const noShowCount = bookings.filter(b => b.activity === a.slug && b.attendance_status === "no_show").length;
+    activityPoints[a.slug] = Math.max(0, showCount - noShowCount);
   });
 
   return (

@@ -91,17 +91,25 @@ const BookPage = () => {
 
     const activityName = activities.find(a => a.slug === selectedActivity)?.name || selectedActivity;
 
-    // Calculate loyalty discount based on past bookings for this activity
+    // Calculate loyalty discount based on confirmed "show" bookings minus no-shows
     let discountType: string | null = null;
-    const { count } = await supabase
-      .from("bookings")
-      .select("*", { count: "exact", head: true })
-      .eq("user_id", user.id)
-      .eq("activity", selectedActivity);
+    const [showRes, noShowRes] = await Promise.all([
+      supabase
+        .from("bookings")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("activity", selectedActivity)
+        .eq("attendance_status", "show"),
+      supabase
+        .from("bookings")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("activity", selectedActivity)
+        .eq("attendance_status", "no_show"),
+    ]);
 
-    const bookingCount = count || 0;
-    // 10 points cycle: at position 9 (10th booking) = free, at position 4 (5th booking) = 50%
-    const positionInCycle = bookingCount % 10;
+    const effectivePoints = Math.max(0, (showRes.count || 0) - (noShowRes.count || 0));
+    const positionInCycle = effectivePoints % 10;
     if (positionInCycle === 9) {
       discountType = "free";
     } else if (positionInCycle === 4) {

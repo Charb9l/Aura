@@ -72,6 +72,7 @@ export type Database = {
         Row: {
           activity: string
           activity_name: string
+          attendance_status: string | null
           booking_date: string
           booking_time: string
           court_type: string | null
@@ -87,6 +88,7 @@ export type Database = {
         Insert: {
           activity: string
           activity_name: string
+          attendance_status?: string | null
           booking_date: string
           booking_time: string
           court_type?: string | null
@@ -102,6 +104,7 @@ export type Database = {
         Update: {
           activity?: string
           activity_name?: string
+          attendance_status?: string | null
           booking_date?: string
           booking_time?: string
           court_type?: string | null

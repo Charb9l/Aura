@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { motion } from "framer-motion";
 import { format, subDays, startOfDay, startOfWeek, startOfMonth, endOfDay, isWithinInterval, parseISO, isSameDay } from "date-fns";
-import { CalendarCheck, TrendingUp, ShieldCheck, LogIn, UserPlus, Pencil, DollarSign, Building2, Clock, User, Mail, Phone, MapPin, FileText, Trash2 } from "lucide-react";
+import { CalendarCheck, TrendingUp, ShieldCheck, LogIn, UserPlus, Pencil, DollarSign, Building2, Clock, User, Mail, Phone, MapPin, FileText, Trash2, CheckCircle, XCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -71,6 +71,7 @@ interface BookingRow {
   user_id: string;
   court_type?: string | null;
   discount_type?: string | null;
+  attendance_status?: string | null;
 }
 
 interface ProfileRow {
@@ -267,7 +268,7 @@ interface AuditLogRow {
   created_at: string;
 }
 
-const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, allUsers }: { bookings: BookingRow[]; clubs?: ClubRow[]; isMasterAdmin?: boolean; onDeleteBooking?: (id: string) => void; allUsers?: UserWithEmail[] }) => {
+const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, onUpdateBooking, allUsers }: { bookings: BookingRow[]; clubs?: ClubRow[]; isMasterAdmin?: boolean; onDeleteBooking?: (id: string) => void; onUpdateBooking?: (id: string, updates: Partial<BookingRow>) => void; allUsers?: UserWithEmail[] }) => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedBooking, setSelectedBooking] = useState<BookingRow | null>(null);
   const [clubFilter, setClubFilter] = useState<string>("all");
@@ -495,16 +496,27 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
                               onClick={() => setSelectedBooking(b)}
                               className={cn(
                                 "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-primary/20 transition-colors cursor-pointer",
-                                b.discount_type ? "bg-accent/15 text-accent-foreground ring-1 ring-accent/30" : "bg-primary/10 text-primary"
+                                b.attendance_status === "show" ? "bg-emerald-500/10 text-emerald-500 ring-1 ring-emerald-500/30"
+                                  : b.attendance_status === "no_show" ? "bg-destructive/10 text-destructive ring-1 ring-destructive/30"
+                                  : b.discount_type ? "bg-accent/15 text-accent-foreground ring-1 ring-accent/30"
+                                  : "bg-primary/10 text-primary"
                               )}
                             >
-                              <User className="h-3.5 w-3.5" />
+                              {b.attendance_status === "show" && <CheckCircle className="h-3.5 w-3.5" />}
+                              {b.attendance_status === "no_show" && <XCircle className="h-3.5 w-3.5" />}
+                              {!b.attendance_status && <User className="h-3.5 w-3.5" />}
                               <span>{b.full_name}</span>
                               <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{b.activity_name}</Badge>
-                              {b.discount_type === "50%" && (
+                              {b.attendance_status === "show" && (
+                                <Badge className="text-[10px] px-1.5 py-0 bg-emerald-500/20 text-emerald-400 border-emerald-500/30">SHOW</Badge>
+                              )}
+                              {b.attendance_status === "no_show" && (
+                                <Badge className="text-[10px] px-1.5 py-0 bg-destructive/20 text-destructive border-destructive/30">NO SHOW</Badge>
+                              )}
+                              {!b.attendance_status && b.discount_type === "50%" && (
                                 <Badge className="text-[10px] px-1.5 py-0 bg-amber-500/20 text-amber-400 border-amber-500/30">50% OFF</Badge>
                               )}
-                              {b.discount_type === "free" && (
+                              {!b.attendance_status && b.discount_type === "free" && (
                                 <Badge className="text-[10px] px-1.5 py-0 bg-emerald-500/20 text-emerald-400 border-emerald-500/30">FREE</Badge>
                               )}
                             </button>
@@ -568,8 +580,61 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
                       {selectedBooking.status}
                     </Badge>
                   </div>
+                  {selectedBooking.attendance_status && (
+                    <div className="flex items-center justify-between pt-2 border-t border-border">
+                      <span className="text-xs text-muted-foreground">Attendance</span>
+                      {selectedBooking.attendance_status === "show" ? (
+                        <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 flex items-center gap-1">
+                          <CheckCircle className="h-3 w-3" /> Show
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-destructive/20 text-destructive border-destructive/30 flex items-center gap-1">
+                          <XCircle className="h-3 w-3" /> No Show
+                        </Badge>
+                      )}
+                    </div>
+                  )}
+                  {/* Show / No Show / Delete actions */}
+                  {onUpdateBooking && !selectedBooking.attendance_status && (
+                    <div className="pt-4 border-t border-border flex gap-3">
+                      <Button
+                        className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white gap-2"
+                        onClick={async () => {
+                          const { error } = await supabase.from("bookings").update({ attendance_status: "show" }).eq("id", selectedBooking.id);
+                          if (error) {
+                            toast.error("Failed to mark as show: " + error.message);
+                          } else {
+                            toast.success(`${selectedBooking.full_name} marked as Show ✓`);
+                            onUpdateBooking(selectedBooking.id, { attendance_status: "show" });
+                            setSelectedBooking(null);
+                          }
+                        }}
+                      >
+                        <CheckCircle className="h-4 w-4" /> Show
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        className="flex-1 gap-2"
+                        onClick={async () => {
+                          // Call the no-show edge function
+                          const { error: fnError } = await supabase.functions.invoke("no-show-email", {
+                            body: { booking_id: selectedBooking.id },
+                          });
+                          if (fnError) {
+                            toast.error("Failed to mark no-show: " + fnError.message);
+                          } else {
+                            toast.success(`${selectedBooking.full_name} marked as No Show. -1 loyalty penalty applied.`);
+                            onUpdateBooking(selectedBooking.id, { attendance_status: "no_show" });
+                            setSelectedBooking(null);
+                          }
+                        }}
+                      >
+                        <XCircle className="h-4 w-4" /> No Show
+                      </Button>
+                    </div>
+                  )}
                   {onDeleteBooking && (
-                    <div className="pt-4 border-t border-border">
+                    <div className={cn("border-t border-border", selectedBooking.attendance_status ? "pt-4" : "pt-2")}>
                       <Button
                         variant="destructive"
                         className="w-full"
@@ -1337,7 +1402,7 @@ const AdminDashboard = () => {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="bookings">
             <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Bookings</h1>
             <p className="text-muted-foreground mb-8">View daily bookings by time slot.</p>
-            <BookingsCalendarTab bookings={myClubId ? filteredBookings : bookings} clubs={clubs} isMasterAdmin={!myClubId} onDeleteBooking={(id) => setBookings(prev => prev.filter(b => b.id !== id))} allUsers={allUsers} />
+            <BookingsCalendarTab bookings={myClubId ? filteredBookings : bookings} clubs={clubs} isMasterAdmin={!myClubId} onDeleteBooking={(id) => setBookings(prev => prev.filter(b => b.id !== id))} onUpdateBooking={(id, updates) => setBookings(prev => prev.map(b => b.id === id ? { ...b, ...updates } : b))} allUsers={allUsers} />
           </motion.div>
         )}
 
