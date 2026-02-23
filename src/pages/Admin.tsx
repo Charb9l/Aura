@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { motion } from "framer-motion";
 import { format, subDays, startOfDay, startOfWeek, startOfMonth, endOfDay, isWithinInterval, parseISO, isSameDay } from "date-fns";
-import { CalendarCheck, TrendingUp, ShieldCheck, LogIn, UserPlus, Pencil, DollarSign, Building2, Clock, User, Mail, Phone, MapPin } from "lucide-react";
+import { CalendarCheck, TrendingUp, ShieldCheck, LogIn, UserPlus, Pencil, DollarSign, Building2, Clock, User, Mail, Phone, MapPin, FileText, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -249,10 +249,31 @@ const timeSlots = Array.from({ length: CLOSE_HOUR - OPEN_HOUR }, (_, i) => {
   return { hour: h, label };
 });
 
-const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking }: { bookings: BookingRow[]; clubs?: ClubRow[]; isMasterAdmin?: boolean; onDeleteBooking?: (id: string) => void }) => {
+interface AuditLogRow {
+  id: string;
+  booking_id: string;
+  activity: string;
+  activity_name: string;
+  booking_date: string;
+  booking_time: string;
+  full_name: string;
+  email: string;
+  phone: string;
+  court_type: string | null;
+  discount_type: string | null;
+  user_id: string;
+  deleted_by: string;
+  deleted_at: string;
+  created_at: string;
+}
+
+const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, allUsers }: { bookings: BookingRow[]; clubs?: ClubRow[]; isMasterAdmin?: boolean; onDeleteBooking?: (id: string) => void; allUsers?: UserWithEmail[] }) => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedBooking, setSelectedBooking] = useState<BookingRow | null>(null);
   const [clubFilter, setClubFilter] = useState<string>("all");
+  const [showLogs, setShowLogs] = useState(false);
+  const [auditLogs, setAuditLogs] = useState<AuditLogRow[]>([]);
+  const [logsLoading, setLogsLoading] = useState(false);
 
   // Build club activity map for filtering
   const clubActivityFilter = useMemo(() => {
@@ -305,163 +326,274 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking }
     return map;
   }, [dayBookings]);
 
+  // Fetch audit logs
+  const fetchLogs = async () => {
+    setLogsLoading(true);
+    const { data } = await supabase
+      .from("booking_audit_log")
+      .select("*")
+      .order("deleted_at", { ascending: false });
+    setAuditLogs((data as unknown as AuditLogRow[]) || []);
+    setLogsLoading(false);
+  };
+
+  const filteredLogs = useMemo(() => {
+    if (!clubActivityFilter) return auditLogs;
+    return auditLogs.filter(l => clubActivityFilter.includes(l.activity));
+  }, [auditLogs, clubActivityFilter]);
+
+  // Combine active bookings + deleted logs for the full log view
+  const allLogsEntries = useMemo(() => {
+    const activeFiltered = clubActivityFilter ? bookings.filter(b => clubActivityFilter.includes(b.activity)) : bookings;
+    const active = activeFiltered.map(b => ({ ...b, status_label: "active" as const, deleted_at: null as string | null, deleted_by: null as string | null }));
+    const deleted = filteredLogs.map(l => ({ ...l, id: l.booking_id, status: "deleted", status_label: "deleted" as const, user_id: l.user_id }));
+    return [...active, ...deleted].sort((a, b) => {
+      const dateA = a.booking_date + a.booking_time;
+      const dateB = b.booking_date + b.booking_time;
+      return dateB.localeCompare(dateA);
+    });
+  }, [bookings, filteredLogs, clubActivityFilter]);
+
+  const getAdminName = (uid: string | null) => {
+    if (!uid || !allUsers) return "Unknown";
+    const user = allUsers.find(u => u.user_id === uid);
+    return user?.full_name || user?.email || "Unknown";
+  };
+
   return (
     <div className="space-y-6">
-      {/* Club filter for master admin */}
-      {isMasterAdmin && clubs && clubs.length > 0 && (
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-medium text-muted-foreground">Filter by club:</span>
-          <Select value={clubFilter} onValueChange={setClubFilter}>
-            <SelectTrigger className="w-64 h-10 bg-secondary border-border">
-              <SelectValue placeholder="All Clubs" />
-            </SelectTrigger>
-            <SelectContent className="bg-card border-border z-50">
-              <SelectItem value="all">All Clubs & Partners</SelectItem>
-              {clubs.map(c => (
-                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
+      {/* Controls row */}
+      <div className="flex items-center gap-4 flex-wrap">
+        {isMasterAdmin && clubs && clubs.length > 0 && (
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-medium text-muted-foreground">Filter by club:</span>
+            <Select value={clubFilter} onValueChange={setClubFilter}>
+              <SelectTrigger className="w-64 h-10 bg-secondary border-border">
+                <SelectValue placeholder="All Clubs" />
+              </SelectTrigger>
+              <SelectContent className="bg-card border-border z-50">
+                <SelectItem value="all">All Clubs &amp; Partners</SelectItem>
+                {clubs.map(c => (
+                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+        <Button
+          variant={showLogs ? "default" : "outline"}
+          size="sm"
+          onClick={() => { setShowLogs(!showLogs); if (!showLogs && auditLogs.length === 0) fetchLogs(); }}
+          className="gap-2"
+        >
+          <FileText className="h-4 w-4" />
+          {showLogs ? "Back to Calendar" : "Logs"}
+        </Button>
+      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6">
-        {/* Date picker */}
-        <Card className="bg-card border-border self-start">
-          <CardContent className="p-4">
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={(d) => d && setSelectedDate(d)}
-              className={cn("p-3 pointer-events-auto")}
-            />
-          </CardContent>
-        </Card>
-
-        {/* Hourly schedule */}
+      {showLogs ? (
+        /* === LOGS VIEW === */
         <Card className="bg-card border-border">
           <CardHeader className="pb-4">
             <CardTitle className="font-heading text-lg flex items-center gap-2">
-              <Clock className="h-5 w-5 text-primary" />
-              {format(selectedDate, "EEEE, MMMM d, yyyy")}
+              <FileText className="h-5 w-5 text-primary" />
+              Booking Logs
             </CardTitle>
-            <p className="text-sm text-muted-foreground">{dayBookings.length} booking{dayBookings.length !== 1 ? "s" : ""} this day</p>
+            <p className="text-sm text-muted-foreground">{allLogsEntries.length} total entries (active + deleted)</p>
           </CardHeader>
-        <CardContent className="p-0">
-          <div className="divide-y divide-border">
-            {timeSlots.map((slot) => {
-              const slotBookings = bookingsByHour[slot.hour] || [];
-              return (
-                <div key={slot.hour} className="flex min-h-[56px]">
-                  {/* Time label */}
-                  <div className="w-24 shrink-0 flex items-start justify-end pr-4 py-3 border-r border-border">
-                    <span className="text-xs font-medium text-muted-foreground">{slot.label}</span>
-                  </div>
-                  {/* Bookings */}
-                  <div className="flex-1 py-2 px-3 flex flex-wrap gap-2">
-                    {slotBookings.map((b) => (
-                      <button
-                        key={b.id}
-                        onClick={() => setSelectedBooking(b)}
-                        className={cn(
-                          "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-primary/20 transition-colors cursor-pointer",
-                          b.discount_type ? "bg-accent/15 text-accent-foreground ring-1 ring-accent/30" : "bg-primary/10 text-primary"
+          <CardContent className="p-0">
+            {logsLoading ? (
+              <p className="text-muted-foreground text-center py-10">Loading logs...</p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Activity</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Time</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Deleted By</TableHead>
+                    <TableHead>Deleted At</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {allLogsEntries.map((entry, i) => (
+                    <TableRow key={`${entry.id}-${entry.status_label}-${i}`} className={entry.status_label === "deleted" ? "opacity-60" : ""}>
+                      <TableCell>
+                        <div>
+                          <p className="font-medium text-foreground">{entry.full_name}</p>
+                          <p className="text-xs text-muted-foreground">{entry.email}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className="text-xs">{entry.activity_name}</Badge>
+                      </TableCell>
+                      <TableCell className="text-sm text-foreground">{entry.booking_date}</TableCell>
+                      <TableCell className="text-sm text-foreground">{entry.booking_time}</TableCell>
+                      <TableCell>
+                        {entry.status_label === "active" ? (
+                          <Badge variant="default" className="text-xs">Active</Badge>
+                        ) : (
+                          <Badge variant="destructive" className="text-xs flex items-center gap-1 w-fit">
+                            <Trash2 className="h-3 w-3" />
+                            Deleted
+                          </Badge>
                         )}
-                      >
-                        <User className="h-3.5 w-3.5" />
-                        <span>{b.full_name}</span>
-                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{b.activity_name}</Badge>
-                        {b.discount_type === "50%" && (
-                          <Badge className="text-[10px] px-1.5 py-0 bg-amber-500/20 text-amber-400 border-amber-500/30">50% OFF</Badge>
-                        )}
-                        {b.discount_type === "free" && (
-                          <Badge className="text-[10px] px-1.5 py-0 bg-emerald-500/20 text-emerald-400 border-emerald-500/30">FREE</Badge>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
+                      </TableCell>
+                      <TableCell className="text-sm text-foreground">
+                        {entry.deleted_by ? getAdminName(entry.deleted_by) : "—"}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {entry.deleted_at ? format(new Date(entry.deleted_at), "PPp") : "—"}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+      ) : (
+        /* === CALENDAR VIEW === */
+        <>
+          <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6">
+            {/* Date picker */}
+            <Card className="bg-card border-border self-start">
+              <CardContent className="p-4">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(d) => d && setSelectedDate(d)}
+                  className={cn("p-3 pointer-events-auto")}
+                />
+              </CardContent>
+            </Card>
 
-      {/* Booking detail dialog */}
-      <Dialog open={!!selectedBooking} onOpenChange={(o) => !o && setSelectedBooking(null)}>
-        <DialogContent className="bg-card border-border max-w-md">
-          <DialogHeader>
-            <DialogTitle className="font-heading">Booking Details</DialogTitle>
-          </DialogHeader>
-          {selectedBooking && (
-            <div className="space-y-4 pt-2">
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary">
-                <User className="h-5 w-5 text-primary" />
-                <div>
-                  <p className="font-medium text-foreground">{selectedBooking.full_name}</p>
-                  <p className="text-xs text-muted-foreground">Customer</p>
+            {/* Hourly schedule */}
+            <Card className="bg-card border-border">
+              <CardHeader className="pb-4">
+                <CardTitle className="font-heading text-lg flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-primary" />
+                  {format(selectedDate, "EEEE, MMMM d, yyyy")}
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">{dayBookings.length} booking{dayBookings.length !== 1 ? "s" : ""} this day</p>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="divide-y divide-border">
+                  {timeSlots.map((slot) => {
+                    const slotBookings = bookingsByHour[slot.hour] || [];
+                    return (
+                      <div key={slot.hour} className="flex min-h-[56px]">
+                        <div className="w-24 shrink-0 flex items-start justify-end pr-4 py-3 border-r border-border">
+                          <span className="text-xs font-medium text-muted-foreground">{slot.label}</span>
+                        </div>
+                        <div className="flex-1 py-2 px-3 flex flex-wrap gap-2">
+                          {slotBookings.map((b) => (
+                            <button
+                              key={b.id}
+                              onClick={() => setSelectedBooking(b)}
+                              className={cn(
+                                "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-primary/20 transition-colors cursor-pointer",
+                                b.discount_type ? "bg-accent/15 text-accent-foreground ring-1 ring-accent/30" : "bg-primary/10 text-primary"
+                              )}
+                            >
+                              <User className="h-3.5 w-3.5" />
+                              <span>{b.full_name}</span>
+                              <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{b.activity_name}</Badge>
+                              {b.discount_type === "50%" && (
+                                <Badge className="text-[10px] px-1.5 py-0 bg-amber-500/20 text-amber-400 border-amber-500/30">50% OFF</Badge>
+                              )}
+                              {b.discount_type === "free" && (
+                                <Badge className="text-[10px] px-1.5 py-0 bg-emerald-500/20 text-emerald-400 border-emerald-500/30">FREE</Badge>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-              </div>
-              <div className="grid grid-cols-1 gap-3">
-                <div className="flex items-center gap-3 text-sm">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-foreground">{selectedBooking.email}</span>
-                </div>
-                <div className="flex items-center gap-3 text-sm">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-foreground">{selectedBooking.phone}</span>
-                </div>
-                <div className="flex items-center gap-3 text-sm">
-                  <CalendarCheck className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-foreground">{selectedBooking.booking_date} at {selectedBooking.booking_time}</span>
-                </div>
-                <div className="flex items-center gap-3 text-sm">
-                  <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-foreground">{selectedBooking.activity_name}{selectedBooking.court_type ? ` — ${selectedBooking.court_type}` : ""}</span>
-                </div>
-              </div>
-              {selectedBooking.discount_type && (
-                <div className="flex items-center justify-between pt-2 border-t border-border">
-                  <span className="text-xs text-muted-foreground">Loyalty Discount</span>
-                  {selectedBooking.discount_type === "50%" && (
-                    <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">50% OFF</Badge>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Booking detail dialog */}
+          <Dialog open={!!selectedBooking} onOpenChange={(o) => !o && setSelectedBooking(null)}>
+            <DialogContent className="bg-card border-border max-w-md">
+              <DialogHeader>
+                <DialogTitle className="font-heading">Booking Details</DialogTitle>
+              </DialogHeader>
+              {selectedBooking && (
+                <div className="space-y-4 pt-2">
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary">
+                    <User className="h-5 w-5 text-primary" />
+                    <div>
+                      <p className="font-medium text-foreground">{selectedBooking.full_name}</p>
+                      <p className="text-xs text-muted-foreground">Customer</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 gap-3">
+                    <div className="flex items-center gap-3 text-sm">
+                      <Mail className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-foreground">{selectedBooking.email}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm">
+                      <Phone className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-foreground">{selectedBooking.phone}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm">
+                      <CalendarCheck className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-foreground">{selectedBooking.booking_date} at {selectedBooking.booking_time}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm">
+                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-foreground">{selectedBooking.activity_name}{selectedBooking.court_type ? ` — ${selectedBooking.court_type}` : ""}</span>
+                    </div>
+                  </div>
+                  {selectedBooking.discount_type && (
+                    <div className="flex items-center justify-between pt-2 border-t border-border">
+                      <span className="text-xs text-muted-foreground">Loyalty Discount</span>
+                      {selectedBooking.discount_type === "50%" && (
+                        <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">50% OFF</Badge>
+                      )}
+                      {selectedBooking.discount_type === "free" && (
+                        <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">FREE</Badge>
+                      )}
+                    </div>
                   )}
-                  {selectedBooking.discount_type === "free" && (
-                    <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">FREE</Badge>
+                  <div className="flex items-center justify-between pt-2 border-t border-border">
+                    <span className="text-xs text-muted-foreground">Status</span>
+                    <Badge variant={selectedBooking.status === "confirmed" ? "default" : "secondary"}>
+                      {selectedBooking.status}
+                    </Badge>
+                  </div>
+                  {onDeleteBooking && (
+                    <div className="pt-4 border-t border-border">
+                      <Button
+                        variant="destructive"
+                        className="w-full"
+                        onClick={async () => {
+                          const { error } = await supabase.from("bookings").delete().eq("id", selectedBooking.id);
+                          if (error) {
+                            toast.error("Failed to delete booking: " + error.message);
+                          } else {
+                            toast.success("Booking deleted successfully");
+                            onDeleteBooking(selectedBooking.id);
+                            setSelectedBooking(null);
+                          }
+                        }}
+                      >
+                        Delete Booking
+                      </Button>
+                    </div>
                   )}
                 </div>
               )}
-              <div className="flex items-center justify-between pt-2 border-t border-border">
-                <span className="text-xs text-muted-foreground">Status</span>
-                <Badge variant={selectedBooking.status === "confirmed" ? "default" : "secondary"}>
-                  {selectedBooking.status}
-                </Badge>
-              </div>
-              {onDeleteBooking && (
-                <div className="pt-4 border-t border-border">
-                  <Button
-                    variant="destructive"
-                    className="w-full"
-                    onClick={async () => {
-                      const { error } = await supabase.from("bookings").delete().eq("id", selectedBooking.id);
-                      if (error) {
-                        toast.error("Failed to delete booking: " + error.message);
-                      } else {
-                        toast.success("Booking deleted successfully");
-                        onDeleteBooking(selectedBooking.id);
-                        setSelectedBooking(null);
-                      }
-                    }}
-                  >
-                    Delete Booking
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-    </div>
+            </DialogContent>
+          </Dialog>
+        </>
+      )}
     </div>
   );
 };
@@ -1205,7 +1337,7 @@ const AdminDashboard = () => {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="bookings">
             <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Bookings</h1>
             <p className="text-muted-foreground mb-8">View daily bookings by time slot.</p>
-            <BookingsCalendarTab bookings={myClubId ? filteredBookings : bookings} clubs={clubs} isMasterAdmin={!myClubId} onDeleteBooking={(id) => setBookings(prev => prev.filter(b => b.id !== id))} />
+            <BookingsCalendarTab bookings={myClubId ? filteredBookings : bookings} clubs={clubs} isMasterAdmin={!myClubId} onDeleteBooking={(id) => setBookings(prev => prev.filter(b => b.id !== id))} allUsers={allUsers} />
           </motion.div>
         )}
 
