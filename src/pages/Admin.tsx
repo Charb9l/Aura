@@ -523,7 +523,7 @@ const AdminDashboard = () => {
   if (loadingData) {
     return (
       <div className="min-h-screen">
-        <AdminNavbar activeTab={activeTab} onTabChange={setActiveTab} />
+        <AdminNavbar activeTab={activeTab} onTabChange={setActiveTab} assignedClubId={myClubId} />
         <div className="flex items-center justify-center min-h-screen">
           <p className="text-muted-foreground">Loading...</p>
         </div>
@@ -592,7 +592,7 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen">
-      <AdminNavbar activeTab={activeTab} onTabChange={setActiveTab} />
+      <AdminNavbar activeTab={activeTab} onTabChange={setActiveTab} assignedClubId={myClubId} />
       <div className="container mx-auto px-6 pt-28 pb-16">
 
         {/* Dashboard / Overview */}

@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { LogOut, Menu, LayoutDashboard, Users, ShieldCheck, BarChart3, Settings, Tag, Building2 } from "lucide-react";
 
-const menuItems = [
+const allMenuItems = [
   { label: "Dashboard", icon: LayoutDashboard, tab: "overview" },
   { label: "Users", icon: Users, tab: "users" },
   { label: "Admins", icon: ShieldCheck, tab: "admins" },
@@ -14,16 +14,24 @@ const menuItems = [
   { label: "Promotions", icon: Tag, tab: "promotions" },
 ];
 
+const assignedAdminTabs = new Set(["overview", "promotions"]);
+
 interface AdminNavbarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
+  assignedClubId?: string | null;
 }
 
-const AdminNavbar = ({ activeTab, onTabChange }: AdminNavbarProps) => {
+const AdminNavbar = ({ activeTab, onTabChange, assignedClubId }: AdminNavbarProps) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const isAssignedAdmin = !!assignedClubId;
+  const menuItems = isAssignedAdmin
+    ? allMenuItems.filter((item) => assignedAdminTabs.has(item.tab))
+    : allMenuItems;
 
   const handleSignOut = async () => {
     await signOut();
