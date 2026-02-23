@@ -6,10 +6,6 @@ import tennisImg from "@/assets/tennis-court.png";
 import yogaImg from "@/assets/aerial-yoga-studio.png";
 import pilatesImg from "@/assets/pilates-studio.png";
 
-import beirutLogo from "@/assets/beirut-logo.png";
-import hardcourtLogo from "@/assets/hardcourt-logo.png";
-import enformeLogo from "@/assets/enforme-logo.png";
-
 const panels = [
   { image: basketballImg, alt: "Basketball court" },
   { image: tennisImg, alt: "Tennis court" },
@@ -44,24 +40,6 @@ const HeroSection = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
         >
-          {/* Brand logos */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="flex items-center justify-center gap-4 md:gap-6 mb-10"
-          >
-            <div className="h-20 w-20 md:h-24 md:w-24 overflow-hidden shadow-2xl">
-              <img src={beirutLogo} alt="Beirut Sports Club" className="h-full w-full object-contain" />
-            </div>
-            <div className="h-20 w-20 md:h-24 md:w-24 overflow-hidden shadow-2xl">
-              <img src={hardcourtLogo} alt="Hard Court Tennis" className="h-full w-full object-contain" />
-            </div>
-            <div className="h-20 w-20 md:h-24 md:w-24 overflow-hidden shadow-2xl">
-              <img src={enformeLogo} alt="En Forme Studio" className="h-full w-full object-contain" />
-            </div>
-          </motion.div>
-
           <h1 className="font-heading text-4xl md:text-6xl lg:text-8xl font-bold tracking-tight text-foreground mb-6 leading-[1.1]">
             YOUR JOURNEY. YOUR SPACE.
             <br />

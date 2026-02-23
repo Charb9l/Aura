@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Building2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,9 +25,16 @@ interface Club {
   created_at: string;
 }
 
+const clubActivityMap: Record<string, string> = {
+  "Beirut Basketball Club": "basketball",
+  "Hardcourt Dbayeh Tennis Academy": "tennis",
+  "En Forme": "pilates",
+};
+
 const ClubsPage = () => {
   const [clubs, setClubs] = useState<Club[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchClubs = async () => {
@@ -61,7 +69,11 @@ const ClubsPage = () => {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1 }}
-                className="rounded-2xl border border-border bg-card p-6 hover:shadow-xl hover:shadow-primary/5 transition-all"
+                onClick={() => {
+                  const activity = clubActivityMap[club.name];
+                  if (activity) navigate(`/book?activity=${activity}`);
+                }}
+                className="rounded-2xl border border-border bg-card p-6 hover:shadow-xl hover:shadow-primary/5 transition-all cursor-pointer"
               >
                 <div className="flex items-center gap-4 mb-4">
                   {club.logo_url && logoMap[club.logo_url] && (
