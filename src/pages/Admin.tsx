@@ -25,10 +25,16 @@ import {
 } from "recharts";
 
 const ACTIVITY_PRICES: Record<string, number> = {
-  tennis: 50,
-  basketball: 40,
-  "aerial-yoga": 35,
-  pilates: 45,
+  tennis: 15,
+  "aerial-yoga": 20,
+  pilates: 20,
+};
+
+const getBookingRevenue = (b: BookingRow): number => {
+  if (b.activity === "basketball") {
+    return b.court_type === "full" ? 90 : 45;
+  }
+  return ACTIVITY_PRICES[b.activity] || 0;
 };
 
 const ALL_CATEGORIES = [
@@ -57,6 +63,7 @@ interface BookingRow {
   status: string;
   created_at: string;
   user_id: string;
+  court_type?: string | null;
 }
 
 interface ProfileRow {
@@ -308,13 +315,13 @@ const AdminDashboard = () => {
   const [revenueCustomRange, setRevenueCustomRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: subDays(new Date(), 6), to: new Date() });
 
   const todayStr = format(new Date(), "yyyy-MM-dd");
-  const dailyRevenue = bookings.filter(b => b.booking_date === todayStr).reduce((sum, b) => sum + (ACTIVITY_PRICES[b.activity] || 0), 0);
-  const totalRevenue = bookings.reduce((sum, b) => sum + (ACTIVITY_PRICES[b.activity] || 0), 0);
+  const dailyRevenue = bookings.filter(b => b.booking_date === todayStr).reduce((sum, b) => sum + getBookingRevenue(b), 0);
+  const totalRevenue = bookings.reduce((sum, b) => sum + getBookingRevenue(b), 0);
 
   const revenueByCategoryData = useMemo(() => {
     const grouped: Record<string, number> = {};
     bookings.forEach(b => {
-      grouped[b.activity_name] = (grouped[b.activity_name] || 0) + (ACTIVITY_PRICES[b.activity] || 0);
+      grouped[b.activity_name] = (grouped[b.activity_name] || 0) + getBookingRevenue(b);
     });
     return Object.entries(grouped).map(([name, value]) => ({ name, value }));
   }, [bookings]);
@@ -350,7 +357,7 @@ const AdminDashboard = () => {
       return isWithinInterval(d, { start, end });
     });
     const grouped: Record<string, number> = {};
-    filtered.forEach(b => { grouped[b.activity] = (grouped[b.activity] || 0) + (ACTIVITY_PRICES[b.activity] || 0); });
+    filtered.forEach(b => { grouped[b.activity] = (grouped[b.activity] || 0) + getBookingRevenue(b); });
     return ALL_CATEGORIES.map(c => ({ name: c.label, value: grouped[c.key] || 0 }));
   }, [bookings, revenueRange, bookingCustomDate, revenueCustomRange]);
 
