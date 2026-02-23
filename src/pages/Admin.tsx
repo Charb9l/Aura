@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { motion } from "framer-motion";
 import { format, subDays, startOfDay, startOfWeek, startOfMonth, endOfDay, isWithinInterval, parseISO } from "date-fns";
-import { CalendarCheck, TrendingUp, ShieldCheck, LogIn, UserPlus, Pencil, DollarSign } from "lucide-react";
+import { CalendarCheck, TrendingUp, ShieldCheck, LogIn, UserPlus, Pencil, DollarSign, Building2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -212,6 +212,88 @@ const CreateAdminForm = () => {
     </Card>
   );
 };
+
+import beirutLogo from "@/assets/beirut-logo.png";
+import hardcourtLogo from "@/assets/hardcourt-logo.png";
+import enformeLogo from "@/assets/enforme-logo.png";
+
+const clubLogoMap: Record<string, string> = {
+  "/beirut-logo.png": beirutLogo,
+  "/hardcourt-logo.png": hardcourtLogo,
+  "/enforme-logo.png": enformeLogo,
+};
+
+interface ClubRow {
+  id: string;
+  name: string;
+  description: string | null;
+  logo_url: string | null;
+  offerings: string[];
+  created_at: string;
+}
+
+const ClubsTab = () => {
+  const [clubs, setClubs] = useState<ClubRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetch = async () => {
+      const { data } = await supabase.from("clubs").select("*").order("name");
+      if (data) setClubs(data as unknown as ClubRow[]);
+      setLoading(false);
+    };
+    fetch();
+  }, []);
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="clubs">
+      <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Clubs & Partners</h1>
+      <p className="text-muted-foreground mb-8">All signed clubs and partners on the platform.</p>
+      <Card className="bg-card border-border">
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Club</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead>Offerings</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-8">Loading...</TableCell></TableRow>
+              ) : clubs.length === 0 ? (
+                <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-8">No clubs yet.</TableCell></TableRow>
+              ) : clubs.map((club) => (
+                <TableRow key={club.id}>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      {club.logo_url && clubLogoMap[club.logo_url] && (
+                        <div className="h-10 w-10 rounded-lg overflow-hidden bg-secondary shrink-0">
+                          <img src={clubLogoMap[club.logo_url]} alt={club.name} className="h-full w-full object-contain" />
+                        </div>
+                      )}
+                      <span className="font-medium">{club.name}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-sm max-w-xs">{club.description || "—"}</TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-1">
+                      {club.offerings.map((o) => (
+                        <Badge key={o} variant="secondary" className="text-xs">{o}</Badge>
+                      ))}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+};
+
 
 const AdminDashboard = () => {
   const [bookings, setBookings] = useState<BookingRow[]>([]);
@@ -716,6 +798,11 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
           </motion.div>
+        )}
+
+        {/* Clubs & Partners */}
+        {activeTab === "clubs" && (
+          <ClubsTab />
         )}
 
         {/* Settings */}
