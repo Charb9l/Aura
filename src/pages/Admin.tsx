@@ -243,17 +243,38 @@ const timeSlots = Array.from({ length: CLOSE_HOUR - OPEN_HOUR }, (_, i) => {
   return { hour: h, label };
 });
 
-const BookingsCalendarTab = ({ bookings }: { bookings: BookingRow[] }) => {
+const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin }: { bookings: BookingRow[]; clubs?: ClubRow[]; isMasterAdmin?: boolean }) => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedBooking, setSelectedBooking] = useState<BookingRow | null>(null);
+  const [clubFilter, setClubFilter] = useState<string>("all");
+
+  // Build club activity map for filtering
+  const clubActivityFilter = useMemo(() => {
+    if (!isMasterAdmin || clubFilter === "all" || !clubs) return null;
+    const club = clubs.find(c => c.id === clubFilter);
+    if (!club) return null;
+    const activities: string[] = [];
+    club.offerings.forEach(o => {
+      const lower = o.toLowerCase();
+      if (lower.includes("basketball")) activities.push("basketball");
+      if (lower.includes("tennis")) activities.push("tennis");
+      if (lower.includes("pilates")) activities.push("pilates");
+      if (lower.includes("yoga") || lower.includes("aerial")) activities.push("aerial-yoga");
+    });
+    return activities;
+  }, [clubFilter, clubs, isMasterAdmin]);
 
   const dayBookings = useMemo(() => {
-    return bookings.filter((b) => {
+    let filtered = bookings.filter((b) => {
       try {
         return isSameDay(parseISO(b.booking_date), selectedDate);
       } catch { return false; }
     });
-  }, [bookings, selectedDate]);
+    if (clubActivityFilter) {
+      filtered = filtered.filter(b => clubActivityFilter.includes(b.activity));
+    }
+    return filtered;
+  }, [bookings, selectedDate, clubActivityFilter]);
 
   // Group bookings by hour
   const bookingsByHour = useMemo(() => {
@@ -279,28 +300,47 @@ const BookingsCalendarTab = ({ bookings }: { bookings: BookingRow[] }) => {
   }, [dayBookings]);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6">
-      {/* Date picker */}
-      <Card className="bg-card border-border self-start">
-        <CardContent className="p-4">
-          <Calendar
-            mode="single"
-            selected={selectedDate}
-            onSelect={(d) => d && setSelectedDate(d)}
-            className={cn("p-3 pointer-events-auto")}
-          />
-        </CardContent>
-      </Card>
+    <div className="space-y-6">
+      {/* Club filter for master admin */}
+      {isMasterAdmin && clubs && clubs.length > 0 && (
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-medium text-muted-foreground">Filter by club:</span>
+          <Select value={clubFilter} onValueChange={setClubFilter}>
+            <SelectTrigger className="w-64 h-10 bg-secondary border-border">
+              <SelectValue placeholder="All Clubs" />
+            </SelectTrigger>
+            <SelectContent className="bg-card border-border z-50">
+              <SelectItem value="all">All Clubs & Partners</SelectItem>
+              {clubs.map(c => (
+                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
-      {/* Hourly schedule */}
-      <Card className="bg-card border-border">
-        <CardHeader className="pb-4">
-          <CardTitle className="font-heading text-lg flex items-center gap-2">
-            <Clock className="h-5 w-5 text-primary" />
-            {format(selectedDate, "EEEE, MMMM d, yyyy")}
-          </CardTitle>
-          <p className="text-sm text-muted-foreground">{dayBookings.length} booking{dayBookings.length !== 1 ? "s" : ""} this day</p>
-        </CardHeader>
+      <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6">
+        {/* Date picker */}
+        <Card className="bg-card border-border self-start">
+          <CardContent className="p-4">
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={(d) => d && setSelectedDate(d)}
+              className={cn("p-3 pointer-events-auto")}
+            />
+          </CardContent>
+        </Card>
+
+        {/* Hourly schedule */}
+        <Card className="bg-card border-border">
+          <CardHeader className="pb-4">
+            <CardTitle className="font-heading text-lg flex items-center gap-2">
+              <Clock className="h-5 w-5 text-primary" />
+              {format(selectedDate, "EEEE, MMMM d, yyyy")}
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">{dayBookings.length} booking{dayBookings.length !== 1 ? "s" : ""} this day</p>
+          </CardHeader>
         <CardContent className="p-0">
           <div className="divide-y divide-border">
             {timeSlots.map((slot) => {
@@ -375,6 +415,7 @@ const BookingsCalendarTab = ({ bookings }: { bookings: BookingRow[] }) => {
           )}
         </DialogContent>
       </Dialog>
+    </div>
     </div>
   );
 };
@@ -1103,7 +1144,7 @@ const AdminDashboard = () => {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="bookings">
             <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Bookings</h1>
             <p className="text-muted-foreground mb-8">View daily bookings by time slot.</p>
-            <BookingsCalendarTab bookings={filteredBookings} />
+            <BookingsCalendarTab bookings={myClubId ? filteredBookings : bookings} clubs={clubs} isMasterAdmin={!myClubId} />
           </motion.div>
         )}
 
