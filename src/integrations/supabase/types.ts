@@ -59,6 +59,33 @@ export type Database = {
         }
         Relationships: []
       }
+      clubs: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          logo_url: string | null
+          name: string
+          offerings: string[]
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          logo_url?: string | null
+          name: string
+          offerings?: string[]
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          logo_url?: string | null
+          name?: string
+          offerings?: string[]
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
