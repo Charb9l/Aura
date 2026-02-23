@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
-import { LogOut, Menu, LayoutDashboard, Users, ShieldCheck, BarChart3, Settings, Tag, Building2 } from "lucide-react";
+import { LogOut, Menu, LayoutDashboard, Users, ShieldCheck, BarChart3, Settings, Tag, Building2, CalendarCheck } from "lucide-react";
 
 const allMenuItems = [
   { label: "Dashboard", icon: LayoutDashboard, tab: "overview" },
@@ -12,9 +12,10 @@ const allMenuItems = [
   { label: "Reporting", icon: BarChart3, tab: "reporting" },
   { label: "Settings", icon: Settings, tab: "settings" },
   { label: "Promotions", icon: Tag, tab: "promotions" },
+  { label: "Bookings", icon: CalendarCheck, tab: "bookings" },
 ];
 
-const assignedAdminTabs = new Set(["overview", "promotions"]);
+const assignedAdminTabs = new Set(["overview", "promotions", "bookings"]);
 
 interface AdminNavbarProps {
   activeTab: string;
