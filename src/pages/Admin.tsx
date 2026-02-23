@@ -318,6 +318,7 @@ const AdminDashboard = () => {
   const [newAdminEmail, setNewAdminEmail] = useState("");
   const [newAdminPassword, setNewAdminPassword] = useState("");
   const [newAdminPhone, setNewAdminPhone] = useState("");
+  const [newAdminClubId, setNewAdminClubId] = useState<string>("none");
   const [creatingAdmin, setCreatingAdmin] = useState(false);
 
   // Admin edit state
@@ -418,14 +419,14 @@ const AdminDashboard = () => {
     e.preventDefault();
     setCreatingAdmin(true);
     const { data, error } = await supabase.functions.invoke("manage-admin", {
-      body: { email: newAdminEmail, password: newAdminPassword, full_name: newAdminName, phone: newAdminPhone },
+      body: { email: newAdminEmail, password: newAdminPassword, full_name: newAdminName, phone: newAdminPhone, club_id: (newAdminClubId && newAdminClubId !== "none") ? newAdminClubId : null },
     });
     setCreatingAdmin(false);
     if (error || data?.error) {
       toast.error(data?.error || error?.message || "Failed to create admin");
     } else {
       toast.success(`Admin account created for ${newAdminEmail}`);
-      setNewAdminName(""); setNewAdminEmail(""); setNewAdminPassword(""); setNewAdminPhone("");
+      setNewAdminName(""); setNewAdminEmail(""); setNewAdminPassword(""); setNewAdminPhone(""); setNewAdminClubId("none");
       setShowCreateAdmin(false);
       const { data: aRes } = await supabase.functions.invoke("admin-users", { body: { action: "list-admins" } });
       if (aRes?.users) setAdminUsers(aRes.users);
@@ -849,6 +850,21 @@ const AdminDashboard = () => {
                   <div>
                     <Label htmlFor="new-phone">Phone Number</Label>
                     <PhoneInput id="new-phone" value={newAdminPhone} onChange={setNewAdminPhone} className="mt-1" />
+                  </div>
+                  <div>
+                    <Label>Assign Club</Label>
+                    <Select value={newAdminClubId} onValueChange={setNewAdminClubId}>
+                      <SelectTrigger className="h-12 bg-secondary border-border mt-1">
+                        <SelectValue placeholder="All Clubs (Master Admin)" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-card border-border z-50">
+                        <SelectItem value="none">All Clubs (Master Admin)</SelectItem>
+                        {clubs.map(c => (
+                          <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground mt-1.5">Leave as "All Clubs" for a master admin.</p>
                   </div>
                   <Button type="submit" disabled={creatingAdmin} className="w-full h-12 text-base font-semibold glow">
                     <UserPlus className="h-4 w-4 mr-2" />

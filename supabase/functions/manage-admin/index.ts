@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { email, password, full_name, phone } = await req.json();
+    const { email, password, full_name, phone, club_id } = await req.json();
 
     if (!email || !password) {
       return new Response(JSON.stringify({ error: "Email and password are required" }), {
@@ -76,7 +76,7 @@ Deno.serve(async (req) => {
 
     const { error: roleError } = await adminClient
       .from("user_roles")
-      .insert({ user_id: newUser.user.id, role: "admin" });
+      .insert({ user_id: newUser.user.id, role: "admin", club_id: club_id || null });
 
     if (roleError) {
       return new Response(JSON.stringify({ error: roleError.message }), {
