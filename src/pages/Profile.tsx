@@ -1,12 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { format } from "date-fns";
+import { motion, AnimatePresence } from "framer-motion";
+import { format, parseISO, differenceInHours, isBefore, startOfDay } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
-import { Trophy, Star, Clock, ArrowRight, Gift, Zap } from "lucide-react";
+import { Trophy, Star, Clock, ArrowRight, Gift, Zap, CalendarCheck, X, Pencil, Trash2, CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { toast } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 
 import tennisImg from "@/assets/tennis-court.png";
@@ -22,6 +27,8 @@ interface Booking {
   booking_time: string;
   status: string;
   created_at: string;
+  court_type?: string | null;
+  discount_type?: string | null;
 }
 
 interface Profile {
@@ -36,12 +43,37 @@ const ACTIVITIES = [
   { slug: "pilates", name: "Pilates", image: pilatesImg, accent: "hsl(100 22% 60%)" },
 ];
 
+const TIME_SLOTS = [
+  "08:00", "09:00", "10:00", "11:00", "12:00",
+  "13:00", "14:00", "15:00", "16:00", "17:00",
+  "18:00", "19:00", "20:00", "21:00",
+];
+
+const getBookingDateTime = (booking: Booking): Date => {
+  const [hours, minutes] = booking.booking_time.split(":").map(Number);
+  const d = parseISO(booking.booking_date);
+  d.setHours(hours, minutes || 0, 0, 0);
+  return d;
+};
+
+const canDeleteBooking = (booking: Booking): boolean => {
+  const bookingDt = getBookingDateTime(booking);
+  const now = new Date();
+  return differenceInHours(bookingDt, now) >= 2;
+};
+
 const ProfilePage = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loadingData, setLoadingData] = useState(true);
+  const [showPending, setShowPending] = useState(false);
+  const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
+  const [editDate, setEditDate] = useState<Date>();
+  const [editTime, setEditTime] = useState("");
+  const [bookedSlots, setBookedSlots] = useState<string[]>([]);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) navigate("/auth");
@@ -71,6 +103,85 @@ const ProfilePage = () => {
 
     fetchData();
   }, [user]);
+
+  // Pending bookings = future bookings that are confirmed
+  const pendingBookings = useMemo(() => {
+    const now = new Date();
+    return bookings.filter(b => {
+      const bookingDt = getBookingDateTime(b);
+      return b.status === "confirmed" && bookingDt > now;
+    }).sort((a, b) => {
+      const dtA = getBookingDateTime(a);
+      const dtB = getBookingDateTime(b);
+      return dtA.getTime() - dtB.getTime();
+    });
+  }, [bookings]);
+
+  // Fetch booked slots when editing
+  useEffect(() => {
+    if (!editingBooking || !editDate) {
+      setBookedSlots([]);
+      return;
+    }
+    const fetchSlots = async () => {
+      const { data } = await supabase.rpc("get_booked_slots", {
+        _activity: editingBooking.activity,
+        _booking_date: format(editDate, "yyyy-MM-dd"),
+      });
+      // Exclude current booking's slot so user can keep their own time
+      const slots = ((data as string[]) || []).filter(
+        s => !(s === editingBooking.booking_time && format(editDate, "yyyy-MM-dd") === editingBooking.booking_date)
+      );
+      setBookedSlots(slots);
+    };
+    fetchSlots();
+  }, [editingBooking, editDate]);
+
+  const startEdit = (booking: Booking) => {
+    setEditingBooking(booking);
+    setEditDate(parseISO(booking.booking_date));
+    setEditTime(booking.booking_time);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingBooking || !editDate || !editTime) return;
+    setSaving(true);
+
+    const { error } = await supabase
+      .from("bookings")
+      .update({
+        booking_date: format(editDate, "yyyy-MM-dd"),
+        booking_time: editTime,
+      })
+      .eq("id", editingBooking.id);
+
+    setSaving(false);
+    if (error) {
+      toast.error("Failed to update booking: " + error.message);
+    } else {
+      toast.success("Booking updated!");
+      setBookings(prev =>
+        prev.map(b =>
+          b.id === editingBooking.id
+            ? { ...b, booking_date: format(editDate, "yyyy-MM-dd"), booking_time: editTime }
+            : b
+        )
+      );
+      setEditingBooking(null);
+    }
+  };
+
+  const handleDelete = async (booking: Booking) => {
+    if (!canDeleteBooking(booking)) return;
+
+    const { error } = await supabase.from("bookings").delete().eq("id", booking.id);
+    if (error) {
+      toast.error("Failed to cancel booking: " + error.message);
+    } else {
+      toast.success("Booking cancelled.");
+      setBookings(prev => prev.filter(b => b.id !== booking.id));
+    }
+  };
 
   if (loading || loadingData) {
     return (
@@ -103,6 +214,191 @@ const ProfilePage = () => {
           <p className="text-muted-foreground text-lg">Your activity hub & loyalty progress.</p>
         </motion.div>
 
+        {/* Pending Bookings Button */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="mb-8"
+        >
+          <Button
+            onClick={() => setShowPending(true)}
+            variant="outline"
+            className="h-14 px-6 rounded-xl font-bold text-base gap-3 border-primary/30 hover:border-primary hover:bg-primary/5 transition-all"
+          >
+            <CalendarCheck className="h-5 w-5 text-primary" />
+            Pending Bookings
+            {pendingBookings.length > 0 && (
+              <Badge className="ml-1 bg-primary text-primary-foreground text-xs px-2 py-0.5">
+                {pendingBookings.length}
+              </Badge>
+            )}
+          </Button>
+        </motion.div>
+
+        {/* Pending Bookings Dialog */}
+        <Dialog open={showPending} onOpenChange={setShowPending}>
+          <DialogContent className="bg-card border-border max-w-3xl max-h-[66vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="font-heading text-xl flex items-center gap-2">
+                <CalendarCheck className="h-5 w-5 text-primary" />
+                Pending Bookings
+              </DialogTitle>
+            </DialogHeader>
+
+            {pendingBookings.length === 0 ? (
+              <div className="py-12 text-center">
+                <p className="text-muted-foreground mb-4">No upcoming bookings.</p>
+                <Link to="/book" onClick={() => setShowPending(false)}>
+                  <Button className="rounded-xl glow">Book a Session</Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-3 pt-2">
+                {pendingBookings.map((booking) => {
+                  const deletable = canDeleteBooking(booking);
+                  const bookingDt = getBookingDateTime(booking);
+                  const hoursLeft = differenceInHours(bookingDt, new Date());
+
+                  return (
+                    <div
+                      key={booking.id}
+                      className="rounded-xl border border-border bg-secondary/30 p-4"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <p className="font-heading font-semibold text-foreground">{booking.activity_name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {format(parseISO(booking.booking_date), "EEEE, MMMM d, yyyy")} at {booking.booking_time}
+                          </p>
+                          {booking.court_type && (
+                            <p className="text-xs text-muted-foreground mt-0.5">{booking.court_type} court</p>
+                          )}
+                          {booking.discount_type && (
+                            <Badge className={cn(
+                              "mt-1 text-[10px]",
+                              booking.discount_type === "free"
+                                ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
+                                : "bg-amber-500/20 text-amber-400 border-amber-500/30"
+                            )}>
+                              {booking.discount_type === "free" ? "FREE" : "50% OFF"}
+                            </Badge>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => startEdit(booking)}
+                            className="gap-1.5"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                            Edit
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            disabled={!deletable}
+                            onClick={() => handleDelete(booking)}
+                            className="gap-1.5"
+                            title={!deletable ? `Cannot cancel within 2 hours of booking time (${hoursLeft}h left)` : "Cancel booking"}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+
+                      {!deletable && (
+                        <p className="text-xs text-destructive/70 mt-2">
+                          Cannot cancel — less than 2 hours until booking time.
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Booking Dialog */}
+        <Dialog open={!!editingBooking} onOpenChange={(o) => !o && setEditingBooking(null)}>
+          <DialogContent className="bg-card border-border max-w-md">
+            <DialogHeader>
+              <DialogTitle className="font-heading">Edit Booking</DialogTitle>
+            </DialogHeader>
+            {editingBooking && (
+              <div className="space-y-6 pt-2">
+                <div className="p-3 rounded-lg bg-secondary">
+                  <p className="font-medium text-foreground">{editingBooking.activity_name}</p>
+                  <p className="text-xs text-muted-foreground">Change date or time below</p>
+                </div>
+
+                {/* Date picker */}
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground mb-2">Date</p>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start h-12">
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {editDate ? format(editDate, "PPP") : "Pick a date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={editDate}
+                        onSelect={(d) => { if (d) { setEditDate(d); setEditTime(""); } }}
+                        disabled={(d) => d < startOfDay(new Date())}
+                        className="p-3 pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                {/* Time slots */}
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground mb-2">Time</p>
+                  <div className="grid grid-cols-4 gap-2">
+                    {TIME_SLOTS.map((time) => {
+                      const isBooked = bookedSlots.includes(time);
+                      return (
+                        <button
+                          type="button"
+                          key={time}
+                          onClick={() => !isBooked && setEditTime(time)}
+                          disabled={isBooked}
+                          className={cn(
+                            "flex items-center justify-center rounded-lg border px-3 py-2.5 text-sm font-medium transition-all",
+                            isBooked
+                              ? "border-border bg-muted text-muted-foreground/40 cursor-not-allowed line-through"
+                              : editTime === time
+                                ? "border-primary bg-primary/10 text-primary shadow-sm"
+                                : "border-border text-muted-foreground hover:border-muted-foreground/50 hover:text-foreground"
+                          )}
+                        >
+                          <Clock className="h-3 w-3 mr-1" />
+                          {time}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <Button
+                  onClick={handleSaveEdit}
+                  disabled={!editDate || !editTime || saving}
+                  className="w-full h-12 font-bold rounded-xl glow"
+                >
+                  {saving ? "Saving..." : "Save Changes"}
+                </Button>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
         {/* Loyalty Trackers — 4 activities, 10 stages each */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -123,7 +419,6 @@ const ProfilePage = () => {
               const rawPoints = activityPoints[activity.slug] || 0;
               const cyclePoints = rawPoints % 10; // resets after 10
               const completedCycles = Math.floor(rawPoints / 10);
-              const at5 = cyclePoints >= 5;
               const at10 = cyclePoints === 0 && rawPoints > 0 && completedCycles > 0;
 
               return (
