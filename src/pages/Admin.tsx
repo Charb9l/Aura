@@ -3,8 +3,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { motion } from "framer-motion";
-import { format, subDays, startOfDay, startOfWeek, startOfMonth, endOfDay, isWithinInterval, parseISO } from "date-fns";
-import { CalendarCheck, TrendingUp, ShieldCheck, LogIn, UserPlus, Pencil, DollarSign, Building2 } from "lucide-react";
+import { format, subDays, startOfDay, startOfWeek, startOfMonth, endOfDay, isWithinInterval, parseISO, isSameDay } from "date-fns";
+import { CalendarCheck, TrendingUp, ShieldCheck, LogIn, UserPlus, Pencil, DollarSign, Building2, Clock, User, Mail, Phone, MapPin } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -233,6 +233,151 @@ interface ClubRow {
   offerings: string[];
   created_at: string;
 }
+
+// Opening hours for the calendar view
+const OPEN_HOUR = 7;  // 7 AM
+const CLOSE_HOUR = 22; // 10 PM
+const timeSlots = Array.from({ length: CLOSE_HOUR - OPEN_HOUR }, (_, i) => {
+  const h = OPEN_HOUR + i;
+  const label = h < 12 ? `${h}:00 AM` : h === 12 ? `12:00 PM` : `${h - 12}:00 PM`;
+  return { hour: h, label };
+});
+
+const BookingsCalendarTab = ({ bookings }: { bookings: BookingRow[] }) => {
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedBooking, setSelectedBooking] = useState<BookingRow | null>(null);
+
+  const dayBookings = useMemo(() => {
+    return bookings.filter((b) => {
+      try {
+        return isSameDay(parseISO(b.booking_date), selectedDate);
+      } catch { return false; }
+    });
+  }, [bookings, selectedDate]);
+
+  // Group bookings by hour
+  const bookingsByHour = useMemo(() => {
+    const map: Record<number, BookingRow[]> = {};
+    dayBookings.forEach((b) => {
+      // Parse booking_time like "10:00", "14:30", "3:00 PM" etc
+      let hour = 0;
+      const time = b.booking_time || "";
+      const pmMatch = time.match(/(\d{1,2}):?(\d{2})?\s*(AM|PM)/i);
+      if (pmMatch) {
+        hour = parseInt(pmMatch[1]);
+        const ampm = pmMatch[3].toUpperCase();
+        if (ampm === "PM" && hour !== 12) hour += 12;
+        if (ampm === "AM" && hour === 12) hour = 0;
+      } else {
+        const simple = time.match(/(\d{1,2}):?(\d{2})?/);
+        if (simple) hour = parseInt(simple[1]);
+      }
+      if (!map[hour]) map[hour] = [];
+      map[hour].push(b);
+    });
+    return map;
+  }, [dayBookings]);
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6">
+      {/* Date picker */}
+      <Card className="bg-card border-border self-start">
+        <CardContent className="p-4">
+          <Calendar
+            mode="single"
+            selected={selectedDate}
+            onSelect={(d) => d && setSelectedDate(d)}
+            className={cn("p-3 pointer-events-auto")}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Hourly schedule */}
+      <Card className="bg-card border-border">
+        <CardHeader className="pb-4">
+          <CardTitle className="font-heading text-lg flex items-center gap-2">
+            <Clock className="h-5 w-5 text-primary" />
+            {format(selectedDate, "EEEE, MMMM d, yyyy")}
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">{dayBookings.length} booking{dayBookings.length !== 1 ? "s" : ""} this day</p>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="divide-y divide-border">
+            {timeSlots.map((slot) => {
+              const slotBookings = bookingsByHour[slot.hour] || [];
+              return (
+                <div key={slot.hour} className="flex min-h-[56px]">
+                  {/* Time label */}
+                  <div className="w-24 shrink-0 flex items-start justify-end pr-4 py-3 border-r border-border">
+                    <span className="text-xs font-medium text-muted-foreground">{slot.label}</span>
+                  </div>
+                  {/* Bookings */}
+                  <div className="flex-1 py-2 px-3 flex flex-wrap gap-2">
+                    {slotBookings.map((b) => (
+                      <button
+                        key={b.id}
+                        onClick={() => setSelectedBooking(b)}
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-sm font-medium hover:bg-primary/20 transition-colors cursor-pointer"
+                      >
+                        <User className="h-3.5 w-3.5" />
+                        <span>{b.full_name}</span>
+                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{b.activity_name}</Badge>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Booking detail dialog */}
+      <Dialog open={!!selectedBooking} onOpenChange={(o) => !o && setSelectedBooking(null)}>
+        <DialogContent className="bg-card border-border max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-heading">Booking Details</DialogTitle>
+          </DialogHeader>
+          {selectedBooking && (
+            <div className="space-y-4 pt-2">
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary">
+                <User className="h-5 w-5 text-primary" />
+                <div>
+                  <p className="font-medium text-foreground">{selectedBooking.full_name}</p>
+                  <p className="text-xs text-muted-foreground">Customer</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 gap-3">
+                <div className="flex items-center gap-3 text-sm">
+                  <Mail className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-foreground">{selectedBooking.email}</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm">
+                  <Phone className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-foreground">{selectedBooking.phone}</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm">
+                  <CalendarCheck className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-foreground">{selectedBooking.booking_date} at {selectedBooking.booking_time}</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-foreground">{selectedBooking.activity_name}{selectedBooking.court_type ? ` — ${selectedBooking.court_type}` : ""}</span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between pt-2 border-t border-border">
+                <span className="text-xs text-muted-foreground">Status</span>
+                <Badge variant={selectedBooking.status === "confirmed" ? "default" : "secondary"}>
+                  {selectedBooking.status}
+                </Badge>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
 
 const ClubsTab = () => {
   const [clubs, setClubs] = useState<ClubRow[]>([]);
@@ -950,6 +1095,15 @@ const AdminDashboard = () => {
                 </Table>
               </CardContent>
             </Card>
+          </motion.div>
+        )}
+
+        {/* Bookings Calendar */}
+        {activeTab === "bookings" && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="bookings">
+            <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Bookings</h1>
+            <p className="text-muted-foreground mb-8">View daily bookings by time slot.</p>
+            <BookingsCalendarTab bookings={filteredBookings} />
           </motion.div>
         )}
 
