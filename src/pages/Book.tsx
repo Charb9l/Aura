@@ -62,6 +62,8 @@ const timeSlots = [
   "18:00", "19:00", "20:00", "21:00",
 ];
 
+const isValidEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+
 const BookPage = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
@@ -393,7 +395,7 @@ const BookPage = () => {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-            <Button type="submit" disabled={!selectedActivity || !date || !selectedTime || !name || !email || !phone || (selectedActivity === "basketball" && !courtType) || (matchingClubs.length > 1 && !selectedClub) || submitting} className="h-14 px-10 text-lg font-bold rounded-xl glow">
+            <Button type="submit" disabled={!selectedActivity || !date || !selectedTime || !name || !email || !isValidEmail(email) || !phone || (selectedActivity === "basketball" && !courtType) || (matchingClubs.length > 1 && !selectedClub) || submitting} className="h-14 px-10 text-lg font-bold rounded-xl glow">
               {submitting ? "Booking..." : "Confirm Booking"}
             </Button>
           </motion.div>

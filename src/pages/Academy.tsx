@@ -53,6 +53,8 @@ const activityKeywords: Record<string, string[]> = {
   "aerial-yoga": ["yoga", "aerial"],
 };
 
+const isValidEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+
 const AcademyPage = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
@@ -204,7 +206,7 @@ const AcademyPage = () => {
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
             <Button
               type="submit"
-              disabled={!selectedSport || !name || !email || !phone || !age || !experience}
+              disabled={!selectedSport || !name || !email || !isValidEmail(email) || !phone || !age || !experience}
               className="h-14 px-10 text-lg font-bold rounded-xl glow"
             >
               Submit Application
