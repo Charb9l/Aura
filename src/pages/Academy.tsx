@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import { GraduationCap, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -11,19 +12,38 @@ import { Textarea } from "@/components/ui/textarea";
 import Navbar from "@/components/Navbar";
 import PhoneInput from "@/components/PhoneInput";
 
-import tennisImg from "@/assets/tennis-court.png";
-import basketballImg from "@/assets/basketball-court.png";
-import hardcourtLogo from "@/assets/hardcourt-logo.png";
-import beirutLogo from "@/assets/beirut-logo.png";
+interface AcademyClub {
+  id: string;
+  name: string;
+  description: string | null;
+  logo_url: string | null;
+  offerings: string[];
+}
 
-const sports = [
-  { slug: "tennis", name: "Hard Court Tennis Academy", image: tennisImg, logo: hardcourtLogo, brand: "tennis" as const, description: "Master your strokes with professional coaching on our blue hard courts." },
-  { slug: "basketball", name: "Beirut Basketball Academy", image: basketballImg, logo: beirutLogo, brand: "basketball" as const, description: "Develop your game with elite trainers at Beirut Sports Club." },
-];
+interface OfferingData {
+  id: string;
+  name: string;
+  slug: string;
+  logo_url: string | null;
+}
 
 const brandBorder = {
   tennis: "border-brand-tennis shadow-[0_0_20px_hsl(212_70%_55%/0.3)]",
   basketball: "border-brand-basketball shadow-[0_0_20px_hsl(262_50%_55%/0.3)]",
+  wellness: "border-brand-wellness shadow-[0_0_20px_hsl(100_22%_60%/0.3)]",
+};
+
+const brandForSlug = (slug: string): "tennis" | "basketball" | "wellness" => {
+  if (slug === "tennis") return "tennis";
+  if (slug === "basketball") return "basketball";
+  return "wellness";
+};
+
+const activityKeywords: Record<string, string[]> = {
+  basketball: ["basketball"],
+  tennis: ["tennis"],
+  pilates: ["pilates"],
+  "aerial-yoga": ["yoga", "aerial"],
 };
 
 const AcademyPage = () => {
@@ -36,6 +56,8 @@ const AcademyPage = () => {
     if (!loading && !user) navigate("/auth");
   }, [user, loading, navigate]);
 
+  const [clubs, setClubs] = useState<AcademyClub[]>([]);
+  const [offerings, setOfferings] = useState<OfferingData[]>([]);
   const [selectedSport, setSelectedSport] = useState(preselected);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -43,6 +65,40 @@ const AcademyPage = () => {
   const [age, setAge] = useState("");
   const [experience, setExperience] = useState("");
   const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const [clubsRes, offRes] = await Promise.all([
+        supabase.from("clubs").select("*").order("name"),
+        supabase.from("offerings").select("*").order("name"),
+      ]);
+      if (clubsRes.data) setClubs(clubsRes.data as unknown as AcademyClub[]);
+      if (offRes.data) setOfferings(offRes.data as unknown as OfferingData[]);
+    };
+    fetchData();
+  }, []);
+
+  // Build academy sports from clubs that have offerings matching known activities
+  const sports = clubs.map((club) => {
+    // Find what activity slug this club maps to
+    let matchedSlug = "";
+    for (const [slug, keywords] of Object.entries(activityKeywords)) {
+      if (club.offerings.some(o => keywords.some(k => o.toLowerCase().includes(k)))) {
+        matchedSlug = slug;
+        break;
+      }
+    }
+    if (!matchedSlug) return null;
+    const offering = offerings.find(o => o.slug === matchedSlug);
+    return {
+      slug: matchedSlug,
+      name: club.name,
+      clubLogoUrl: club.logo_url?.startsWith("http") ? club.logo_url : null,
+      offeringImageUrl: offering?.logo_url || null,
+      brand: brandForSlug(matchedSlug),
+      description: club.description || "",
+    };
+  }).filter(Boolean) as { slug: string; name: string; clubLogoUrl: string | null; offeringImageUrl: string | null; brand: "tennis" | "basketball" | "wellness"; description: string }[];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,13 +152,15 @@ const AcademyPage = () => {
                       : "border-border hover:border-muted-foreground/50"
                   )}
                 >
-                  <div className="aspect-video overflow-hidden">
-                    <img src={s.image} alt={s.name} className="h-full w-full object-cover" />
+                  <div className="aspect-video overflow-hidden bg-secondary">
+                    {s.offeringImageUrl && <img src={s.offeringImageUrl} alt={s.name} className="h-full w-full object-cover" />}
                     <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
                   </div>
-                  <div className="absolute top-3 right-3">
-                    <img src={s.logo} alt={s.name} className="h-10 w-10 rounded-full object-cover shadow-lg" />
-                  </div>
+                  {s.clubLogoUrl && (
+                    <div className="absolute top-3 right-3">
+                      <img src={s.clubLogoUrl} alt={s.name} className="h-10 w-10 rounded-full object-cover shadow-lg" />
+                    </div>
+                  )}
                   <div className="absolute bottom-0 left-0 right-0 p-5">
                     <h3 className="font-heading text-xl font-bold text-foreground mb-1">{s.name}</h3>
                     <p className="text-sm text-muted-foreground">{s.description}</p>

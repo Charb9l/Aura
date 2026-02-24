@@ -1,59 +1,75 @@
+import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import ActivityCard from "@/components/ActivityCard";
 import { motion } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
 
-import tennisCourtImg from "@/assets/tennis-court.png";
-import basketballCourtImg from "@/assets/basketball-court.png";
-import yogaImg from "@/assets/aerial-yoga-studio.png";
-import pilatesImg from "@/assets/pilates-studio.png";
+interface OfferingData {
+  id: string;
+  name: string;
+  slug: string;
+  logo_url: string | null;
+}
 
-import hardcourtLogo from "@/assets/hardcourt-logo.png";
-import beirutLogo from "@/assets/beirut-logo.png";
-import enformeLogo from "@/assets/enforme-logo.png";
+interface ClubData {
+  id: string;
+  name: string;
+  description: string | null;
+  logo_url: string | null;
+  offerings: string[];
+}
 
-const activities = [
-  {
-    title: "Tennis Court",
-    subtitle: "Hard Court",
-    description: "Blue hard courts with premium surfaces. Singles or doubles.",
-    image: tennisCourtImg,
-    logo: hardcourtLogo,
-    slug: "tennis",
-    hasAcademy: true,
-    brandColor: "tennis" as const,
-  },
-  {
-    title: "Basketball Court",
-    subtitle: "Beirut Sports Club",
-    description: "Full-size courts with pro-grade flooring. Open play or team bookings.",
-    image: basketballCourtImg,
-    logo: beirutLogo,
-    slug: "basketball",
-    hasAcademy: true,
-    brandColor: "basketball" as const,
-  },
-  {
-    title: "Aerial Yoga — Kids",
-    subtitle: "En Forme",
-    description: "Fun, safe aerial sessions designed for children ages 5–12.",
-    image: yogaImg,
-    logo: enformeLogo,
-    slug: "aerial-yoga",
-    brandColor: "wellness" as const,
-  },
-  {
-    title: "Reformer Pilates",
-    subtitle: "En Forme",
-    description: "Precision training on state-of-the-art reformer machines.",
-    image: pilatesImg,
-    logo: enformeLogo,
-    slug: "pilates",
-    brandColor: "wellness" as const,
-  },
-];
+const activityKeywords: Record<string, string[]> = {
+  basketball: ["basketball"],
+  tennis: ["tennis"],
+  pilates: ["pilates"],
+  "aerial-yoga": ["yoga", "aerial"],
+};
+
+const brandForSlug = (slug: string): "basketball" | "tennis" | "wellness" => {
+  if (slug === "tennis") return "tennis";
+  if (slug === "basketball") return "basketball";
+  return "wellness";
+};
+
+const academySlugs = ["tennis", "basketball"];
 
 const Index = () => {
+  const [offerings, setOfferings] = useState<OfferingData[]>([]);
+  const [clubs, setClubs] = useState<ClubData[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const [offRes, clubRes] = await Promise.all([
+        supabase.from("offerings").select("*").order("name"),
+        supabase.from("clubs").select("*").order("name"),
+      ]);
+      if (offRes.data) setOfferings(offRes.data as unknown as OfferingData[]);
+      if (clubRes.data) setClubs(clubRes.data as unknown as ClubData[]);
+    };
+    fetchData();
+  }, []);
+
+  // Build activities from offerings + clubs
+  const activities = offerings.map((offering) => {
+    // Find the club that offers this activity
+    const keywords = activityKeywords[offering.slug] || [offering.slug];
+    const club = clubs.find(c =>
+      c.offerings.some(o => keywords.some(k => o.toLowerCase().includes(k)))
+    );
+    return {
+      title: offering.name,
+      subtitle: club?.name || "",
+      description: "",
+      image: offering.logo_url || "",
+      logo: club?.logo_url?.startsWith("http") ? club.logo_url : "",
+      slug: offering.slug,
+      hasAcademy: academySlugs.includes(offering.slug),
+      brandColor: brandForSlug(offering.slug),
+    };
+  });
+
   return (
     <div className="min-h-screen">
       <Navbar />
@@ -78,12 +94,6 @@ const Index = () => {
           ))}
         </div>
       </section>
-
-      <footer className="border-t border-border py-10">
-        <div className="container mx-auto px-6 text-center text-sm text-muted-foreground">
-          © {new Date().getFullYear()} Courtside. All rights reserved.
-        </div>
-      </footer>
     </div>
   );
 };
