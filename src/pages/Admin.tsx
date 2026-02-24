@@ -1291,8 +1291,7 @@ const AdminDashboard = () => {
         {activeTab === "users" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="users">
             {/* Registered Customers */}
-            <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Registered Customers</h1>
-            <p className="text-muted-foreground mb-8">Customers who signed up to book sessions.</p>
+            <h1 className="font-heading text-4xl font-bold text-foreground mb-8">Registered Customers</h1>
             <Card className="bg-card border-border mb-10">
               <CardContent className="p-0">
                 <Table>
@@ -1336,11 +1335,12 @@ const AdminDashboard = () => {
                       <TableHead>Email</TableHead>
                       <TableHead>Phone</TableHead>
                       <TableHead>Assigned Club</TableHead>
+                      <TableHead className="w-[80px]">Edit</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {adminUsers.length === 0 ? (
-                      <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">No club admins yet.</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">No club admins yet.</TableCell></TableRow>
                     ) : adminUsers.map((u) => (
                       <TableRow key={u.user_id}>
                         <TableCell className="font-medium">{u.full_name || "—"}</TableCell>
@@ -1351,6 +1351,11 @@ const AdminDashboard = () => {
                             ? clubs.find(c => c.id === u.club_id)?.name || "—"
                             : <Badge className="bg-primary/10 text-primary">Super Admin</Badge>
                           }
+                        </TableCell>
+                        <TableCell>
+                          <Button variant="ghost" size="icon" onClick={() => openEditDialog(u)}>
+                            <Pencil className="h-4 w-4" />
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}
