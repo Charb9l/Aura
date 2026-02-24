@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/sonner";
@@ -26,6 +27,14 @@ const activities = [
   { slug: "aerial-yoga", name: "Aerial Yoga (Kids)", image: yogaImg, brand: "wellness" as const },
   { slug: "pilates", name: "Reformer Pilates", image: pilatesImg, brand: "wellness" as const },
 ];
+
+// Map activity slugs to offering keywords for matching
+const activityOfferingKeywords: Record<string, string[]> = {
+  basketball: ["basketball"],
+  tennis: ["tennis"],
+  pilates: ["pilates"],
+  "aerial-yoga": ["yoga", "aerial"],
+};
 
 const brandBorder = {
   tennis: "border-brand-tennis",
@@ -45,6 +54,11 @@ const timeSlots = [
   "18:00", "19:00", "20:00", "21:00",
 ];
 
+interface ClubOption {
+  id: string;
+  name: string;
+}
+
 const BookPage = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
@@ -56,6 +70,7 @@ const BookPage = () => {
   }, [user, loading, navigate]);
 
   const [selectedActivity, setSelectedActivity] = useState(preselected);
+  const [selectedClub, setSelectedClub] = useState("");
   const [courtType, setCourtType] = useState<"half" | "full" | "">("");
   const [date, setDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState("");
@@ -65,6 +80,34 @@ const BookPage = () => {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
+  const [clubs, setClubs] = useState<{ id: string; name: string; offerings: string[] }[]>([]);
+
+  // Fetch clubs on mount
+  useEffect(() => {
+    const fetchClubs = async () => {
+      const { data } = await supabase.from("clubs").select("id, name, offerings").order("name");
+      if (data) setClubs(data as any[]);
+    };
+    fetchClubs();
+  }, []);
+
+  // Filter clubs that offer the selected activity
+  const matchingClubs = useMemo(() => {
+    if (!selectedActivity) return [];
+    const keywords = activityOfferingKeywords[selectedActivity] || [];
+    return clubs.filter(c =>
+      c.offerings.some(o => keywords.some(k => o.toLowerCase().includes(k)))
+    );
+  }, [selectedActivity, clubs]);
+
+  // Auto-select club if only one matches
+  useEffect(() => {
+    if (matchingClubs.length === 1) {
+      setSelectedClub(matchingClubs[0].id);
+    } else if (matchingClubs.length === 0) {
+      setSelectedClub("");
+    }
+  }, [matchingClubs]);
 
   const selectedBrand = activities.find(a => a.slug === selectedActivity)?.brand;
 
@@ -188,7 +231,7 @@ const BookPage = () => {
                 <button
                   type="button"
                   key={a.slug}
-                  onClick={() => { setSelectedActivity(a.slug); setCourtType(""); setDate(undefined); setSelectedTime(""); }}
+                  onClick={() => { setSelectedActivity(a.slug); setSelectedClub(""); setCourtType(""); setDate(undefined); setSelectedTime(""); }}
                   className={cn(
                     "relative overflow-hidden rounded-xl border-2 transition-all aspect-[3/4]",
                     selectedActivity === a.slug
@@ -205,6 +248,23 @@ const BookPage = () => {
               ))}
             </div>
           </motion.div>
+
+          {/* Club selector - show when multiple clubs offer this activity */}
+          {selectedActivity && matchingClubs.length > 1 && (
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}>
+              <Label className="text-sm font-medium text-muted-foreground mb-4 block">Choose Club</Label>
+              <Select value={selectedClub} onValueChange={setSelectedClub}>
+                <SelectTrigger className={cn("w-full max-w-sm h-12", selectedClub && selectedBrand === "tennis" && "border-brand-tennis shadow-[0_0_12px_hsl(212_70%_55%/0.3)]", selectedClub && selectedBrand === "basketball" && "border-brand-basketball shadow-[0_0_12px_hsl(262_50%_55%/0.3)]", selectedClub && selectedBrand === "wellness" && "border-brand-wellness shadow-[0_0_12px_hsl(100_22%_60%/0.3)]")}>
+                  <SelectValue placeholder="Select a club..." />
+                </SelectTrigger>
+                <SelectContent className="bg-card border-border z-50">
+                  {matchingClubs.map(c => (
+                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </motion.div>
+          )}
 
           {/* Court Type for Basketball */}
           {selectedActivity === "basketball" && (
@@ -322,7 +382,7 @@ const BookPage = () => {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-            <Button type="submit" disabled={!selectedActivity || !date || !selectedTime || !name || !email || !phone || (selectedActivity === "basketball" && !courtType) || submitting} className="h-14 px-10 text-lg font-bold rounded-xl glow">
+            <Button type="submit" disabled={!selectedActivity || !date || !selectedTime || !name || !email || !phone || (selectedActivity === "basketball" && !courtType) || (matchingClubs.length > 1 && !selectedClub) || submitting} className="h-14 px-10 text-lg font-bold rounded-xl glow">
               {submitting ? "Booking..." : "Confirm Booking"}
             </Button>
           </motion.div>
