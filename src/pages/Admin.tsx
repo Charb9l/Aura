@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { motion } from "framer-motion";
 import { format, subDays, startOfDay, startOfWeek, startOfMonth, endOfDay, isWithinInterval, parseISO, isSameDay } from "date-fns";
-import { CalendarCheck, TrendingUp, ShieldCheck, LogIn, UserPlus, Pencil, DollarSign, Building2, Clock, User, Mail, Phone, MapPin, FileText, Trash2, CheckCircle, XCircle } from "lucide-react";
+import { CalendarCheck, TrendingUp, ShieldCheck, LogIn, UserPlus, Pencil, DollarSign, Building2, Clock, User, Mail, Phone, MapPin, FileText, Trash2, CheckCircle, XCircle, Upload, X, Image } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
 import { Button } from "@/components/ui/button";
@@ -663,9 +664,16 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
   );
 };
 
-const ClubsTab = () => {
+const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
   const [clubs, setClubs] = useState<ClubRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editClub, setEditClub] = useState<ClubRow | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editLogoPreview, setEditLogoPreview] = useState<string | null>(null);
+  const [editLogoFile, setEditLogoFile] = useState<File | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [dragging, setDragging] = useState(false);
 
   useEffect(() => {
     const fetch = async () => {
@@ -675,6 +683,90 @@ const ClubsTab = () => {
     };
     fetch();
   }, []);
+
+  const openEdit = (club: ClubRow) => {
+    setEditClub(club);
+    setEditName(club.name);
+    setEditDescription(club.description || "");
+    setEditLogoFile(null);
+    // Resolve logo preview
+    if (club.logo_url && club.logo_url.startsWith("http")) {
+      setEditLogoPreview(club.logo_url);
+    } else if (club.logo_url && clubLogoMap[club.logo_url]) {
+      setEditLogoPreview(clubLogoMap[club.logo_url]);
+    } else {
+      setEditLogoPreview(null);
+    }
+  };
+
+  const handleFileSelect = (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please upload an image file");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be under 5MB");
+      return;
+    }
+    setEditLogoFile(file);
+    setEditLogoPreview(URL.createObjectURL(file));
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragging(false);
+    const file = e.dataTransfer.files[0];
+    if (file) handleFileSelect(file);
+  };
+
+  const handleSave = async () => {
+    if (!editClub) return;
+    setSaving(true);
+
+    let logoUrl = editClub.logo_url;
+
+    // Upload new logo if selected
+    if (editLogoFile) {
+      const ext = editLogoFile.name.split(".").pop() || "png";
+      const filePath = `${editClub.id}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("club-logos")
+        .upload(filePath, editLogoFile, { upsert: true });
+
+      if (uploadError) {
+        toast.error("Logo upload failed: " + uploadError.message);
+        setSaving(false);
+        return;
+      }
+
+      const { data: urlData } = supabase.storage
+        .from("club-logos")
+        .getPublicUrl(filePath);
+
+      logoUrl = urlData.publicUrl;
+    }
+
+    const { error } = await supabase
+      .from("clubs")
+      .update({ name: editName, description: editDescription || null, logo_url: logoUrl })
+      .eq("id", editClub.id);
+
+    setSaving(false);
+    if (error) {
+      toast.error("Failed to update club: " + error.message);
+    } else {
+      toast.success("Club updated successfully");
+      setClubs(prev => prev.map(c => c.id === editClub.id ? { ...c, name: editName, description: editDescription || null, logo_url: logoUrl } : c));
+      setEditClub(null);
+    }
+  };
+
+  const getLogoSrc = (club: ClubRow) => {
+    if (club.logo_url && club.logo_url.startsWith("http")) return club.logo_url;
+    if (club.logo_url && clubLogoMap[club.logo_url]) return clubLogoMap[club.logo_url];
+    return null;
+  };
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="clubs">
@@ -688,39 +780,123 @@ const ClubsTab = () => {
                 <TableHead>Club</TableHead>
                 <TableHead>Description</TableHead>
                 <TableHead>Offerings</TableHead>
+                {isMasterAdmin && <TableHead className="w-20">Edit</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
-                <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-8">Loading...</TableCell></TableRow>
+                <TableRow><TableCell colSpan={isMasterAdmin ? 4 : 3} className="text-center text-muted-foreground py-8">Loading...</TableCell></TableRow>
               ) : clubs.length === 0 ? (
-                <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-8">No clubs yet.</TableCell></TableRow>
-              ) : clubs.map((club) => (
-                <TableRow key={club.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      {club.logo_url && clubLogoMap[club.logo_url] && (
-                        <div className="h-10 w-10 rounded-lg overflow-hidden bg-secondary shrink-0">
-                          <img src={clubLogoMap[club.logo_url]} alt={club.name} className="h-full w-full object-contain" />
-                        </div>
-                      )}
-                      <span className="font-medium">{club.name}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-sm max-w-xs">{club.description || "—"}</TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {club.offerings.map((o) => (
-                        <Badge key={o} variant="secondary" className="text-xs">{o}</Badge>
-                      ))}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+                <TableRow><TableCell colSpan={isMasterAdmin ? 4 : 3} className="text-center text-muted-foreground py-8">No clubs yet.</TableCell></TableRow>
+              ) : clubs.map((club) => {
+                const logoSrc = getLogoSrc(club);
+                return (
+                  <TableRow key={club.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        {logoSrc && (
+                          <div className="h-10 w-10 rounded-lg overflow-hidden bg-secondary shrink-0">
+                            <img src={logoSrc} alt={club.name} className="h-full w-full object-contain" />
+                          </div>
+                        )}
+                        <span className="font-medium">{club.name}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm max-w-xs">{club.description || "—"}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {club.offerings.map((o) => (
+                          <Badge key={o} variant="secondary" className="text-xs">{o}</Badge>
+                        ))}
+                      </div>
+                    </TableCell>
+                    {isMasterAdmin && (
+                      <TableCell>
+                        <Button variant="ghost" size="icon" onClick={() => openEdit(club)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
+
+      {/* Edit Club Dialog */}
+      <Dialog open={!!editClub} onOpenChange={(o) => !o && setEditClub(null)}>
+        <DialogContent className="bg-card border-border max-w-lg max-h-[67vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-heading flex items-center gap-2">
+              <Building2 className="h-5 w-5 text-primary" />
+              Edit Club
+            </DialogTitle>
+          </DialogHeader>
+          {editClub && (
+            <div className="space-y-5 pt-2">
+              <div>
+                <Label className="text-sm font-medium text-muted-foreground mb-2 block">Club Name</Label>
+                <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="h-12 bg-secondary border-border" />
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium text-muted-foreground mb-2 block">Club Logo</Label>
+                <div
+                  onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+                  onDragLeave={() => setDragging(false)}
+                  onDrop={handleDrop}
+                  className={cn(
+                    "relative border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer",
+                    dragging ? "border-primary bg-primary/5" : "border-border hover:border-muted-foreground/50"
+                  )}
+                  onClick={() => document.getElementById("club-logo-input")?.click()}
+                >
+                  <input
+                    id="club-logo-input"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleFileSelect(file);
+                    }}
+                  />
+                  {editLogoPreview ? (
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="h-24 w-24 rounded-xl overflow-hidden bg-secondary">
+                        <img src={editLogoPreview} alt="Logo preview" className="h-full w-full object-contain" />
+                      </div>
+                      <p className="text-xs text-muted-foreground">Click or drag to replace</p>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-2 py-4">
+                      <Upload className="h-8 w-8 text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground">Drag & drop or click to upload</p>
+                      <p className="text-xs text-muted-foreground">PNG, JPG up to 5MB</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium text-muted-foreground mb-2 block">Description</Label>
+                <Textarea
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  className="bg-secondary border-border min-h-[100px]"
+                  placeholder="Brief description of the club..."
+                />
+              </div>
+
+              <Button onClick={handleSave} disabled={saving || !editName} className="w-full h-12 text-base font-semibold glow">
+                {saving ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 };
@@ -1408,7 +1584,7 @@ const AdminDashboard = () => {
 
         {/* Clubs & Partners */}
         {activeTab === "clubs" && (
-          <ClubsTab />
+          <ClubsTab isMasterAdmin={!myClubId} />
         )}
 
         {/* Settings */}
