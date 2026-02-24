@@ -6,15 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/Navbar";
 
-import beirutLogo from "@/assets/beirut-logo.png";
-import hardcourtLogo from "@/assets/hardcourt-logo.png";
-import enformeLogo from "@/assets/enforme-logo.png";
 
-const logoMap: Record<string, string> = {
-  "/beirut-logo.png": beirutLogo,
-  "/hardcourt-logo.png": hardcourtLogo,
-  "/enforme-logo.png": enformeLogo,
-};
+
 
 interface Club {
   id: string;
@@ -77,7 +70,7 @@ const ClubsPage = () => {
               >
                 <div className="flex items-center gap-4 mb-4">
                   {(() => {
-                    const logoSrc = club.logo_url?.startsWith("http") ? club.logo_url : (club.logo_url && logoMap[club.logo_url] ? logoMap[club.logo_url] : null);
+                    const logoSrc = club.logo_url?.startsWith("http") ? club.logo_url : null;
                     return logoSrc ? (
                       <div className="h-16 w-16 rounded-xl overflow-hidden bg-secondary flex items-center justify-center shrink-0">
                         <img
