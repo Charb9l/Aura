@@ -1290,9 +1290,10 @@ const AdminDashboard = () => {
         {/* Users */}
         {activeTab === "users" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="users">
-            <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Users</h1>
-            <p className="text-muted-foreground mb-8">All registered customers.</p>
-            <Card className="bg-card border-border">
+            {/* Registered Customers */}
+            <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Registered Customers</h1>
+            <p className="text-muted-foreground mb-8">Customers who signed up to book sessions.</p>
+            <Card className="bg-card border-border mb-10">
               <CardContent className="p-0">
                 <Table>
                   <TableHeader>
@@ -1304,9 +1305,9 @@ const AdminDashboard = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {allUsers.length === 0 ? (
-                      <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">No users yet.</TableCell></TableRow>
-                    ) : allUsers.map((u) => (
+                    {allUsers.filter(u => !adminUsers.some(a => a.user_id === u.user_id)).length === 0 ? (
+                      <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">No customers yet.</TableCell></TableRow>
+                    ) : allUsers.filter(u => !adminUsers.some(a => a.user_id === u.user_id)).map((u) => (
                       <TableRow key={u.user_id}>
                         <TableCell className="font-medium">{u.full_name || "—"}</TableCell>
                         <TableCell>{u.email}</TableCell>
@@ -1315,6 +1316,41 @@ const AdminDashboard = () => {
                           <Button variant="ghost" size="icon" onClick={() => openEditDialog(u)}>
                             <Pencil className="h-4 w-4" />
                           </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+
+            {/* Club Admins */}
+            <h2 className="font-heading text-2xl font-bold text-foreground mb-2">Club Admins</h2>
+            <p className="text-muted-foreground mb-6">Administrators assigned to clubs.</p>
+            <Card className="bg-card border-border">
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Phone</TableHead>
+                      <TableHead>Assigned Club</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {adminUsers.length === 0 ? (
+                      <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">No club admins yet.</TableCell></TableRow>
+                    ) : adminUsers.map((u) => (
+                      <TableRow key={u.user_id}>
+                        <TableCell className="font-medium">{u.full_name || "—"}</TableCell>
+                        <TableCell>{u.email}</TableCell>
+                        <TableCell>{u.phone || "—"}</TableCell>
+                        <TableCell>
+                          {u.club_id
+                            ? clubs.find(c => c.id === u.club_id)?.name || "—"
+                            : <Badge className="bg-primary/10 text-primary">Super Admin</Badge>
+                          }
                         </TableCell>
                       </TableRow>
                     ))}
