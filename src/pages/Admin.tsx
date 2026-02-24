@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 
 import { Button } from "@/components/ui/button";
@@ -224,15 +225,8 @@ const CreateAdminForm = () => {
   );
 };
 
-import beirutLogo from "@/assets/beirut-logo.png";
-import hardcourtLogo from "@/assets/hardcourt-logo.png";
-import enformeLogo from "@/assets/enforme-logo.png";
 
-const clubLogoMap: Record<string, string> = {
-  "/beirut-logo.png": beirutLogo,
-  "/hardcourt-logo.png": hardcourtLogo,
-  "/enforme-logo.png": enformeLogo,
-};
+
 
 interface ClubRow {
   id: string;
@@ -240,6 +234,7 @@ interface ClubRow {
   description: string | null;
   logo_url: string | null;
   offerings: string[];
+  has_academy: boolean;
   created_at: string;
 }
 
@@ -860,6 +855,8 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
   const [addClubLogoPreview, setAddClubLogoPreview] = useState<string | null>(null);
   const [addClubSaving, setAddClubSaving] = useState(false);
   const [addClubDragging, setAddClubDragging] = useState(false);
+  const [addClubHasAcademy, setAddClubHasAcademy] = useState(false);
+  const [editHasAcademy, setEditHasAcademy] = useState(false);
 
   // Offerings management state
   const [offerings, setOfferings] = useState<OfferingRow[]>([]);
@@ -892,12 +889,10 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
     setEditName(club.name);
     setEditDescription(club.description || "");
     setEditOfferings(club.offerings || []);
+    setEditHasAcademy(club.has_academy || false);
     setEditLogoFile(null);
-    // no custom offering to reset
     if (club.logo_url && club.logo_url.startsWith("http")) {
       setEditLogoPreview(club.logo_url);
-    } else if (club.logo_url && clubLogoMap[club.logo_url]) {
-      setEditLogoPreview(clubLogoMap[club.logo_url]);
     } else {
       setEditLogoPreview(null);
     }
@@ -954,7 +949,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
 
     const { error } = await supabase
       .from("clubs")
-      .update({ name: editName, description: editDescription || null, logo_url: logoUrl, offerings: editOfferings })
+      .update({ name: editName, description: editDescription || null, logo_url: logoUrl, offerings: editOfferings, has_academy: editHasAcademy })
       .eq("id", editClub.id);
 
     setSaving(false);
@@ -962,14 +957,13 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
       toast.error("Failed to update club: " + error.message);
     } else {
       toast.success("Club updated successfully");
-      setClubs(prev => prev.map(c => c.id === editClub.id ? { ...c, name: editName, description: editDescription || null, logo_url: logoUrl, offerings: editOfferings } : c));
+      setClubs(prev => prev.map(c => c.id === editClub.id ? { ...c, name: editName, description: editDescription || null, logo_url: logoUrl, offerings: editOfferings, has_academy: editHasAcademy } : c));
       setEditClub(null);
     }
   };
 
   const getLogoSrc = (club: ClubRow) => {
     if (club.logo_url && club.logo_url.startsWith("http")) return club.logo_url;
-    if (club.logo_url && clubLogoMap[club.logo_url]) return clubLogoMap[club.logo_url];
     return null;
   };
 
@@ -998,7 +992,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
     // Insert the club first
     const { data: newClub, error: insertError } = await supabase
       .from("clubs")
-      .insert({ name: addClubName.trim(), description: addClubDescription.trim() || null, offerings: addClubOfferings })
+      .insert({ name: addClubName.trim(), description: addClubDescription.trim() || null, offerings: addClubOfferings, has_academy: addClubHasAcademy })
       .select()
       .single();
 
@@ -1030,7 +1024,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
     toast.success(`Club "${addClubName.trim()}" added successfully`);
     setClubs(prev => [...prev, { ...newClub as unknown as ClubRow, logo_url: logoUrl }].sort((a, b) => a.name.localeCompare(b.name)));
     setShowAddClub(false);
-    setAddClubName(""); setAddClubDescription(""); setAddClubOfferings([]);
+    setAddClubName(""); setAddClubDescription(""); setAddClubOfferings([]); setAddClubHasAcademy(false);
     setAddClubLogoFile(null); setAddClubLogoPreview(null);
   };
 
@@ -1252,6 +1246,11 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                 </Select>
               </div>
 
+              <div className="flex items-center gap-3">
+                <Checkbox id="edit-has-academy" checked={editHasAcademy} onCheckedChange={(v) => setEditHasAcademy(!!v)} />
+                <Label htmlFor="edit-has-academy" className="text-sm font-medium cursor-pointer">Has Academy</Label>
+              </div>
+
               <Button onClick={handleSave} disabled={saving || !editName} className="w-full h-12 text-base font-semibold glow">
                 {saving ? "Saving..." : "Save Changes"}
               </Button>
@@ -1343,6 +1342,11 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Checkbox id="add-has-academy" checked={addClubHasAcademy} onCheckedChange={(v) => setAddClubHasAcademy(!!v)} />
+              <Label htmlFor="add-has-academy" className="text-sm font-medium cursor-pointer">Has Academy</Label>
             </div>
 
             <Button onClick={handleAddClub} disabled={addClubSaving || !addClubName.trim()} className="w-full h-12 text-base font-semibold glow">

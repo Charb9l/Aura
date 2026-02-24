@@ -18,6 +18,7 @@ interface AcademyClub {
   description: string | null;
   logo_url: string | null;
   offerings: string[];
+  has_academy: boolean;
 }
 
 interface OfferingData {
@@ -78,8 +79,8 @@ const AcademyPage = () => {
     fetchData();
   }, []);
 
-  // Build academy sports from clubs that have offerings matching known activities
-  const sports = clubs.map((club) => {
+  // Build academy sports from clubs that have has_academy enabled
+  const sports = clubs.filter(c => c.has_academy).map((club) => {
     // Find what activity slug this club maps to
     let matchedSlug = "";
     for (const [slug, keywords] of Object.entries(activityKeywords)) {
