@@ -732,7 +732,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
 
       const { error: uploadError } = await supabase.storage
         .from("club-logos")
-        .upload(filePath, editLogoFile, { upsert: true });
+        .upload(filePath, editLogoFile, { upsert: true, cacheControl: "0" });
 
       if (uploadError) {
         toast.error("Logo upload failed: " + uploadError.message);
@@ -744,7 +744,8 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
         .from("club-logos")
         .getPublicUrl(filePath);
 
-      logoUrl = urlData.publicUrl;
+      // Add cache-busting timestamp so browsers fetch the new image
+      logoUrl = `${urlData.publicUrl}?t=${Date.now()}`;
     }
 
     const { error } = await supabase
