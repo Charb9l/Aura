@@ -23,6 +23,7 @@ export type Database = {
           booking_time: string
           court_type: string | null
           created_at: string
+          created_by: string | null
           deleted_at: string
           deleted_by: string
           discount_type: string | null
@@ -40,6 +41,7 @@ export type Database = {
           booking_time: string
           court_type?: string | null
           created_at: string
+          created_by?: string | null
           deleted_at?: string
           deleted_by: string
           discount_type?: string | null
@@ -57,6 +59,7 @@ export type Database = {
           booking_time?: string
           court_type?: string | null
           created_at?: string
+          created_by?: string | null
           deleted_at?: string
           deleted_by?: string
           discount_type?: string | null
@@ -77,6 +80,7 @@ export type Database = {
           booking_time: string
           court_type: string | null
           created_at: string
+          created_by: string | null
           discount_type: string | null
           email: string
           full_name: string
@@ -93,6 +97,7 @@ export type Database = {
           booking_time: string
           court_type?: string | null
           created_at?: string
+          created_by?: string | null
           discount_type?: string | null
           email: string
           full_name: string
@@ -109,6 +114,7 @@ export type Database = {
           booking_time?: string
           court_type?: string | null
           created_at?: string
+          created_by?: string | null
           discount_type?: string | null
           email?: string
           full_name?: string
