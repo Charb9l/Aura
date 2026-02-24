@@ -30,7 +30,7 @@ interface OfferingData {
 
 const brandBorder = {
   tennis: "border-brand-tennis shadow-[0_0_20px_hsl(212_70%_55%/0.3)]",
-  basketball: "border-brand-basketball shadow-[0_0_20px_hsl(262_50%_55%/0.3)]",
+  basketball: "border-brand-basketball shadow-[0_0_20px_hsl(25_90%_55%/0.3)]",
   wellness: "border-brand-wellness shadow-[0_0_20px_hsl(100_22%_60%/0.3)]",
 };
 

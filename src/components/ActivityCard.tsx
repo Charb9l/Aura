@@ -17,7 +17,7 @@ interface ActivityCardProps {
 
 const brandStyles = {
   basketball: {
-    btn: "bg-brand-basketball hover:shadow-[0_0_20px_hsl(262_50%_55%/0.4)]",
+    btn: "bg-brand-basketball hover:shadow-[0_0_20px_hsl(25_90%_55%/0.4)]",
     border: "border-brand-basketball",
   },
   tennis: {
