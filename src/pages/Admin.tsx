@@ -1160,22 +1160,12 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                     </Badge>
                   ))}
                 </div>
-                <Select value="" onValueChange={(v) => { if (v && !editOfferings.includes(v)) setEditOfferings(prev => [...prev, v]); }}>
-                  <SelectTrigger className="h-10 bg-secondary border-border">
-                    <SelectValue placeholder="Add an offering..." />
-                  </SelectTrigger>
-                  <SelectContent className="bg-card border-border z-50">
-                    {AVAILABLE_OFFERINGS.filter(o => !editOfferings.includes(o)).map(o => (
-                      <SelectItem key={o} value={o}>{o}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <div className="flex gap-2 mt-2">
+                <div className="relative">
                   <Input
-                    placeholder="Custom offering..."
+                    placeholder="Search or type a custom offering..."
                     value={customOffering}
                     onChange={(e) => setCustomOffering(e.target.value)}
-                    className="h-9 bg-secondary border-border text-sm"
+                    className="h-10 bg-secondary border-border text-sm"
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && customOffering.trim() && !editOfferings.includes(customOffering.trim())) {
                         e.preventDefault();
@@ -1184,18 +1174,34 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                       }
                     }}
                   />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    disabled={!customOffering.trim() || editOfferings.includes(customOffering.trim())}
-                    onClick={() => {
-                      setEditOfferings(prev => [...prev, customOffering.trim()]);
-                      setCustomOffering("");
-                    }}
-                  >
-                    Add
-                  </Button>
+                  {customOffering.trim() && (() => {
+                    const matches = AVAILABLE_OFFERINGS.filter(o => !editOfferings.includes(o) && o.toLowerCase().includes(customOffering.toLowerCase()));
+                    const exactExists = editOfferings.includes(customOffering.trim());
+                    const isNew = !AVAILABLE_OFFERINGS.some(o => o.toLowerCase() === customOffering.trim().toLowerCase()) && !exactExists;
+                    return (matches.length > 0 || isNew) ? (
+                      <div className="absolute z-50 left-0 right-0 top-full mt-1 rounded-md border border-border bg-card shadow-lg overflow-hidden">
+                        {matches.map(o => (
+                          <button
+                            key={o}
+                            type="button"
+                            className="w-full text-left px-3 py-2 text-sm hover:bg-secondary transition-colors text-foreground"
+                            onClick={() => { setEditOfferings(prev => [...prev, o]); setCustomOffering(""); }}
+                          >
+                            {o}
+                          </button>
+                        ))}
+                        {isNew && (
+                          <button
+                            type="button"
+                            className="w-full text-left px-3 py-2 text-sm hover:bg-secondary transition-colors text-primary font-medium border-t border-border"
+                            onClick={() => { setEditOfferings(prev => [...prev, customOffering.trim()]); setCustomOffering(""); }}
+                          >
+                            + Add "{customOffering.trim()}" as new offering
+                          </button>
+                        )}
+                      </div>
+                    ) : null;
+                  })()}
                 </div>
               </div>
 
@@ -1280,22 +1286,12 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                   </Badge>
                 ))}
               </div>
-              <Select value="" onValueChange={(v) => { if (v && !addClubOfferings.includes(v)) setAddClubOfferings(prev => [...prev, v]); }}>
-                <SelectTrigger className="h-10 bg-secondary border-border">
-                  <SelectValue placeholder="Add an offering..." />
-                </SelectTrigger>
-                <SelectContent className="bg-card border-border z-50">
-                  {allKnownOfferings.filter(o => !addClubOfferings.includes(o)).map(o => (
-                    <SelectItem key={o} value={o}>{o}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <div className="flex gap-2 mt-2">
+              <div className="relative">
                 <Input
-                  placeholder="Custom offering..."
+                  placeholder="Search or type a custom offering..."
                   value={addClubCustomOffering}
                   onChange={(e) => setAddClubCustomOffering(e.target.value)}
-                  className="h-9 bg-secondary border-border text-sm"
+                  className="h-10 bg-secondary border-border text-sm"
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && addClubCustomOffering.trim() && !addClubOfferings.includes(addClubCustomOffering.trim())) {
                       e.preventDefault();
@@ -1304,18 +1300,34 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                     }
                   }}
                 />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={!addClubCustomOffering.trim() || addClubOfferings.includes(addClubCustomOffering.trim())}
-                  onClick={() => {
-                    setAddClubOfferings(prev => [...prev, addClubCustomOffering.trim()]);
-                    setAddClubCustomOffering("");
-                  }}
-                >
-                  Add
-                </Button>
+                {addClubCustomOffering.trim() && (() => {
+                  const matches = allKnownOfferings.filter(o => !addClubOfferings.includes(o) && o.toLowerCase().includes(addClubCustomOffering.toLowerCase()));
+                  const exactExists = addClubOfferings.includes(addClubCustomOffering.trim());
+                  const isNew = !allKnownOfferings.some(o => o.toLowerCase() === addClubCustomOffering.trim().toLowerCase()) && !exactExists;
+                  return (matches.length > 0 || isNew) ? (
+                    <div className="absolute z-50 left-0 right-0 top-full mt-1 rounded-md border border-border bg-card shadow-lg overflow-hidden">
+                      {matches.map(o => (
+                        <button
+                          key={o}
+                          type="button"
+                          className="w-full text-left px-3 py-2 text-sm hover:bg-secondary transition-colors text-foreground"
+                          onClick={() => { setAddClubOfferings(prev => [...prev, o]); setAddClubCustomOffering(""); }}
+                        >
+                          {o}
+                        </button>
+                      ))}
+                      {isNew && (
+                        <button
+                          type="button"
+                          className="w-full text-left px-3 py-2 text-sm hover:bg-secondary transition-colors text-primary font-medium border-t border-border"
+                          onClick={() => { setAddClubOfferings(prev => [...prev, addClubCustomOffering.trim()]); setAddClubCustomOffering(""); }}
+                        >
+                          + Add "{addClubCustomOffering.trim()}" as new offering
+                        </button>
+                      )}
+                    </div>
+                  ) : null;
+                })()}
               </div>
             </div>
 
