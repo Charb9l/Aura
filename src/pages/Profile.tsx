@@ -195,7 +195,7 @@ const ProfilePage = () => {
     );
   }
 
-  const totalBookings = bookings.length;
+  const totalBookings = bookings.filter(b => b.attendance_status === "show").length;
 
   // Loyalty: only "show" bookings count positively, "no_show" = -1 penalty
   const activityPoints: Record<string, number> = {};
@@ -572,11 +572,13 @@ const ProfilePage = () => {
                   </div>
                   <span className={cn(
                     "text-xs font-medium px-3 py-1 rounded-full",
-                    booking.status === "confirmed"
-                      ? "bg-primary/10 text-primary"
-                      : "bg-muted text-muted-foreground"
+                    booking.attendance_status === "show"
+                      ? "bg-emerald-500/20 text-emerald-400"
+                      : booking.status === "confirmed"
+                        ? "bg-primary/10 text-primary"
+                        : "bg-muted text-muted-foreground"
                   )}>
-                    {booking.status}
+                    {booking.attendance_status === "show" ? "Done" : booking.status}
                   </span>
                 </div>
               ))}
