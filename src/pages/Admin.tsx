@@ -831,16 +831,27 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
   );
 };
 
+const AVAILABLE_OFFERINGS = [
+  "Basketball Court Rental",
+  "Basketball Academy",
+  "Tennis Court Rental",
+  "Tennis Academy",
+  "Reformer Pilates Classes",
+  "Aerial Yoga Classes",
+];
+
 const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
   const [clubs, setClubs] = useState<ClubRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [editClub, setEditClub] = useState<ClubRow | null>(null);
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
+  const [editOfferings, setEditOfferings] = useState<string[]>([]);
   const [editLogoPreview, setEditLogoPreview] = useState<string | null>(null);
   const [editLogoFile, setEditLogoFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [dragging, setDragging] = useState(false);
+  const [customOffering, setCustomOffering] = useState("");
 
   useEffect(() => {
     const fetch = async () => {
@@ -855,8 +866,9 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
     setEditClub(club);
     setEditName(club.name);
     setEditDescription(club.description || "");
+    setEditOfferings(club.offerings || []);
     setEditLogoFile(null);
-    // Resolve logo preview
+    setCustomOffering("");
     if (club.logo_url && club.logo_url.startsWith("http")) {
       setEditLogoPreview(club.logo_url);
     } else if (club.logo_url && clubLogoMap[club.logo_url]) {
@@ -917,7 +929,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
 
     const { error } = await supabase
       .from("clubs")
-      .update({ name: editName, description: editDescription || null, logo_url: logoUrl })
+      .update({ name: editName, description: editDescription || null, logo_url: logoUrl, offerings: editOfferings })
       .eq("id", editClub.id);
 
     setSaving(false);
@@ -925,7 +937,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
       toast.error("Failed to update club: " + error.message);
     } else {
       toast.success("Club updated successfully");
-      setClubs(prev => prev.map(c => c.id === editClub.id ? { ...c, name: editName, description: editDescription || null, logo_url: logoUrl } : c));
+      setClubs(prev => prev.map(c => c.id === editClub.id ? { ...c, name: editName, description: editDescription || null, logo_url: logoUrl, offerings: editOfferings } : c));
       setEditClub(null);
     }
   };
@@ -1056,6 +1068,57 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                   className="bg-secondary border-border min-h-[100px]"
                   placeholder="Brief description of the club..."
                 />
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium text-muted-foreground mb-2 block">Offerings</Label>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {editOfferings.map((o) => (
+                    <Badge key={o} variant="secondary" className="text-xs flex items-center gap-1 pr-1">
+                      {o}
+                      <button type="button" onClick={() => setEditOfferings(prev => prev.filter(x => x !== o))} className="ml-1 rounded-full hover:bg-destructive/20 p-0.5">
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+                <Select value="" onValueChange={(v) => { if (v && !editOfferings.includes(v)) setEditOfferings(prev => [...prev, v]); }}>
+                  <SelectTrigger className="h-10 bg-secondary border-border">
+                    <SelectValue placeholder="Add an offering..." />
+                  </SelectTrigger>
+                  <SelectContent className="bg-card border-border z-50">
+                    {AVAILABLE_OFFERINGS.filter(o => !editOfferings.includes(o)).map(o => (
+                      <SelectItem key={o} value={o}>{o}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div className="flex gap-2 mt-2">
+                  <Input
+                    placeholder="Custom offering..."
+                    value={customOffering}
+                    onChange={(e) => setCustomOffering(e.target.value)}
+                    className="h-9 bg-secondary border-border text-sm"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && customOffering.trim() && !editOfferings.includes(customOffering.trim())) {
+                        e.preventDefault();
+                        setEditOfferings(prev => [...prev, customOffering.trim()]);
+                        setCustomOffering("");
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={!customOffering.trim() || editOfferings.includes(customOffering.trim())}
+                    onClick={() => {
+                      setEditOfferings(prev => [...prev, customOffering.trim()]);
+                      setCustomOffering("");
+                    }}
+                  >
+                    Add
+                  </Button>
+                </div>
               </div>
 
               <Button onClick={handleSave} disabled={saving || !editName} className="w-full h-12 text-base font-semibold glow">
