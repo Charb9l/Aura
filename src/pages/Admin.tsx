@@ -831,14 +831,13 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
   );
 };
 
-const AVAILABLE_OFFERINGS = [
-  "Basketball Court Rental",
-  "Basketball Academy",
-  "Tennis Court Rental",
-  "Tennis Academy",
-  "Reformer Pilates Classes",
-  "Aerial Yoga Classes",
-];
+interface OfferingRow {
+  id: string;
+  name: string;
+  slug: string;
+  logo_url: string | null;
+  created_at: string;
+}
 
 const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
   const [clubs, setClubs] = useState<ClubRow[]>([]);
@@ -851,7 +850,6 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
   const [editLogoFile, setEditLogoFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [dragging, setDragging] = useState(false);
-  const [customOffering, setCustomOffering] = useState("");
 
   // Add club state
   const [showAddClub, setShowAddClub] = useState(false);
@@ -860,17 +858,30 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
   const [addClubOfferings, setAddClubOfferings] = useState<string[]>([]);
   const [addClubLogoFile, setAddClubLogoFile] = useState<File | null>(null);
   const [addClubLogoPreview, setAddClubLogoPreview] = useState<string | null>(null);
-  const [addClubCustomOffering, setAddClubCustomOffering] = useState("");
   const [addClubSaving, setAddClubSaving] = useState(false);
   const [addClubDragging, setAddClubDragging] = useState(false);
 
+  // Offerings management state
+  const [offerings, setOfferings] = useState<OfferingRow[]>([]);
+  const [showAddOffering, setShowAddOffering] = useState(false);
+  const [addOfferingName, setAddOfferingName] = useState("");
+  const [addOfferingSlug, setAddOfferingSlug] = useState("");
+  const [addOfferingLogoFile, setAddOfferingLogoFile] = useState<File | null>(null);
+  const [addOfferingLogoPreview, setAddOfferingLogoPreview] = useState<string | null>(null);
+  const [addOfferingSaving, setAddOfferingSaving] = useState(false);
+  const [addOfferingDragging, setAddOfferingDragging] = useState(false);
+
   useEffect(() => {
-    const fetch = async () => {
-      const { data } = await supabase.from("clubs").select("*").order("name");
-      if (data) setClubs(data as unknown as ClubRow[]);
+    const fetchData = async () => {
+      const [clubsRes, offeringsRes] = await Promise.all([
+        supabase.from("clubs").select("*").order("name"),
+        supabase.from("offerings").select("*").order("name"),
+      ]);
+      if (clubsRes.data) setClubs(clubsRes.data as unknown as ClubRow[]);
+      if (offeringsRes.data) setOfferings(offeringsRes.data as unknown as OfferingRow[]);
       setLoading(false);
     };
-    fetch();
+    fetchData();
   }, []);
 
   const openEdit = (club: ClubRow) => {
@@ -879,7 +890,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
     setEditDescription(club.description || "");
     setEditOfferings(club.offerings || []);
     setEditLogoFile(null);
-    setCustomOffering("");
+    // no custom offering to reset
     if (club.logo_url && club.logo_url.startsWith("http")) {
       setEditLogoPreview(club.logo_url);
     } else if (club.logo_url && clubLogoMap[club.logo_url]) {
@@ -1006,15 +1017,59 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
     setClubs(prev => [...prev, { ...newClub as unknown as ClubRow, logo_url: logoUrl }].sort((a, b) => a.name.localeCompare(b.name)));
     setShowAddClub(false);
     setAddClubName(""); setAddClubDescription(""); setAddClubOfferings([]);
-    setAddClubLogoFile(null); setAddClubLogoPreview(null); setAddClubCustomOffering("");
+    setAddClubLogoFile(null); setAddClubLogoPreview(null);
   };
 
-  // Collect all unique offerings across clubs for the dropdown
-  const allKnownOfferings = useMemo(() => {
-    const set = new Set(AVAILABLE_OFFERINGS);
-    clubs.forEach(c => c.offerings.forEach(o => set.add(o)));
-    return Array.from(set);
-  }, [clubs]);
+  // Get offering names from DB for dropdowns
+  const offeringNames = useMemo(() => offerings.map(o => o.name), [offerings]);
+
+  const handleAddOfferingFileSelect = (file: File) => {
+    if (!file.type.startsWith("image/")) { toast.error("Please upload an image file"); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("Image must be under 5MB"); return; }
+    setAddOfferingLogoFile(file);
+    setAddOfferingLogoPreview(URL.createObjectURL(file));
+  };
+
+  const handleAddOffering = async () => {
+    if (!addOfferingName.trim()) { toast.error("Please enter an offering name"); return; }
+    const slug = addOfferingSlug.trim() || addOfferingName.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+    setAddOfferingSaving(true);
+
+    const { data: newOffering, error: insertError } = await supabase
+      .from("offerings")
+      .insert({ name: addOfferingName.trim(), slug })
+      .select()
+      .single();
+
+    if (insertError || !newOffering) {
+      toast.error("Failed to add offering: " + (insertError?.message || "Unknown error"));
+      setAddOfferingSaving(false);
+      return;
+    }
+
+    let logoUrl: string | null = null;
+    if (addOfferingLogoFile) {
+      const ext = addOfferingLogoFile.name.split(".").pop() || "png";
+      const filePath = `${newOffering.id}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("offering-logos")
+        .upload(filePath, addOfferingLogoFile, { upsert: true, cacheControl: "0" });
+
+      if (uploadError) {
+        toast.error("Offering created but image upload failed: " + uploadError.message);
+      } else {
+        const { data: urlData } = supabase.storage.from("offering-logos").getPublicUrl(filePath);
+        logoUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+        await supabase.from("offerings").update({ logo_url: logoUrl }).eq("id", newOffering.id);
+      }
+    }
+
+    setAddOfferingSaving(false);
+    toast.success(`Offering "${addOfferingName.trim()}" added`);
+    setOfferings(prev => [...prev, { ...newOffering as unknown as OfferingRow, logo_url: logoUrl }].sort((a, b) => a.name.localeCompare(b.name)));
+    setShowAddOffering(false);
+    setAddOfferingName(""); setAddOfferingSlug(""); setAddOfferingLogoFile(null); setAddOfferingLogoPreview(null);
+  };
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="clubs">
@@ -1024,10 +1079,16 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
           <p className="text-muted-foreground">All signed clubs and partners on the platform.</p>
         </div>
         {isMasterAdmin && (
-          <Button onClick={() => setShowAddClub(true)} className="h-11 px-5 font-semibold glow">
-            <Building2 className="h-4 w-4 mr-2" />
-            Add Club
-          </Button>
+          <div className="flex gap-3">
+            <Button onClick={() => setShowAddOffering(true)} variant="outline" className="h-11 px-5 font-semibold gap-2">
+              <Image className="h-4 w-4" />
+              Add Offering
+            </Button>
+            <Button onClick={() => setShowAddClub(true)} className="h-11 px-5 font-semibold glow gap-2">
+              <Building2 className="h-4 w-4" />
+              Add Club
+            </Button>
+          </div>
         )}
       </div>
       <Card className="bg-card border-border">
@@ -1160,49 +1221,16 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                     </Badge>
                   ))}
                 </div>
-                <div className="relative">
-                  <Input
-                    placeholder="Search or type a custom offering..."
-                    value={customOffering}
-                    onChange={(e) => setCustomOffering(e.target.value)}
-                    className="h-10 bg-secondary border-border text-sm"
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && customOffering.trim() && !editOfferings.includes(customOffering.trim())) {
-                        e.preventDefault();
-                        setEditOfferings(prev => [...prev, customOffering.trim()]);
-                        setCustomOffering("");
-                      }
-                    }}
-                  />
-                  {customOffering.trim() && (() => {
-                    const matches = AVAILABLE_OFFERINGS.filter(o => !editOfferings.includes(o) && o.toLowerCase().includes(customOffering.toLowerCase()));
-                    const exactExists = editOfferings.includes(customOffering.trim());
-                    const isNew = !AVAILABLE_OFFERINGS.some(o => o.toLowerCase() === customOffering.trim().toLowerCase()) && !exactExists;
-                    return (matches.length > 0 || isNew) ? (
-                      <div className="absolute z-50 left-0 right-0 top-full mt-1 rounded-md border border-border bg-card shadow-lg overflow-hidden">
-                        {matches.map(o => (
-                          <button
-                            key={o}
-                            type="button"
-                            className="w-full text-left px-3 py-2 text-sm hover:bg-secondary transition-colors text-foreground"
-                            onClick={() => { setEditOfferings(prev => [...prev, o]); setCustomOffering(""); }}
-                          >
-                            {o}
-                          </button>
-                        ))}
-                        {isNew && (
-                          <button
-                            type="button"
-                            className="w-full text-left px-3 py-2 text-sm hover:bg-secondary transition-colors text-primary font-medium border-t border-border"
-                            onClick={() => { setEditOfferings(prev => [...prev, customOffering.trim()]); setCustomOffering(""); }}
-                          >
-                            + Add "{customOffering.trim()}" as new offering
-                          </button>
-                        )}
-                      </div>
-                    ) : null;
-                  })()}
-                </div>
+                <Select value="" onValueChange={(v) => { if (v && !editOfferings.includes(v)) setEditOfferings(prev => [...prev, v]); }}>
+                  <SelectTrigger className="h-10 bg-secondary border-border">
+                    <SelectValue placeholder="Select an offering..." />
+                  </SelectTrigger>
+                  <SelectContent className="bg-card border-border z-50">
+                    {offeringNames.filter(o => !editOfferings.includes(o)).map(o => (
+                      <SelectItem key={o} value={o}>{o}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <Button onClick={handleSave} disabled={saving || !editName} className="w-full h-12 text-base font-semibold glow">
@@ -1286,54 +1314,99 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                   </Badge>
                 ))}
               </div>
-              <div className="relative">
-                <Input
-                  placeholder="Search or type a custom offering..."
-                  value={addClubCustomOffering}
-                  onChange={(e) => setAddClubCustomOffering(e.target.value)}
-                  className="h-10 bg-secondary border-border text-sm"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && addClubCustomOffering.trim() && !addClubOfferings.includes(addClubCustomOffering.trim())) {
-                      e.preventDefault();
-                      setAddClubOfferings(prev => [...prev, addClubCustomOffering.trim()]);
-                      setAddClubCustomOffering("");
-                    }
-                  }}
-                />
-                {addClubCustomOffering.trim() && (() => {
-                  const matches = allKnownOfferings.filter(o => !addClubOfferings.includes(o) && o.toLowerCase().includes(addClubCustomOffering.toLowerCase()));
-                  const exactExists = addClubOfferings.includes(addClubCustomOffering.trim());
-                  const isNew = !allKnownOfferings.some(o => o.toLowerCase() === addClubCustomOffering.trim().toLowerCase()) && !exactExists;
-                  return (matches.length > 0 || isNew) ? (
-                    <div className="absolute z-50 left-0 right-0 top-full mt-1 rounded-md border border-border bg-card shadow-lg overflow-hidden">
-                      {matches.map(o => (
-                        <button
-                          key={o}
-                          type="button"
-                          className="w-full text-left px-3 py-2 text-sm hover:bg-secondary transition-colors text-foreground"
-                          onClick={() => { setAddClubOfferings(prev => [...prev, o]); setAddClubCustomOffering(""); }}
-                        >
-                          {o}
-                        </button>
-                      ))}
-                      {isNew && (
-                        <button
-                          type="button"
-                          className="w-full text-left px-3 py-2 text-sm hover:bg-secondary transition-colors text-primary font-medium border-t border-border"
-                          onClick={() => { setAddClubOfferings(prev => [...prev, addClubCustomOffering.trim()]); setAddClubCustomOffering(""); }}
-                        >
-                          + Add "{addClubCustomOffering.trim()}" as new offering
-                        </button>
-                      )}
-                    </div>
-                  ) : null;
-                })()}
-              </div>
+              <Select value="" onValueChange={(v) => { if (v && !addClubOfferings.includes(v)) setAddClubOfferings(prev => [...prev, v]); }}>
+                <SelectTrigger className="h-10 bg-secondary border-border">
+                  <SelectValue placeholder="Select an offering..." />
+                </SelectTrigger>
+                <SelectContent className="bg-card border-border z-50">
+                  {offeringNames.filter(o => !addClubOfferings.includes(o)).map(o => (
+                    <SelectItem key={o} value={o}>{o}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <Button onClick={handleAddClub} disabled={addClubSaving || !addClubName.trim()} className="w-full h-12 text-base font-semibold glow">
               <Building2 className="h-4 w-4 mr-2" />
               {addClubSaving ? "Adding..." : "Add Club"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Offering Dialog */}
+      <Dialog open={showAddOffering} onOpenChange={setShowAddOffering}>
+        <DialogContent className="bg-card border-border max-w-2xl w-[66vw] max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-heading text-xl flex items-center gap-2">
+              <Image className="h-5 w-5 text-primary" />
+              Add Offering
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-5 pt-2">
+            <div>
+              <Label className="text-sm font-medium text-muted-foreground mb-2 block">Offering Name</Label>
+              <Input
+                value={addOfferingName}
+                onChange={(e) => {
+                  setAddOfferingName(e.target.value);
+                  setAddOfferingSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""));
+                }}
+                placeholder="e.g. Basketball Court"
+                className="h-12 bg-secondary border-border"
+              />
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium text-muted-foreground mb-2 block">Slug (URL-friendly ID)</Label>
+              <Input
+                value={addOfferingSlug}
+                onChange={(e) => setAddOfferingSlug(e.target.value)}
+                placeholder="e.g. basketball"
+                className="h-12 bg-secondary border-border"
+              />
+              <p className="text-xs text-muted-foreground mt-1">Used internally for booking routing. Auto-generated from name.</p>
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium text-muted-foreground mb-2 block">Offering Image</Label>
+              <div
+                onDragOver={(e) => { e.preventDefault(); setAddOfferingDragging(true); }}
+                onDragLeave={() => setAddOfferingDragging(false)}
+                onDrop={(e) => { e.preventDefault(); setAddOfferingDragging(false); const file = e.dataTransfer.files[0]; if (file) handleAddOfferingFileSelect(file); }}
+                className={cn(
+                  "relative border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer",
+                  addOfferingDragging ? "border-primary bg-primary/5" : "border-border hover:border-muted-foreground/50"
+                )}
+                onClick={() => document.getElementById("add-offering-logo-input")?.click()}
+              >
+                <input
+                  id="add-offering-logo-input"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => { const file = e.target.files?.[0]; if (file) handleAddOfferingFileSelect(file); }}
+                />
+                {addOfferingLogoPreview ? (
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="h-32 w-32 rounded-xl overflow-hidden bg-secondary">
+                      <img src={addOfferingLogoPreview} alt="Offering preview" className="h-full w-full object-cover" />
+                    </div>
+                    <p className="text-xs text-muted-foreground">Click or drag to replace</p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-2 py-4">
+                    <Upload className="h-8 w-8 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">Drag & drop or click to upload</p>
+                    <p className="text-xs text-muted-foreground">This image will appear on the booking page</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <Button onClick={handleAddOffering} disabled={addOfferingSaving || !addOfferingName.trim()} className="w-full h-12 text-base font-semibold glow">
+              <Image className="h-4 w-4 mr-2" />
+              {addOfferingSaving ? "Adding..." : "Add Offering"}
             </Button>
           </div>
         </DialogContent>
@@ -2046,8 +2119,6 @@ const AdminDashboard = () => {
             </Dialog>
           </motion.div>
         )}
-
-
 
         {/* Bookings Calendar */}
         {activeTab === "bookings" && (
