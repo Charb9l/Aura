@@ -50,6 +50,12 @@ const brandGlow = {
   wellness: "shadow-[0_0_20px_hsl(100_22%_60%/0.3)]",
 };
 
+const brandInputClass = {
+  tennis: "border-brand-tennis/50 focus:border-brand-tennis shadow-[0_0_12px_hsl(212_70%_55%/0.15)]",
+  basketball: "border-brand-basketball/50 focus:border-brand-basketball shadow-[0_0_12px_hsl(25_90%_55%/0.15)]",
+  wellness: "border-brand-wellness/50 focus:border-brand-wellness shadow-[0_0_12px_hsl(100_22%_60%/0.15)]",
+};
+
 const timeSlots = [
   "08:00", "09:00", "10:00", "11:00", "12:00",
   "13:00", "14:00", "15:00", "16:00", "17:00",
@@ -380,8 +386,8 @@ const BookPage = () => {
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="space-y-4">
             <Label className="text-sm font-medium text-muted-foreground mb-4 block">Your Details</Label>
             <div className="grid md:grid-cols-3 gap-4">
-              <Input placeholder="Full Name" value={name} onChange={(e) => setName(e.target.value)} required className="h-12 bg-secondary border-border" />
-              <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required className="h-12 bg-secondary border-border" />
+              <Input placeholder="Full Name" value={name} onChange={(e) => setName(e.target.value)} required className={cn("h-12 bg-secondary border-border", selectedBrand && brandInputClass[selectedBrand])} />
+              <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required className={cn("h-12 bg-secondary border-border", selectedBrand && brandInputClass[selectedBrand])} />
               <PhoneInput value={phone} onChange={setPhone} required />
             </div>
           </motion.div>
