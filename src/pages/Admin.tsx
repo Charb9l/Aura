@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { motion } from "framer-motion";
 import { format, subDays, startOfDay, startOfWeek, startOfMonth, endOfDay, isWithinInterval, parseISO, isSameDay } from "date-fns";
-import { CalendarCheck, TrendingUp, ShieldCheck, LogIn, UserPlus, Pencil, DollarSign, Building2, Clock, User, Mail, Phone, MapPin, FileText, Trash2, CheckCircle, XCircle, Upload, X, Image } from "lucide-react";
+import { CalendarCheck, TrendingUp, ShieldCheck, LogIn, UserPlus, Pencil, DollarSign, Building2, Clock, User, Mail, Phone, MapPin, FileText, Trash2, CheckCircle, XCircle, Upload, X, Image, History } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -929,11 +929,19 @@ const AdminDashboard = () => {
 
   // Admin edit state
   const [editAdmin, setEditAdmin] = useState<UserWithEmail | null>(null);
+  const [editAdminName, setEditAdminName] = useState("");
   const [editAdminEmail, setEditAdminEmail] = useState("");
   const [editAdminPhone, setEditAdminPhone] = useState("");
   const [editAdminPassword, setEditAdminPassword] = useState("");
   const [editAdminClubId, setEditAdminClubId] = useState<string>("");
   const [editAdminSaving, setEditAdminSaving] = useState(false);
+
+  // Former users state
+  const [formerDialogOpen, setFormerDialogOpen] = useState(false);
+  const [formerDialogType, setFormerDialogType] = useState<"customer" | "admin">("customer");
+  const [formerTab, setFormerTab] = useState<"current" | "former">("current");
+  const [formerUsers, setFormerUsers] = useState<any[]>([]);
+  const [formerLoading, setFormerLoading] = useState(false);
 
   // Clubs & current admin's club
   const [clubs, setClubs] = useState<ClubRow[]>([]);
@@ -1041,17 +1049,31 @@ const AdminDashboard = () => {
 
   const openEditAdmin = (u: UserWithEmail) => {
     setEditAdmin(u);
+    setEditAdminName(u.full_name || "");
     setEditAdminEmail(u.email);
     setEditAdminPhone(u.phone || "");
     setEditAdminPassword("");
     setEditAdminClubId(u.club_id || "");
   };
 
+  const openFormerDialog = async (type: "customer" | "admin") => {
+    setFormerDialogType(type);
+    setFormerTab("current");
+    setFormerDialogOpen(true);
+    setFormerLoading(true);
+    const { data } = await supabase.functions.invoke("admin-users", {
+      body: { action: "list-former", user_type: type },
+    });
+    setFormerUsers(data?.former_users || []);
+    setFormerLoading(false);
+  };
+
   const handleSaveAdmin = async () => {
     if (!editAdmin) return;
     setEditAdminSaving(true);
 
-    const body: Record<string, string | null> = { user_id: editAdmin.user_id, action: "update" };
+    const body: Record<string, string | null> = { user_id: editAdmin.user_id, action: "update", user_type: "admin" };
+    if (editAdminName !== (editAdmin.full_name || "")) body.full_name = editAdminName;
     if (editAdminEmail !== editAdmin.email) body.email = editAdminEmail;
     if (editAdminPhone !== (editAdmin.phone || "")) body.phone = editAdminPhone;
     if (editAdminPassword) body.password = editAdminPassword;
@@ -1067,7 +1089,7 @@ const AdminDashboard = () => {
       setAdminUsers((prev) =>
         prev.map((u) =>
           u.user_id === editAdmin.user_id
-            ? { ...u, email: editAdminEmail || u.email, phone: editAdminPhone, club_id: (editAdminClubId && editAdminClubId !== "none") ? editAdminClubId : null }
+            ? { ...u, full_name: editAdminName || u.full_name, email: editAdminEmail || u.email, phone: editAdminPhone, club_id: (editAdminClubId && editAdminClubId !== "none") ? editAdminClubId : null }
             : u
         )
       );
@@ -1310,7 +1332,13 @@ const AdminDashboard = () => {
         {activeTab === "users" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="users">
             {/* Registered Customers */}
-            <h1 className="font-heading text-4xl font-bold text-foreground mb-8">Registered Customers</h1>
+            <div className="flex items-center justify-between mb-8">
+              <h1 className="font-heading text-4xl font-bold text-foreground">Registered Customers</h1>
+              <Button variant="outline" size="sm" className="gap-2" onClick={() => openFormerDialog("customer")}>
+                <History className="h-4 w-4" />
+                Current & Former
+              </Button>
+            </div>
             <Card className="bg-card border-border mb-10">
               <CardContent className="p-0">
                 <Table>
@@ -1343,8 +1371,16 @@ const AdminDashboard = () => {
             </Card>
 
             {/* Club Admins */}
-            <h2 className="font-heading text-2xl font-bold text-foreground mb-2">Club Admins</h2>
-            <p className="text-muted-foreground mb-6">Administrators assigned to clubs.</p>
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="font-heading text-2xl font-bold text-foreground mb-2">Club Admins</h2>
+                <p className="text-muted-foreground">Administrators assigned to clubs.</p>
+              </div>
+              <Button variant="outline" size="sm" className="gap-2" onClick={() => openFormerDialog("admin")}>
+                <History className="h-4 w-4" />
+                Current & Former
+              </Button>
+            </div>
             <Card className="bg-card border-border">
               <CardContent className="p-0">
                 <Table>
@@ -1416,6 +1452,10 @@ const AdminDashboard = () => {
                   <DialogTitle className="font-heading text-xl">Edit Admin — {editAdmin?.full_name || editAdmin?.email}</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-5 pt-4">
+                  <div>
+                    <Label htmlFor="edit-admin-name">Full Name</Label>
+                    <Input id="edit-admin-name" value={editAdminName} onChange={(e) => setEditAdminName(e.target.value)} className="h-12 bg-secondary border-border mt-1" />
+                  </div>
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="edit-admin-email">Email</Label>
@@ -1567,82 +1607,7 @@ const AdminDashboard = () => {
           </motion.div>
         )}
 
-        {/* Reporting */}
-        {activeTab === "reporting" && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="reporting">
-            <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Reporting</h1>
-            <p className="text-muted-foreground mb-8">Detailed booking analytics.</p>
 
-            <div className="grid lg:grid-cols-2 gap-6 mb-6">
-              <Card className="bg-card border-border">
-                <CardHeader><CardTitle className="text-lg">Revenue by Category</CardTitle></CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={280}>
-                    <BarChart data={revenueByCategoryFiltered}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(240, 6%, 18%)" />
-                      <XAxis dataKey="name" tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} />
-                      <YAxis tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} />
-                      <Tooltip contentStyle={{ background: "hsl(240, 8%, 10%)", border: "1px solid hsl(240, 6%, 18%)", borderRadius: 8, color: "hsl(0, 0%, 95%)" }} formatter={(v: number) => [`$${v}`, "Revenue"]} />
-                      <Bar dataKey="value" name="Revenue" radius={[4, 4, 0, 0]}>
-                        {revenueByCategoryFiltered.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-card border-border">
-                <CardHeader><CardTitle className="text-lg">Bookings by Category</CardTitle></CardHeader>
-                <CardContent className="flex items-center justify-center">
-                  {bookingChartData.length > 0 ? (
-                    <ResponsiveContainer width="100%" height={280}>
-                      <PieChart>
-                        <Pie data={bookingChartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}>
-                          {bookingChartData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
-                        </Pie>
-                        <Tooltip contentStyle={{ background: "hsl(240, 8%, 10%)", border: "1px solid hsl(240, 6%, 18%)", borderRadius: 8, color: "hsl(0, 0%, 95%)" }} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <p className="text-muted-foreground">No bookings yet.</p>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-
-            <Card className="bg-card border-border">
-              <CardHeader><CardTitle className="text-lg">All Bookings</CardTitle></CardHeader>
-              <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Activity</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Time</TableHead>
-                      <TableHead>Phone</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredBookings.length === 0 ? (
-                      <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No bookings yet.</TableCell></TableRow>
-                    ) : filteredBookings.map((b) => (
-                      <TableRow key={b.id}>
-                        <TableCell className="font-medium">{b.full_name}</TableCell>
-                        <TableCell>{b.activity_name}</TableCell>
-                        <TableCell>{b.booking_date}</TableCell>
-                        <TableCell>{b.booking_time}</TableCell>
-                        <TableCell>{b.phone}</TableCell>
-                        <TableCell><Badge variant={b.status === "confirmed" ? "default" : "secondary"}>{b.status}</Badge></TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
 
         {/* Bookings Calendar */}
         {activeTab === "bookings" && (
@@ -1683,6 +1648,111 @@ const AdminDashboard = () => {
             </Card>
           </motion.div>
         )}
+
+        {/* Current & Former Dialog */}
+        <Dialog open={formerDialogOpen} onOpenChange={setFormerDialogOpen}>
+          <DialogContent className="bg-card border-border max-w-2xl w-[66vw] min-h-[50vh]">
+            <DialogHeader>
+              <DialogTitle className="font-heading text-xl">
+                {formerDialogType === "customer" ? "Customers" : "Club Admins"}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="flex gap-2 mb-4">
+              <Button
+                variant={formerTab === "current" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setFormerTab("current")}
+              >
+                Current
+              </Button>
+              <Button
+                variant={formerTab === "former" ? "default" : "outline"}
+                size="sm"
+                onClick={() => { setFormerTab("former"); if (formerUsers.length === 0 && !formerLoading) openFormerDialog(formerDialogType); }}
+              >
+                Former
+              </Button>
+            </div>
+
+            {formerTab === "current" ? (
+              <div className="max-h-[60vh] overflow-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Phone</TableHead>
+                      {formerDialogType === "admin" && <TableHead>Club</TableHead>}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {(formerDialogType === "customer"
+                      ? allUsers.filter(u => !adminUsers.some(a => a.user_id === u.user_id && a.club_id))
+                      : adminUsers
+                    ).map((u) => (
+                      <TableRow key={u.user_id}>
+                        <TableCell className="font-medium">{u.full_name || "—"}</TableCell>
+                        <TableCell>{u.email}</TableCell>
+                        <TableCell>{u.phone || "—"}</TableCell>
+                        {formerDialogType === "admin" && (
+                          <TableCell>
+                            {u.club_id
+                              ? clubs.find(c => c.id === u.club_id)?.name || "—"
+                              : <Badge className="bg-primary/10 text-primary">Super Admin</Badge>
+                            }
+                          </TableCell>
+                        )}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            ) : (
+              <div className="max-h-[60vh] overflow-auto">
+                {formerLoading ? (
+                  <p className="text-muted-foreground text-center py-10">Loading...</p>
+                ) : formerUsers.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-10">No former {formerDialogType === "customer" ? "customers" : "admins"} yet.</p>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Phone</TableHead>
+                        {formerDialogType === "admin" && <TableHead>Club</TableHead>}
+                        {formerDialogType === "admin" && <TableHead>Stint</TableHead>}
+                        <TableHead>Reason</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {formerUsers.map((fu: any) => (
+                        <TableRow key={fu.id}>
+                          <TableCell className="font-medium">{fu.full_name || "—"}</TableCell>
+                          <TableCell>{fu.email}</TableCell>
+                          <TableCell>{fu.phone || "—"}</TableCell>
+                          {formerDialogType === "admin" && (
+                            <TableCell>{fu.club_name || "Super Admin"}</TableCell>
+                          )}
+                          {formerDialogType === "admin" && (
+                            <TableCell className="text-sm text-muted-foreground">
+                              {fu.started_at ? format(new Date(fu.started_at), "MMM dd, yyyy") : "—"} → {format(new Date(fu.ended_at), "MMM dd, yyyy")}
+                            </TableCell>
+                          )}
+                          <TableCell>
+                            <Badge variant={fu.reason === "deleted" ? "destructive" : "secondary"} className="text-xs capitalize">
+                              {fu.reason}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
 
       </div>
     </div>

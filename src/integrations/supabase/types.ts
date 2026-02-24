@@ -146,6 +146,59 @@ export type Database = {
         }
         Relationships: []
       }
+      former_users: {
+        Row: {
+          club_id: string | null
+          club_name: string | null
+          created_at: string
+          email: string
+          ended_at: string
+          full_name: string | null
+          id: string
+          phone: string | null
+          reason: string | null
+          started_at: string | null
+          user_id: string
+          user_type: string
+        }
+        Insert: {
+          club_id?: string | null
+          club_name?: string | null
+          created_at?: string
+          email: string
+          ended_at?: string
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          reason?: string | null
+          started_at?: string | null
+          user_id: string
+          user_type?: string
+        }
+        Update: {
+          club_id?: string | null
+          club_name?: string | null
+          created_at?: string
+          email?: string
+          ended_at?: string
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          reason?: string | null
+          started_at?: string | null
+          user_id?: string
+          user_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "former_users_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
