@@ -133,8 +133,21 @@ const BookPage = () => {
     if (error) {
       toast.error("Booking failed: " + error.message);
     } else {
-      // Also update profile phone if not set
+      // Update profile phone if not set
       await supabase.from("profiles").update({ phone, full_name: name }).eq("user_id", user.id);
+
+      // Send confirmation email (fire-and-forget)
+      supabase.functions.invoke("booking-confirmation-email", {
+        body: {
+          full_name: name,
+          email,
+          activity_name: activityName,
+          booking_date: format(date, "PPP"),
+          booking_time: selectedTime,
+          court_type: selectedActivity === "basketball" ? courtType : null,
+        },
+      });
+
       setSubmitted(true);
     }
   };

@@ -1,1 +1,7 @@
 project_id = "rzibwsrbizlsztmeznnr"
+
+[functions.booking-confirmation-email]
+verify_jwt = false
+
+[functions.no-show-email]
+verify_jwt = false
