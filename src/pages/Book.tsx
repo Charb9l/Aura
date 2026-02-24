@@ -16,17 +16,7 @@ import { toast } from "@/components/ui/sonner";
 import Navbar from "@/components/Navbar";
 import PhoneInput from "@/components/PhoneInput";
 
-import tennisImg from "@/assets/tennis-court.png";
-import basketballImg from "@/assets/basketball-court.png";
-import yogaImg from "@/assets/aerial-yoga-studio.png";
-import pilatesImg from "@/assets/pilates-studio.png";
 
-const fallbackImages: Record<string, string> = {
-  tennis: tennisImg,
-  basketball: basketballImg,
-  "aerial-yoga": yogaImg,
-  pilates: pilatesImg,
-};
 
 interface OfferingData {
   id: string;
@@ -241,7 +231,7 @@ const BookPage = () => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {offerings.map((a) => {
                 const brand = brandForSlug(a.slug);
-                const imgSrc = a.logo_url || fallbackImages[a.slug] || "";
+                const imgSrc = a.logo_url || "";
                 return (
                   <button
                     type="button"
