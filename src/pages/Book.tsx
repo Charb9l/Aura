@@ -46,7 +46,7 @@ const brandBorder = {
 
 const brandGlow = {
   tennis: "shadow-[0_0_20px_hsl(212_70%_55%/0.3)]",
-  basketball: "shadow-[0_0_20px_hsl(262_50%_55%/0.3)]",
+  basketball: "shadow-[0_0_20px_hsl(25_90%_55%/0.3)]",
   wellness: "shadow-[0_0_20px_hsl(100_22%_60%/0.3)]",
 };
 
@@ -260,7 +260,7 @@ const BookPage = () => {
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}>
               <Label className="text-sm font-medium text-muted-foreground mb-4 block">Choose Club</Label>
               <Select value={selectedClub} onValueChange={setSelectedClub}>
-                <SelectTrigger className={cn("w-full max-w-sm h-12", selectedClub && selectedBrand === "tennis" && "border-brand-tennis shadow-[0_0_12px_hsl(212_70%_55%/0.3)]", selectedClub && selectedBrand === "basketball" && "border-brand-basketball shadow-[0_0_12px_hsl(262_50%_55%/0.3)]", selectedClub && selectedBrand === "wellness" && "border-brand-wellness shadow-[0_0_12px_hsl(100_22%_60%/0.3)]")}>
+                <SelectTrigger className={cn("w-full max-w-sm h-12", selectedClub && selectedBrand === "tennis" && "border-brand-tennis shadow-[0_0_12px_hsl(212_70%_55%/0.3)]", selectedClub && selectedBrand === "basketball" && "border-brand-basketball shadow-[0_0_12px_hsl(25_90%_55%/0.3)]", selectedClub && selectedBrand === "wellness" && "border-brand-wellness shadow-[0_0_12px_hsl(100_22%_60%/0.3)]")}>
                   <SelectValue placeholder="Select a club..." />
                 </SelectTrigger>
                 <SelectContent className="bg-card border-border z-50">
@@ -284,8 +284,8 @@ const BookPage = () => {
                     onClick={() => setCourtType(ct.value)}
                     className={cn(
                       "rounded-xl border-2 px-4 py-4 text-left transition-all",
-                      courtType === ct.value
-                        ? "border-brand-basketball shadow-[0_0_20px_hsl(262_50%_55%/0.3)] bg-brand-basketball/10"
+                     courtType === ct.value
+                        ? "border-brand-basketball shadow-[0_0_20px_hsl(25_90%_55%/0.3)] bg-brand-basketball/10"
                         : "border-border hover:border-muted-foreground/50"
                     )}
                   >
@@ -310,7 +310,7 @@ const BookPage = () => {
                       !selectedActivity && "opacity-50 cursor-not-allowed",
                       !date && "text-muted-foreground",
                       date && selectedBrand === "tennis" && "border-brand-tennis shadow-[0_0_12px_hsl(212_70%_55%/0.3)]",
-                      date && selectedBrand === "basketball" && "border-brand-basketball shadow-[0_0_12px_hsl(262_50%_55%/0.3)]",
+                      date && selectedBrand === "basketball" && "border-brand-basketball shadow-[0_0_12px_hsl(25_90%_55%/0.3)]",
                       date && selectedBrand === "wellness" && "border-brand-wellness shadow-[0_0_12px_hsl(100_22%_60%/0.3)]",
                     )}
                   >
@@ -363,7 +363,7 @@ const BookPage = () => {
                                 ? "border-brand-tennis bg-brand-tennis/10 text-brand-tennis shadow-[0_0_12px_hsl(212_70%_55%/0.3)]"
                                 : selectedBrand === "wellness"
                                   ? "border-brand-wellness bg-brand-wellness/10 text-brand-wellness shadow-[0_0_12px_hsl(100_22%_60%/0.3)]"
-                                  : "border-brand-basketball bg-brand-basketball/10 text-brand-basketball shadow-[0_0_12px_hsl(262_50%_55%/0.3)]"
+                                  : "border-brand-basketball bg-brand-basketball/10 text-brand-basketball shadow-[0_0_12px_hsl(25_90%_55%/0.3)]"
                               : "border-border text-muted-foreground hover:border-muted-foreground/50 hover:text-foreground"
                       )}
                     >
