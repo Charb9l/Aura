@@ -8,7 +8,6 @@ const allMenuItems = [
   { label: "Dashboard", icon: LayoutDashboard, tab: "overview" },
   { label: "Bookings", icon: CalendarCheck, tab: "bookings" },
   { label: "Users", icon: Users, tab: "users" },
-  { label: "Admins", icon: ShieldCheck, tab: "admins" },
   { label: "Clubs & Partners", icon: Building2, tab: "clubs" },
   { label: "Reporting", icon: BarChart3, tab: "reporting" },
   { label: "Settings", icon: Settings, tab: "settings" },
