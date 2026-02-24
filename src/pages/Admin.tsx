@@ -73,6 +73,7 @@ interface BookingRow {
   court_type?: string | null;
   discount_type?: string | null;
   attendance_status?: string | null;
+  created_by?: string | null;
 }
 
 interface ProfileRow {
@@ -267,15 +268,40 @@ interface AuditLogRow {
   deleted_by: string;
   deleted_at: string;
   created_at: string;
+  created_by: string | null;
 }
 
-const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, onUpdateBooking, allUsers }: { bookings: BookingRow[]; clubs?: ClubRow[]; isMasterAdmin?: boolean; onDeleteBooking?: (id: string) => void; onUpdateBooking?: (id: string, updates: Partial<BookingRow>) => void; allUsers?: UserWithEmail[] }) => {
+const ACTIVITY_OPTIONS = [
+  { key: "basketball", label: "Basketball", name: "Basketball Court" },
+  { key: "tennis", label: "Tennis", name: "Tennis Court" },
+  { key: "pilates", label: "Pilates", name: "Pilates Studio" },
+  { key: "aerial-yoga", label: "Aerial Yoga", name: "Aerial Yoga Studio" },
+];
+
+const HOUR_OPTIONS = Array.from({ length: CLOSE_HOUR - OPEN_HOUR }, (_, i) => {
+  const h = OPEN_HOUR + i;
+  const label = h < 12 ? `${h}:00 AM` : h === 12 ? `12:00 PM` : `${h - 12}:00 PM`;
+  return { value: `${h}:00`, label };
+});
+
+const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, onUpdateBooking, onAddBooking, allUsers }: { bookings: BookingRow[]; clubs?: ClubRow[]; isMasterAdmin?: boolean; onDeleteBooking?: (id: string) => void; onUpdateBooking?: (id: string, updates: Partial<BookingRow>) => void; onAddBooking?: (booking: BookingRow) => void; allUsers?: UserWithEmail[] }) => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedBooking, setSelectedBooking] = useState<BookingRow | null>(null);
   const [clubFilter, setClubFilter] = useState<string>("all");
   const [showLogs, setShowLogs] = useState(false);
   const [auditLogs, setAuditLogs] = useState<AuditLogRow[]>([]);
   const [logsLoading, setLogsLoading] = useState(false);
+
+  // Add booking state
+  const [showAddBooking, setShowAddBooking] = useState(false);
+  const [addActivity, setAddActivity] = useState("");
+  const [addDate, setAddDate] = useState<Date | undefined>(undefined);
+  const [addTime, setAddTime] = useState("");
+  const [addName, setAddName] = useState("");
+  const [addEmail, setAddEmail] = useState("");
+  const [addPhone, setAddPhone] = useState("");
+  const [addCourtType, setAddCourtType] = useState("");
+  const [addSaving, setAddSaving] = useState(false);
 
   // Build club activity map for filtering
   const clubActivityFilter = useMemo(() => {
@@ -347,7 +373,7 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
   // Combine active bookings + deleted logs for the full log view
   const allLogsEntries = useMemo(() => {
     const activeFiltered = clubActivityFilter ? bookings.filter(b => clubActivityFilter.includes(b.activity)) : bookings;
-    const active = activeFiltered.map(b => ({ ...b, status_label: "active" as const, deleted_at: null as string | null, deleted_by: null as string | null }));
+    const active = activeFiltered.map(b => ({ ...b, status_label: "active" as const, deleted_at: null as string | null, deleted_by: null as string | null, created_by: b.created_by || null }));
     const deleted = filteredLogs.map(l => ({ ...l, id: l.booking_id, status: "deleted", status_label: "deleted" as const, user_id: l.user_id }));
     return [...active, ...deleted].sort((a, b) => {
       const dateA = a.booking_date + a.booking_time;
@@ -360,6 +386,46 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
     if (!uid || !allUsers) return "Unknown";
     const user = allUsers.find(u => u.user_id === uid);
     return user?.full_name || user?.email || "Unknown";
+  };
+
+  const handleAddBooking = async () => {
+    if (!addActivity || !addDate || !addTime || !addName || !addEmail || !addPhone) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+    setAddSaving(true);
+
+    const activityOption = ACTIVITY_OPTIONS.find(a => a.key === addActivity);
+    const { data: { user } } = await supabase.auth.getUser();
+
+    const newBooking: any = {
+      activity: addActivity,
+      activity_name: activityOption?.name || addActivity,
+      booking_date: format(addDate, "yyyy-MM-dd"),
+      booking_time: addTime,
+      full_name: addName,
+      email: addEmail,
+      phone: addPhone,
+      user_id: user?.id,
+      created_by: user?.id,
+      status: "confirmed",
+    };
+    if (addActivity === "basketball" && addCourtType) {
+      newBooking.court_type = addCourtType;
+    }
+
+    const { data, error } = await supabase.from("bookings").insert(newBooking).select().single();
+    setAddSaving(false);
+
+    if (error) {
+      toast.error("Failed to add booking: " + error.message);
+    } else {
+      toast.success(`Booking added for ${addName}`);
+      onAddBooking?.(data as unknown as BookingRow);
+      setShowAddBooking(false);
+      setAddActivity(""); setAddDate(undefined); setAddTime("");
+      setAddName(""); setAddEmail(""); setAddPhone(""); setAddCourtType("");
+    }
   };
 
   return (
@@ -391,6 +457,14 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
           <FileText className="h-4 w-4" />
           {showLogs ? "Back to Calendar" : "Logs"}
         </Button>
+        <Button
+          size="sm"
+          onClick={() => setShowAddBooking(true)}
+          className="gap-2 ml-auto"
+        >
+          <CalendarCheck className="h-4 w-4" />
+          Add Booking
+        </Button>
       </div>
 
       {showLogs ? (
@@ -414,6 +488,8 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
                     <TableHead>Activity</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Time</TableHead>
+                    <TableHead>Added By</TableHead>
+                    <TableHead>Added At</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Deleted By</TableHead>
                     <TableHead>Deleted At</TableHead>
@@ -433,6 +509,12 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
                       </TableCell>
                       <TableCell className="text-sm text-foreground">{entry.booking_date}</TableCell>
                       <TableCell className="text-sm text-foreground">{entry.booking_time}</TableCell>
+                      <TableCell className="text-sm text-foreground">
+                        {entry.created_by ? getAdminName(entry.created_by) : <span className="text-muted-foreground">Self</span>}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {entry.created_at ? format(new Date(entry.created_at), "PPp") : "—"}
+                      </TableCell>
                       <TableCell>
                         {entry.status_label === "active" ? (
                           <Badge variant="default" className="text-xs">Active</Badge>
@@ -660,6 +742,91 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
           </Dialog>
         </>
       )}
+
+      {/* Add Booking Dialog */}
+      <Dialog open={showAddBooking} onOpenChange={setShowAddBooking}>
+        <DialogContent className="bg-card border-border max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="font-heading">Add Booking</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div>
+              <Label>Activity</Label>
+              <Select value={addActivity} onValueChange={(v) => { setAddActivity(v); setAddCourtType(""); }}>
+                <SelectTrigger className="h-12 bg-secondary border-border mt-1">
+                  <SelectValue placeholder="Select activity" />
+                </SelectTrigger>
+                <SelectContent className="bg-card border-border z-50">
+                  {ACTIVITY_OPTIONS.map(a => (
+                    <SelectItem key={a.key} value={a.key}>{a.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {addActivity === "basketball" && (
+              <div>
+                <Label>Court Type</Label>
+                <Select value={addCourtType} onValueChange={setAddCourtType}>
+                  <SelectTrigger className="h-12 bg-secondary border-border mt-1">
+                    <SelectValue placeholder="Select court type" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-card border-border z-50">
+                    <SelectItem value="half">Half Court</SelectItem>
+                    <SelectItem value="full">Full Court</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Date</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn("w-full h-12 mt-1 justify-start text-left font-normal", !addDate && "text-muted-foreground")}>
+                      <CalendarCheck className="mr-2 h-4 w-4" />
+                      {addDate ? format(addDate, "MMM dd, yyyy") : "Pick date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={addDate} onSelect={setAddDate} className={cn("p-3 pointer-events-auto")} />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div>
+                <Label>Time</Label>
+                <Select value={addTime} onValueChange={setAddTime}>
+                  <SelectTrigger className="h-12 bg-secondary border-border mt-1">
+                    <SelectValue placeholder="Select time" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-card border-border z-50">
+                    {HOUR_OPTIONS.map(t => (
+                      <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div>
+              <Label>Customer Name</Label>
+              <Input value={addName} onChange={(e) => setAddName(e.target.value)} placeholder="Full name" className="h-12 bg-secondary border-border mt-1" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Email</Label>
+                <Input type="email" value={addEmail} onChange={(e) => setAddEmail(e.target.value)} placeholder="email@example.com" className="h-12 bg-secondary border-border mt-1" />
+              </div>
+              <div>
+                <Label>Phone</Label>
+                <PhoneInput value={addPhone} onChange={setAddPhone} className="mt-1" />
+              </div>
+            </div>
+            <Button onClick={handleAddBooking} disabled={addSaving} className="w-full h-12 text-base font-semibold glow">
+              <CalendarCheck className="h-4 w-4 mr-2" />
+              {addSaving ? "Adding..." : "Add Booking"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
@@ -1614,7 +1781,7 @@ const AdminDashboard = () => {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="bookings">
             <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Bookings</h1>
             <p className="text-muted-foreground mb-8">View daily bookings by time slot.</p>
-            <BookingsCalendarTab bookings={myClubId ? filteredBookings : bookings} clubs={clubs} isMasterAdmin={!myClubId} onDeleteBooking={(id) => setBookings(prev => prev.filter(b => b.id !== id))} onUpdateBooking={(id, updates) => setBookings(prev => prev.map(b => b.id === id ? { ...b, ...updates } : b))} allUsers={allUsers} />
+            <BookingsCalendarTab bookings={myClubId ? filteredBookings : bookings} clubs={clubs} isMasterAdmin={!myClubId} onDeleteBooking={(id) => setBookings(prev => prev.filter(b => b.id !== id))} onUpdateBooking={(id, updates) => setBookings(prev => prev.map(b => b.id === id ? { ...b, ...updates } : b))} onAddBooking={(b) => setBookings(prev => [b, ...prev])} allUsers={allUsers} />
           </motion.div>
         )}
 
