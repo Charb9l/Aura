@@ -21,14 +21,26 @@ import basketballImg from "@/assets/basketball-court.png";
 import yogaImg from "@/assets/aerial-yoga-studio.png";
 import pilatesImg from "@/assets/pilates-studio.png";
 
-const activities = [
-  { slug: "tennis", name: "Tennis Court", image: tennisImg, brand: "tennis" as const },
-  { slug: "basketball", name: "Basketball Court", image: basketballImg, brand: "basketball" as const },
-  { slug: "aerial-yoga", name: "Aerial Yoga (Kids)", image: yogaImg, brand: "wellness" as const },
-  { slug: "pilates", name: "Reformer Pilates", image: pilatesImg, brand: "wellness" as const },
-];
+const fallbackImages: Record<string, string> = {
+  tennis: tennisImg,
+  basketball: basketballImg,
+  "aerial-yoga": yogaImg,
+  pilates: pilatesImg,
+};
 
-// Map activity slugs to offering keywords for matching
+interface OfferingData {
+  id: string;
+  name: string;
+  slug: string;
+  logo_url: string | null;
+}
+
+const brandForSlug = (slug: string): "tennis" | "basketball" | "wellness" => {
+  if (slug === "tennis") return "tennis";
+  if (slug === "basketball") return "basketball";
+  return "wellness";
+};
+
 const activityOfferingKeywords: Record<string, string[]> = {
   basketball: ["basketball"],
   tennis: ["tennis"],
@@ -54,11 +66,6 @@ const timeSlots = [
   "18:00", "19:00", "20:00", "21:00",
 ];
 
-interface ClubOption {
-  id: string;
-  name: string;
-}
-
 const BookPage = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
@@ -69,6 +76,7 @@ const BookPage = () => {
     if (!loading && !user) navigate("/auth");
   }, [user, loading, navigate]);
 
+  const [offerings, setOfferings] = useState<OfferingData[]>([]);
   const [selectedActivity, setSelectedActivity] = useState(preselected);
   const [selectedClub, setSelectedClub] = useState("");
   const [courtType, setCourtType] = useState<"half" | "full" | "">("");
@@ -82,19 +90,23 @@ const BookPage = () => {
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
   const [clubs, setClubs] = useState<{ id: string; name: string; offerings: string[] }[]>([]);
 
-  // Fetch clubs on mount
+  // Fetch offerings and clubs on mount
   useEffect(() => {
-    const fetchClubs = async () => {
-      const { data } = await supabase.from("clubs").select("id, name, offerings").order("name");
-      if (data) setClubs(data as any[]);
+    const fetchData = async () => {
+      const [offRes, clubRes] = await Promise.all([
+        supabase.from("offerings").select("*").order("name"),
+        supabase.from("clubs").select("id, name, offerings").order("name"),
+      ]);
+      if (offRes.data) setOfferings(offRes.data as unknown as OfferingData[]);
+      if (clubRes.data) setClubs(clubRes.data as any[]);
     };
-    fetchClubs();
+    fetchData();
   }, []);
 
   // Filter clubs that offer the selected activity
   const matchingClubs = useMemo(() => {
     if (!selectedActivity) return [];
-    const keywords = activityOfferingKeywords[selectedActivity] || [];
+    const keywords = activityOfferingKeywords[selectedActivity] || [selectedActivity];
     return clubs.filter(c =>
       c.offerings.some(o => keywords.some(k => o.toLowerCase().includes(k)))
     );
@@ -109,7 +121,7 @@ const BookPage = () => {
     }
   }, [matchingClubs]);
 
-  const selectedBrand = activities.find(a => a.slug === selectedActivity)?.brand;
+  const selectedBrand = selectedActivity ? brandForSlug(selectedActivity) : undefined;
 
   // Fetch booked time slots when activity or date changes
   useEffect(() => {
@@ -132,9 +144,10 @@ const BookPage = () => {
     if (!user || !date) return;
     setSubmitting(true);
 
-    const activityName = activities.find(a => a.slug === selectedActivity)?.name || selectedActivity;
+    const offering = offerings.find(o => o.slug === selectedActivity);
+    const activityName = offering?.name || selectedActivity;
 
-    // Calculate loyalty discount based on confirmed "show" bookings minus no-shows
+    // Calculate loyalty discount
     let discountType: string | null = null;
     const [showRes, noShowRes] = await Promise.all([
       supabase
@@ -176,10 +189,8 @@ const BookPage = () => {
     if (error) {
       toast.error("Booking failed: " + error.message);
     } else {
-      // Update profile phone if not set
       await supabase.from("profiles").update({ phone, full_name: name }).eq("user_id", user.id);
 
-      // Send confirmation email (fire-and-forget)
       supabase.functions.invoke("booking-confirmation-email", {
         body: {
           full_name: name,
@@ -196,6 +207,7 @@ const BookPage = () => {
   };
 
   if (submitted) {
+    const offering = offerings.find(o => o.slug === selectedActivity);
     return (
       <div className="min-h-screen">
         <Navbar />
@@ -204,7 +216,7 @@ const BookPage = () => {
             <CheckCircle2 className="h-20 w-20 text-primary mx-auto mb-6" />
             <h1 className="font-heading text-4xl font-bold text-foreground mb-3">Booking Confirmed!</h1>
             <p className="text-muted-foreground text-lg mb-2">
-              {activities.find(a => a.slug === selectedActivity)?.name} — {date && format(date, "PPP")} at {selectedTime}
+              {offering?.name || selectedActivity} — {date && format(date, "PPP")} at {selectedTime}
             </p>
             <p className="text-muted-foreground">We'll send a confirmation to {email}</p>
           </motion.div>
@@ -227,29 +239,33 @@ const BookPage = () => {
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
             <Label className="text-sm font-medium text-muted-foreground mb-4 block">Choose Activity</Label>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {activities.map((a) => (
-                <button
-                  type="button"
-                  key={a.slug}
-                  onClick={() => { setSelectedActivity(a.slug); setSelectedClub(""); setCourtType(""); setDate(undefined); setSelectedTime(""); }}
-                  className={cn(
-                    "relative overflow-hidden rounded-xl border-2 transition-all aspect-[3/4]",
-                    selectedActivity === a.slug
-                      ? cn(brandBorder[a.brand], brandGlow[a.brand])
-                      : "border-border hover:border-muted-foreground/50"
-                  )}
-                >
-                  <img src={a.image} alt={a.name} className="h-full w-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
-                  <span className="absolute bottom-3 left-3 right-3 font-heading text-sm font-semibold text-foreground">
-                    {a.name}
-                  </span>
-                </button>
-              ))}
+              {offerings.map((a) => {
+                const brand = brandForSlug(a.slug);
+                const imgSrc = a.logo_url || fallbackImages[a.slug] || "";
+                return (
+                  <button
+                    type="button"
+                    key={a.slug}
+                    onClick={() => { setSelectedActivity(a.slug); setSelectedClub(""); setCourtType(""); setDate(undefined); setSelectedTime(""); }}
+                    className={cn(
+                      "relative overflow-hidden rounded-xl border-2 transition-all aspect-[3/4]",
+                      selectedActivity === a.slug
+                        ? cn(brandBorder[brand], brandGlow[brand])
+                        : "border-border hover:border-muted-foreground/50"
+                    )}
+                  >
+                    {imgSrc && <img src={imgSrc} alt={a.name} className="h-full w-full object-cover" />}
+                    <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
+                    <span className="absolute bottom-3 left-3 right-3 font-heading text-sm font-semibold text-foreground">
+                      {a.name}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </motion.div>
 
-          {/* Club selector - show when multiple clubs offer this activity */}
+          {/* Club selector */}
           {selectedActivity && matchingClubs.length > 1 && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}>
               <Label className="text-sm font-medium text-muted-foreground mb-4 block">Choose Club</Label>
