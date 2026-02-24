@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import Navbar from "@/components/Navbar";
 import PhoneInput from "@/components/PhoneInput";
 import { useAuth } from "@/contexts/AuthContext";
@@ -75,6 +76,36 @@ const Auth = () => {
   return (
     <div className="min-h-screen">
       <Navbar />
+
+      {/* Forgot Password Dialog — 2/3 screen */}
+      <Dialog open={isForgot} onOpenChange={setIsForgot}>
+        <DialogContent className="bg-card border-border max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="font-heading text-2xl">Reset Password</DialogTitle>
+          </DialogHeader>
+          <p className="text-muted-foreground">
+            Enter your email address and we'll send you a link to reset your password.
+          </p>
+          <form onSubmit={handleForgotPassword} className="space-y-5 pt-2">
+            <div className="space-y-2">
+              <Label htmlFor="forgot-email" className="text-muted-foreground">Email</Label>
+              <Input
+                id="forgot-email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="h-12 bg-secondary border-border"
+              />
+            </div>
+            <Button type="submit" disabled={loading} className="w-full h-12 text-base font-bold rounded-xl glow">
+              {loading ? "Sending..." : "Send Reset Link"}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       <div className="flex min-h-screen items-center justify-center px-6 pt-20">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -83,132 +114,101 @@ const Auth = () => {
         >
           <div className="text-center">
             <h1 className="font-heading text-3xl font-bold text-foreground">
-              {isForgot ? "Reset Password" : isLogin ? "Welcome Back" : "Create Account"}
+              {isLogin ? "Welcome Back" : "Create Account"}
             </h1>
             <p className="mt-2 text-muted-foreground">
-              {isForgot
-                ? "Enter your email to receive a reset link"
-                : isLogin
-                ? "Sign in to book your sessions"
-                : "Sign up to start booking"}
+              {isLogin ? "Sign in to book your sessions" : "Sign up to start booking"}
             </p>
           </div>
 
-          {isForgot ? (
-            <form onSubmit={handleForgotPassword} className="space-y-5">
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-muted-foreground">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="h-12 bg-secondary border-border"
-                />
-              </div>
-              <Button type="submit" disabled={loading} className="w-full h-12 text-base font-bold rounded-xl glow">
-                {loading ? "Sending..." : "Send Reset Link"}
-              </Button>
-              <p className="text-center text-sm text-muted-foreground">
-                <button type="button" onClick={() => setIsForgot(false)} className="text-primary hover:underline font-medium">
-                  Back to Sign In
-                </button>
-              </p>
-            </form>
-          ) : (
-            <>
-              <form
-                onSubmit={isLogin ? handleLogin : handleSignUp}
-                className="space-y-5"
-              >
-                {!isLogin && (
-                  <>
-                    <div className="space-y-2">
-                      <Label htmlFor="name" className="text-muted-foreground">Full Name</Label>
-                      <Input
-                        id="name"
-                        placeholder="Your full name"
-                        value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
-                        required={!isLogin}
-                        className="h-12 bg-secondary border-border"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="phone" className="text-muted-foreground">Phone Number</Label>
-                      <PhoneInput
-                        id="phone"
-                        value={phone}
-                        onChange={setPhone}
-                        required={!isLogin}
-                      />
-                    </div>
-                  </>
+          <form
+            onSubmit={isLogin ? handleLogin : handleSignUp}
+            className="space-y-5"
+          >
+            {!isLogin && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="text-muted-foreground">Full Name</Label>
+                  <Input
+                    id="name"
+                    placeholder="Your full name"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    required={!isLogin}
+                    className="h-12 bg-secondary border-border"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone" className="text-muted-foreground">Phone Number</Label>
+                  <PhoneInput
+                    id="phone"
+                    value={phone}
+                    onChange={setPhone}
+                    required={!isLogin}
+                  />
+                </div>
+              </>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-muted-foreground">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="h-12 bg-secondary border-border"
+              />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password" className="text-muted-foreground">Password</Label>
+                {isLogin && (
+                  <button
+                    type="button"
+                    onClick={() => setIsForgot(true)}
+                    className="text-xs text-primary hover:underline"
+                  >
+                    Forgot password?
+                  </button>
                 )}
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-muted-foreground">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="h-12 bg-secondary border-border"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="password" className="text-muted-foreground">Password</Label>
-                    {isLogin && (
-                      <button
-                        type="button"
-                        onClick={() => setIsForgot(true)}
-                        className="text-xs text-primary hover:underline"
-                      >
-                        Forgot password?
-                      </button>
-                    )}
-                  </div>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    minLength={6}
-                    className="h-12 bg-secondary border-border"
-                  />
-                </div>
+              </div>
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+                className="h-12 bg-secondary border-border"
+              />
+            </div>
 
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full h-12 text-base font-bold rounded-xl glow"
-                >
-                  {loading
-                    ? "Please wait..."
-                    : isLogin
-                    ? "Sign In"
-                    : "Create Account"}
-                </Button>
-              </form>
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full h-12 text-base font-bold rounded-xl glow"
+            >
+              {loading
+                ? "Please wait..."
+                : isLogin
+                ? "Sign In"
+                : "Create Account"}
+            </Button>
+          </form>
 
-              <p className="text-center text-sm text-muted-foreground">
-                {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
-                <button
-                  type="button"
-                  onClick={() => setIsLogin(!isLogin)}
-                  className="text-primary hover:underline font-medium"
-                >
-                  {isLogin ? "Sign Up" : "Sign In"}
-                </button>
-              </p>
-            </>
-          )}
+          <p className="text-center text-sm text-muted-foreground">
+            {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
+            <button
+              type="button"
+              onClick={() => setIsLogin(!isLogin)}
+              className="text-primary hover:underline font-medium"
+            >
+              {isLogin ? "Sign Up" : "Sign In"}
+            </button>
+          </p>
         </motion.div>
       </div>
     </div>
