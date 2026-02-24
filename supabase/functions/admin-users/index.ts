@@ -64,7 +64,6 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Get roles (with club_id) for admin filtering
       let adminRoles: { user_id: string; club_id: string | null }[] = [];
       if (action === "list-admins") {
         const { data: roles } = await adminClient
@@ -105,7 +104,6 @@ Deno.serve(async (req) => {
 
     // GET current admin's club_id
     if (action === "my-club") {
-      // Re-get the caller to find their user_id
       const authHeader = req.headers.get("Authorization")!;
       const callerClient = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
         global: { headers: { Authorization: authHeader } },
@@ -130,14 +128,76 @@ Deno.serve(async (req) => {
       });
     }
 
+    // LIST former users
+    if (action === "list-former") {
+      const userType = (body.user_type as string) || "all";
+      let query = adminClient.from("former_users").select("*").order("ended_at", { ascending: false });
+      if (userType !== "all") {
+        query = query.eq("user_type", userType);
+      }
+      const { data, error } = await query;
+      if (error) {
+        return new Response(JSON.stringify({ error: error.message }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      return new Response(JSON.stringify({ former_users: data || [] }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // UPDATE user
     if (action === "update") {
-      const { user_id, email, phone, password, club_id } = body as Record<string, string | null>;
+      const { user_id, email, phone, password, club_id, full_name, user_type } = body as Record<string, string | null>;
 
       if (!user_id) {
         return new Response(JSON.stringify({ error: "user_id required" }), {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // If updating an admin, log old details to former_users before changing
+      const isAdminUpdate = user_type === "admin";
+      if (isAdminUpdate && (email || phone || full_name)) {
+        // Fetch current details
+        const { data: { users: currentUsers } } = await adminClient.auth.admin.listUsers({ perPage: 1 });
+        const { data: currentUser } = await adminClient.auth.admin.getUserById(user_id as string);
+        const { data: currentProfile } = await adminClient
+          .from("profiles")
+          .select("full_name, phone, created_at")
+          .eq("user_id", user_id)
+          .maybeSingle();
+        const { data: currentRole } = await adminClient
+          .from("user_roles")
+          .select("club_id")
+          .eq("user_id", user_id)
+          .eq("role", "admin")
+          .maybeSingle();
+
+        // Get club name for historical record
+        let clubName: string | null = null;
+        if (currentRole?.club_id) {
+          const { data: club } = await adminClient
+            .from("clubs")
+            .select("name")
+            .eq("id", currentRole.club_id)
+            .maybeSingle();
+          clubName = club?.name || null;
+        }
+
+        await adminClient.from("former_users").insert({
+          user_id: user_id as string,
+          full_name: currentProfile?.full_name || currentUser?.user?.user_metadata?.full_name || null,
+          email: currentUser?.user?.email || "",
+          phone: currentProfile?.phone || null,
+          user_type: "admin",
+          club_id: currentRole?.club_id || null,
+          club_name: clubName,
+          started_at: currentProfile?.created_at || null,
+          reason: "edited",
         });
       }
 
@@ -156,9 +216,12 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Update profile (phone)
-      if (phone !== undefined) {
-        await adminClient.from("profiles").update({ phone }).eq("user_id", user_id);
+      // Update profile (phone and/or full_name)
+      const profileUpdate: Record<string, string> = {};
+      if (phone !== undefined && phone !== null) profileUpdate.phone = phone;
+      if (full_name !== undefined && full_name !== null) profileUpdate.full_name = full_name;
+      if (Object.keys(profileUpdate).length > 0) {
+        await adminClient.from("profiles").update(profileUpdate).eq("user_id", user_id);
       }
 
       // Update club assignment if provided
@@ -186,6 +249,42 @@ Deno.serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+
+      // Log to former_users before deleting
+      const { data: currentUser } = await adminClient.auth.admin.getUserById(user_id);
+      const { data: currentProfile } = await adminClient
+        .from("profiles")
+        .select("full_name, phone, created_at")
+        .eq("user_id", user_id)
+        .maybeSingle();
+      const { data: currentRole } = await adminClient
+        .from("user_roles")
+        .select("club_id")
+        .eq("user_id", user_id)
+        .eq("role", "admin")
+        .maybeSingle();
+
+      let clubName: string | null = null;
+      if (currentRole?.club_id) {
+        const { data: club } = await adminClient
+          .from("clubs")
+          .select("name")
+          .eq("id", currentRole.club_id)
+          .maybeSingle();
+        clubName = club?.name || null;
+      }
+
+      await adminClient.from("former_users").insert({
+        user_id,
+        full_name: currentProfile?.full_name || currentUser?.user?.user_metadata?.full_name || null,
+        email: currentUser?.user?.email || "",
+        phone: currentProfile?.phone || null,
+        user_type: "admin",
+        club_id: currentRole?.club_id || null,
+        club_name: clubName,
+        started_at: currentProfile?.created_at || null,
+        reason: "deleted",
+      });
 
       // Remove admin role
       await adminClient
