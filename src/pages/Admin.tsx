@@ -863,7 +863,10 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
 
   // Offerings management state
   const [offerings, setOfferings] = useState<OfferingRow[]>([]);
-  const [showAddOffering, setShowAddOffering] = useState(false);
+  const [showOfferingsDialog, setShowOfferingsDialog] = useState(false);
+  const [offeringsDialogMode, setOfferingsDialogMode] = useState<"list" | "add">("list");
+  const showAddOffering = offeringsDialogMode === "add";
+  const setShowAddOffering = (v: boolean) => { if (v) setOfferingsDialogMode("add"); else setOfferingsDialogMode("list"); };
   const [addOfferingName, setAddOfferingName] = useState("");
   const [addOfferingSlug, setAddOfferingSlug] = useState("");
   const [addOfferingLogoFile, setAddOfferingLogoFile] = useState<File | null>(null);
@@ -1080,9 +1083,9 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
         </div>
         {isMasterAdmin && (
           <div className="flex gap-3">
-            <Button onClick={() => setShowAddOffering(true)} variant="outline" className="h-11 px-5 font-semibold gap-2">
+            <Button onClick={() => { setOfferingsDialogMode("list"); setShowOfferingsDialog(true); }} variant="outline" className="h-11 px-5 font-semibold gap-2">
               <Image className="h-4 w-4" />
-              Add Offering
+              Offerings
             </Button>
             <Button onClick={() => setShowAddClub(true)} className="h-11 px-5 font-semibold glow gap-2">
               <Building2 className="h-4 w-4" />
@@ -1334,81 +1337,117 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
         </DialogContent>
       </Dialog>
 
-      {/* Add Offering Dialog */}
-      <Dialog open={showAddOffering} onOpenChange={setShowAddOffering}>
+      {/* Offerings Dialog */}
+      <Dialog open={showOfferingsDialog} onOpenChange={(o) => { setShowOfferingsDialog(o); if (!o) setOfferingsDialogMode("list"); }}>
         <DialogContent className="bg-card border-border max-w-2xl w-[66vw] max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-heading text-xl flex items-center gap-2">
               <Image className="h-5 w-5 text-primary" />
-              Add Offering
+              {offeringsDialogMode === "list" ? "Offerings" : "Add Offering"}
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-5 pt-2">
-            <div>
-              <Label className="text-sm font-medium text-muted-foreground mb-2 block">Offering Name</Label>
-              <Input
-                value={addOfferingName}
-                onChange={(e) => {
-                  setAddOfferingName(e.target.value);
-                  setAddOfferingSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""));
-                }}
-                placeholder="e.g. Basketball Court"
-                className="h-12 bg-secondary border-border"
-              />
-            </div>
 
-            <div>
-              <Label className="text-sm font-medium text-muted-foreground mb-2 block">Slug (URL-friendly ID)</Label>
-              <Input
-                value={addOfferingSlug}
-                onChange={(e) => setAddOfferingSlug(e.target.value)}
-                placeholder="e.g. basketball"
-                className="h-12 bg-secondary border-border"
-              />
-              <p className="text-xs text-muted-foreground mt-1">Used internally for booking routing. Auto-generated from name.</p>
-            </div>
-
-            <div>
-              <Label className="text-sm font-medium text-muted-foreground mb-2 block">Offering Image</Label>
-              <div
-                onDragOver={(e) => { e.preventDefault(); setAddOfferingDragging(true); }}
-                onDragLeave={() => setAddOfferingDragging(false)}
-                onDrop={(e) => { e.preventDefault(); setAddOfferingDragging(false); const file = e.dataTransfer.files[0]; if (file) handleAddOfferingFileSelect(file); }}
-                className={cn(
-                  "relative border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer",
-                  addOfferingDragging ? "border-primary bg-primary/5" : "border-border hover:border-muted-foreground/50"
-                )}
-                onClick={() => document.getElementById("add-offering-logo-input")?.click()}
-              >
-                <input
-                  id="add-offering-logo-input"
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => { const file = e.target.files?.[0]; if (file) handleAddOfferingFileSelect(file); }}
-                />
-                {addOfferingLogoPreview ? (
-                  <div className="flex flex-col items-center gap-3">
-                    <div className="h-32 w-32 rounded-xl overflow-hidden bg-secondary">
-                      <img src={addOfferingLogoPreview} alt="Offering preview" className="h-full w-full object-cover" />
+          {offeringsDialogMode === "list" ? (
+            <div className="space-y-4 pt-2">
+              {offerings.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">No offerings yet.</p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {offerings.map((o) => (
+                    <div key={o.id} className="flex items-center gap-4 rounded-xl border border-border bg-secondary/50 p-4">
+                      <div className="h-16 w-16 rounded-lg overflow-hidden bg-secondary shrink-0">
+                        {o.logo_url ? (
+                          <img src={o.logo_url} alt={o.name} className="h-full w-full object-cover" />
+                        ) : (
+                          <div className="h-full w-full flex items-center justify-center text-muted-foreground">
+                            <Image className="h-6 w-6" />
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-medium text-foreground">{o.name}</p>
+                        <p className="text-xs text-muted-foreground">{o.slug}</p>
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground">Click or drag to replace</p>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center gap-2 py-4">
-                    <Upload className="h-8 w-8 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">Drag & drop or click to upload</p>
-                    <p className="text-xs text-muted-foreground">This image will appear on the booking page</p>
-                  </div>
-                )}
-              </div>
+                  ))}
+                </div>
+              )}
+              <Button onClick={() => setOfferingsDialogMode("add")} className="w-full h-12 text-base font-semibold glow gap-2">
+                <Image className="h-4 w-4" />
+                Add Offering
+              </Button>
             </div>
+          ) : (
+            <div className="space-y-5 pt-2">
+              <Button variant="ghost" size="sm" onClick={() => setOfferingsDialogMode("list")} className="gap-1 -ml-2 mb-1">
+                ← Back to list
+              </Button>
+              <div>
+                <Label className="text-sm font-medium text-muted-foreground mb-2 block">Offering Name</Label>
+                <Input
+                  value={addOfferingName}
+                  onChange={(e) => {
+                    setAddOfferingName(e.target.value);
+                    setAddOfferingSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""));
+                  }}
+                  placeholder="e.g. Basketball Court"
+                  className="h-12 bg-secondary border-border"
+                />
+              </div>
 
-            <Button onClick={handleAddOffering} disabled={addOfferingSaving || !addOfferingName.trim()} className="w-full h-12 text-base font-semibold glow">
-              <Image className="h-4 w-4 mr-2" />
-              {addOfferingSaving ? "Adding..." : "Add Offering"}
-            </Button>
-          </div>
+              <div>
+                <Label className="text-sm font-medium text-muted-foreground mb-2 block">Slug (URL-friendly ID)</Label>
+                <Input
+                  value={addOfferingSlug}
+                  onChange={(e) => setAddOfferingSlug(e.target.value)}
+                  placeholder="e.g. basketball"
+                  className="h-12 bg-secondary border-border"
+                />
+                <p className="text-xs text-muted-foreground mt-1">Used internally for booking routing. Auto-generated from name.</p>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium text-muted-foreground mb-2 block">Offering Image</Label>
+                <div
+                  onDragOver={(e) => { e.preventDefault(); setAddOfferingDragging(true); }}
+                  onDragLeave={() => setAddOfferingDragging(false)}
+                  onDrop={(e) => { e.preventDefault(); setAddOfferingDragging(false); const file = e.dataTransfer.files[0]; if (file) handleAddOfferingFileSelect(file); }}
+                  className={cn(
+                    "relative border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer",
+                    addOfferingDragging ? "border-primary bg-primary/5" : "border-border hover:border-muted-foreground/50"
+                  )}
+                  onClick={() => document.getElementById("add-offering-logo-input")?.click()}
+                >
+                  <input
+                    id="add-offering-logo-input"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => { const file = e.target.files?.[0]; if (file) handleAddOfferingFileSelect(file); }}
+                  />
+                  {addOfferingLogoPreview ? (
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="h-32 w-32 rounded-xl overflow-hidden bg-secondary">
+                        <img src={addOfferingLogoPreview} alt="Offering preview" className="h-full w-full object-cover" />
+                      </div>
+                      <p className="text-xs text-muted-foreground">Click or drag to replace</p>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-2 py-4">
+                      <Upload className="h-8 w-8 text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground">Drag & drop or click to upload</p>
+                      <p className="text-xs text-muted-foreground">This image will appear on the booking page</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <Button onClick={handleAddOffering} disabled={addOfferingSaving || !addOfferingName.trim()} className="w-full h-12 text-base font-semibold glow">
+                <Image className="h-4 w-4 mr-2" />
+                {addOfferingSaving ? "Adding..." : "Add Offering"}
+              </Button>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </motion.div>
