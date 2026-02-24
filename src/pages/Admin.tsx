@@ -1304,9 +1304,9 @@ const AdminDashboard = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {allUsers.filter(u => !adminUsers.some(a => a.user_id === u.user_id)).length === 0 ? (
+                    {allUsers.filter(u => !adminUsers.some(a => a.user_id === u.user_id && a.club_id)).length === 0 ? (
                       <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">No customers yet.</TableCell></TableRow>
-                    ) : allUsers.filter(u => !adminUsers.some(a => a.user_id === u.user_id)).map((u) => (
+                    ) : allUsers.filter(u => !adminUsers.some(a => a.user_id === u.user_id && a.club_id)).map((u) => (
                       <TableRow key={u.user_id}>
                         <TableCell className="font-medium">{u.full_name || "—"}</TableCell>
                         <TableCell>{u.email}</TableCell>
