@@ -76,15 +76,18 @@ const ClubsPage = () => {
                 className="rounded-2xl border border-border bg-card p-6 hover:shadow-xl hover:shadow-primary/5 transition-all cursor-pointer"
               >
                 <div className="flex items-center gap-4 mb-4">
-                  {club.logo_url && logoMap[club.logo_url] && (
-                    <div className="h-16 w-16 rounded-xl overflow-hidden bg-secondary flex items-center justify-center shrink-0">
-                      <img
-                        src={logoMap[club.logo_url]}
-                        alt={club.name}
-                        className="h-full w-full object-contain"
-                      />
-                    </div>
-                  )}
+                  {(() => {
+                    const logoSrc = club.logo_url?.startsWith("http") ? club.logo_url : (club.logo_url && logoMap[club.logo_url] ? logoMap[club.logo_url] : null);
+                    return logoSrc ? (
+                      <div className="h-16 w-16 rounded-xl overflow-hidden bg-secondary flex items-center justify-center shrink-0">
+                        <img
+                          src={logoSrc}
+                          alt={club.name}
+                          className="h-full w-full object-contain"
+                        />
+                      </div>
+                    ) : null;
+                  })()}
                   <h2 className="font-heading text-xl font-bold text-foreground">{club.name}</h2>
                 </div>
                 {club.description && (
