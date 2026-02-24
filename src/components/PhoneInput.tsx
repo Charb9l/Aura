@@ -169,11 +169,12 @@ const PhoneInput = ({ value, onChange, placeholder = "XX XXX XXX", required, id,
       {/* Number input */}
       <Input
         id={id}
+        inputMode="numeric"
         type="tel"
         placeholder={placeholder}
         value={localNumber}
         onChange={(e) => {
-          const num = e.target.value;
+          const num = e.target.value.replace(/[^0-9]/g, "");
           setLocalNumber(num);
           emitChange(selectedCode, num);
         }}
