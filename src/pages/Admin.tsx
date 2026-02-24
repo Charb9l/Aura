@@ -973,6 +973,17 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
     return null;
   };
 
+  const handleDeleteClub = async (clubId: string, clubName: string) => {
+    if (!confirm(`Are you sure you want to delete "${clubName}"? This cannot be undone.`)) return;
+    const { error } = await supabase.from("clubs").delete().eq("id", clubId);
+    if (error) {
+      toast.error("Failed to delete club: " + error.message);
+    } else {
+      toast.success(`"${clubName}" deleted`);
+      setClubs(prev => prev.filter(c => c.id !== clubId));
+    }
+  };
+
   const handleAddClubFileSelect = (file: File) => {
     if (!file.type.startsWith("image/")) { toast.error("Please upload an image file"); return; }
     if (file.size > 5 * 1024 * 1024) { toast.error("Image must be under 5MB"); return; }
@@ -1102,7 +1113,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                 <TableHead>Club</TableHead>
                 <TableHead>Description</TableHead>
                 <TableHead>Offerings</TableHead>
-                {isMasterAdmin && <TableHead className="w-20">Edit</TableHead>}
+                {isMasterAdmin && <TableHead className="w-28">Actions</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -1134,9 +1145,14 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                     </TableCell>
                     {isMasterAdmin && (
                       <TableCell>
-                        <Button variant="ghost" size="icon" onClick={() => openEdit(club)}>
-                          <Pencil className="h-4 w-4" />
-                        </Button>
+                        <div className="flex items-center gap-1">
+                          <Button variant="ghost" size="icon" onClick={() => openEdit(club)}>
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => handleDeleteClub(club.id, club.name)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     )}
                   </TableRow>
