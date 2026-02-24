@@ -1075,7 +1075,26 @@ const AdminDashboard = () => {
     }
   };
 
-  // Date range state for charts (must be before early returns)
+  const handleDeleteAdmin = async () => {
+    if (!editAdmin) return;
+    if (!confirm(`Are you sure you want to permanently delete ${editAdmin.full_name || editAdmin.email}? This cannot be undone.`)) return;
+    setEditAdminSaving(true);
+
+    const { data, error } = await supabase.functions.invoke("admin-users", {
+      body: { action: "delete-admin", user_id: editAdmin.user_id },
+    });
+
+    setEditAdminSaving(false);
+    if (error || data?.error) {
+      toast.error(data?.error || error?.message || "Delete failed");
+    } else {
+      toast.success("Admin deleted successfully");
+      setAdminUsers((prev) => prev.filter((u) => u.user_id !== editAdmin.user_id));
+      setAllUsers((prev) => prev.filter((u) => u.user_id !== editAdmin.user_id));
+      setEditAdmin(null);
+    }
+  };
+
   const [bookingRange, setBookingRange] = useState<string>("today");
   const [revenueRange, setRevenueRange] = useState<string>("today");
   const [bookingCustomDate, setBookingCustomDate] = useState<Date | undefined>(new Date());
@@ -1353,7 +1372,7 @@ const AdminDashboard = () => {
                           }
                         </TableCell>
                         <TableCell>
-                          <Button variant="ghost" size="icon" onClick={() => openEditDialog(u)}>
+                          <Button variant="ghost" size="icon" onClick={() => openEditAdmin(u)}>
                             <Pencil className="h-4 w-4" />
                           </Button>
                         </TableCell>
@@ -1385,6 +1404,58 @@ const AdminDashboard = () => {
                   </div>
                   <Button onClick={handleSaveUser} disabled={editSaving} className="w-full h-12 text-base font-semibold glow">
                     {editSaving ? "Saving..." : "Save Changes"}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            {/* Edit Admin Dialog - Large */}
+            <Dialog open={!!editAdmin} onOpenChange={(open) => !open && setEditAdmin(null)}>
+              <DialogContent className="bg-card border-border max-w-2xl w-[66vw] min-h-[50vh]">
+                <DialogHeader>
+                  <DialogTitle className="font-heading text-xl">Edit Admin — {editAdmin?.full_name || editAdmin?.email}</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-5 pt-4">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="edit-admin-email">Email</Label>
+                      <Input id="edit-admin-email" type="email" value={editAdminEmail} onChange={(e) => setEditAdminEmail(e.target.value)} className="h-12 bg-secondary border-border mt-1" />
+                    </div>
+                    <div>
+                      <Label htmlFor="edit-admin-phone">Phone</Label>
+                      <PhoneInput id="edit-admin-phone" value={editAdminPhone} onChange={setEditAdminPhone} className="mt-1" />
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-admin-password">New Password <span className="text-muted-foreground text-xs">(leave empty to keep current)</span></Label>
+                    <Input id="edit-admin-password" type="password" placeholder="••••••••" value={editAdminPassword} onChange={(e) => setEditAdminPassword(e.target.value)} className="h-12 bg-secondary border-border mt-1" />
+                  </div>
+                  <div>
+                    <Label>Assigned Club</Label>
+                    <Select value={editAdminClubId} onValueChange={setEditAdminClubId}>
+                      <SelectTrigger className="h-12 bg-secondary border-border mt-1">
+                        <SelectValue placeholder="All Clubs (Master Admin)" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-card border-border z-50">
+                        <SelectItem value="none">All Clubs (Master Admin)</SelectItem>
+                        {clubs.map(c => (
+                          <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground mt-1.5">Assigning a club restricts this admin's dashboard to that club's data only.</p>
+                  </div>
+                  <Button onClick={handleSaveAdmin} disabled={editAdminSaving} className="w-full h-12 text-base font-semibold glow mt-4">
+                    {editAdminSaving ? "Saving..." : "Save Changes"}
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={handleDeleteAdmin}
+                    disabled={editAdminSaving}
+                    className="w-full h-12 text-base font-semibold mt-2"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete Admin
                   </Button>
                 </div>
               </DialogContent>
@@ -1447,48 +1518,6 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
 
-            {/* Edit Admin Dialog - Large */}
-            <Dialog open={!!editAdmin} onOpenChange={(open) => !open && setEditAdmin(null)}>
-              <DialogContent className="bg-card border-border max-w-2xl w-[66vw] min-h-[50vh]">
-                <DialogHeader>
-                  <DialogTitle className="font-heading text-xl">Edit Admin — {editAdmin?.full_name || editAdmin?.email}</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-5 pt-4">
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="edit-admin-email">Email</Label>
-                      <Input id="edit-admin-email" type="email" value={editAdminEmail} onChange={(e) => setEditAdminEmail(e.target.value)} className="h-12 bg-secondary border-border mt-1" />
-                    </div>
-                    <div>
-                      <Label htmlFor="edit-admin-phone">Phone</Label>
-                      <PhoneInput id="edit-admin-phone" value={editAdminPhone} onChange={setEditAdminPhone} className="mt-1" />
-                    </div>
-                  </div>
-                  <div>
-                    <Label htmlFor="edit-admin-password">New Password <span className="text-muted-foreground text-xs">(leave empty to keep current)</span></Label>
-                    <Input id="edit-admin-password" type="password" placeholder="••••••••" value={editAdminPassword} onChange={(e) => setEditAdminPassword(e.target.value)} className="h-12 bg-secondary border-border mt-1" />
-                  </div>
-                  <div>
-                    <Label>Assigned Club</Label>
-                    <Select value={editAdminClubId} onValueChange={setEditAdminClubId}>
-                      <SelectTrigger className="h-12 bg-secondary border-border mt-1">
-                        <SelectValue placeholder="All Clubs (Master Admin)" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-card border-border z-50">
-                        <SelectItem value="none">All Clubs (Master Admin)</SelectItem>
-                        {clubs.map(c => (
-                          <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-muted-foreground mt-1.5">Assigning a club restricts this admin's dashboard to that club's data only.</p>
-                  </div>
-                  <Button onClick={handleSaveAdmin} disabled={editAdminSaving} className="w-full h-12 text-base font-semibold glow mt-4">
-                    {editAdminSaving ? "Saving..." : "Save Changes"}
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
 
             {/* Create Admin Dialog */}
             <Dialog open={showCreateAdmin} onOpenChange={setShowCreateAdmin}>
