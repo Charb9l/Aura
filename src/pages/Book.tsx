@@ -271,7 +271,7 @@ const BookPage = () => {
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
               <Label className="text-sm font-medium text-muted-foreground mb-4 block">Select Court Type</Label>
               <div className="grid grid-cols-2 gap-3 max-w-sm">
-                {([{ value: "half" as const, label: "Half Court", price: "$45/hr" }, { value: "full" as const, label: "Full Court", price: "$90/hr" }]).map((ct) => (
+                {([{ value: "half" as const, label: "Half Court" }, { value: "full" as const, label: "Full Court" }]).map((ct) => (
                   <button
                     type="button"
                     key={ct.value}
@@ -284,7 +284,6 @@ const BookPage = () => {
                     )}
                   >
                     <span className="font-heading text-sm font-semibold text-foreground block">{ct.label}</span>
-                    <span className="text-xs text-muted-foreground">{ct.price}</span>
                   </button>
                 ))}
               </div>

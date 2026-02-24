@@ -853,6 +853,17 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
   const [dragging, setDragging] = useState(false);
   const [customOffering, setCustomOffering] = useState("");
 
+  // Add club state
+  const [showAddClub, setShowAddClub] = useState(false);
+  const [addClubName, setAddClubName] = useState("");
+  const [addClubDescription, setAddClubDescription] = useState("");
+  const [addClubOfferings, setAddClubOfferings] = useState<string[]>([]);
+  const [addClubLogoFile, setAddClubLogoFile] = useState<File | null>(null);
+  const [addClubLogoPreview, setAddClubLogoPreview] = useState<string | null>(null);
+  const [addClubCustomOffering, setAddClubCustomOffering] = useState("");
+  const [addClubSaving, setAddClubSaving] = useState(false);
+  const [addClubDragging, setAddClubDragging] = useState(false);
+
   useEffect(() => {
     const fetch = async () => {
       const { data } = await supabase.from("clubs").select("*").order("name");
@@ -948,10 +959,77 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
     return null;
   };
 
+  const handleAddClubFileSelect = (file: File) => {
+    if (!file.type.startsWith("image/")) { toast.error("Please upload an image file"); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("Image must be under 5MB"); return; }
+    setAddClubLogoFile(file);
+    setAddClubLogoPreview(URL.createObjectURL(file));
+  };
+
+  const handleAddClub = async () => {
+    if (!addClubName.trim()) { toast.error("Please enter a club name"); return; }
+    setAddClubSaving(true);
+
+    // Insert the club first
+    const { data: newClub, error: insertError } = await supabase
+      .from("clubs")
+      .insert({ name: addClubName.trim(), description: addClubDescription.trim() || null, offerings: addClubOfferings })
+      .select()
+      .single();
+
+    if (insertError || !newClub) {
+      toast.error("Failed to add club: " + (insertError?.message || "Unknown error"));
+      setAddClubSaving(false);
+      return;
+    }
+
+    // Upload logo if provided
+    let logoUrl: string | null = null;
+    if (addClubLogoFile) {
+      const ext = addClubLogoFile.name.split(".").pop() || "png";
+      const filePath = `${newClub.id}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("club-logos")
+        .upload(filePath, addClubLogoFile, { upsert: true, cacheControl: "0" });
+
+      if (uploadError) {
+        toast.error("Club created but logo upload failed: " + uploadError.message);
+      } else {
+        const { data: urlData } = supabase.storage.from("club-logos").getPublicUrl(filePath);
+        logoUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+        await supabase.from("clubs").update({ logo_url: logoUrl }).eq("id", newClub.id);
+      }
+    }
+
+    setAddClubSaving(false);
+    toast.success(`Club "${addClubName.trim()}" added successfully`);
+    setClubs(prev => [...prev, { ...newClub as unknown as ClubRow, logo_url: logoUrl }].sort((a, b) => a.name.localeCompare(b.name)));
+    setShowAddClub(false);
+    setAddClubName(""); setAddClubDescription(""); setAddClubOfferings([]);
+    setAddClubLogoFile(null); setAddClubLogoPreview(null); setAddClubCustomOffering("");
+  };
+
+  // Collect all unique offerings across clubs for the dropdown
+  const allKnownOfferings = useMemo(() => {
+    const set = new Set(AVAILABLE_OFFERINGS);
+    clubs.forEach(c => c.offerings.forEach(o => set.add(o)));
+    return Array.from(set);
+  }, [clubs]);
+
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="clubs">
-      <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Clubs & Partners</h1>
-      <p className="text-muted-foreground mb-8">All signed clubs and partners on the platform.</p>
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Clubs & Partners</h1>
+          <p className="text-muted-foreground">All signed clubs and partners on the platform.</p>
+        </div>
+        {isMasterAdmin && (
+          <Button onClick={() => setShowAddClub(true)} className="h-11 px-5 font-semibold glow">
+            <Building2 className="h-4 w-4 mr-2" />
+            Add Club
+          </Button>
+        )}
+      </div>
       <Card className="bg-card border-border">
         <CardContent className="p-0">
           <Table>
@@ -1126,6 +1204,126 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
               </Button>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Club Dialog */}
+      <Dialog open={showAddClub} onOpenChange={setShowAddClub}>
+        <DialogContent className="bg-card border-border max-w-2xl w-[66vw] max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-heading text-xl flex items-center gap-2">
+              <Building2 className="h-5 w-5 text-primary" />
+              Add Club / Partner
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-5 pt-2">
+            <div>
+              <Label className="text-sm font-medium text-muted-foreground mb-2 block">Club Name</Label>
+              <Input value={addClubName} onChange={(e) => setAddClubName(e.target.value)} placeholder="Enter club name" className="h-12 bg-secondary border-border" />
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium text-muted-foreground mb-2 block">Club Logo</Label>
+              <div
+                onDragOver={(e) => { e.preventDefault(); setAddClubDragging(true); }}
+                onDragLeave={() => setAddClubDragging(false)}
+                onDrop={(e) => { e.preventDefault(); setAddClubDragging(false); const file = e.dataTransfer.files[0]; if (file) handleAddClubFileSelect(file); }}
+                className={cn(
+                  "relative border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer",
+                  addClubDragging ? "border-primary bg-primary/5" : "border-border hover:border-muted-foreground/50"
+                )}
+                onClick={() => document.getElementById("add-club-logo-input")?.click()}
+              >
+                <input
+                  id="add-club-logo-input"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => { const file = e.target.files?.[0]; if (file) handleAddClubFileSelect(file); }}
+                />
+                {addClubLogoPreview ? (
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="h-24 w-24 rounded-xl overflow-hidden bg-secondary">
+                      <img src={addClubLogoPreview} alt="Logo preview" className="h-full w-full object-contain" />
+                    </div>
+                    <p className="text-xs text-muted-foreground">Click or drag to replace</p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-2 py-4">
+                    <Upload className="h-8 w-8 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">Drag & drop or click to upload</p>
+                    <p className="text-xs text-muted-foreground">PNG, JPG up to 5MB</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium text-muted-foreground mb-2 block">Description</Label>
+              <Textarea
+                value={addClubDescription}
+                onChange={(e) => setAddClubDescription(e.target.value)}
+                className="bg-secondary border-border min-h-[100px]"
+                placeholder="Brief description of the club..."
+              />
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium text-muted-foreground mb-2 block">Offerings</Label>
+              <div className="flex flex-wrap gap-2 mb-3">
+                {addClubOfferings.map((o) => (
+                  <Badge key={o} variant="secondary" className="text-xs flex items-center gap-1 pr-1">
+                    {o}
+                    <button type="button" onClick={() => setAddClubOfferings(prev => prev.filter(x => x !== o))} className="ml-1 rounded-full hover:bg-destructive/20 p-0.5">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+              <Select value="" onValueChange={(v) => { if (v && !addClubOfferings.includes(v)) setAddClubOfferings(prev => [...prev, v]); }}>
+                <SelectTrigger className="h-10 bg-secondary border-border">
+                  <SelectValue placeholder="Add an offering..." />
+                </SelectTrigger>
+                <SelectContent className="bg-card border-border z-50">
+                  {allKnownOfferings.filter(o => !addClubOfferings.includes(o)).map(o => (
+                    <SelectItem key={o} value={o}>{o}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <div className="flex gap-2 mt-2">
+                <Input
+                  placeholder="Custom offering..."
+                  value={addClubCustomOffering}
+                  onChange={(e) => setAddClubCustomOffering(e.target.value)}
+                  className="h-9 bg-secondary border-border text-sm"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && addClubCustomOffering.trim() && !addClubOfferings.includes(addClubCustomOffering.trim())) {
+                      e.preventDefault();
+                      setAddClubOfferings(prev => [...prev, addClubCustomOffering.trim()]);
+                      setAddClubCustomOffering("");
+                    }
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={!addClubCustomOffering.trim() || addClubOfferings.includes(addClubCustomOffering.trim())}
+                  onClick={() => {
+                    setAddClubOfferings(prev => [...prev, addClubCustomOffering.trim()]);
+                    setAddClubCustomOffering("");
+                  }}
+                >
+                  Add
+                </Button>
+              </div>
+            </div>
+
+            <Button onClick={handleAddClub} disabled={addClubSaving || !addClubName.trim()} className="w-full h-12 text-base font-semibold glow">
+              <Building2 className="h-4 w-4 mr-2" />
+              {addClubSaving ? "Adding..." : "Add Club"}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </motion.div>
