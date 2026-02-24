@@ -1,0 +1,1 @@
+ALTER TABLE public.clubs ADD COLUMN has_academy boolean NOT NULL DEFAULT false;
