@@ -34,6 +34,12 @@ const brandBorder = {
   wellness: "border-brand-wellness shadow-[0_0_20px_hsl(100_22%_60%/0.3)]",
 };
 
+const brandInputClass = {
+  tennis: "border-brand-tennis/50 focus:border-brand-tennis shadow-[0_0_12px_hsl(212_70%_55%/0.15)]",
+  basketball: "border-brand-basketball/50 focus:border-brand-basketball shadow-[0_0_12px_hsl(25_90%_55%/0.15)]",
+  wellness: "border-brand-wellness/50 focus:border-brand-wellness shadow-[0_0_12px_hsl(100_22%_60%/0.15)]",
+};
+
 const brandForSlug = (slug: string): "tennis" | "basketball" | "wellness" => {
   if (slug === "tennis") return "tennis";
   if (slug === "basketball") return "basketball";
@@ -60,6 +66,7 @@ const AcademyPage = () => {
   const [clubs, setClubs] = useState<AcademyClub[]>([]);
   const [offerings, setOfferings] = useState<OfferingData[]>([]);
   const [selectedSport, setSelectedSport] = useState(preselected);
+  const selectedBrand = selectedSport ? brandForSlug(selectedSport) : undefined;
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -175,10 +182,10 @@ const AcademyPage = () => {
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="space-y-4">
             <Label className="text-sm font-medium text-muted-foreground mb-4 block">Personal Information</Label>
             <div className="grid md:grid-cols-2 gap-4">
-              <Input placeholder="Full Name" value={name} onChange={(e) => setName(e.target.value)} required className="h-12 bg-secondary border-border" />
-              <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required className="h-12 bg-secondary border-border" />
+              <Input placeholder="Full Name" value={name} onChange={(e) => setName(e.target.value)} required className={cn("h-12 bg-secondary border-border", selectedBrand && brandInputClass[selectedBrand])} />
+              <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required className={cn("h-12 bg-secondary border-border", selectedBrand && brandInputClass[selectedBrand])} />
               <PhoneInput value={phone} onChange={setPhone} required />
-              <Input type="number" placeholder="Age" value={age} onChange={(e) => setAge(e.target.value)} required className="h-12 bg-secondary border-border" />
+              <Input type="number" placeholder="Age" value={age} onChange={(e) => setAge(e.target.value)} required className={cn("h-12 bg-secondary border-border", selectedBrand && brandInputClass[selectedBrand])} />
             </div>
           </motion.div>
 
@@ -189,14 +196,15 @@ const AcademyPage = () => {
               placeholder="Tell us about your experience level, goals, and any previous training..."
               value={experience}
               onChange={(e) => setExperience(e.target.value)}
-              className="min-h-[120px] bg-secondary border-border"
+              required
+              className={cn("min-h-[120px] bg-secondary border-border", selectedBrand && brandInputClass[selectedBrand])}
             />
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
             <Button
               type="submit"
-              disabled={!selectedSport || !name || !email || !phone || !age}
+              disabled={!selectedSport || !name || !email || !phone || !age || !experience}
               className="h-14 px-10 text-lg font-bold rounded-xl glow"
             >
               Submit Application
