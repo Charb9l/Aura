@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { motion } from "framer-motion";
 import { format, subDays, startOfDay, startOfWeek, startOfMonth, endOfDay, isWithinInterval, parseISO, isSameDay } from "date-fns";
-import { CalendarCheck, TrendingUp, ShieldCheck, LogIn, UserPlus, Pencil, DollarSign, Building2, Clock, User, Mail, Phone, MapPin, FileText, Trash2, CheckCircle, XCircle, Upload, X, Image, History } from "lucide-react";
+import { CalendarCheck, TrendingUp, ShieldCheck, LogIn, UserPlus, Pencil, DollarSign, Building2, Clock, User, Mail, Phone, MapPin, FileText, Trash2, CheckCircle, XCircle, Upload, X, Image, History, GraduationCap } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -858,6 +858,17 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
   const [addClubHasAcademy, setAddClubHasAcademy] = useState(false);
   const [editHasAcademy, setEditHasAcademy] = useState(false);
 
+  // Academy sport picker state
+  const [showAcademySportPicker, setShowAcademySportPicker] = useState(false);
+  const [editShowAcademySportPicker, setEditShowAcademySportPicker] = useState(false);
+
+  // Club locations state
+  interface ClubLocationRow { id: string; club_id: string; name: string; location: string; }
+  const [clubLocations, setClubLocations] = useState<ClubLocationRow[]>([]);
+  const [addClubLocations, setAddClubLocations] = useState<{ name: string; location: string }[]>([]);
+  const [editClubLocations, setEditClubLocations] = useState<ClubLocationRow[]>([]);
+  const [editNewLocations, setEditNewLocations] = useState<{ name: string; location: string }[]>([]);
+
   // Offerings management state
   const [offerings, setOfferings] = useState<OfferingRow[]>([]);
   const [showOfferingsDialog, setShowOfferingsDialog] = useState(false);
@@ -873,12 +884,14 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [clubsRes, offeringsRes] = await Promise.all([
+      const [clubsRes, offeringsRes, locRes] = await Promise.all([
         supabase.from("clubs").select("*").order("name"),
         supabase.from("offerings").select("*").order("name"),
+        supabase.from("club_locations").select("*").order("name"),
       ]);
       if (clubsRes.data) setClubs(clubsRes.data as unknown as ClubRow[]);
       if (offeringsRes.data) setOfferings(offeringsRes.data as unknown as OfferingRow[]);
+      if (locRes.data) setClubLocations(locRes.data as unknown as ClubLocationRow[]);
       setLoading(false);
     };
     fetchData();
@@ -890,6 +903,9 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
     setEditDescription(club.description || "");
     setEditOfferings(club.offerings || []);
     setEditHasAcademy(club.has_academy || false);
+    setEditShowAcademySportPicker(false);
+    setEditClubLocations(clubLocations.filter(l => l.club_id === club.id));
+    setEditNewLocations([]);
     setEditLogoFile(null);
     if (club.logo_url && club.logo_url.startsWith("http")) {
       setEditLogoPreview(club.logo_url);
@@ -951,6 +967,24 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
       .from("clubs")
       .update({ name: editName, description: editDescription || null, logo_url: logoUrl, offerings: editOfferings, has_academy: editHasAcademy })
       .eq("id", editClub.id);
+
+    // Save new locations
+    if (editNewLocations.length > 0) {
+      const locsToInsert = editNewLocations.filter(l => l.name.trim() && l.location.trim()).map(l => ({ club_id: editClub.id, name: l.name.trim(), location: l.location.trim() }));
+      if (locsToInsert.length > 0) {
+        const { data: newLocs } = await supabase.from("club_locations").insert(locsToInsert).select();
+        if (newLocs) setClubLocations(prev => [...prev, ...(newLocs as unknown as ClubLocationRow[])]);
+      }
+    }
+
+    // Delete removed locations
+    const existingIds = editClubLocations.map(l => l.id);
+    const originalIds = clubLocations.filter(l => l.club_id === editClub.id).map(l => l.id);
+    const deletedIds = originalIds.filter(id => !existingIds.includes(id));
+    if (deletedIds.length > 0) {
+      await supabase.from("club_locations").delete().in("id", deletedIds);
+      setClubLocations(prev => prev.filter(l => !deletedIds.includes(l.id)));
+    }
 
     setSaving(false);
     if (error) {
@@ -1020,12 +1054,21 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
       }
     }
 
+    // Save locations
+    if (addClubLocations.length > 0) {
+      const locsToInsert = addClubLocations.filter(l => l.name.trim() && l.location.trim()).map(l => ({ club_id: (newClub as any).id, name: l.name.trim(), location: l.location.trim() }));
+      if (locsToInsert.length > 0) {
+        const { data: newLocs } = await supabase.from("club_locations").insert(locsToInsert).select();
+        if (newLocs) setClubLocations(prev => [...prev, ...(newLocs as unknown as ClubLocationRow[])]);
+      }
+    }
+
     setAddClubSaving(false);
     toast.success(`Club "${addClubName.trim()}" added successfully`);
     setClubs(prev => [...prev, { ...newClub as unknown as ClubRow, logo_url: logoUrl }].sort((a, b) => a.name.localeCompare(b.name)));
     setShowAddClub(false);
     setAddClubName(""); setAddClubDescription(""); setAddClubOfferings([]); setAddClubHasAcademy(false);
-    setAddClubLogoFile(null); setAddClubLogoPreview(null);
+    setAddClubLogoFile(null); setAddClubLogoPreview(null); setAddClubLocations([]); setShowAcademySportPicker(false);
   };
 
   // Get offering names from DB for dropdowns
@@ -1228,28 +1271,82 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                   {editOfferings.map((o) => (
                     <Badge key={o} variant="secondary" className="text-xs flex items-center gap-1 pr-1">
                       {o}
-                      <button type="button" onClick={() => setEditOfferings(prev => prev.filter(x => x !== o))} className="ml-1 rounded-full hover:bg-destructive/20 p-0.5">
+                      <button type="button" onClick={() => { setEditOfferings(prev => prev.filter(x => x !== o)); if (o.toLowerCase().includes("academy")) { const hasOtherAcademy = editOfferings.filter(x => x !== o).some(x => x.toLowerCase().includes("academy")); if (!hasOtherAcademy) setEditHasAcademy(false); } }} className="ml-1 rounded-full hover:bg-destructive/20 p-0.5">
                         <X className="h-3 w-3" />
                       </button>
                     </Badge>
                   ))}
                 </div>
-                <Select value="" onValueChange={(v) => { if (v && !editOfferings.includes(v)) setEditOfferings(prev => [...prev, v]); }}>
-                  <SelectTrigger className="h-10 bg-secondary border-border">
-                    <SelectValue placeholder="Select an offering..." />
-                  </SelectTrigger>
-                  <SelectContent className="bg-card border-border z-50">
-                    {offeringNames.filter(o => !editOfferings.includes(o)).map(o => (
-                      <SelectItem key={o} value={o}>{o}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex gap-2">
+                  <Select value="" onValueChange={(v) => {
+                    if (v === "__academy__") {
+                      setEditShowAcademySportPicker(true);
+                      return;
+                    }
+                    if (v && !editOfferings.includes(v)) setEditOfferings(prev => [...prev, v]);
+                  }}>
+                    <SelectTrigger className="h-10 bg-secondary border-border">
+                      <SelectValue placeholder="Select an offering..." />
+                    </SelectTrigger>
+                    <SelectContent className="bg-card border-border z-50">
+                      {offeringNames.filter(o => !editOfferings.includes(o)).map(o => (
+                        <SelectItem key={o} value={o}>{o}</SelectItem>
+                      ))}
+                      <SelectItem value="__academy__" className="font-semibold text-primary">
+                        <span className="flex items-center gap-1.5"><GraduationCap className="h-3.5 w-3.5" /> Academy</span>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Academy sport picker */}
+                {editShowAcademySportPicker && (
+                  <div className="mt-3 p-3 rounded-lg border border-primary/30 bg-primary/5 space-y-2">
+                    <Label className="text-xs font-medium text-primary block">Choose Academy Sport</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {offeringNames.map(name => {
+                        const sportName = name.replace(/\s*(Court|Studio|Classes|Rental|\(Kids\))/gi, "").trim();
+                        const academyLabel = `${sportName} Academy`;
+                        if (editOfferings.includes(academyLabel)) return null;
+                        return (
+                          <Button key={name} type="button" variant="outline" size="sm" onClick={() => {
+                            setEditOfferings(prev => [...prev, academyLabel]);
+                            setEditHasAcademy(true);
+                            setEditShowAcademySportPicker(false);
+                          }}>
+                            {sportName}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                    <Button type="button" variant="ghost" size="sm" onClick={() => setEditShowAcademySportPicker(false)} className="text-xs text-muted-foreground">Cancel</Button>
+                  </div>
+                )}
               </div>
 
-              <div className="flex items-center gap-3">
-                <Checkbox id="edit-has-academy" checked={editHasAcademy} onCheckedChange={(v) => setEditHasAcademy(!!v)} />
-                <Label htmlFor="edit-has-academy" className="text-sm font-medium cursor-pointer">Has Academy</Label>
-              </div>
+              {/* Academy Locations */}
+              {editOfferings.some(o => o.toLowerCase().includes("academy")) && (
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground mb-2 block">Academy Locations</Label>
+                  {editClubLocations.map((loc) => (
+                    <div key={loc.id} className="flex gap-2 mb-2">
+                      <Input value={loc.name} disabled className="h-10 bg-secondary border-border opacity-70" />
+                      <Input value={loc.location} disabled className="h-10 bg-secondary border-border opacity-70" />
+                      <Button type="button" variant="ghost" size="icon" onClick={() => setEditClubLocations(prev => prev.filter(l => l.id !== loc.id))} className="shrink-0 text-destructive hover:text-destructive"><X className="h-4 w-4" /></Button>
+                    </div>
+                  ))}
+                  {editNewLocations.map((loc, i) => (
+                    <div key={`new-${i}`} className="flex gap-2 mb-2">
+                      <Input placeholder="Court/Location Name" value={loc.name} onChange={(e) => { const updated = [...editNewLocations]; updated[i].name = e.target.value; setEditNewLocations(updated); }} className="h-10 bg-secondary border-border" />
+                      <Input placeholder="Address/Area" value={loc.location} onChange={(e) => { const updated = [...editNewLocations]; updated[i].location = e.target.value; setEditNewLocations(updated); }} className="h-10 bg-secondary border-border" />
+                      <Button type="button" variant="ghost" size="icon" onClick={() => setEditNewLocations(prev => prev.filter((_, j) => j !== i))} className="shrink-0 text-destructive hover:text-destructive"><X className="h-4 w-4" /></Button>
+                    </div>
+                  ))}
+                  <Button type="button" variant="outline" size="sm" onClick={() => setEditNewLocations(prev => [...prev, { name: "", location: "" }])} className="gap-1.5 text-xs">
+                    <MapPin className="h-3.5 w-3.5" /> Add Location
+                  </Button>
+                </div>
+              )}
 
               <Button onClick={handleSave} disabled={saving || !editName} className="w-full h-12 text-base font-semibold glow">
                 {saving ? "Saving..." : "Save Changes"}
@@ -1326,28 +1423,75 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                 {addClubOfferings.map((o) => (
                   <Badge key={o} variant="secondary" className="text-xs flex items-center gap-1 pr-1">
                     {o}
-                    <button type="button" onClick={() => setAddClubOfferings(prev => prev.filter(x => x !== o))} className="ml-1 rounded-full hover:bg-destructive/20 p-0.5">
+                    <button type="button" onClick={() => { setAddClubOfferings(prev => prev.filter(x => x !== o)); if (o.toLowerCase().includes("academy")) { const hasOtherAcademy = addClubOfferings.filter(x => x !== o).some(x => x.toLowerCase().includes("academy")); if (!hasOtherAcademy) setAddClubHasAcademy(false); } }} className="ml-1 rounded-full hover:bg-destructive/20 p-0.5">
                       <X className="h-3 w-3" />
                     </button>
                   </Badge>
                 ))}
               </div>
-              <Select value="" onValueChange={(v) => { if (v && !addClubOfferings.includes(v)) setAddClubOfferings(prev => [...prev, v]); }}>
-                <SelectTrigger className="h-10 bg-secondary border-border">
-                  <SelectValue placeholder="Select an offering..." />
-                </SelectTrigger>
-                <SelectContent className="bg-card border-border z-50">
-                  {offeringNames.filter(o => !addClubOfferings.includes(o)).map(o => (
-                    <SelectItem key={o} value={o}>{o}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex gap-2">
+                <Select value="" onValueChange={(v) => {
+                  if (v === "__academy__") {
+                    setShowAcademySportPicker(true);
+                    return;
+                  }
+                  if (v && !addClubOfferings.includes(v)) setAddClubOfferings(prev => [...prev, v]);
+                }}>
+                  <SelectTrigger className="h-10 bg-secondary border-border">
+                    <SelectValue placeholder="Select an offering..." />
+                  </SelectTrigger>
+                  <SelectContent className="bg-card border-border z-50">
+                    {offeringNames.filter(o => !addClubOfferings.includes(o)).map(o => (
+                      <SelectItem key={o} value={o}>{o}</SelectItem>
+                    ))}
+                    <SelectItem value="__academy__" className="font-semibold text-primary">
+                      <span className="flex items-center gap-1.5"><GraduationCap className="h-3.5 w-3.5" /> Academy</span>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Academy sport picker */}
+              {showAcademySportPicker && (
+                <div className="mt-3 p-3 rounded-lg border border-primary/30 bg-primary/5 space-y-2">
+                  <Label className="text-xs font-medium text-primary block">Choose Academy Sport</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {offeringNames.map(name => {
+                      const sportName = name.replace(/\s*(Court|Studio|Classes|Rental|\(Kids\))/gi, "").trim();
+                      const academyLabel = `${sportName} Academy`;
+                      if (addClubOfferings.includes(academyLabel)) return null;
+                      return (
+                        <Button key={name} type="button" variant="outline" size="sm" onClick={() => {
+                          setAddClubOfferings(prev => [...prev, academyLabel]);
+                          setAddClubHasAcademy(true);
+                          setShowAcademySportPicker(false);
+                        }}>
+                          {sportName}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setShowAcademySportPicker(false)} className="text-xs text-muted-foreground">Cancel</Button>
+                </div>
+              )}
             </div>
 
-            <div className="flex items-center gap-3">
-              <Checkbox id="add-has-academy" checked={addClubHasAcademy} onCheckedChange={(v) => setAddClubHasAcademy(!!v)} />
-              <Label htmlFor="add-has-academy" className="text-sm font-medium cursor-pointer">Has Academy</Label>
-            </div>
+            {/* Academy Locations */}
+            {addClubOfferings.some(o => o.toLowerCase().includes("academy")) && (
+              <div>
+                <Label className="text-sm font-medium text-muted-foreground mb-2 block">Academy Locations</Label>
+                {addClubLocations.map((loc, i) => (
+                  <div key={i} className="flex gap-2 mb-2">
+                    <Input placeholder="Court/Location Name" value={loc.name} onChange={(e) => { const updated = [...addClubLocations]; updated[i].name = e.target.value; setAddClubLocations(updated); }} className="h-10 bg-secondary border-border" />
+                    <Input placeholder="Address/Area" value={loc.location} onChange={(e) => { const updated = [...addClubLocations]; updated[i].location = e.target.value; setAddClubLocations(updated); }} className="h-10 bg-secondary border-border" />
+                    <Button type="button" variant="ghost" size="icon" onClick={() => setAddClubLocations(prev => prev.filter((_, j) => j !== i))} className="shrink-0 text-destructive hover:text-destructive"><X className="h-4 w-4" /></Button>
+                  </div>
+                ))}
+                <Button type="button" variant="outline" size="sm" onClick={() => setAddClubLocations(prev => [...prev, { name: "", location: "" }])} className="gap-1.5 text-xs">
+                  <MapPin className="h-3.5 w-3.5" /> Add Location
+                </Button>
+              </div>
+            )}
 
             <Button onClick={handleAddClub} disabled={addClubSaving || !addClubName.trim()} className="w-full h-12 text-base font-semibold glow">
               <Building2 className="h-4 w-4 mr-2" />

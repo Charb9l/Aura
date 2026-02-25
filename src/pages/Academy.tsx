@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,8 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Navbar from "@/components/Navbar";
 import PhoneInput from "@/components/PhoneInput";
+import ActivityFilter from "@/components/ActivityFilter";
 
 interface AcademyClub {
   id: string;
@@ -26,6 +28,13 @@ interface OfferingData {
   name: string;
   slug: string;
   logo_url: string | null;
+}
+
+interface ClubLocation {
+  id: string;
+  club_id: string;
+  name: string;
+  location: string;
 }
 
 const brandBorder = {
@@ -67,7 +76,9 @@ const AcademyPage = () => {
 
   const [clubs, setClubs] = useState<AcademyClub[]>([]);
   const [offerings, setOfferings] = useState<OfferingData[]>([]);
+  const [clubLocations, setClubLocations] = useState<ClubLocation[]>([]);
   const [selectedSport, setSelectedSport] = useState(preselected);
+  const [selectedLocation, setSelectedLocation] = useState("");
   const selectedBrand = selectedSport ? brandForSlug(selectedSport) : undefined;
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -75,40 +86,78 @@ const AcademyPage = () => {
   const [age, setAge] = useState("");
   const [experience, setExperience] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [filterSlugs, setFilterSlugs] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
-      const [clubsRes, offRes] = await Promise.all([
+      const [clubsRes, offRes, locRes] = await Promise.all([
         supabase.from("clubs").select("*").order("name"),
         supabase.from("offerings").select("*").order("name"),
+        supabase.from("club_locations").select("*").order("name"),
       ]);
       if (clubsRes.data) setClubs(clubsRes.data as unknown as AcademyClub[]);
       if (offRes.data) setOfferings(offRes.data as unknown as OfferingData[]);
+      if (locRes.data) setClubLocations(locRes.data as unknown as ClubLocation[]);
     };
     fetchData();
   }, []);
 
-  // Build academy sports from clubs that have has_academy enabled
-  const sports = clubs.filter(c => c.has_academy).map((club) => {
-    // Find what activity slug this club maps to
-    let matchedSlug = "";
-    for (const [slug, keywords] of Object.entries(activityKeywords)) {
-      if (club.offerings.some(o => keywords.some(k => o.toLowerCase().includes(k)))) {
-        matchedSlug = slug;
-        break;
-      }
-    }
-    if (!matchedSlug) return null;
-    const offering = offerings.find(o => o.slug === matchedSlug);
-    return {
-      slug: matchedSlug,
-      name: club.name,
-      clubLogoUrl: club.logo_url?.startsWith("http") ? club.logo_url : null,
-      offeringImageUrl: offering?.logo_url || null,
-      brand: brandForSlug(matchedSlug),
-      description: club.description || "",
-    };
-  }).filter(Boolean) as { slug: string; name: string; clubLogoUrl: string | null; offeringImageUrl: string | null; brand: "tennis" | "basketball" | "wellness"; description: string }[];
+  // Build academy sports from clubs that have academy offerings
+  const sports = useMemo(() => {
+    return clubs
+      .filter(c => c.offerings.some(o => o.toLowerCase().includes("academy")))
+      .map((club) => {
+        // Find what activity slug this club maps to via academy offering
+        let matchedSlug = "";
+        for (const [slug, keywords] of Object.entries(activityKeywords)) {
+          if (club.offerings.some(o => o.toLowerCase().includes("academy") && keywords.some(k => o.toLowerCase().includes(k)))) {
+            matchedSlug = slug;
+            break;
+          }
+        }
+        if (!matchedSlug) {
+          // Fallback: check general offerings
+          for (const [slug, keywords] of Object.entries(activityKeywords)) {
+            if (club.offerings.some(o => keywords.some(k => o.toLowerCase().includes(k)))) {
+              matchedSlug = slug;
+              break;
+            }
+          }
+        }
+        if (!matchedSlug) return null;
+        const offering = offerings.find(o => o.slug === matchedSlug);
+        return {
+          slug: matchedSlug,
+          clubId: club.id,
+          name: club.name,
+          clubLogoUrl: club.logo_url?.startsWith("http") ? club.logo_url : null,
+          offeringImageUrl: offering?.logo_url || null,
+          brand: brandForSlug(matchedSlug),
+          description: club.description || "",
+        };
+      })
+      .filter(Boolean) as { slug: string; clubId: string; name: string; clubLogoUrl: string | null; offeringImageUrl: string | null; brand: "tennis" | "basketball" | "wellness"; description: string }[];
+  }, [clubs, offerings]);
+
+  // Derive offerings that have academies for the filter
+  const academyOfferings = useMemo(() => {
+    const slugs = new Set(sports.map(s => s.slug));
+    return offerings.filter(o => slugs.has(o.slug));
+  }, [sports, offerings]);
+
+  const filteredSports = useMemo(() => {
+    if (filterSlugs.length === 0) return sports;
+    return sports.filter(s => filterSlugs.includes(s.slug));
+  }, [sports, filterSlugs]);
+
+  // Get locations for the selected sport's club
+  const selectedSportData = sports.find(s => s.slug === selectedSport);
+  const locationsForSelected = useMemo(() => {
+    if (!selectedSportData) return [];
+    return clubLocations.filter(l => l.club_id === selectedSportData.clubId);
+  }, [selectedSportData, clubLocations]);
+
+  const needsLocation = locationsForSelected.length > 1;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -138,23 +187,30 @@ const AcademyPage = () => {
       <Navbar />
       <div className="container mx-auto px-6 pt-28 pb-16">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <div className="flex items-center gap-3 mb-2">
-            <GraduationCap className="h-8 w-8 text-primary" />
-            <h1 className="font-heading text-4xl md:text-5xl font-bold text-foreground">Join Our Academy</h1>
+          <div className="flex items-end justify-between gap-4 flex-wrap mb-10">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <GraduationCap className="h-8 w-8 text-primary" />
+                <h1 className="font-heading text-4xl md:text-5xl font-bold text-foreground">Join Our Academy</h1>
+              </div>
+              <p className="text-muted-foreground text-lg">Train with the best. Elevate your game.</p>
+            </div>
+            {academyOfferings.length > 0 && (
+              <ActivityFilter offerings={academyOfferings} selected={filterSlugs} onChange={setFilterSlugs} />
+            )}
           </div>
-          <p className="text-muted-foreground text-lg mb-10">Train with the best. Elevate your game.</p>
         </motion.div>
 
         <form onSubmit={handleSubmit} className="max-w-3xl space-y-10">
           {/* Sport selection */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-            <Label className="text-sm font-medium text-muted-foreground mb-4 block">Choose Your Sport</Label>
+            <Label className="text-sm font-medium text-muted-foreground mb-4 block">Choose Your Academy</Label>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {sports.map((s) => (
+              {filteredSports.map((s) => (
                 <button
                   type="button"
                   key={s.slug}
-                  onClick={() => setSelectedSport(s.slug)}
+                  onClick={() => { setSelectedSport(s.slug); setSelectedLocation(""); }}
                   className={cn(
                     "relative overflow-hidden rounded-xl border-2 transition-all text-left",
                     selectedSport === s.slug
@@ -179,6 +235,23 @@ const AcademyPage = () => {
               ))}
             </div>
           </motion.div>
+
+          {/* Location selector - only if multiple locations */}
+          {selectedSport && needsLocation && (
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+              <Label className="text-sm font-medium text-muted-foreground mb-4 block">Choose Location</Label>
+              <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+                <SelectTrigger className={cn("w-full max-w-sm h-12", selectedLocation && selectedBrand && brandInputClass[selectedBrand])}>
+                  <SelectValue placeholder="Select a location..." />
+                </SelectTrigger>
+                <SelectContent className="bg-card border-border z-50">
+                  {locationsForSelected.map(loc => (
+                    <SelectItem key={loc.id} value={loc.id}>{loc.name} — {loc.location}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </motion.div>
+          )}
 
           {/* Personal info */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="space-y-4">
@@ -206,7 +279,7 @@ const AcademyPage = () => {
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
             <Button
               type="submit"
-              disabled={!selectedSport || !name || !email || !isValidEmail(email) || !phone || !age || !experience}
+              disabled={!selectedSport || !name || !email || !isValidEmail(email) || !phone || !age || !experience || (needsLocation && !selectedLocation)}
               className="h-14 px-10 text-lg font-bold rounded-xl glow"
             >
               Submit Application

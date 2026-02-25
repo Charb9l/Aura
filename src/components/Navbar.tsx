@@ -35,6 +35,9 @@ const Navbar = () => {
           <Link to="/academy" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             Academy
           </Link>
+          <Link to="/clubs" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            Clubs & Partners
+          </Link>
           <Link to="/loyalty" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             Loyalty Program
           </Link>

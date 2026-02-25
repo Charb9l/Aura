@@ -125,6 +125,38 @@ export type Database = {
         }
         Relationships: []
       }
+      club_locations: {
+        Row: {
+          club_id: string
+          created_at: string
+          id: string
+          location: string
+          name: string
+        }
+        Insert: {
+          club_id: string
+          created_at?: string
+          id?: string
+          location: string
+          name: string
+        }
+        Update: {
+          club_id?: string
+          created_at?: string
+          id?: string
+          location?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_locations_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clubs: {
         Row: {
           created_at: string
