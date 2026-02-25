@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/sonner";
 import Navbar from "@/components/Navbar";
 import PhoneInput from "@/components/PhoneInput";
+import ActivityFilter from "@/components/ActivityFilter";
 
 
 
@@ -75,6 +76,7 @@ const BookPage = () => {
   }, [user, loading, navigate]);
 
   const [offerings, setOfferings] = useState<OfferingData[]>([]);
+  const [filterSlugs, setFilterSlugs] = useState<string[]>([]);
   const [selectedActivity, setSelectedActivity] = useState(preselected);
   const [selectedClub, setSelectedClub] = useState("");
   const [courtType, setCourtType] = useState<"half" | "full" | "">("");
@@ -235,9 +237,12 @@ const BookPage = () => {
         <form onSubmit={handleSubmit} className="max-w-3xl space-y-10">
           {/* Activity selection */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-            <Label className="text-sm font-medium text-muted-foreground mb-4 block">Choose Activity</Label>
+            <div className="flex items-center justify-between mb-4">
+              <Label className="text-sm font-medium text-muted-foreground">Choose Activity</Label>
+              <ActivityFilter offerings={offerings} selected={filterSlugs} onChange={setFilterSlugs} />
+            </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {offerings.map((a) => {
+              {(filterSlugs.length > 0 ? offerings.filter(o => filterSlugs.includes(o.slug)) : offerings).map((a) => {
                 const brand = brandForSlug(a.slug);
                 const imgSrc = a.logo_url || "";
                 return (

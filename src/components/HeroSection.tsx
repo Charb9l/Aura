@@ -52,19 +52,19 @@ const HeroSection = () => {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
               to="/book"
-              className="rounded-full bg-primary px-8 py-4 text-lg font-bold text-primary-foreground transition-all hover:glow glow-lg"
+              className="rounded-full border border-border bg-card/60 backdrop-blur-sm px-8 py-4 text-lg font-medium text-muted-foreground transition-all hover:text-foreground hover:bg-secondary"
             >
               Book a Session
             </Link>
             <Link
               to="/academy"
-              className="rounded-full border border-border bg-card/60 backdrop-blur-sm px-8 py-4 text-lg font-medium text-foreground transition-all hover:bg-secondary"
+              className="rounded-full border border-border bg-card/60 backdrop-blur-sm px-8 py-4 text-lg font-medium text-muted-foreground transition-all hover:text-foreground hover:bg-secondary"
             >
               Join Our Academy
             </Link>
             <Link
               to="/clubs"
-              className="rounded-full border border-border bg-card/60 backdrop-blur-sm px-8 py-4 text-lg font-medium text-foreground transition-all hover:bg-secondary"
+              className="rounded-full border border-border bg-card/60 backdrop-blur-sm px-8 py-4 text-lg font-medium text-muted-foreground transition-all hover:text-foreground hover:bg-secondary"
             >
               Our Clubs &amp; Partners
             </Link>
