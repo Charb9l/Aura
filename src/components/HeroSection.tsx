@@ -37,7 +37,7 @@ const HeroSection = () => {
   useEffect(() => {
     const fetchData = async () => {
       const [picRes, contentRes] = await Promise.all([
-        supabase.from("hero_pictures").select("*").order("display_order", { ascending: true }),
+        supabase.from("hero_pictures").select("*").eq("page_slug", "home").order("display_order", { ascending: true }),
         supabase.from("page_content").select("*").eq("page_slug", "home").single(),
       ]);
       if (picRes.data && picRes.data.length > 0) {
