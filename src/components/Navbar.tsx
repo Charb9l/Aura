@@ -58,7 +58,7 @@ const Navbar = () => {
                 Book Now
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate("/academy")} className="cursor-pointer">
-                Academy
+                Academies
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate("/clubs")} className="cursor-pointer">
                 Clubs & Partners
