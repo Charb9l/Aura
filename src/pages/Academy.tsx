@@ -208,7 +208,7 @@ const AcademyPage = () => {
           </div>
         </motion.div>
 
-        <form onSubmit={handleSubmit} className={cn("max-w-3xl space-y-10 rounded-2xl transition-all", selectedBrand === "tennis" && "shadow-[0_0_30px_hsl(212_70%_55%/0.15)] border border-brand-tennis/20 p-6", selectedBrand === "basketball" && "shadow-[0_0_30px_hsl(25_90%_55%/0.15)] border border-brand-basketball/20 p-6", selectedBrand === "wellness" && "shadow-[0_0_30px_hsl(100_22%_60%/0.15)] border border-brand-wellness/20 p-6", !selectedBrand && "p-0 border-0 shadow-none")}>
+        <form onSubmit={handleSubmit} className="max-w-3xl space-y-10">
           {/* Sport selection */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
             <Label className="text-sm font-medium text-muted-foreground mb-4 block">Choose Your Academy</Label>
