@@ -57,7 +57,7 @@ const OfferingsTab = () => {
   };
 
   const handleAdd = async () => {
-    if (!addName.trim()) { toast.error("Please enter an offering name"); return; }
+    if (!addName.trim()) { toast.error("Please enter an activity name"); return; }
     const slug = addSlug.trim() || addName.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
     setAddSaving(true);
 
@@ -78,7 +78,7 @@ const OfferingsTab = () => {
         .from("offering-logos").upload(filePath, addLogoFile, { upsert: true, cacheControl: "0" });
 
       if (uploadError) {
-        toast.error("Offering created but image upload failed: " + uploadError.message);
+        toast.error("Activity created but image upload failed: " + uploadError.message);
       } else {
         const { data: urlData } = supabase.storage.from("offering-logos").getPublicUrl(filePath);
         logoUrl = `${urlData.publicUrl}?t=${Date.now()}`;
@@ -87,7 +87,7 @@ const OfferingsTab = () => {
     }
 
     setAddSaving(false);
-    toast.success(`Offering "${addName.trim()}" added`);
+    toast.success(`Activity "${addName.trim()}" added`);
     setOfferings(prev => [...prev, { ...newOffering as unknown as OfferingRow, logo_url: logoUrl }].sort((a, b) => a.name.localeCompare(b.name)));
     setMode("list");
     setAddName(""); setAddSlug(""); setAddLogoFile(null); setAddLogoPreview(null);
@@ -138,7 +138,7 @@ const OfferingsTab = () => {
 
     setOfferings(prev => prev.map(o => o.id === editId ? { ...o, name: editName.trim(), slug: newSlug, ...(logoUrl ? { logo_url: logoUrl } : {}) } : o));
     setEditSaving(false);
-    toast.success("Offering updated");
+    toast.success("Activity updated");
     setMode("list");
     setEditId(null); setEditLogoFile(null); setEditLogoPreview(null);
   };
@@ -146,7 +146,7 @@ const OfferingsTab = () => {
   if (loading) {
     return (
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="offerings">
-        <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Offerings</h1>
+        <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Activities</h1>
         <p className="text-center text-muted-foreground py-12">Loading...</p>
       </motion.div>
     );
@@ -156,13 +156,13 @@ const OfferingsTab = () => {
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="offerings">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Offerings</h1>
+          <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Activities</h1>
           <p className="text-muted-foreground">Manage activities available on the platform.</p>
         </div>
         {mode === "list" && (
           <Button onClick={() => setMode("add")} className="h-11 px-5 font-semibold glow gap-2">
             <Package className="h-4 w-4" />
-            Add Offering
+            Add Activity
           </Button>
         )}
       </div>
@@ -171,7 +171,7 @@ const OfferingsTab = () => {
         <Card className="bg-card border-border max-w-2xl">
           <CardHeader>
             <CardTitle className="font-heading text-xl flex items-center gap-2">
-              <Package className="h-5 w-5 text-primary" /> Edit Offering
+              <Package className="h-5 w-5 text-primary" /> Edit Activity
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-5">
@@ -179,7 +179,7 @@ const OfferingsTab = () => {
               ← Back to list
             </Button>
             <div>
-              <Label className="text-sm font-medium text-muted-foreground mb-2 block">Offering Name</Label>
+              <Label className="text-sm font-medium text-muted-foreground mb-2 block">Activity Name</Label>
               <Input value={editName} onChange={(e) => { setEditName(e.target.value); setEditSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")); }} placeholder="e.g. Basketball Court" className="h-12 bg-secondary border-border" />
             </div>
             <div>
@@ -188,7 +188,7 @@ const OfferingsTab = () => {
               <p className="text-xs text-muted-foreground mt-1">Auto-generated from name. Used internally.</p>
             </div>
             <div>
-              <Label className="text-sm font-medium text-muted-foreground mb-2 block">Offering Image</Label>
+              <Label className="text-sm font-medium text-muted-foreground mb-2 block">Activity Image</Label>
               <div
                 onDragOver={(e) => { e.preventDefault(); setEditDragging(true); }}
                 onDragLeave={() => setEditDragging(false)}
@@ -220,7 +220,7 @@ const OfferingsTab = () => {
         <Card className="bg-card border-border max-w-2xl">
           <CardHeader>
             <CardTitle className="font-heading text-xl flex items-center gap-2">
-              <Package className="h-5 w-5 text-primary" /> Add Offering
+              <Package className="h-5 w-5 text-primary" /> Add Activity
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-5">
@@ -228,7 +228,7 @@ const OfferingsTab = () => {
               ← Back to list
             </Button>
             <div>
-              <Label className="text-sm font-medium text-muted-foreground mb-2 block">Offering Name</Label>
+              <Label className="text-sm font-medium text-muted-foreground mb-2 block">Activity Name</Label>
               <Input value={addName} onChange={(e) => { setAddName(e.target.value); setAddSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")); }} placeholder="e.g. Basketball Court" className="h-12 bg-secondary border-border" />
             </div>
             <div>
@@ -237,7 +237,7 @@ const OfferingsTab = () => {
               <p className="text-xs text-muted-foreground mt-1">Used internally for booking routing. Auto-generated from name.</p>
             </div>
             <div>
-              <Label className="text-sm font-medium text-muted-foreground mb-2 block">Offering Image</Label>
+              <Label className="text-sm font-medium text-muted-foreground mb-2 block">Activity Image</Label>
               <div
                 onDragOver={(e) => { e.preventDefault(); setAddDragging(true); }}
                 onDragLeave={() => setAddDragging(false)}
@@ -262,7 +262,7 @@ const OfferingsTab = () => {
             </div>
             <Button onClick={handleAdd} disabled={addSaving || !addName.trim()} className="w-full h-12 text-base font-semibold glow gap-2">
               <Package className="h-4 w-4" />
-              {addSaving ? "Adding..." : "Add Offering"}
+              {addSaving ? "Adding..." : "Add Activity"}
             </Button>
           </CardContent>
         </Card>
@@ -271,8 +271,8 @@ const OfferingsTab = () => {
         offerings.length === 0 ? (
           <Card className="bg-card border-border">
             <CardContent className="py-16 text-center">
-              <p className="text-muted-foreground text-lg">No offerings yet.</p>
-              <p className="text-sm text-muted-foreground mt-1">Click "Add Offering" to create your first activity.</p>
+              <p className="text-muted-foreground text-lg">No activities yet.</p>
+              <p className="text-sm text-muted-foreground mt-1">Click "Add Activity" to create your first one.</p>
             </CardContent>
           </Card>
         ) : (
