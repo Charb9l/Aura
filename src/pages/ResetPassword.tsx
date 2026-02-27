@@ -8,25 +8,45 @@ import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/sonner";
 import Navbar from "@/components/Navbar";
 
+const EXPIRY_MINUTES = 5;
+
 const ResetPassword = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [isRecovery, setIsRecovery] = useState(false);
+  const [isExpired, setIsExpired] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Listen for the PASSWORD_RECOVERY event
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+    const checkExpiry = (session: any) => {
+      if (!session) return;
+      // Check token issued-at time
+      const iat = session.access_token
+        ? JSON.parse(atob(session.access_token.split(".")[1])).iat
+        : null;
+      if (iat) {
+        const elapsed = Date.now() / 1000 - iat;
+        if (elapsed > EXPIRY_MINUTES * 60) {
+          setIsExpired(true);
+          return;
+        }
+      }
+      setIsRecovery(true);
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "PASSWORD_RECOVERY") {
-        setIsRecovery(true);
+        checkExpiry(session);
       }
     });
 
-    // Check if we're in a recovery flow from the URL hash
     const hash = window.location.hash;
     if (hash.includes("type=recovery")) {
-      setIsRecovery(true);
+      // Session will be set by onAuthStateChange above
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) checkExpiry(session);
+      });
     }
 
     return () => subscription.unsubscribe();
@@ -52,6 +72,21 @@ const ResetPassword = () => {
       navigate("/");
     }
   };
+
+  if (isExpired) {
+    return (
+      <div className="min-h-screen">
+        <Navbar />
+        <div className="flex min-h-screen items-center justify-center px-6 pt-20">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center space-y-4">
+            <h1 className="font-heading text-3xl font-bold text-foreground">Link Expired</h1>
+            <p className="text-muted-foreground">This password reset link has expired (valid for {EXPIRY_MINUTES} minutes).</p>
+            <Button onClick={() => navigate("/auth")} className="glow">Back to Login</Button>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
 
   if (!isRecovery) {
     return (
