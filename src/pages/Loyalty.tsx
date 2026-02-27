@@ -1,8 +1,10 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Star, Gift, Zap, Trophy, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
+import { supabase } from "@/integrations/supabase/client";
 
 import tennisImg from "@/assets/tennis-court.png";
 import basketballImg from "@/assets/basketball-court.png";
@@ -17,6 +19,21 @@ const activities = [
 ];
 
 const LoyaltyPage = () => {
+  const [title, setTitle] = useState("Book More. Earn More.");
+  const [subtitle, setSubtitle] = useState("Every booking earns you a point. Stack them up and unlock exclusive discounts — or go big and play for free.");
+
+  useEffect(() => {
+    const fetch = async () => {
+      const { data } = await supabase.from("page_content").select("content").eq("page_slug", "loyalty").maybeSingle();
+      if (data?.content) {
+        const c = data.content as any;
+        if (c.title) setTitle(c.title);
+        if (c.subtitle) setSubtitle(c.subtitle);
+      }
+    };
+    fetch();
+  }, []);
+
   return (
     <div className="min-h-screen">
       <Navbar />
@@ -41,10 +58,14 @@ const LoyaltyPage = () => {
             </motion.div>
 
             <h1 className="font-heading text-4xl md:text-6xl font-bold text-foreground mb-4">
-              Book More. <span className="text-gradient">Earn More.</span>
+              {title.split(". ").length > 1 ? (
+                <>{title.split(". ")[0]}. <span className="text-gradient">{title.split(". ").slice(1).join(". ")}</span></>
+              ) : (
+                <span className="text-gradient">{title}</span>
+              )}
             </h1>
             <p className="text-muted-foreground text-lg md:text-xl max-w-xl mx-auto mb-8">
-              Every booking earns you a point. Stack them up and unlock exclusive discounts — or go big and play for free.
+              {subtitle}
             </p>
 
             <Link to="/book">
