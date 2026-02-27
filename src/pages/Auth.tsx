@@ -62,15 +62,16 @@ const Auth = () => {
       return;
     }
 
-    // Check if user is an admin — block customer login for admins
+    // Check if user is an admin — block customer login for non-super admins
     const { data: roleData } = await supabase
       .from("user_roles")
-      .select("role")
+      .select("role, club_id")
       .eq("user_id", data.user.id)
       .eq("role", "admin")
       .maybeSingle();
 
-    if (roleData) {
+    // Block if admin WITH a club_id (assigned admin, not super admin)
+    if (roleData && roleData.club_id) {
       await supabase.auth.signOut();
       setLoading(false);
       setCheckingRole(false);
