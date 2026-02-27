@@ -86,6 +86,7 @@ const BookPage = () => {
 
   const [offerings, setOfferings] = useState<OfferingData[]>([]);
   const [filterSlugs, setFilterSlugs] = useState<string[]>([]);
+  const [filterLocation, setFilterLocation] = useState("");
   const [selectedActivity, setSelectedActivity] = useState(preselected);
   const [selectedClub, setSelectedClub] = useState("");
   const [courtType, setCourtType] = useState<"half" | "full" | "">("");
@@ -129,6 +130,33 @@ const BookPage = () => {
     };
     fetchData();
   }, []);
+
+  // Available locations based on sport filter
+  const availableFilterLocations = useMemo(() => {
+    const sportFiltered = filterSlugs.length > 0 ? offerings.filter(o => filterSlugs.includes(o.slug)) : offerings;
+    const sportKeywords = sportFiltered.flatMap(o => activityOfferingKeywords[o.slug] || [o.slug]);
+    const relevantClubIds = new Set(
+      clubs.filter(c => c.offerings.some(o => sportKeywords.some(k => o.toLowerCase().includes(k)))).map(c => c.id)
+    );
+    const locs = clubLocations.filter(l => relevantClubIds.has(l.club_id));
+    return Array.from(new Map(locs.map(l => [l.location, l])).values());
+  }, [filterSlugs, offerings, clubs, clubLocations]);
+
+  // Reset location filter when sport filter changes
+  useEffect(() => { setFilterLocation(""); }, [filterSlugs]);
+
+  // Filter offerings further by selected location
+  const filteredOfferings = useMemo(() => {
+    let result = filterSlugs.length > 0 ? offerings.filter(o => filterSlugs.includes(o.slug)) : offerings;
+    if (filterLocation && filterLocation !== "__all__") {
+      const clubIdsAtLocation = new Set(clubLocations.filter(l => l.location === filterLocation).map(l => l.club_id));
+      result = result.filter(o => {
+        const keywords = activityOfferingKeywords[o.slug] || [o.slug];
+        return clubs.some(c => clubIdsAtLocation.has(c.id) && c.offerings.some(off => keywords.some(k => off.toLowerCase().includes(k))));
+      });
+    }
+    return result;
+  }, [filterSlugs, filterLocation, offerings, clubs, clubLocations]);
 
   // Filter clubs that offer the selected activity
   const matchingClubs = useMemo(() => {
@@ -280,12 +308,26 @@ const BookPage = () => {
         <form onSubmit={handleSubmit} className="space-y-10">
           {/* Activity selection */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-3 mb-4 flex-wrap">
               <Label className="text-sm font-medium text-muted-foreground">Choose Activity</Label>
               <ActivityFilter offerings={offerings} selected={filterSlugs} onChange={setFilterSlugs} />
+              <Select value={filterLocation} onValueChange={setFilterLocation}>
+                <SelectTrigger className="w-auto min-w-[160px] h-10 gap-2">
+                  <SelectValue placeholder="All Locations" />
+                </SelectTrigger>
+                <SelectContent className="bg-card border-border z-50">
+                  <SelectItem value="__all__">All Locations</SelectItem>
+                  {availableFilterLocations.map(loc => (
+                    <SelectItem key={loc.id} value={loc.location}>{loc.name} — {loc.location}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {filterLocation && filterLocation !== "__all__" && (
+                <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={() => setFilterLocation("")}>Clear location</Button>
+              )}
             </div>
             <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
-              {(filterSlugs.length > 0 ? offerings.filter(o => filterSlugs.includes(o.slug)) : offerings).map((a) => {
+              {filteredOfferings.map((a) => {
                 const brand = brandForSlug(a.slug);
                 const imgSrc = a.logo_url || "";
                 return (
