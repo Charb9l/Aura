@@ -3,13 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
-import { GraduationCap, CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
+import { GraduationCap, CheckCircle2, ChevronLeft, ChevronRight, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Navbar from "@/components/Navbar";
 import PhoneInput from "@/components/PhoneInput";
 import ActivityFilter from "@/components/ActivityFilter";
@@ -38,18 +39,19 @@ interface AcademyPicture {
   display_order: number;
 }
 
+interface ClubLocation {
+  id: string;
+  club_id: string;
+  name: string;
+  location: string;
+}
+
 interface FormField {
   key: string;
   label: string;
   type: string;
   required: boolean;
 }
-
-const brandBorder = {
-  tennis: "border-brand-tennis shadow-[0_0_20px_hsl(212_70%_55%/0.3)]",
-  basketball: "border-brand-basketball shadow-[0_0_20px_hsl(25_90%_55%/0.3)]",
-  wellness: "border-brand-wellness shadow-[0_0_20px_hsl(100_22%_60%/0.3)]",
-};
 
 const brandInputClass = {
   tennis: "border-brand-tennis/50 focus:border-brand-tennis shadow-[0_0_12px_hsl(212_70%_55%/0.15)]",
@@ -83,7 +85,9 @@ const AcademyPage = () => {
   const [clubs, setClubs] = useState<AcademyClub[]>([]);
   const [offerings, setOfferings] = useState<OfferingData[]>([]);
   const [pictures, setPictures] = useState<AcademyPicture[]>([]);
+  const [allLocations, setAllLocations] = useState<ClubLocation[]>([]);
   const [filterSlugs, setFilterSlugs] = useState<string[]>([]);
+  const [filterLocation, setFilterLocation] = useState("");
   const [pageTitle, setPageTitle] = useState("Join Our Academy");
   const [pageSubtitle, setPageSubtitle] = useState("Train with the best. Elevate your game.");
   const [personalFields, setPersonalFields] = useState<FormField[]>([
@@ -97,6 +101,7 @@ const AcademyPage = () => {
   const [selectedClub, setSelectedClub] = useState<AcademyClub | null>(null);
   const [showRegister, setShowRegister] = useState(false);
   const [carouselIndex, setCarouselIndex] = useState(0);
+  const [selectedLocationId, setSelectedLocationId] = useState("");
 
   // Form state
   const [name, setName] = useState("");
@@ -108,15 +113,17 @@ const AcademyPage = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [clubsRes, offRes, picsRes, contentRes] = await Promise.all([
+      const [clubsRes, offRes, picsRes, locsRes, contentRes] = await Promise.all([
         supabase.from("clubs").select("*").order("name"),
         supabase.from("offerings").select("*").order("name"),
         supabase.from("academy_pictures").select("*").order("display_order"),
+        supabase.from("club_locations").select("*").order("name"),
         supabase.from("page_content").select("content").eq("page_slug", "academy").single(),
       ]);
       if (clubsRes.data) setClubs(clubsRes.data as unknown as AcademyClub[]);
       if (offRes.data) setOfferings(offRes.data as unknown as OfferingData[]);
       if (picsRes.data) setPictures(picsRes.data as unknown as AcademyPicture[]);
+      if (locsRes.data) setAllLocations(locsRes.data as unknown as ClubLocation[]);
       if (contentRes.data) {
         const c = contentRes.data.content as any;
         if (c?.title) setPageTitle(c.title);
@@ -127,7 +134,7 @@ const AcademyPage = () => {
     fetchData();
   }, []);
 
-  // Build academy sports from clubs that have academy offerings
+  // Build academy clubs
   const academyClubs = useMemo(() => {
     return clubs
       .filter(c => c.offerings.some(o => o.toLowerCase().includes("academy")))
@@ -159,16 +166,38 @@ const AcademyPage = () => {
       .filter(Boolean) as (AcademyClub & { slug: string; brand: "tennis" | "basketball" | "wellness"; offeringImageUrl: string | null })[];
   }, [clubs, offerings]);
 
-  // Derive offerings that have academies for the filter
+  // Derive offerings that have academies for the sport filter
   const academyOfferings = useMemo(() => {
     const slugs = new Set(academyClubs.map(s => s.slug));
     return offerings.filter(o => slugs.has(o.slug));
   }, [academyClubs, offerings]);
 
-  const filteredClubs = useMemo(() => {
+  // Filter by sport first
+  const sportFilteredClubs = useMemo(() => {
     if (filterSlugs.length === 0) return academyClubs;
     return academyClubs.filter(s => filterSlugs.includes(s.slug));
   }, [academyClubs, filterSlugs]);
+
+  // Available locations for the currently sport-filtered clubs
+  const availableLocations = useMemo(() => {
+    const clubIds = new Set(sportFilteredClubs.map(c => c.id));
+    const locs = allLocations.filter(l => clubIds.has(l.club_id));
+    // Deduplicate by location name
+    const uniqueMap = new Map<string, ClubLocation>();
+    locs.forEach(l => {
+      if (!uniqueMap.has(l.location)) uniqueMap.set(l.location, l);
+    });
+    return Array.from(uniqueMap.values());
+  }, [sportFilteredClubs, allLocations]);
+
+  // Filter by location second
+  const filteredClubs = useMemo(() => {
+    if (!filterLocation) return sportFilteredClubs;
+    const clubIdsWithLocation = new Set(
+      allLocations.filter(l => l.location === filterLocation).map(l => l.club_id)
+    );
+    return sportFilteredClubs.filter(c => clubIdsWithLocation.has(c.id));
+  }, [sportFilteredClubs, filterLocation, allLocations]);
 
   // Get pictures for selected club
   const selectedBubblePic = (clubId: string) => pictures.find(p => p.club_id === clubId && p.picture_type === "bubble");
@@ -177,11 +206,18 @@ const AcademyPage = () => {
     return pictures.filter(p => p.club_id === selectedClub.id && p.picture_type === "carousel");
   }, [selectedClub, pictures]);
 
+  // Locations for selected club (for registration)
+  const selectedClubLocations = useMemo(() => {
+    if (!selectedClub) return [];
+    return allLocations.filter(l => l.club_id === selectedClub.id);
+  }, [selectedClub, allLocations]);
+
   const openClubDialog = (club: AcademyClub & { slug: string; brand: string }) => {
     setSelectedClub(club);
     setCarouselIndex(0);
     setShowRegister(false);
     setSubmitted(false);
+    setSelectedLocationId("");
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -191,6 +227,15 @@ const AcademyPage = () => {
 
   const selectedClubData = selectedClub ? academyClubs.find(c => c.id === selectedClub.id) : null;
   const selectedBrand = selectedClubData?.brand;
+
+  // Auto-select location if only 1
+  useEffect(() => {
+    if (showRegister && selectedClubLocations.length === 1) {
+      setSelectedLocationId(selectedClubLocations[0].id);
+    }
+  }, [showRegister, selectedClubLocations]);
+
+  const needsLocation = selectedClubLocations.length > 0;
 
   return (
     <div className="min-h-screen">
@@ -205,9 +250,27 @@ const AcademyPage = () => {
               </div>
               <p className="text-muted-foreground text-lg">{pageSubtitle}</p>
             </div>
-            {academyOfferings.length > 0 && (
-              <ActivityFilter offerings={academyOfferings} selected={filterSlugs} onChange={setFilterSlugs} />
-            )}
+            <div className="flex items-center gap-3">
+              {academyOfferings.length > 0 && (
+                <ActivityFilter offerings={academyOfferings} selected={filterSlugs} onChange={(s) => { setFilterSlugs(s); setFilterLocation(""); }} />
+              )}
+              {availableLocations.length > 1 && (
+                <Select value={filterLocation || "all"} onValueChange={(v) => setFilterLocation(v === "all" ? "" : v)}>
+                  <SelectTrigger className="h-10 w-44 bg-secondary border-border">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+                      <SelectValue placeholder="All Locations" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent className="bg-card border-border z-50">
+                    <SelectItem value="all">All Locations</SelectItem>
+                    {availableLocations.map(l => (
+                      <SelectItem key={l.id} value={l.location}>{l.location}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
           </div>
         </motion.div>
 
@@ -333,6 +396,30 @@ const AcademyPage = () => {
               <h2 className="font-heading text-2xl font-bold text-foreground mb-1">Register for {selectedClub.name}</h2>
               <p className="text-muted-foreground text-sm mb-6">Fill in your details to apply.</p>
               <form onSubmit={handleSubmit} className="space-y-5">
+                {/* Location selector */}
+                {needsLocation && (
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground mb-2 block">Choose Location</Label>
+                    {selectedClubLocations.length === 1 ? (
+                      <div className={cn("w-full h-12 flex items-center px-4 rounded-md border bg-secondary", selectedBrand && brandInputClass[selectedBrand])}>
+                        <MapPin className="h-4 w-4 text-muted-foreground mr-2" />
+                        <span className="text-foreground">{selectedClubLocations[0].name} — {selectedClubLocations[0].location}</span>
+                      </div>
+                    ) : (
+                      <Select value={selectedLocationId} onValueChange={setSelectedLocationId}>
+                        <SelectTrigger className={cn("w-full h-12", selectedLocationId && selectedBrand && brandInputClass[selectedBrand])}>
+                          <SelectValue placeholder="Select a location..." />
+                        </SelectTrigger>
+                        <SelectContent className="bg-card border-border z-50">
+                          {selectedClubLocations.map(loc => (
+                            <SelectItem key={loc.id} value={loc.id}>{loc.name} — {loc.location}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </div>
+                )}
+
                 <div className="grid md:grid-cols-2 gap-4">
                   {personalFields.map((field) => {
                     if (field.type === "phone") {
@@ -365,7 +452,7 @@ const AcademyPage = () => {
                 </div>
                 <Button
                   type="submit"
-                  disabled={!name || !email || !isValidEmail(email) || !phone || !age || !experience}
+                  disabled={!name || !email || !isValidEmail(email) || !phone || !age || !experience || (needsLocation && !selectedLocationId)}
                   className="h-12 px-8 text-base font-bold rounded-xl glow w-full"
                 >
                   Submit Application
@@ -382,7 +469,7 @@ const AcademyPage = () => {
               <p className="text-muted-foreground">
                 We've received your {selectedClub.name} application. Our team will reach out to {email} shortly.
               </p>
-              <Button variant="outline" className="mt-6" onClick={() => { setSelectedClub(null); setShowRegister(false); setSubmitted(false); setName(""); setEmail(""); setPhone(""); setAge(""); setExperience(""); }}>
+              <Button variant="outline" className="mt-6" onClick={() => { setSelectedClub(null); setShowRegister(false); setSubmitted(false); setName(""); setEmail(""); setPhone(""); setAge(""); setExperience(""); setSelectedLocationId(""); }}>
                 Close
               </Button>
             </div>
