@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
-import { LogOut, User, ShieldCheck, Menu } from "lucide-react";
+import { LogOut, User, ShieldCheck } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,14 +25,16 @@ const Navbar = () => {
       transition={{ duration: 0.5 }}
       className="fixed top-0 left-0 right-0 z-50 glass"
     >
-      <div className="container mx-auto flex items-center justify-between px-6 py-4">
-        <Link to="/" className="font-heading font-bold tracking-tight text-foreground">
+      <div className="container mx-auto grid grid-cols-3 items-center px-6 py-4">
+        {/* Left: Logo */}
+        <Link to="/" className="font-heading font-bold tracking-tight text-foreground justify-self-start">
           <span className="text-xl font-bold">ELEVATE</span>
           <br />
           <span className="text-[10px] font-medium tracking-[0.25em] text-muted-foreground">WELLNESS HUB</span>
         </Link>
 
-        <div className="flex items-center gap-3">
+        {/* Center: Menu */}
+        <div className="justify-self-center">
           <DropdownMenu>
             <DropdownMenuTrigger className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors uppercase tracking-widest focus:outline-none">
               Menu
@@ -55,7 +57,10 @@ const Navbar = () => {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+        </div>
 
+        {/* Right: Admin + Auth */}
+        <div className="flex items-center gap-3 justify-self-end">
           <Link
             to="/admin"
             className="rounded-full border border-border px-4 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:border-muted-foreground/50 transition-all flex items-center gap-1.5"
