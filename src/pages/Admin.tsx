@@ -1008,6 +1008,21 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
   const [editClubLocations, setEditClubLocations] = useState<ClubLocationRow[]>([]);
   const [editNewLocations, setEditNewLocations] = useState<{ name: string; location: string }[]>([]);
 
+  // Club pictures state
+  interface ClubPictureRow { id: string; club_id: string; image_url: string; display_order: number; }
+  const [picturesClub, setPicturesClub] = useState<ClubRow | null>(null);
+  const [clubPictures, setClubPictures] = useState<ClubPictureRow[]>([]);
+  const [picturesLoading, setPicturesLoading] = useState(false);
+  const [picturesUploading, setPicturesUploading] = useState(false);
+
+  // Add club pictures state
+  const [addClubPicFiles, setAddClubPicFiles] = useState<File[]>([]);
+  const [addClubPicPreviews, setAddClubPicPreviews] = useState<string[]>([]);
+
+  // Edit club pictures state
+  const [editClubPicFiles, setEditClubPicFiles] = useState<File[]>([]);
+  const [editClubPicPreviews, setEditClubPicPreviews] = useState<string[]>([]);
+
   // Offerings management state
   const [offerings, setOfferings] = useState<OfferingRow[]>([]);
   const [showOfferingsDialog, setShowOfferingsDialog] = useState(false);
@@ -1211,12 +1226,77 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
       }
     }
 
+    // Upload club pictures if provided
+    if (addClubPicFiles.length > 0) {
+      await uploadClubPictures((newClub as any).id, addClubPicFiles);
+    }
+
     setAddClubSaving(false);
     toast.success(`Club "${addClubName.trim()}" added successfully`);
     setClubs(prev => [...prev, { ...newClub as unknown as ClubRow, logo_url: logoUrl }].sort((a, b) => a.name.localeCompare(b.name)));
     setShowAddClub(false);
     setAddClubName(""); setAddClubDescription(""); setAddClubOfferings([]); setAddClubHasAcademy(false);
     setAddClubLogoFile(null); setAddClubLogoPreview(null); setAddClubLocations([]); setShowAcademySportPicker(false);
+    setAddClubPicFiles([]); setAddClubPicPreviews([]);
+  };
+
+  // === Club Pictures Management ===
+  const openPictures = async (club: ClubRow) => {
+    setPicturesClub(club);
+    setPicturesLoading(true);
+    const { data } = await supabase.from("club_pictures").select("*").eq("club_id", club.id).order("display_order");
+    setClubPictures((data as unknown as ClubPictureRow[]) || []);
+    setPicturesLoading(false);
+  };
+
+  const handlePictureUpload = async (files: FileList | File[]) => {
+    if (!picturesClub) return;
+    const fileArr = Array.from(files).filter(f => f.type.startsWith("image/"));
+    if (!fileArr.length) { toast.error("Please upload image files"); return; }
+    setPicturesUploading(true);
+    for (const file of fileArr) {
+      if (file.size > 10 * 1024 * 1024) { toast.error(`${file.name} too large (max 10MB)`); continue; }
+      const id = crypto.randomUUID();
+      const ext = file.name.split(".").pop() || "jpg";
+      const filePath = `${picturesClub.id}/${id}.${ext}`;
+      const { error: uploadError } = await supabase.storage.from("club-pictures").upload(filePath, file, { cacheControl: "3600" });
+      if (uploadError) { toast.error(`Upload failed: ${uploadError.message}`); continue; }
+      const { data: urlData } = supabase.storage.from("club-pictures").getPublicUrl(filePath);
+      const { error: dbError } = await supabase.from("club_pictures").insert({ club_id: picturesClub.id, image_url: urlData.publicUrl, display_order: clubPictures.length + fileArr.indexOf(file) } as any);
+      if (dbError) { toast.error(`Save failed: ${dbError.message}`); continue; }
+    }
+    toast.success(`${fileArr.length} picture(s) uploaded`);
+    const { data } = await supabase.from("club_pictures").select("*").eq("club_id", picturesClub.id).order("display_order");
+    setClubPictures((data as unknown as ClubPictureRow[]) || []);
+    setPicturesUploading(false);
+  };
+
+  const handleDeletePicture = async (pic: ClubPictureRow) => {
+    if (!confirm("Remove this picture?")) return;
+    const urlParts = pic.image_url.split("/");
+    const fileName = urlParts.slice(-2).join("/").split("?")[0];
+    await supabase.storage.from("club-pictures").remove([fileName]);
+    await supabase.from("club_pictures").delete().eq("id", pic.id);
+    setClubPictures(prev => prev.filter(p => p.id !== pic.id));
+    toast.success("Picture removed");
+  };
+
+  const handleAddClubPicSelect = (files: FileList | File[]) => {
+    const fileArr = Array.from(files).filter(f => f.type.startsWith("image/") && f.size <= 10 * 1024 * 1024);
+    setAddClubPicFiles(prev => [...prev, ...fileArr]);
+    setAddClubPicPreviews(prev => [...prev, ...fileArr.map(f => URL.createObjectURL(f))]);
+  };
+
+  const uploadClubPictures = async (clubId: string, files: File[]) => {
+    for (const file of files) {
+      const id = crypto.randomUUID();
+      const ext = file.name.split(".").pop() || "jpg";
+      const filePath = `${clubId}/${id}.${ext}`;
+      const { error: uploadError } = await supabase.storage.from("club-pictures").upload(filePath, file, { cacheControl: "3600" });
+      if (uploadError) continue;
+      const { data: urlData } = supabase.storage.from("club-pictures").getPublicUrl(filePath);
+      await supabase.from("club_pictures").insert({ club_id: clubId, image_url: urlData.publicUrl, display_order: files.indexOf(file) } as any);
+    }
   };
 
   // Get offering names from DB for dropdowns
@@ -1379,10 +1459,13 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                     {isMasterAdmin && (
                       <TableCell>
                         <div className="flex items-center gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => openEdit(club)}>
+                          <Button variant="ghost" size="icon" onClick={() => openEdit(club)} title="Edit">
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" onClick={() => handleDeleteClub(club.id, club.name)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                          <Button variant="ghost" size="icon" onClick={() => openPictures(club)} title="Pictures">
+                            <Image className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => handleDeleteClub(club.id, club.name)} className="text-destructive hover:text-destructive hover:bg-destructive/10" title="Delete">
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
@@ -1602,6 +1685,33 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
             </div>
 
             <div>
+              <Label className="text-sm font-medium text-muted-foreground mb-2 block">Club Pictures</Label>
+              <div
+                className="relative border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer border-border hover:border-muted-foreground/50"
+                onClick={() => document.getElementById("add-club-pics-input")?.click()}
+              >
+                <input id="add-club-pics-input" type="file" accept="image/*" multiple className="hidden" onChange={(e) => { if (e.target.files) handleAddClubPicSelect(e.target.files); e.target.value = ""; }} />
+                <div className="flex flex-col items-center gap-2">
+                  <Upload className="h-6 w-6 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">Add pictures that show when customers click this club</p>
+                  <p className="text-xs text-muted-foreground">PNG, JPG up to 10MB each</p>
+                </div>
+              </div>
+              {addClubPicPreviews.length > 0 && (
+                <div className="grid grid-cols-4 gap-2 mt-3">
+                  {addClubPicPreviews.map((preview, i) => (
+                    <div key={i} className="relative rounded-lg overflow-hidden border border-border aspect-video">
+                      <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+                      <button type="button" onClick={() => { setAddClubPicFiles(prev => prev.filter((_, j) => j !== i)); setAddClubPicPreviews(prev => prev.filter((_, j) => j !== i)); }} className="absolute top-1 right-1 rounded-full bg-destructive p-1 text-destructive-foreground">
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div>
               <Label className="text-sm font-medium text-muted-foreground mb-2 block">Description</Label>
               <Textarea
                 value={addClubDescription}
@@ -1689,6 +1799,50 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
               <Building2 className="h-4 w-4 mr-2" />
               {addClubSaving ? "Adding..." : "Add Club"}
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Club Pictures Dialog */}
+      <Dialog open={!!picturesClub} onOpenChange={(o) => !o && setPicturesClub(null)}>
+        <DialogContent className="bg-card border-border max-w-2xl w-[66vw] max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-heading text-xl flex items-center gap-2">
+              <Image className="h-5 w-5 text-primary" /> Pictures — {picturesClub?.name}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div
+              onDragOver={(e) => { e.preventDefault(); }}
+              onDrop={(e) => { e.preventDefault(); handlePictureUpload(e.dataTransfer.files); }}
+              onClick={() => document.getElementById("club-pics-input")?.click()}
+              className="relative border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer border-border hover:border-muted-foreground/50"
+            >
+              <input id="club-pics-input" type="file" accept="image/*" multiple className="hidden" onChange={(e) => { if (e.target.files) handlePictureUpload(e.target.files); e.target.value = ""; }} />
+              <div className="flex flex-col items-center gap-2">
+                <Upload className="h-6 w-6 text-muted-foreground" />
+                <p className="text-sm font-medium text-foreground">{picturesUploading ? "Uploading..." : "Drop images here or click to browse"}</p>
+                <p className="text-xs text-muted-foreground">PNG, JPG, WEBP — up to 10MB each</p>
+              </div>
+            </div>
+            {picturesLoading ? (
+              <p className="text-center text-muted-foreground py-4 text-sm">Loading...</p>
+            ) : clubPictures.length === 0 ? (
+              <p className="text-center text-muted-foreground py-4 text-sm">No pictures yet.</p>
+            ) : (
+              <div className="grid grid-cols-3 gap-3">
+                {clubPictures.map((pic) => (
+                  <div key={pic.id} className="group relative rounded-lg overflow-hidden border border-border bg-card aspect-video">
+                    <img src={pic.image_url} alt="Club" className="w-full h-full object-cover" loading="lazy" />
+                    <div className="absolute inset-0 bg-background/0 group-hover:bg-background/60 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                      <button onClick={(e) => { e.stopPropagation(); handleDeletePicture(pic); }} className="rounded-full bg-destructive p-2 text-destructive-foreground shadow-lg hover:bg-destructive/90 transition-all">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
