@@ -27,15 +27,25 @@ const clubActivityMap: Record<string, string> = {
 const ClubsPage = () => {
   const [clubs, setClubs] = useState<Club[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pageTitle, setPageTitle] = useState("Our Clubs & Partners");
+  const [pageSubtitle, setPageSubtitle] = useState("Meet the clubs and studios that power our platform.");
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchClubs = async () => {
-      const { data } = await supabase.from("clubs").select("*").order("name");
-      if (data) setClubs(data as unknown as Club[]);
+    const fetchData = async () => {
+      const [clubsRes, contentRes] = await Promise.all([
+        supabase.from("clubs").select("*").order("name"),
+        supabase.from("page_content").select("content").eq("page_slug", "clubs").single(),
+      ]);
+      if (clubsRes.data) setClubs(clubsRes.data as unknown as Club[]);
+      if (contentRes.data) {
+        const c = contentRes.data.content as any;
+        if (c?.title) setPageTitle(c.title);
+        if (c?.subtitle) setPageSubtitle(c.subtitle);
+      }
       setLoading(false);
     };
-    fetchClubs();
+    fetchData();
   }, []);
 
   return (
@@ -45,11 +55,9 @@ const ClubsPage = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <div className="flex items-center gap-3 mb-2">
             <Building2 className="h-8 w-8 text-primary" />
-            <h1 className="font-heading text-4xl md:text-5xl font-bold text-foreground">Our Clubs & Partners</h1>
+            <h1 className="font-heading text-4xl md:text-5xl font-bold text-foreground">{pageTitle}</h1>
           </div>
-          <p className="text-muted-foreground text-lg mb-12">
-            Meet the clubs and studios that power our platform.
-          </p>
+          <p className="text-muted-foreground text-lg mb-12">{pageSubtitle}</p>
         </motion.div>
 
         {loading ? (

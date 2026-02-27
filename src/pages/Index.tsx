@@ -40,15 +40,23 @@ const Index = () => {
   const [offerings, setOfferings] = useState<OfferingData[]>([]);
   const [clubs, setClubs] = useState<ClubData[]>([]);
   const [filterSlugs, setFilterSlugs] = useState<string[]>([]);
+  const [sectionTitle, setSectionTitle] = useState("What's Your Move?");
+  const [sectionSubtitle, setSectionSubtitle] = useState("Choose your activity and book in seconds.");
 
   useEffect(() => {
     const fetchData = async () => {
-      const [offRes, clubRes] = await Promise.all([
+      const [offRes, clubRes, contentRes] = await Promise.all([
         supabase.from("offerings").select("*").order("name"),
         supabase.from("clubs").select("*").order("name"),
+        supabase.from("page_content").select("content").eq("page_slug", "home").single(),
       ]);
       if (offRes.data) setOfferings(offRes.data as unknown as OfferingData[]);
       if (clubRes.data) setClubs(clubRes.data as unknown as ClubData[]);
+      if (contentRes.data) {
+        const c = contentRes.data.content as any;
+        if (c?.section_title) setSectionTitle(c.section_title);
+        if (c?.section_subtitle) setSectionSubtitle(c.section_subtitle);
+      }
     };
     fetchData();
   }, []);
@@ -91,9 +99,11 @@ const Index = () => {
         >
           <div>
             <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground mb-3">
-              What's <span className="text-gradient">Your Move?</span>
+              {sectionTitle.includes("Your Move") ? (
+                <>What's <span className="text-gradient">Your Move?</span></>
+              ) : sectionTitle}
             </h2>
-            <p className="text-muted-foreground text-lg">Choose your activity and book in seconds.</p>
+            <p className="text-muted-foreground text-lg">{sectionSubtitle}</p>
           </div>
           <ActivityFilter offerings={offerings} selected={filterSlugs} onChange={setFilterSlugs} />
         </motion.div>

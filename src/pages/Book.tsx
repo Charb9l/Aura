@@ -72,6 +72,8 @@ const timeSlots = [
 
 const isValidEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 
+interface FormField { key: string; label: string; type: string; required: boolean; }
+
 const BookPage = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
@@ -98,18 +100,32 @@ const BookPage = () => {
   const [clubs, setClubs] = useState<{ id: string; name: string; offerings: string[] }[]>([]);
   const [clubLocations, setClubLocations] = useState<ClubLocation[]>([]);
   const [selectedLocation, setSelectedLocation] = useState("");
+  const [pageTitle, setPageTitle] = useState("Book a Session");
+  const [pageSubtitle, setPageSubtitle] = useState("Select your activity, date and time.");
+  const [detailFields, setDetailFields] = useState<FormField[]>([
+    { key: "name", label: "Full Name", type: "text", required: true },
+    { key: "email", label: "Email", type: "email", required: true },
+    { key: "phone", label: "Phone Number", type: "phone", required: true },
+  ]);
 
-  // Fetch offerings and clubs on mount
+  // Fetch offerings, clubs, and page content on mount
   useEffect(() => {
     const fetchData = async () => {
-      const [offRes, clubRes, locRes] = await Promise.all([
+      const [offRes, clubRes, locRes, contentRes] = await Promise.all([
         supabase.from("offerings").select("*").order("name"),
         supabase.from("clubs").select("id, name, offerings").order("name"),
         supabase.from("club_locations").select("*").order("name"),
+        supabase.from("page_content").select("content").eq("page_slug", "book").single(),
       ]);
       if (offRes.data) setOfferings(offRes.data as unknown as OfferingData[]);
       if (clubRes.data) setClubs(clubRes.data as any[]);
       if (locRes.data) setClubLocations(locRes.data as unknown as ClubLocation[]);
+      if (contentRes.data) {
+        const c = contentRes.data.content as any;
+        if (c?.title) setPageTitle(c.title);
+        if (c?.subtitle) setPageSubtitle(c.subtitle);
+        if (c?.fields) setDetailFields(c.fields);
+      }
     };
     fetchData();
   }, []);
@@ -257,8 +273,8 @@ const BookPage = () => {
       <Navbar />
       <div className="container mx-auto px-6 pt-28 pb-16">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="font-heading text-4xl md:text-5xl font-bold text-foreground mb-2">Book a Session</h1>
-          <p className="text-muted-foreground text-lg mb-10">Select your activity, date and time.</p>
+          <h1 className="font-heading text-4xl md:text-5xl font-bold text-foreground mb-2">{pageTitle}</h1>
+          <p className="text-muted-foreground text-lg mb-10">{pageSubtitle}</p>
         </motion.div>
 
         <form onSubmit={handleSubmit} className="space-y-10">
@@ -440,13 +456,28 @@ const BookPage = () => {
             </div>
           </motion.div>
 
-          {/* Contact info */}
+          {/* Contact info - dynamic fields */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="space-y-4">
             <Label className="text-sm font-medium text-muted-foreground mb-4 block">Your Details</Label>
             <div className="grid md:grid-cols-3 gap-4">
-              <Input placeholder="Full Name" value={name} onChange={(e) => setName(e.target.value)} required className={cn("h-12 bg-secondary border-border", selectedBrand && brandInputClass[selectedBrand])} />
-              <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required className={cn("h-12 bg-secondary border-border", selectedBrand && brandInputClass[selectedBrand])} />
-              <PhoneInput value={phone} onChange={setPhone} required />
+              {detailFields.map((field) => {
+                if (field.type === "phone") {
+                  return <PhoneInput key={field.key} value={phone} onChange={setPhone} required={field.required} />;
+                }
+                const val = field.key === "name" ? name : field.key === "email" ? email : "";
+                const setter = field.key === "name" ? setName : field.key === "email" ? setEmail : undefined;
+                return (
+                  <Input
+                    key={field.key}
+                    type={field.type === "number" ? "number" : field.type === "email" ? "email" : "text"}
+                    placeholder={field.label}
+                    value={val}
+                    onChange={setter ? (e) => setter(e.target.value) : undefined}
+                    required={field.required}
+                    className={cn("h-12 bg-secondary border-border", selectedBrand && brandInputClass[selectedBrand])}
+                  />
+                );
+              })}
             </div>
           </motion.div>
 
