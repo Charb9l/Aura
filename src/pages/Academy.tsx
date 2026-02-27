@@ -157,7 +157,14 @@ const AcademyPage = () => {
     return clubLocations.filter(l => l.club_id === selectedSportData.clubId);
   }, [selectedSportData, clubLocations]);
 
-  const needsLocation = locationsForSelected.length > 1;
+  // Auto-select if only one location
+  useEffect(() => {
+    if (locationsForSelected.length === 1) {
+      setSelectedLocation(locationsForSelected[0].id);
+    }
+  }, [locationsForSelected]);
+
+  const needsLocation = locationsForSelected.length > 0;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -240,16 +247,22 @@ const AcademyPage = () => {
           {selectedSport && needsLocation && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
               <Label className="text-sm font-medium text-muted-foreground mb-4 block">Choose Location</Label>
-              <Select value={selectedLocation} onValueChange={setSelectedLocation}>
-                <SelectTrigger className={cn("w-full max-w-sm h-12", selectedLocation && selectedBrand && brandInputClass[selectedBrand])}>
-                  <SelectValue placeholder="Select a location..." />
-                </SelectTrigger>
-                <SelectContent className="bg-card border-border z-50">
-                  {locationsForSelected.map(loc => (
-                    <SelectItem key={loc.id} value={loc.id}>{loc.name} — {loc.location}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {locationsForSelected.length === 1 ? (
+                <div className={cn("w-full max-w-sm h-12 flex items-center px-4 rounded-md border bg-secondary", selectedBrand && brandInputClass[selectedBrand])}>
+                  <span className="text-foreground">{locationsForSelected[0].name} — {locationsForSelected[0].location}</span>
+                </div>
+              ) : (
+                <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+                  <SelectTrigger className={cn("w-full max-w-sm h-12", selectedLocation && selectedBrand && brandInputClass[selectedBrand])}>
+                    <SelectValue placeholder="Select a location..." />
+                  </SelectTrigger>
+                  <SelectContent className="bg-card border-border z-50">
+                    {locationsForSelected.map(loc => (
+                      <SelectItem key={loc.id} value={loc.id}>{loc.name} — {loc.location}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </motion.div>
           )}
 

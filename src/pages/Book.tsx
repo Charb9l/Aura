@@ -26,6 +26,13 @@ interface OfferingData {
   logo_url: string | null;
 }
 
+interface ClubLocation {
+  id: string;
+  club_id: string;
+  name: string;
+  location: string;
+}
+
 const brandForSlug = (slug: string): "tennis" | "basketball" | "wellness" => {
   if (slug === "tennis") return "tennis";
   if (slug === "basketball") return "basketball";
@@ -89,16 +96,20 @@ const BookPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
   const [clubs, setClubs] = useState<{ id: string; name: string; offerings: string[] }[]>([]);
+  const [clubLocations, setClubLocations] = useState<ClubLocation[]>([]);
+  const [selectedLocation, setSelectedLocation] = useState("");
 
   // Fetch offerings and clubs on mount
   useEffect(() => {
     const fetchData = async () => {
-      const [offRes, clubRes] = await Promise.all([
+      const [offRes, clubRes, locRes] = await Promise.all([
         supabase.from("offerings").select("*").order("name"),
         supabase.from("clubs").select("id, name, offerings").order("name"),
+        supabase.from("club_locations").select("*").order("name"),
       ]);
       if (offRes.data) setOfferings(offRes.data as unknown as OfferingData[]);
       if (clubRes.data) setClubs(clubRes.data as any[]);
+      if (locRes.data) setClubLocations(locRes.data as unknown as ClubLocation[]);
     };
     fetchData();
   }, []);
@@ -120,6 +131,22 @@ const BookPage = () => {
       setSelectedClub("");
     }
   }, [matchingClubs]);
+
+  // Locations for the resolved club
+  const resolvedClubId = selectedClub || (matchingClubs.length === 1 ? matchingClubs[0].id : "");
+  const locationsForClub = useMemo(() => {
+    if (!resolvedClubId) return [];
+    return clubLocations.filter(l => l.club_id === resolvedClubId);
+  }, [resolvedClubId, clubLocations]);
+
+  // Auto-select if only one location
+  useEffect(() => {
+    if (locationsForClub.length === 1) {
+      setSelectedLocation(locationsForClub[0].id);
+    } else if (locationsForClub.length === 0) {
+      setSelectedLocation("");
+    }
+  }, [locationsForClub]);
 
   const selectedBrand = selectedActivity ? brandForSlug(selectedActivity) : undefined;
 
@@ -249,7 +276,7 @@ const BookPage = () => {
                   <button
                     type="button"
                     key={a.slug}
-                    onClick={() => { setSelectedActivity(a.slug); setSelectedClub(""); setCourtType(""); setDate(undefined); setSelectedTime(""); }}
+                    onClick={() => { setSelectedActivity(a.slug); setSelectedClub(""); setSelectedLocation(""); setCourtType(""); setDate(undefined); setSelectedTime(""); }}
                     className={cn(
                       "relative overflow-hidden rounded-xl border-2 transition-all aspect-[3/4]",
                       selectedActivity === a.slug
@@ -285,7 +312,31 @@ const BookPage = () => {
             </motion.div>
           )}
 
-          {/* Court Type for Basketball */}
+          {/* Location selector */}
+          {selectedActivity && resolvedClubId && locationsForClub.length > 1 && (
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.13 }}>
+              <Label className="text-sm font-medium text-muted-foreground mb-4 block">Choose Location</Label>
+              <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+                <SelectTrigger className={cn("w-full max-w-sm h-12", selectedLocation && selectedBrand && brandInputClass[selectedBrand])}>
+                  <SelectValue placeholder="Select a location..." />
+                </SelectTrigger>
+                <SelectContent className="bg-card border-border z-50">
+                  {locationsForClub.map(loc => (
+                    <SelectItem key={loc.id} value={loc.id}>{loc.name} — {loc.location}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </motion.div>
+          )}
+          {selectedActivity && resolvedClubId && locationsForClub.length === 1 && (
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.13 }}>
+              <Label className="text-sm font-medium text-muted-foreground mb-4 block">Location</Label>
+              <div className={cn("w-full max-w-sm h-12 flex items-center px-4 rounded-md border bg-secondary", selectedBrand && brandInputClass[selectedBrand])}>
+                <span className="text-foreground">{locationsForClub[0].name} — {locationsForClub[0].location}</span>
+              </div>
+            </motion.div>
+          )}
+
           {selectedActivity === "basketball" && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
               <Label className="text-sm font-medium text-muted-foreground mb-4 block">Select Court Type</Label>
@@ -400,7 +451,7 @@ const BookPage = () => {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-            <Button type="submit" disabled={!selectedActivity || !date || !selectedTime || !name || !email || !isValidEmail(email) || !phone || (selectedActivity === "basketball" && !courtType) || (matchingClubs.length > 1 && !selectedClub) || submitting} className="h-14 px-10 text-lg font-bold rounded-xl glow">
+            <Button type="submit" disabled={!selectedActivity || !date || !selectedTime || !name || !email || !isValidEmail(email) || !phone || (selectedActivity === "basketball" && !courtType) || (matchingClubs.length > 1 && !selectedClub) || !selectedLocation || submitting} className="h-14 px-10 text-lg font-bold rounded-xl glow">
               {submitting ? "Booking..." : "Confirm Booking"}
             </Button>
           </motion.div>

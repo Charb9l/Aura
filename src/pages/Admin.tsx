@@ -1372,10 +1372,9 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                 )}
               </div>
 
-              {/* Academy Locations */}
-              {editOfferings.some(o => o.toLowerCase().includes("academy")) && (
-                <div>
-                  <Label className="text-sm font-medium text-muted-foreground mb-2 block">Academy Locations</Label>
+            {/* Club Locations */}
+              <div>
+                <Label className="text-sm font-medium text-muted-foreground mb-2 block">Locations</Label>
                   {editClubLocations.map((loc) => (
                     <div key={loc.id} className="flex gap-2 mb-2">
                       <Input value={loc.name} disabled className="h-10 bg-secondary border-border opacity-70" />
@@ -1393,10 +1392,9 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                   <Button type="button" variant="outline" size="sm" onClick={() => setEditNewLocations(prev => [...prev, { name: "", location: "" }])} className="gap-1.5 text-xs">
                     <MapPin className="h-3.5 w-3.5" /> Add Location
                   </Button>
-                </div>
-              )}
+              </div>
 
-              <Button onClick={handleSave} disabled={saving || !editName} className="w-full h-12 text-base font-semibold glow">
+              <Button onClick={handleSave} disabled={saving || !editName || (editClubLocations.length === 0 && editNewLocations.filter(l => l.name.trim() && l.location.trim()).length === 0)} className="w-full h-12 text-base font-semibold glow">
                 {saving ? "Saving..." : "Save Changes"}
               </Button>
             </div>
@@ -1524,10 +1522,9 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
               )}
             </div>
 
-            {/* Academy Locations */}
-            {addClubOfferings.some(o => o.toLowerCase().includes("academy")) && (
+            {/* Club Locations */}
               <div>
-                <Label className="text-sm font-medium text-muted-foreground mb-2 block">Academy Locations</Label>
+                <Label className="text-sm font-medium text-muted-foreground mb-2 block">Locations</Label>
                 {addClubLocations.map((loc, i) => (
                   <div key={i} className="flex gap-2 mb-2">
                     <Input placeholder="Court/Location Name" value={loc.name} onChange={(e) => { const updated = [...addClubLocations]; updated[i].name = e.target.value; setAddClubLocations(updated); }} className="h-10 bg-secondary border-border" />
@@ -1539,9 +1536,8 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                   <MapPin className="h-3.5 w-3.5" /> Add Location
                 </Button>
               </div>
-            )}
 
-            <Button onClick={handleAddClub} disabled={addClubSaving || !addClubName.trim()} className="w-full h-12 text-base font-semibold glow">
+            <Button onClick={handleAddClub} disabled={addClubSaving || !addClubName.trim() || addClubLocations.filter(l => l.name.trim() && l.location.trim()).length === 0} className="w-full h-12 text-base font-semibold glow">
               <Building2 className="h-4 w-4 mr-2" />
               {addClubSaving ? "Adding..." : "Add Club"}
             </Button>
