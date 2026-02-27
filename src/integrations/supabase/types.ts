@@ -246,18 +246,21 @@ export type Database = {
           display_order: number
           id: string
           image_url: string
+          page_slug: string
         }
         Insert: {
           created_at?: string
           display_order?: number
           id?: string
           image_url: string
+          page_slug?: string
         }
         Update: {
           created_at?: string
           display_order?: number
           id?: string
           image_url?: string
+          page_slug?: string
         }
         Relationships: []
       }

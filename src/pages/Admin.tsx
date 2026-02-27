@@ -2605,10 +2605,7 @@ const AdminDashboard = () => {
           <CustomerVisionTab />
         )}
 
-        {/* Pictures */}
-        {activeTab === "pictures" && (
-          <PicturesTab />
-        )}
+        {/* Pictures tab removed - now managed within Customer Vision */}
 
         {/* Settings */}
         {activeTab === "settings" && (
