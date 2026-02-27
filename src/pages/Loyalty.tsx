@@ -6,32 +6,31 @@ import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import { supabase } from "@/integrations/supabase/client";
 
-import tennisImg from "@/assets/tennis-court.png";
-import basketballImg from "@/assets/basketball-court.png";
-import yogaImg from "@/assets/aerial-yoga-studio.png";
-import pilatesImg from "@/assets/pilates-studio.png";
-
-const activities = [
-  { name: "Tennis", image: tennisImg, color: "from-[hsl(212_70%_55%)] to-[hsl(212_70%_40%)]" },
-  { name: "Basketball", image: basketballImg, color: "from-[hsl(262_50%_55%)] to-[hsl(262_50%_40%)]" },
-  { name: "Aerial Yoga", image: yogaImg, color: "from-[hsl(100_22%_60%)] to-[hsl(100_22%_45%)]" },
-  { name: "Pilates", image: pilatesImg, color: "from-[hsl(100_22%_60%)] to-[hsl(100_22%_45%)]" },
-];
+interface OfferingItem {
+  id: string;
+  name: string;
+  logo_url: string | null;
+}
 
 const LoyaltyPage = () => {
   const [title, setTitle] = useState("Book More. Earn More.");
   const [subtitle, setSubtitle] = useState("Every booking earns you a point. Stack them up and unlock exclusive discounts — or go big and play for free.");
+  const [offerings, setOfferings] = useState<OfferingItem[]>([]);
 
   useEffect(() => {
-    const fetch = async () => {
-      const { data } = await supabase.from("page_content").select("content").eq("page_slug", "loyalty").maybeSingle();
-      if (data?.content) {
-        const c = data.content as any;
+    const fetchData = async () => {
+      const [contentRes, offeringsRes] = await Promise.all([
+        supabase.from("page_content").select("content").eq("page_slug", "loyalty").maybeSingle(),
+        supabase.from("offerings").select("id, name, logo_url").order("name"),
+      ]);
+      if (contentRes.data?.content) {
+        const c = contentRes.data.content as any;
         if (c.title) setTitle(c.title);
         if (c.subtitle) setSubtitle(c.subtitle);
       }
+      if (offeringsRes.data) setOfferings(offeringsRes.data);
     };
-    fetch();
+    fetchData();
   }, []);
 
   return (
@@ -177,16 +176,22 @@ const LoyaltyPage = () => {
             Earn Points In <span className="text-gradient">Every Activity</span>
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
-            {activities.map((a, i) => (
+            {offerings.map((a, i) => (
               <motion.div
-                key={a.name}
+                key={a.id}
                 initial={{ opacity: 0, scale: 0.9 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
-                className="relative rounded-xl overflow-hidden aspect-[3/4] group"
+                className="relative rounded-xl overflow-hidden aspect-[3/4] group bg-secondary"
               >
-                <img src={a.image} alt={a.name} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                {a.logo_url ? (
+                  <img src={a.logo_url} alt={a.name} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                ) : (
+                  <div className="h-full w-full flex items-center justify-center bg-primary/10">
+                    <Trophy className="h-10 w-10 text-primary/40" />
+                  </div>
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
                 <div className="absolute bottom-4 left-4 right-4">
                   <p className="font-heading font-bold text-foreground text-sm">{a.name}</p>
