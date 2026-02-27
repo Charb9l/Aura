@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,6 +13,7 @@ import {
 const Navbar = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -33,13 +35,22 @@ const Navbar = () => {
           <span className="text-[10px] font-medium tracking-[0.25em] text-muted-foreground">WELLNESS HUB</span>
         </Link>
 
-        {/* Center: Menu */}
-        <div className="justify-self-center">
-          <DropdownMenu>
+        {/* Center: Menu with hover */}
+        <div
+          className="justify-self-center"
+          onMouseEnter={() => setMenuOpen(true)}
+          onMouseLeave={() => setMenuOpen(false)}
+        >
+          <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
             <DropdownMenuTrigger className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors uppercase tracking-widest focus:outline-none">
               Menu
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="center" className="bg-card border-border min-w-[200px]">
+            <DropdownMenuContent
+              align="center"
+              className="bg-card border-border min-w-[200px]"
+              onMouseEnter={() => setMenuOpen(true)}
+              onMouseLeave={() => setMenuOpen(false)}
+            >
               <DropdownMenuItem onClick={() => navigate("/")} className="cursor-pointer">
                 Home
               </DropdownMenuItem>
