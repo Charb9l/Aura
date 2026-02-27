@@ -64,6 +64,8 @@ const activityKeywords: Record<string, string[]> = {
 
 const isValidEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 
+interface FormField { key: string; label: string; type: string; required: boolean; }
+
 const AcademyPage = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
@@ -87,17 +89,32 @@ const AcademyPage = () => {
   const [experience, setExperience] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [filterSlugs, setFilterSlugs] = useState<string[]>([]);
+  const [pageTitle, setPageTitle] = useState("Join Our Academy");
+  const [pageSubtitle, setPageSubtitle] = useState("Train with the best. Elevate your game.");
+  const [personalFields, setPersonalFields] = useState<FormField[]>([
+    { key: "name", label: "Full Name", type: "text", required: true },
+    { key: "email", label: "Email", type: "email", required: true },
+    { key: "phone", label: "Phone Number", type: "phone", required: true },
+    { key: "age", label: "Age", type: "number", required: true },
+  ]);
 
   useEffect(() => {
     const fetchData = async () => {
-      const [clubsRes, offRes, locRes] = await Promise.all([
+      const [clubsRes, offRes, locRes, contentRes] = await Promise.all([
         supabase.from("clubs").select("*").order("name"),
         supabase.from("offerings").select("*").order("name"),
         supabase.from("club_locations").select("*").order("name"),
+        supabase.from("page_content").select("content").eq("page_slug", "academy").single(),
       ]);
       if (clubsRes.data) setClubs(clubsRes.data as unknown as AcademyClub[]);
       if (offRes.data) setOfferings(offRes.data as unknown as OfferingData[]);
       if (locRes.data) setClubLocations(locRes.data as unknown as ClubLocation[]);
+      if (contentRes.data) {
+        const c = contentRes.data.content as any;
+        if (c?.title) setPageTitle(c.title);
+        if (c?.subtitle) setPageSubtitle(c.subtitle);
+        if (c?.fields) setPersonalFields(c.fields);
+      }
     };
     fetchData();
   }, []);
@@ -198,9 +215,9 @@ const AcademyPage = () => {
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <GraduationCap className="h-8 w-8 text-primary" />
-                <h1 className="font-heading text-4xl md:text-5xl font-bold text-foreground">Join Our Academy</h1>
+                <h1 className="font-heading text-4xl md:text-5xl font-bold text-foreground">{pageTitle}</h1>
               </div>
-              <p className="text-muted-foreground text-lg">Train with the best. Elevate your game.</p>
+              <p className="text-muted-foreground text-lg">{pageSubtitle}</p>
             </div>
             {academyOfferings.length > 0 && (
               <ActivityFilter offerings={academyOfferings} selected={filterSlugs} onChange={setFilterSlugs} />
@@ -270,10 +287,24 @@ const AcademyPage = () => {
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="space-y-4">
             <Label className="text-sm font-medium text-muted-foreground mb-4 block">Personal Information</Label>
             <div className="grid md:grid-cols-2 gap-4">
-              <Input placeholder="Full Name" value={name} onChange={(e) => setName(e.target.value)} required className={cn("h-12 bg-secondary border-border", selectedBrand && brandInputClass[selectedBrand])} />
-              <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required className={cn("h-12 bg-secondary border-border", selectedBrand && brandInputClass[selectedBrand])} />
-              <PhoneInput value={phone} onChange={setPhone} required />
-              <Input type="number" placeholder="Age" value={age} onChange={(e) => setAge(e.target.value)} required className={cn("h-12 bg-secondary border-border", selectedBrand && brandInputClass[selectedBrand])} />
+              {personalFields.map((field) => {
+                if (field.type === "phone") {
+                  return <PhoneInput key={field.key} value={phone} onChange={setPhone} required={field.required} />;
+                }
+                const val = field.key === "name" ? name : field.key === "email" ? email : field.key === "age" ? age : "";
+                const setter = field.key === "name" ? setName : field.key === "email" ? setEmail : field.key === "age" ? setAge : undefined;
+                return (
+                  <Input
+                    key={field.key}
+                    type={field.type === "number" ? "number" : field.type === "email" ? "email" : "text"}
+                    placeholder={field.label}
+                    value={val}
+                    onChange={setter ? (e) => setter(e.target.value) : undefined}
+                    required={field.required}
+                    className={cn("h-12 bg-secondary border-border", selectedBrand && brandInputClass[selectedBrand])}
+                  />
+                );
+              })}
             </div>
           </motion.div>
 
