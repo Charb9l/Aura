@@ -1,7 +1,13 @@
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
-import { LogOut, User, ShieldCheck } from "lucide-react";
+import { LogOut, User, ShieldCheck, Menu } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Navbar = () => {
   const { user, signOut } = useAuth();
@@ -25,24 +31,31 @@ const Navbar = () => {
           <br />
           <span className="text-[10px] font-medium tracking-[0.25em] text-muted-foreground">WELLNESS HUB</span>
         </Link>
-        <div className="hidden md:flex items-center gap-8">
-          <Link to="/" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-            Home
-          </Link>
-          <Link to="/book" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-            Book Now
-          </Link>
-          <Link to="/academy" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-            Academy
-          </Link>
-          <Link to="/clubs" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-            Clubs & Partners
-          </Link>
-          <Link to="/loyalty" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-            Loyalty Program
-          </Link>
-        </div>
+
         <div className="flex items-center gap-3">
+          <DropdownMenu>
+            <DropdownMenuTrigger className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors uppercase tracking-widest focus:outline-none">
+              Menu
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="center" className="bg-card border-border min-w-[200px]">
+              <DropdownMenuItem onClick={() => navigate("/")} className="cursor-pointer">
+                Home
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/book")} className="cursor-pointer">
+                Book Now
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/academy")} className="cursor-pointer">
+                Academy
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/clubs")} className="cursor-pointer">
+                Clubs & Partners
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/loyalty")} className="cursor-pointer">
+                Loyalty Program
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <Link
             to="/admin"
             className="rounded-full border border-border px-4 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:border-muted-foreground/50 transition-all flex items-center gap-1.5"

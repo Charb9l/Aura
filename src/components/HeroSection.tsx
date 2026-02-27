@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
 
 import basketballImg from "@/assets/basketball-court.png";
 import tennisImg from "@/assets/tennis-court.png";
@@ -13,14 +14,23 @@ const panels = [
   { image: pilatesImg, alt: "Pilates studio" },
 ];
 
+const actions = [
+  { to: "/book", label: "Book a Session", delay: 0.4 },
+  { to: "/academy", label: "Join Our Academy", delay: 0.5 },
+  { to: "/clubs", label: "Clubs & Partners", delay: 0.6 },
+];
+
 const HeroSection = () => {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
       {/* 4-panel background */}
       <div className="absolute inset-0 grid grid-cols-2 md:grid-cols-4">
         {panels.map((panel, i) => (
           <div key={i} className="relative overflow-hidden">
-            <img
+            <motion.img
+              initial={{ scale: 1.1 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 1.4, delay: i * 0.15, ease: "easeOut" }}
               src={panel.image}
               alt={panel.alt}
               className="h-full w-full object-cover"
@@ -29,47 +39,48 @@ const HeroSection = () => {
         ))}
       </div>
 
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-background/50 backdrop-blur-[2px]" />
-      <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-transparent to-background" />
+      {/* Overlay — darker, more dramatic */}
+      <div className="absolute inset-0 bg-background/70" />
+      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
 
-      {/* Content */}
-      <div className="relative z-10 container mx-auto px-6 text-center">
+      {/* Content — compact headline, prominent CTAs */}
+      <div className="relative z-10 container mx-auto px-6 flex flex-col items-center text-center gap-10">
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
+          transition={{ duration: 0.7, delay: 0.2 }}
+          className="max-w-xl"
         >
-          <h1 className="font-heading text-4xl md:text-6xl lg:text-8xl font-bold tracking-tight text-foreground mb-6 leading-[1.1]">
-            YOUR JOURNEY. YOUR SPACE.
-            <br />
-            MOVEMENT & <span className="text-gradient">MINDFULNESS.</span>
-          </h1>
-          <p className="text-base md:text-xl text-foreground/80 font-medium max-w-2xl mx-auto mb-10">
-            Book tennis courts, basketball courts, aerial yoga for kids, or reformer
-            pilates sessions — all in one place.
+          <p className="text-xs md:text-sm uppercase tracking-[0.3em] text-muted-foreground mb-4 font-medium">
+            Movement & Mindfulness
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link
-              to="/book"
-              className="rounded-full border border-border bg-card/60 backdrop-blur-sm px-8 py-4 text-lg font-medium text-muted-foreground transition-all hover:text-foreground hover:bg-secondary"
-            >
-              Book a Session
-            </Link>
-            <Link
-              to="/academy"
-              className="rounded-full border border-border bg-card/60 backdrop-blur-sm px-8 py-4 text-lg font-medium text-muted-foreground transition-all hover:text-foreground hover:bg-secondary"
-            >
-              Join Our Academy
-            </Link>
-            <Link
-              to="/clubs"
-              className="rounded-full border border-border bg-card/60 backdrop-blur-sm px-8 py-4 text-lg font-medium text-muted-foreground transition-all hover:text-foreground hover:bg-secondary"
-            >
-              Our Clubs &amp; Partners
-            </Link>
-          </div>
+          <h1 className="font-heading text-3xl md:text-5xl font-bold tracking-tight text-foreground leading-[1.15]">
+            Your Journey.
+            <br />
+            <span className="text-gradient">Your Space.</span>
+          </h1>
         </motion.div>
+
+        {/* Action buttons — large, stacked vertically on mobile, horizontal on desktop */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full max-w-2xl">
+          {actions.map((action) => (
+            <motion.div
+              key={action.to}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: action.delay }}
+              className="flex-1"
+            >
+              <Link
+                to={action.to}
+                className="group flex items-center justify-between rounded-2xl border border-border bg-card/50 backdrop-blur-md px-6 py-5 text-base font-semibold text-foreground transition-all hover:bg-primary hover:text-primary-foreground hover:border-primary hover:glow"
+              >
+                <span>{action.label}</span>
+                <ArrowRight className="h-4 w-4 opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+              </Link>
+            </motion.div>
+          ))}
+        </div>
       </div>
 
       {/* Scroll indicator */}
