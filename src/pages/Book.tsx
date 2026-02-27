@@ -261,7 +261,7 @@ const BookPage = () => {
           <p className="text-muted-foreground text-lg mb-10">Select your activity, date and time.</p>
         </motion.div>
 
-        <form onSubmit={handleSubmit} className="max-w-3xl space-y-10">
+        <form onSubmit={handleSubmit} className="space-y-10">
           {/* Activity selection */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
             <div className="flex items-center justify-between mb-4">
