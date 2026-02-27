@@ -1,13 +1,15 @@
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 import basketballImg from "@/assets/basketball-court.png";
 import tennisImg from "@/assets/tennis-court.png";
 import yogaImg from "@/assets/aerial-yoga-studio.png";
 import pilatesImg from "@/assets/pilates-studio.png";
 
-const panels = [
+const fallbackPanels = [
   { image: basketballImg, alt: "Basketball court" },
   { image: tennisImg, alt: "Tennis court" },
   { image: yogaImg, alt: "Aerial yoga studio" },
@@ -21,10 +23,29 @@ const actions = [
 ];
 
 const HeroSection = () => {
+  const [heroPictures, setHeroPictures] = useState<{ image: string; alt: string }[]>([]);
+
+  useEffect(() => {
+    const fetchPictures = async () => {
+      const { data } = await supabase
+        .from("hero_pictures")
+        .select("*")
+        .order("display_order", { ascending: true });
+      if (data && data.length > 0) {
+        setHeroPictures(data.map((p: any) => ({ image: p.image_url, alt: `Hero image` })));
+      }
+    };
+    fetchPictures();
+  }, []);
+
+  const panels = heroPictures.length > 0 ? heroPictures : fallbackPanels;
+  // Dynamically set grid columns based on picture count
+  const colClass = panels.length <= 2 ? "grid-cols-1 md:grid-cols-2" : panels.length === 3 ? "grid-cols-1 md:grid-cols-3" : "grid-cols-2 md:grid-cols-4";
+
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
-      {/* 4-panel background */}
-      <div className="absolute inset-0 grid grid-cols-2 md:grid-cols-4">
+      {/* Dynamic panel background */}
+      <div className={`absolute inset-0 grid ${colClass}`}>
         {panels.map((panel, i) => (
           <div key={i} className="relative overflow-hidden">
             <motion.img
@@ -39,11 +60,11 @@ const HeroSection = () => {
         ))}
       </div>
 
-      {/* Overlay — darker, more dramatic */}
+      {/* Overlay */}
       <div className="absolute inset-0 bg-background/70" />
       <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
 
-      {/* Content — compact headline, prominent CTAs */}
+      {/* Content */}
       <div className="relative z-10 container mx-auto px-6 flex flex-col items-center text-center gap-10">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -61,7 +82,6 @@ const HeroSection = () => {
           </h1>
         </motion.div>
 
-        {/* Action buttons — large, stacked vertically on mobile, horizontal on desktop */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full max-w-2xl">
           {actions.map((action) => (
             <motion.div

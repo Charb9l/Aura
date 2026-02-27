@@ -834,6 +834,142 @@ interface OfferingRow {
   created_at: string;
 }
 
+const PicturesTab = () => {
+  const [pictures, setPictures] = useState<{ id: string; image_url: string; display_order: number; created_at: string }[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const [dragging, setDragging] = useState(false);
+
+  useEffect(() => {
+    fetchPictures();
+  }, []);
+
+  const fetchPictures = async () => {
+    const { data } = await supabase.from("hero_pictures").select("*").order("display_order");
+    setPictures((data as any[]) || []);
+    setLoading(false);
+  };
+
+  const handleFiles = async (files: FileList | File[]) => {
+    const fileArr = Array.from(files).filter(f => f.type.startsWith("image/"));
+    if (fileArr.length === 0) { toast.error("Please upload image files"); return; }
+    setUploading(true);
+
+    for (const file of fileArr) {
+      if (file.size > 10 * 1024 * 1024) { toast.error(`${file.name} is too large (max 10MB)`); continue; }
+      const id = crypto.randomUUID();
+      const ext = file.name.split(".").pop() || "jpg";
+      const filePath = `${id}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("hero-pictures")
+        .upload(filePath, file, { cacheControl: "3600" });
+
+      if (uploadError) { toast.error(`Upload failed: ${uploadError.message}`); continue; }
+
+      const { data: urlData } = supabase.storage.from("hero-pictures").getPublicUrl(filePath);
+      const imageUrl = urlData.publicUrl;
+
+      const { error: dbError } = await supabase.from("hero_pictures").insert({
+        image_url: imageUrl,
+        display_order: pictures.length + fileArr.indexOf(file),
+      } as any);
+
+      if (dbError) { toast.error(`Save failed: ${dbError.message}`); continue; }
+    }
+
+    toast.success(`${fileArr.length} picture(s) uploaded`);
+    fetchPictures();
+    setUploading(false);
+  };
+
+  const handleDelete = async (pic: { id: string; image_url: string }) => {
+    if (!confirm("Remove this picture from the hero background?")) return;
+    // Extract filename from URL
+    const urlParts = pic.image_url.split("/");
+    const fileName = urlParts[urlParts.length - 1].split("?")[0];
+    await supabase.storage.from("hero-pictures").remove([fileName]);
+    await supabase.from("hero_pictures").delete().eq("id", pic.id);
+    setPictures(prev => prev.filter(p => p.id !== pic.id));
+    toast.success("Picture removed");
+  };
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="pictures">
+      <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Pictures</h1>
+      <p className="text-muted-foreground mb-8">Manage hero background images for the landing page.</p>
+
+      {/* Upload area */}
+      <div
+        onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={(e) => { e.preventDefault(); setDragging(false); handleFiles(e.dataTransfer.files); }}
+        onClick={() => document.getElementById("hero-pics-input")?.click()}
+        className={cn(
+          "relative border-2 border-dashed rounded-2xl p-10 text-center transition-all cursor-pointer mb-10",
+          dragging ? "border-primary bg-primary/5 scale-[1.01]" : "border-border hover:border-muted-foreground/50"
+        )}
+      >
+        <input
+          id="hero-pics-input"
+          type="file"
+          accept="image/*"
+          multiple
+          className="hidden"
+          onChange={(e) => { if (e.target.files) handleFiles(e.target.files); e.target.value = ""; }}
+        />
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+            <Upload className="h-7 w-7 text-primary" />
+          </div>
+          <p className="text-lg font-medium text-foreground">
+            {uploading ? "Uploading..." : "Drop images here or click to browse"}
+          </p>
+          <p className="text-sm text-muted-foreground">PNG, JPG, WEBP — up to 10MB each. Multiple files supported.</p>
+        </div>
+      </div>
+
+      {/* Gallery */}
+      {loading ? (
+        <p className="text-center text-muted-foreground py-12">Loading pictures...</p>
+      ) : pictures.length === 0 ? (
+        <Card className="bg-card border-border">
+          <CardContent className="py-16 text-center">
+            <p className="text-muted-foreground text-lg">No hero pictures yet.</p>
+            <p className="text-sm text-muted-foreground mt-1">Upload images above — they'll appear as the landing page background.</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
+          {pictures.map((pic) => (
+            <motion.div
+              key={pic.id}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="group relative break-inside-avoid rounded-xl overflow-hidden border border-border bg-card"
+            >
+              <img
+                src={pic.image_url}
+                alt="Hero background"
+                className="w-full h-auto object-cover"
+                loading="lazy"
+              />
+              <div className="absolute inset-0 bg-background/0 group-hover:bg-background/60 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleDelete(pic); }}
+                  className="rounded-full bg-destructive p-3 text-destructive-foreground shadow-lg hover:bg-destructive/90 transition-all"
+                >
+                  <Trash2 className="h-5 w-5" />
+                </button>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      )}
+    </motion.div>
+  );
+};
+
 const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
   const [clubs, setClubs] = useState<ClubRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -2459,6 +2595,11 @@ const AdminDashboard = () => {
         {/* Clubs & Partners */}
         {activeTab === "clubs" && (
           <ClubsTab isMasterAdmin={!myClubId} />
+        )}
+
+        {/* Pictures */}
+        {activeTab === "pictures" && (
+          <PicturesTab />
         )}
 
         {/* Settings */}

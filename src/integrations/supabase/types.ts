@@ -240,6 +240,27 @@ export type Database = {
           },
         ]
       }
+      hero_pictures: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          image_url: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          image_url: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          image_url?: string
+        }
+        Relationships: []
+      }
       offerings: {
         Row: {
           created_at: string
