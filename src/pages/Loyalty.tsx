@@ -166,41 +166,52 @@ const LoyaltyPage = () => {
           </div>
         </motion.div>
 
-        {/* Activities */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-        >
-          <h3 className="font-heading text-2xl font-bold text-foreground text-center mb-8">
-            Earn Points In <span className="text-gradient">Every Activity</span>
-          </h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto">
-            {offerings.map((a, i) => (
+        {/* Activities — auto-scrolling marquee */}
+        {offerings.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <h3 className="font-heading text-2xl font-bold text-foreground text-center mb-10">
+              Earn Points In <span className="text-gradient">Every Activity</span>
+            </h3>
+
+            <div className="relative overflow-hidden">
+              {/* Fade edges */}
+              <div className="absolute left-0 top-0 bottom-0 w-20 z-10 bg-gradient-to-r from-background to-transparent pointer-events-none" />
+              <div className="absolute right-0 top-0 bottom-0 w-20 z-10 bg-gradient-to-l from-background to-transparent pointer-events-none" />
+
               <motion.div
-                key={a.id}
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="relative rounded-xl overflow-hidden aspect-[3/4] group bg-secondary"
+                className="flex gap-5 w-max"
+                animate={{ x: ["0%", "-50%"] }}
+                transition={{ duration: offerings.length * 4, repeat: Infinity, ease: "linear" }}
               >
-                {a.logo_url ? (
-                  <img src={a.logo_url} alt={a.name} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                ) : (
-                  <div className="h-full w-full flex items-center justify-center bg-primary/10">
-                    <Trophy className="h-10 w-10 text-primary/40" />
+                {/* Duplicate the list for seamless loop */}
+                {[...offerings, ...offerings].map((a, i) => (
+                  <div
+                    key={`${a.id}-${i}`}
+                    className="flex items-center gap-4 rounded-2xl border border-border bg-card px-6 py-4 shrink-0 hover:border-primary/30 transition-colors group"
+                  >
+                    <div className="w-14 h-14 rounded-xl overflow-hidden bg-secondary shrink-0">
+                      {a.logo_url ? (
+                        <img src={a.logo_url} alt={a.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-primary/10">
+                          <Trophy className="h-6 w-6 text-primary/40" />
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-heading font-bold text-foreground text-sm whitespace-nowrap">{a.name}</p>
+                      <p className="text-xs text-muted-foreground whitespace-nowrap">1 booking = 1 point</p>
+                    </div>
                   </div>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
-                <div className="absolute bottom-4 left-4 right-4">
-                  <p className="font-heading font-bold text-foreground text-sm">{a.name}</p>
-                  <p className="text-xs text-muted-foreground">1 booking = 1 point</p>
-                </div>
+                ))}
               </motion.div>
-            ))}
-          </div>
-        </motion.div>
+            </div>
+          </motion.div>
+        )}
       </section>
 
       {/* CTA */}
