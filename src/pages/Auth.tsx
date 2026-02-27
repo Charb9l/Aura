@@ -20,12 +20,15 @@ const Auth = () => {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
+  const [checkingRole, setCheckingRole] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
 
   useEffect(() => {
+    // Don't redirect while we're checking the admin role
+    if (checkingRole) return;
     if (user) navigate("/");
-  }, [user, navigate]);
+  }, [user, navigate, checkingRole]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,10 +52,13 @@ const Auth = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setCheckingRole(true);
+
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       setLoading(false);
-      toast.error(error.message);
+      setCheckingRole(false);
+      toast.error("Invalid email or password.");
       return;
     }
 
@@ -67,10 +73,12 @@ const Auth = () => {
     if (roleData) {
       await supabase.auth.signOut();
       setLoading(false);
-      toast.error("This account is an admin account. Please use the Admin login page.");
+      setCheckingRole(false);
+      toast.error("Invalid email or password.");
       return;
     }
 
+    setCheckingRole(false);
     setLoading(false);
     navigate("/");
   };
