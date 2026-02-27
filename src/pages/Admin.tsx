@@ -872,7 +872,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
   // Offerings management state
   const [offerings, setOfferings] = useState<OfferingRow[]>([]);
   const [showOfferingsDialog, setShowOfferingsDialog] = useState(false);
-  const [offeringsDialogMode, setOfferingsDialogMode] = useState<"list" | "add">("list");
+  const [offeringsDialogMode, setOfferingsDialogMode] = useState<"list" | "add" | "edit">("list");
   const showAddOffering = offeringsDialogMode === "add";
   const setShowAddOffering = (v: boolean) => { if (v) setOfferingsDialogMode("add"); else setOfferingsDialogMode("list"); };
   const [addOfferingName, setAddOfferingName] = useState("");
@@ -881,6 +881,13 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
   const [addOfferingLogoPreview, setAddOfferingLogoPreview] = useState<string | null>(null);
   const [addOfferingSaving, setAddOfferingSaving] = useState(false);
   const [addOfferingDragging, setAddOfferingDragging] = useState(false);
+
+  // Edit offering state
+  const [editOfferingId, setEditOfferingId] = useState<string | null>(null);
+  const [editOfferingLogoFile, setEditOfferingLogoFile] = useState<File | null>(null);
+  const [editOfferingLogoPreview, setEditOfferingLogoPreview] = useState<string | null>(null);
+  const [editOfferingSaving, setEditOfferingSaving] = useState(false);
+  const [editOfferingDragging, setEditOfferingDragging] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -1120,6 +1127,47 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
     setOfferings(prev => [...prev, { ...newOffering as unknown as OfferingRow, logo_url: logoUrl }].sort((a, b) => a.name.localeCompare(b.name)));
     setShowAddOffering(false);
     setAddOfferingName(""); setAddOfferingSlug(""); setAddOfferingLogoFile(null); setAddOfferingLogoPreview(null);
+  };
+
+  const handleEditOfferingFileSelect = (file: File) => {
+    if (!file.type.startsWith("image/")) { toast.error("Please upload an image file"); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("Image must be under 5MB"); return; }
+    setEditOfferingLogoFile(file);
+    setEditOfferingLogoPreview(URL.createObjectURL(file));
+  };
+
+  const handleEditOfferingSave = async () => {
+    if (!editOfferingId || !editOfferingLogoFile) return;
+    setEditOfferingSaving(true);
+
+    const ext = editOfferingLogoFile.name.split(".").pop() || "png";
+    const filePath = `${editOfferingId}.${ext}`;
+    const { error: uploadError } = await supabase.storage
+      .from("offering-logos")
+      .upload(filePath, editOfferingLogoFile, { upsert: true, cacheControl: "0" });
+
+    if (uploadError) {
+      toast.error("Image upload failed: " + uploadError.message);
+      setEditOfferingSaving(false);
+      return;
+    }
+
+    const { data: urlData } = supabase.storage.from("offering-logos").getPublicUrl(filePath);
+    const logoUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+    await supabase.from("offerings").update({ logo_url: logoUrl }).eq("id", editOfferingId);
+
+    setOfferings(prev => prev.map(o => o.id === editOfferingId ? { ...o, logo_url: logoUrl } : o));
+    setEditOfferingSaving(false);
+    toast.success("Offering image updated");
+    setOfferingsDialogMode("list");
+    setEditOfferingId(null); setEditOfferingLogoFile(null); setEditOfferingLogoPreview(null);
+  };
+
+  const openEditOffering = (offering: OfferingRow) => {
+    setEditOfferingId(offering.id);
+    setEditOfferingLogoPreview(offering.logo_url || null);
+    setEditOfferingLogoFile(null);
+    setOfferingsDialogMode("edit");
   };
 
   return (
@@ -1507,18 +1555,66 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
           <DialogHeader>
             <DialogTitle className="font-heading text-xl flex items-center gap-2">
               <Image className="h-5 w-5 text-primary" />
-              {offeringsDialogMode === "list" ? "Offerings" : "Add Offering"}
+              {offeringsDialogMode === "list" ? "Offerings" : offeringsDialogMode === "add" ? "Add Offering" : "Edit Offering Image"}
             </DialogTitle>
           </DialogHeader>
 
-          {offeringsDialogMode === "list" ? (
+          {offeringsDialogMode === "edit" ? (
+            <div className="space-y-5 pt-2">
+              <Button variant="ghost" size="sm" onClick={() => { setOfferingsDialogMode("list"); setEditOfferingId(null); setEditOfferingLogoFile(null); setEditOfferingLogoPreview(null); }} className="gap-1 -ml-2 mb-1">
+                ← Back to list
+              </Button>
+              <p className="text-sm text-muted-foreground">
+                {offerings.find(o => o.id === editOfferingId)?.name}
+              </p>
+              <div>
+                <Label className="text-sm font-medium text-muted-foreground mb-2 block">Offering Image</Label>
+                <div
+                  onDragOver={(e) => { e.preventDefault(); setEditOfferingDragging(true); }}
+                  onDragLeave={() => setEditOfferingDragging(false)}
+                  onDrop={(e) => { e.preventDefault(); setEditOfferingDragging(false); const file = e.dataTransfer.files[0]; if (file) handleEditOfferingFileSelect(file); }}
+                  className={cn(
+                    "relative border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer",
+                    editOfferingDragging ? "border-primary bg-primary/5" : "border-border hover:border-muted-foreground/50"
+                  )}
+                  onClick={() => document.getElementById("edit-offering-logo-input")?.click()}
+                >
+                  <input
+                    id="edit-offering-logo-input"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => { const file = e.target.files?.[0]; if (file) handleEditOfferingFileSelect(file); }}
+                  />
+                  {editOfferingLogoPreview ? (
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="h-32 w-32 rounded-xl overflow-hidden bg-secondary">
+                        <img src={editOfferingLogoPreview} alt="Offering preview" className="h-full w-full object-cover" />
+                      </div>
+                      <p className="text-xs text-muted-foreground">Click or drag to replace</p>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-2 py-4">
+                      <Upload className="h-8 w-8 text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground">Drag & drop or click to upload</p>
+                      <p className="text-xs text-muted-foreground">PNG, JPG up to 5MB</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <Button onClick={handleEditOfferingSave} disabled={editOfferingSaving || !editOfferingLogoFile} className="w-full h-12 text-base font-semibold glow">
+                <Upload className="h-4 w-4 mr-2" />
+                {editOfferingSaving ? "Saving..." : "Save Image"}
+              </Button>
+            </div>
+          ) : offeringsDialogMode === "list" ? (
             <div className="space-y-4 pt-2">
               {offerings.length === 0 ? (
                 <p className="text-center text-muted-foreground py-8">No offerings yet.</p>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {offerings.map((o) => (
-                    <div key={o.id} className="flex items-center gap-4 rounded-xl border border-border bg-secondary/50 p-4">
+                    <div key={o.id} onClick={() => openEditOffering(o)} className="flex items-center gap-4 rounded-xl border border-border bg-secondary/50 p-4 cursor-pointer hover:border-primary/50 hover:bg-secondary transition-all">
                       <div className="h-16 w-16 rounded-lg overflow-hidden bg-secondary shrink-0">
                         {o.logo_url ? (
                           <img src={o.logo_url} alt={o.name} className="h-full w-full object-cover" />
@@ -1528,10 +1624,11 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                           </div>
                         )}
                       </div>
-                      <div>
+                      <div className="flex-1 min-w-0">
                         <p className="font-medium text-foreground">{o.name}</p>
                         <p className="text-xs text-muted-foreground">{o.slug}</p>
                       </div>
+                      <Pencil className="h-4 w-4 text-muted-foreground shrink-0" />
                     </div>
                   ))}
                 </div>
