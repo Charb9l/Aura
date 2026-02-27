@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      academy_pictures: {
+        Row: {
+          club_id: string
+          created_at: string
+          display_order: number
+          id: string
+          image_url: string
+          picture_type: string
+        }
+        Insert: {
+          club_id: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          image_url: string
+          picture_type?: string
+        }
+        Update: {
+          club_id?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          image_url?: string
+          picture_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_pictures_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_audit_log: {
         Row: {
           activity: string

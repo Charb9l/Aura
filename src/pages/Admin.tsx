@@ -22,6 +22,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/sonner";
 import AdminNavbar from "@/components/AdminNavbar";
 import CustomerVisionTab from "@/components/CustomerVisionTab";
+import AcademiesTab from "@/components/AcademiesTab";
 import OfferingsTab from "@/components/OfferingsTab";
 import Navbar from "@/components/Navbar";
 import PhoneInput from "@/components/PhoneInput";
@@ -2595,14 +2596,19 @@ const AdminDashboard = () => {
           <ClubsTab isMasterAdmin={!myClubId} />
         )}
 
-        {/* Offerings */}
+        {/* Activities */}
         {activeTab === "offerings" && (
           <OfferingsTab />
         )}
 
+        {/* Academies */}
+        {activeTab === "academies" && (
+          <AcademiesTab />
+        )}
+
         {/* Customer Vision */}
         {activeTab === "customer-vision" && (
-          <CustomerVisionTab />
+          <CustomerVisionTab onNavigateTab={setActiveTab} />
         )}
 
         {/* Pictures tab removed - now managed within Customer Vision */}
