@@ -20,6 +20,7 @@ const actions = [
   { to: "/book", label: "Book a Session", delay: 0.4 },
   { to: "/academy", label: "Join Our Academy", delay: 0.5 },
   { to: "/clubs", label: "Clubs & Partners", delay: 0.6 },
+  { to: "/loyalty", label: "Loyalty Program", delay: 0.7 },
 ];
 
 const HeroSection = () => {
