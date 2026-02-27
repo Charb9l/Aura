@@ -49,13 +49,30 @@ const Auth = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
+      setLoading(false);
       toast.error(error.message);
-    } else {
-      navigate("/");
+      return;
     }
+
+    // Check if user is an admin — block customer login for admins
+    const { data: roleData } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", data.user.id)
+      .eq("role", "admin")
+      .maybeSingle();
+
+    if (roleData) {
+      await supabase.auth.signOut();
+      setLoading(false);
+      toast.error("This account is an admin account. Please use the Admin login page.");
+      return;
+    }
+
+    setLoading(false);
+    navigate("/");
   };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
