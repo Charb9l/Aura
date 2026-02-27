@@ -16,32 +16,47 @@ const fallbackPanels = [
   { image: pilatesImg, alt: "Pilates studio" },
 ];
 
-const actions = [
+const defaultActions = [
   { to: "/book", label: "Book a Session", delay: 0.4 },
   { to: "/academy", label: "Join Our Academies", delay: 0.5 },
   { to: "/clubs", label: "Clubs & Partners", delay: 0.6 },
   { to: "/loyalty", label: "Loyalty Program", delay: 0.7 },
 ];
 
+interface HeroContent {
+  hero_subtitle: string;
+  hero_title_line1: string;
+  hero_title_line2: string;
+  hero_buttons: { to: string; label: string }[];
+}
+
 const HeroSection = () => {
   const [heroPictures, setHeroPictures] = useState<{ image: string; alt: string }[]>([]);
+  const [content, setContent] = useState<HeroContent | null>(null);
 
   useEffect(() => {
-    const fetchPictures = async () => {
-      const { data } = await supabase
-        .from("hero_pictures")
-        .select("*")
-        .order("display_order", { ascending: true });
-      if (data && data.length > 0) {
-        setHeroPictures(data.map((p: any) => ({ image: p.image_url, alt: `Hero image` })));
+    const fetchData = async () => {
+      const [picRes, contentRes] = await Promise.all([
+        supabase.from("hero_pictures").select("*").order("display_order", { ascending: true }),
+        supabase.from("page_content").select("*").eq("page_slug", "home").single(),
+      ]);
+      if (picRes.data && picRes.data.length > 0) {
+        setHeroPictures(picRes.data.map((p: any) => ({ image: p.image_url, alt: "Hero image" })));
+      }
+      if (contentRes.data) {
+        setContent(contentRes.data.content as unknown as HeroContent);
       }
     };
-    fetchPictures();
+    fetchData();
   }, []);
 
   const panels = heroPictures.length > 0 ? heroPictures : fallbackPanels;
-  // Dynamically set grid columns based on picture count
   const colClass = panels.length <= 2 ? "grid-cols-1 md:grid-cols-2" : panels.length === 3 ? "grid-cols-1 md:grid-cols-3" : "grid-cols-2 md:grid-cols-4";
+
+  const subtitle = content?.hero_subtitle || "Movement & Mindfulness";
+  const titleLine1 = content?.hero_title_line1 || "Your Journey.";
+  const titleLine2 = content?.hero_title_line2 || "Your Space.";
+  const actions = content?.hero_buttons?.map((b, i) => ({ ...b, delay: 0.4 + i * 0.1 })) || defaultActions;
 
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
@@ -74,12 +89,12 @@ const HeroSection = () => {
           className="max-w-xl"
         >
           <p className="text-xs md:text-sm uppercase tracking-[0.3em] text-muted-foreground mb-4 font-medium">
-            Movement & Mindfulness
+            {subtitle}
           </p>
           <h1 className="font-heading text-3xl md:text-5xl font-bold tracking-tight text-foreground leading-[1.15]">
-            Your Journey.
+            {titleLine1}
             <br />
-            <span className="text-gradient">Your Space.</span>
+            <span className="text-gradient">{titleLine2}</span>
           </h1>
         </motion.div>
 

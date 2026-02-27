@@ -21,6 +21,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/sonner";
 import AdminNavbar from "@/components/AdminNavbar";
+import CustomerVisionTab from "@/components/CustomerVisionTab";
+import OfferingsTab from "@/components/OfferingsTab";
 import Navbar from "@/components/Navbar";
 import PhoneInput from "@/components/PhoneInput";
 import {
@@ -1328,10 +1330,6 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
         </div>
         {isMasterAdmin && (
           <div className="flex gap-3">
-            <Button onClick={() => { setOfferingsDialogMode("list"); setShowOfferingsDialog(true); }} variant="outline" className="h-11 px-5 font-semibold gap-2">
-              <Image className="h-4 w-4" />
-              Offerings
-            </Button>
             <Button onClick={() => setShowAddClub(true)} className="h-11 px-5 font-semibold glow gap-2">
               <Building2 className="h-4 w-4" />
               Add Club
@@ -2592,9 +2590,19 @@ const AdminDashboard = () => {
           </motion.div>
         )}
 
-        {/* Clubs & Partners */}
+        {/* Clubs & Partners (accessible via Customer Vision) */}
         {activeTab === "clubs" && (
           <ClubsTab isMasterAdmin={!myClubId} />
+        )}
+
+        {/* Offerings */}
+        {activeTab === "offerings" && (
+          <OfferingsTab />
+        )}
+
+        {/* Customer Vision */}
+        {activeTab === "customer-vision" && (
+          <CustomerVisionTab />
         )}
 
         {/* Pictures */}
