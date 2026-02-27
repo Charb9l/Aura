@@ -268,7 +268,7 @@ const BookPage = () => {
               <Label className="text-sm font-medium text-muted-foreground">Choose Activity</Label>
               <ActivityFilter offerings={offerings} selected={filterSlugs} onChange={setFilterSlugs} />
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+            <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
               {(filterSlugs.length > 0 ? offerings.filter(o => filterSlugs.includes(o.slug)) : offerings).map((a) => {
                 const brand = brandForSlug(a.slug);
                 const imgSrc = a.logo_url || "";
