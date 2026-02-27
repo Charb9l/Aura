@@ -402,9 +402,11 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
               </div>
             )}
 
-            <div className="border-t border-border pt-6">
-              {editingPage && <PagePicturesManager pageSlug={editingPage} />}
-            </div>
+            {editingPage && editingPage !== "clubs" && editingPage !== "loyalty" && (
+              <div className="border-t border-border pt-6">
+                <PagePicturesManager pageSlug={editingPage} />
+              </div>
+            )}
 
             <Button onClick={() => editingPage && handleSavePage(editingPage)} disabled={saving} className="w-full h-12 text-base font-semibold glow">
               {saving ? "Saving..." : "Save Changes"}
