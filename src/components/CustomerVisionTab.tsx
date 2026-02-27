@@ -181,7 +181,7 @@ const FieldsEditor = ({ fields, onChange, label }: { fields: FormField[]; onChan
 };
 
 // === Main Tab ===
-const CustomerVisionTab = () => {
+const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) => void }) => {
   const [editingPage, setEditingPage] = useState<string | null>(null);
   const [allContent, setAllContent] = useState<Record<string, any>>({});
   const [saving, setSaving] = useState(false);
@@ -212,6 +212,11 @@ const CustomerVisionTab = () => {
   }, []);
 
   const openEditor = (slug: string) => {
+    // Academy edit redirects to the Academies tab
+    if (slug === "academy" && onNavigateTab) {
+      onNavigateTab("academies");
+      return;
+    }
     const content = allContent[slug] || {};
     if (slug === "home") {
       setHeroSubtitle(content.hero_subtitle || "");
