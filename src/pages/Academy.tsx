@@ -225,7 +225,7 @@ const AcademyPage = () => {
           </div>
         </motion.div>
 
-        <form onSubmit={handleSubmit} className="max-w-3xl space-y-10">
+        <form onSubmit={handleSubmit} className="space-y-10">
           {/* Sport selection */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
             <Label className="text-sm font-medium text-muted-foreground mb-4 block">Choose Your Academy</Label>
