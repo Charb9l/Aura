@@ -44,7 +44,7 @@ const LoyaltyPage = () => {
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            className="max-w-5xl mx-auto text-center"
+            className="mx-auto text-center"
           >
             <motion.div
               initial={{ scale: 0 }}
@@ -87,7 +87,7 @@ const LoyaltyPage = () => {
           How It <span className="text-gradient">Works</span>
         </motion.h2>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-20">
+        <div className="grid md:grid-cols-3 gap-8 mx-auto mb-20">
           {[
             {
               icon: <Star className="h-8 w-8" />,
@@ -133,7 +133,7 @@ const LoyaltyPage = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="max-w-5xl mx-auto mb-20"
+          className="mx-auto mb-20"
         >
           <h3 className="font-heading text-2xl font-bold text-foreground text-center mb-8">Your Journey Per Activity</h3>
           <div className="rounded-2xl border border-border bg-card p-8">
