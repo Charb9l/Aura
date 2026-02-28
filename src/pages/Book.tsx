@@ -318,7 +318,7 @@ const BookPage = () => {
                 <SelectContent className="bg-card border-border z-50">
                   <SelectItem value="__all__">All Locations</SelectItem>
                   {availableFilterLocations.map(loc => (
-                    <SelectItem key={loc.id} value={loc.location}>{loc.name} — {loc.location}</SelectItem>
+                    <SelectItem key={loc.id} value={loc.location}>{loc.location}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
