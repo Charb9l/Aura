@@ -23,6 +23,7 @@ import { toast } from "@/components/ui/sonner";
 import AdminNavbar from "@/components/AdminNavbar";
 import CustomerVisionTab from "@/components/CustomerVisionTab";
 import AcademiesTab from "@/components/AcademiesTab";
+import AdminMyPlayerTab from "@/components/AdminMyPlayerTab";
 import OfferingsTab from "@/components/OfferingsTab";
 import Navbar from "@/components/Navbar";
 import PhoneInput from "@/components/PhoneInput";
@@ -2766,6 +2767,11 @@ const AdminDashboard = () => {
         )}
 
         {/* Pictures tab removed - now managed within Customer Vision */}
+
+        {/* MyPlayer Config */}
+        {activeTab === "myplayer" && (
+          <AdminMyPlayerTab />
+        )}
 
         {/* Settings */}
         {activeTab === "settings" && (

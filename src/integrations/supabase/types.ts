@@ -379,6 +379,90 @@ export type Database = {
         }
         Relationships: []
       }
+      player_levels: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          label: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          label: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          label?: string
+        }
+        Relationships: []
+      }
+      player_selections: {
+        Row: {
+          created_at: string
+          id: string
+          level_id: string
+          rank: number
+          sport_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          level_id: string
+          rank: number
+          sport_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          level_id?: string
+          rank?: number
+          sport_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_selections_level_id_fkey"
+            columns: ["level_id"]
+            isOneToOne: false
+            referencedRelation: "player_levels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_selections_sport_id_fkey"
+            columns: ["sport_id"]
+            isOneToOne: false
+            referencedRelation: "player_sports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      player_sports: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
