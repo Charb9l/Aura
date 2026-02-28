@@ -1,12 +1,13 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import { Building2, ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
+import { Building2, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import Navbar from "@/components/Navbar";
+import GalleryMosaic from "@/components/GalleryMosaic";
 
 interface Club {
   id: string;
@@ -38,7 +39,6 @@ const ClubsPage = () => {
   const [selectedClub, setSelectedClub] = useState<Club | null>(null);
   const [clubPictures, setClubPictures] = useState<ClubPicture[]>([]);
   const [picturesLoading, setPicturesLoading] = useState(false);
-  const [carouselIndex, setCarouselIndex] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -60,7 +60,6 @@ const ClubsPage = () => {
 
   const openClub = async (club: Club) => {
     setSelectedClub(club);
-    setCarouselIndex(0);
     setPicturesLoading(true);
     const { data } = await supabase
       .from("club_pictures")
@@ -69,18 +68,6 @@ const ClubsPage = () => {
       .order("display_order");
     setClubPictures((data as unknown as ClubPicture[]) || []);
     setPicturesLoading(false);
-  };
-
-  const nextSlide = () => {
-    if (clubPictures.length > 0) {
-      setCarouselIndex((prev) => (prev + 1) % clubPictures.length);
-    }
-  };
-
-  const prevSlide = () => {
-    if (clubPictures.length > 0) {
-      setCarouselIndex((prev) => (prev - 1 + clubPictures.length) % clubPictures.length);
-    }
   };
 
   return (
@@ -140,55 +127,20 @@ const ClubsPage = () => {
         <DialogContent className="bg-card border-border max-w-4xl w-[66vw] max-h-[80vh] overflow-y-auto p-0">
           {selectedClub && (
             <div>
-              {/* Carousel */}
               {picturesLoading ? (
-                <div className="aspect-video bg-secondary flex items-center justify-center">
+                <div className="h-[340px] bg-secondary flex items-center justify-center rounded-t-lg">
                   <p className="text-muted-foreground">Loading pictures...</p>
                 </div>
-              ) : clubPictures.length > 0 ? (
-                <div className="relative aspect-video overflow-hidden rounded-t-lg">
-                  <AnimatePresence mode="wait">
-                    <motion.img
-                      key={clubPictures[carouselIndex]?.id}
-                      src={clubPictures[carouselIndex]?.image_url}
-                      alt={selectedClub.name}
-                      className="w-full h-full object-cover"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.3 }}
-                    />
-                  </AnimatePresence>
-                  {clubPictures.length > 1 && (
-                    <>
-                      <button
-                        onClick={prevSlide}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-background/80 p-2 text-foreground shadow-lg hover:bg-background transition-all"
-                      >
-                        <ChevronLeft className="h-5 w-5" />
-                      </button>
-                      <button
-                        onClick={nextSlide}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-background/80 p-2 text-foreground shadow-lg hover:bg-background transition-all"
-                      >
-                        <ChevronRight className="h-5 w-5" />
-                      </button>
-                      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-                        {clubPictures.map((_, i) => (
-                          <button
-                            key={i}
-                            onClick={() => setCarouselIndex(i)}
-                            className={`h-2 rounded-full transition-all ${i === carouselIndex ? "w-6 bg-primary" : "w-2 bg-foreground/40"}`}
-                          />
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </div>
               ) : (
-                <div className="aspect-video bg-secondary flex items-center justify-center rounded-t-lg">
-                  <Building2 className="h-16 w-16 text-muted-foreground/30" />
-                </div>
+                <GalleryMosaic
+                  images={clubPictures}
+                  alt={selectedClub.name}
+                  fallback={
+                    <div className="h-[200px] bg-secondary flex items-center justify-center rounded-t-lg">
+                      <Building2 className="h-16 w-16 text-muted-foreground/30" />
+                    </div>
+                  }
+                />
               )}
 
               {/* Content */}
