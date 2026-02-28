@@ -277,8 +277,6 @@ const AcademyPage = () => {
         {/* Academy Club Cards */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredClubs.map((club, i) => {
-            const bubblePic = selectedBubblePic(club.id);
-            const bgImage = bubblePic?.image_url || club.offeringImageUrl;
             return (
               <motion.button
                 key={club.id}
@@ -287,21 +285,19 @@ const AcademyPage = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1 }}
                 onClick={() => openClubDialog(club)}
-                className="relative overflow-hidden rounded-xl border-2 border-border hover:border-primary/50 transition-all text-left group"
+                className="rounded-2xl border border-border bg-card p-6 hover:shadow-xl hover:shadow-primary/5 transition-all text-left cursor-pointer"
               >
-                <div className="aspect-video overflow-hidden bg-secondary">
-                  {bgImage && <img src={bgImage} alt={club.name} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />}
-                  <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
+                <div className="flex items-center gap-4 mb-4">
+                  {club.logo_url && (
+                    <div className="h-16 w-16 rounded-xl overflow-hidden bg-secondary flex items-center justify-center shrink-0">
+                      <img src={club.logo_url} alt={club.name} className="h-full w-full object-contain" />
+                    </div>
+                  )}
+                  <h3 className="font-heading text-xl font-bold text-foreground">{club.name}</h3>
                 </div>
-                {club.logo_url && (
-                  <div className="absolute top-3 right-3">
-                    <img src={club.logo_url} alt={club.name} className="h-10 w-10 rounded-full object-cover shadow-lg" />
-                  </div>
+                {club.description && (
+                  <p className="text-muted-foreground text-sm line-clamp-2">{club.description}</p>
                 )}
-                <div className="absolute bottom-0 left-0 right-0 p-5">
-                  <h3 className="font-heading text-xl font-bold text-foreground mb-1">{club.name}</h3>
-                  <p className="text-sm text-muted-foreground line-clamp-2">{club.description}</p>
-                </div>
               </motion.button>
             );
           })}
