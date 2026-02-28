@@ -1,19 +1,21 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { LogOut, User, ShieldCheck } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
+
+const NAV_LINKS = [
+  { to: "/", label: "Home" },
+  { to: "/book", label: "Book Now" },
+  { to: "/academy", label: "Academies" },
+  { to: "/clubs", label: "Clubs & Partners" },
+  { to: "/loyalty", label: "Loyalty" },
+];
 
 const Navbar = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const location = useLocation();
 
   const handleSignOut = async () => {
     await signOut();
@@ -35,39 +37,32 @@ const Navbar = () => {
           <span className="text-[10px] font-medium tracking-[0.25em] text-muted-foreground">WELLNESS HUB</span>
         </Link>
 
-        {/* Center: Menu with hover */}
-        <div
-          className="justify-self-center"
-          onMouseEnter={() => setMenuOpen(true)}
-          onMouseLeave={() => setMenuOpen(false)}
-        >
-          <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
-            <DropdownMenuTrigger className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors uppercase tracking-widest focus:outline-none">
-              Menu
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="center"
-              className="bg-card border-border min-w-[200px]"
-              onMouseEnter={() => setMenuOpen(true)}
-              onMouseLeave={() => setMenuOpen(false)}
-            >
-              <DropdownMenuItem onClick={() => navigate("/")} className="cursor-pointer">
-                Home
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate("/book")} className="cursor-pointer">
-                Book Now
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate("/academy")} className="cursor-pointer">
-                Academies
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate("/clubs")} className="cursor-pointer">
-                Clubs & Partners
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate("/loyalty")} className="cursor-pointer">
-                Loyalty Program
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        {/* Center: Nav Links */}
+        <div className="justify-self-center flex items-center gap-6">
+          {NAV_LINKS.map((link) => {
+            const isActive = location.pathname === link.to;
+            return (
+              <Link
+                key={link.to}
+                to={link.to}
+                className={cn(
+                  "text-sm font-medium tracking-wide transition-colors whitespace-nowrap",
+                  isActive
+                    ? "text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {link.label}
+                {isActive && (
+                  <motion.div
+                    layoutId="nav-underline"
+                    className="h-0.5 mt-0.5 rounded-full bg-primary"
+                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  />
+                )}
+              </Link>
+            );
+          })}
         </div>
 
         {/* Right: Admin + Auth */}
