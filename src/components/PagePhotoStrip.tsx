@@ -39,8 +39,11 @@ const PagePhotoStrip = ({ pageSlug, className }: PagePhotoStripProps) => {
   const next = () => setLightboxIndex(prev => prev !== null ? (prev + 1) % images.length : 0);
   const prev = () => setLightboxIndex(prev => prev !== null ? (prev - 1 + images.length) % images.length : 0);
 
-  // Double the images for seamless infinite scroll effect
-  const duplicated = [...images, ...images];
+  // Repeat images enough times so one "set" is wider than the viewport
+  const itemWidth = 160 + 12; // width + gap
+  const setsNeeded = Math.max(2, Math.ceil(2000 / (images.length * itemWidth)) + 1);
+  const repeated = Array.from({ length: setsNeeded }, () => images).flat();
+  const oneSetWidth = images.length * itemWidth;
 
   return (
     <>
@@ -61,11 +64,11 @@ const PagePhotoStrip = ({ pageSlug, className }: PagePhotoStripProps) => {
           ref={stripRef}
           className="flex gap-3 py-2"
           style={{
-            animation: `photo-scroll ${images.length * 6}s linear infinite`,
+            animation: `photo-scroll-${pageSlug} ${images.length * 5}s linear infinite`,
             animationPlayState: isPaused ? "paused" : "running",
           }}
         >
-          {duplicated.map((img, i) => (
+          {repeated.map((img, i) => (
             <button
               key={`${img.id}-${i}`}
               onClick={() => setLightboxIndex(i % images.length)}
@@ -83,11 +86,10 @@ const PagePhotoStrip = ({ pageSlug, className }: PagePhotoStripProps) => {
           ))}
         </div>
 
-        {/* Inline keyframes */}
         <style>{`
-          @keyframes photo-scroll {
+          @keyframes photo-scroll-${pageSlug} {
             0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
+            100% { transform: translateX(-${oneSetWidth}px); }
           }
         `}</style>
       </div>
