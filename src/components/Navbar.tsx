@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlayerProfileComplete } from "@/hooks/usePlayerProfile";
 import { LogOut, User, ShieldCheck, Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 const NAV_LINKS = [
   { to: "/", label: "Home" },
@@ -22,6 +23,20 @@ const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { isComplete: playerComplete } = usePlayerProfileComplete();
   const showGlow = user && playerComplete === false;
+
+  // Fetch glow routes from CMS
+  const [glowRoutes, setGlowRoutes] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    supabase.from("page_content").select("content").eq("page_slug", "home").single().then(({ data }) => {
+      if (data) {
+        const content = data.content as any;
+        const routes = new Set<string>(
+          (content?.hero_buttons || []).filter((b: any) => b.glow).map((b: any) => b.to)
+        );
+        setGlowRoutes(routes);
+      }
+    });
+  }, []);
 
   const handleSignOut = async () => {
     await signOut();
@@ -48,20 +63,24 @@ const Navbar = () => {
         <div className="hidden lg:flex items-center gap-5">
           {NAV_LINKS.map((link) => {
             const isActive = location.pathname === link.to;
+            const isGold = glowRoutes.has(link.to);
             return (
               <Link
                 key={link.to}
                 to={link.to}
                 className={cn(
                   "text-sm font-medium tracking-wide transition-colors whitespace-nowrap",
-                  isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                  isGold && !isActive && "text-amber-300 drop-shadow-[0_0_6px_hsl(43_96%_56%/0.5)]",
+                  isGold && isActive && "text-amber-300 drop-shadow-[0_0_6px_hsl(43_96%_56%/0.5)]",
+                  !isGold && isActive && "text-foreground",
+                  !isGold && !isActive && "text-muted-foreground hover:text-foreground"
                 )}
               >
                 {link.label}
                 {isActive && (
                   <motion.div
                     layoutId="nav-underline"
-                    className="h-0.5 mt-0.5 rounded-full bg-primary"
+                    className={cn("h-0.5 mt-0.5 rounded-full", isGold ? "bg-amber-400" : "bg-primary")}
                     transition={{ type: "spring", stiffness: 380, damping: 30 }}
                   />
                 )}
@@ -144,6 +163,7 @@ const Navbar = () => {
             <div className="container mx-auto px-6 py-4 flex flex-col gap-1">
               {NAV_LINKS.map((link) => {
                 const isActive = location.pathname === link.to;
+                const isGold = glowRoutes.has(link.to);
                 return (
                   <Link
                     key={link.to}
@@ -151,9 +171,10 @@ const Navbar = () => {
                     onClick={() => setMobileOpen(false)}
                     className={cn(
                       "py-2.5 px-3 rounded-lg text-sm font-medium transition-colors",
-                      isActive
-                        ? "text-foreground bg-secondary"
-                        : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                      isGold && "text-amber-300 drop-shadow-[0_0_6px_hsl(43_96%_56%/0.5)]",
+                      isActive && !isGold && "text-foreground bg-secondary",
+                      isActive && isGold && "bg-amber-400/10",
+                      !isActive && !isGold && "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
                     )}
                   >
                     {link.label}

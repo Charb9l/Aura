@@ -100,6 +100,10 @@
     box-shadow: 0 0 30px hsl(100 22% 60% / 0.3);
   }
 
+  .glow-gold {
+    box-shadow: 0 0 18px hsl(43 96% 56% / 0.35), 0 0 40px hsl(43 96% 56% / 0.15);
+  }
+
   .glass {
     @apply bg-card/60 backdrop-blur-xl border border-border/50;
   }

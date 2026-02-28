@@ -13,7 +13,7 @@ import { toast } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
-interface HeroButton { to: string; label: string; }
+interface HeroButton { to: string; label: string; glow?: boolean; }
 interface FormField { key: string; label: string; type: string; required: boolean; }
 
 interface HomeContent {
@@ -267,9 +267,10 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
     saveContent(slug, content);
   };
 
-  const addButton = () => setHeroButtons(prev => [...prev, { to: "/", label: "" }]);
+  const addButton = () => setHeroButtons(prev => [...prev, { to: "/", label: "", glow: false }]);
   const removeButton = (i: number) => setHeroButtons(prev => prev.filter((_, idx) => idx !== i));
   const updateButton = (i: number, field: "to" | "label", value: string) => setHeroButtons(prev => prev.map((b, idx) => idx === i ? { ...b, [field]: value } : b));
+  const toggleButtonGlow = (i: number) => setHeroButtons(prev => prev.map((b, idx) => idx === i ? { ...b, glow: !b.glow } : b));
 
   const currentPage = PAGES.find(p => p.slug === editingPage);
   const hasFields = editingPage === "book" || editingPage === "academy";
@@ -347,6 +348,20 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
                     <div className="flex-1 space-y-2">
                       <Input value={btn.label} onChange={(e) => updateButton(i, "label", e.target.value)} placeholder="Button label" className="h-9 bg-background border-border text-sm" />
                       <Input value={btn.to} onChange={(e) => updateButton(i, "to", e.target.value)} placeholder="Link path (e.g. /book)" className="h-9 bg-background border-border text-sm font-mono" />
+                    </div>
+                    <div className="flex flex-col items-center gap-1 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => toggleButtonGlow(i)}
+                        className={cn(
+                          "px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border transition-all",
+                          btn.glow
+                            ? "border-amber-400/60 bg-amber-400/15 text-amber-300 shadow-[0_0_12px_hsl(43_96%_56%/0.35)]"
+                            : "border-border text-muted-foreground hover:border-muted-foreground/50"
+                        )}
+                      >
+                        ✦ Glow
+                      </button>
                     </div>
                     <Button type="button" variant="ghost" size="icon" onClick={() => removeButton(i)} className="shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"><Trash2 className="h-4 w-4" /></Button>
                   </div>
