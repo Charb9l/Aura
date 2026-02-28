@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
 import basketballImg from "@/assets/basketball-court.png";
@@ -27,7 +28,7 @@ interface HeroContent {
   hero_subtitle: string;
   hero_title_line1: string;
   hero_title_line2: string;
-  hero_buttons: { to: string; label: string }[];
+  hero_buttons: { to: string; label: string; glow?: boolean }[];
 }
 
 const HeroSection = () => {
@@ -99,23 +100,31 @@ const HeroSection = () => {
         </motion.div>
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full max-w-2xl">
-          {actions.map((action) => (
-            <motion.div
-              key={action.to}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: action.delay }}
-              className="flex-1"
-            >
-              <Link
-                to={action.to}
-                className="group flex items-center justify-between rounded-2xl border border-border bg-card/50 backdrop-blur-md px-6 py-5 text-base font-semibold text-foreground transition-all hover:bg-primary hover:text-primary-foreground hover:border-primary hover:glow"
+          {actions.map((action) => {
+            const hasGlow = (action as any).glow;
+            return (
+              <motion.div
+                key={action.to}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: action.delay }}
+                className="flex-1"
               >
-                <span>{action.label}</span>
-                <ArrowRight className="h-4 w-4 opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-              </Link>
-            </motion.div>
-          ))}
+                <Link
+                  to={action.to}
+                  className={cn(
+                    "group flex items-center justify-between rounded-2xl border backdrop-blur-md px-6 py-5 text-base font-semibold transition-all",
+                    hasGlow
+                      ? "border-amber-400/40 bg-amber-400/10 text-amber-100 glow-gold hover:bg-amber-400/20 hover:border-amber-400/60"
+                      : "border-border bg-card/50 text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary hover:glow"
+                  )}
+                >
+                  <span>{action.label}</span>
+                  <ArrowRight className="h-4 w-4 opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                </Link>
+              </motion.div>
+            );
+          })}
         </div>
       </div>
 
