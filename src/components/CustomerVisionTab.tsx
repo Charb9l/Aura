@@ -397,7 +397,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
               </div>
             )}
 
-            {editingPage && editingPage !== "clubs" && editingPage !== "loyalty" && (
+            {editingPage && editingPage !== "loyalty" && (
               <div className="border-t border-border pt-6">
                 <PagePicturesManager pageSlug={editingPage} />
               </div>
