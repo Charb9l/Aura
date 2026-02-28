@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
   { to: "/", label: "Home" },
+  { to: "/matchmaker", label: "AI Matchmaker" },
   { to: "/book", label: "Book Now" },
   { to: "/academy", label: "Academies" },
   { to: "/clubs", label: "Clubs & Partners" },

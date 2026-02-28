@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
-import { Gamepad2, Check, Plus, Trash2 } from "lucide-react";
+import { Gamepad2, Check, Plus, Trash2, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/sonner";
@@ -21,10 +21,17 @@ interface Level {
   display_order: number;
 }
 
+interface Location {
+  id: string;
+  name: string;
+  location: string;
+}
+
 interface Selection {
   rank: number;
   sport_id: string;
   level_id: string;
+  location_id: string;
 }
 
 const MyPlayerSection = () => {
@@ -32,10 +39,11 @@ const MyPlayerSection = () => {
   const [open, setOpen] = useState(false);
   const [offerings, setOfferings] = useState<Offering[]>([]);
   const [levels, setLevels] = useState<Level[]>([]);
+  const [locations, setLocations] = useState<Location[]>([]);
   const [selections, setSelections] = useState<Selection[]>([
-    { rank: 1, sport_id: "", level_id: "" },
-    { rank: 2, sport_id: "", level_id: "" },
-    { rank: 3, sport_id: "", level_id: "" },
+    { rank: 1, sport_id: "", level_id: "", location_id: "" },
+    { rank: 2, sport_id: "", level_id: "", location_id: "" },
+    { rank: 3, sport_id: "", level_id: "", location_id: "" },
   ]);
   const [hasSaved, setHasSaved] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -43,9 +51,10 @@ const MyPlayerSection = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [offeringsRes, levelsRes, selectionsRes] = await Promise.all([
+      const [offeringsRes, levelsRes, locationsRes, selectionsRes] = await Promise.all([
         supabase.from("offerings").select("id, name, slug, brand_color").order("name"),
         supabase.from("player_levels").select("*").order("display_order"),
+        supabase.from("club_locations").select("*").order("name"),
         user
           ? supabase.from("player_selections").select("*").eq("user_id", user.id).order("rank")
           : Promise.resolve({ data: [] }),
@@ -53,6 +62,7 @@ const MyPlayerSection = () => {
 
       setOfferings((offeringsRes.data as Offering[]) || []);
       setLevels((levelsRes.data as Level[]) || []);
+      setLocations((locationsRes.data as Location[]) || []);
 
       const existing = (selectionsRes.data as any[]) || [];
       setHasSaved(existing.length > 0);
@@ -62,9 +72,10 @@ const MyPlayerSection = () => {
           rank: e.rank ?? i + 1,
           sport_id: e.sport_id,
           level_id: e.level_id,
+          location_id: e.location_id || "",
         }));
         while (mapped.length < 3) {
-          mapped.push({ rank: mapped.length + 1, sport_id: "", level_id: "" });
+          mapped.push({ rank: mapped.length + 1, sport_id: "", level_id: "", location_id: "" });
         }
         setSelections(mapped);
       }
@@ -82,7 +93,7 @@ const MyPlayerSection = () => {
 
   const addSlot = () => {
     const nextRank = selections.length + 1;
-    setSelections((prev) => [...prev, { rank: nextRank, sport_id: "", level_id: "" }]);
+    setSelections((prev) => [...prev, { rank: nextRank, sport_id: "", level_id: "", location_id: "" }]);
   };
 
   const removeSlot = (rank: number) => {
@@ -102,6 +113,7 @@ const MyPlayerSection = () => {
       user_id: user.id,
       sport_id: s.sport_id,
       level_id: s.level_id,
+      location_id: s.location_id || null,
       rank: i + 1,
     }));
 
@@ -117,7 +129,7 @@ const MyPlayerSection = () => {
     }
   };
 
-  const updateSelection = (rank: number, field: "sport_id" | "level_id", value: string) => {
+  const updateSelection = (rank: number, field: keyof Selection, value: string) => {
     setSelections((prev) =>
       prev.map((s) => (s.rank === rank ? { ...s, [field]: value } : s))
     );
@@ -158,7 +170,7 @@ const MyPlayerSection = () => {
               <Gamepad2 className="h-5 w-5 text-primary" />
               MyPlayer Profile
             </DialogTitle>
-            <p className="text-sm text-muted-foreground">Pick your favourite sports and your level for each. At least 1 required.</p>
+            <p className="text-sm text-muted-foreground">Pick your favourite sports, your level, and preferred location for each.</p>
           </DialogHeader>
 
           {!loaded ? (
@@ -267,6 +279,43 @@ const MyPlayerSection = () => {
                             </button>
                           );
                         })}
+                      </div>
+                    )}
+
+                    {/* Location selector */}
+                    {sel.sport_id && sel.level_id && locations.length > 0 && (
+                      <div className="space-y-1.5">
+                        <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                          <MapPin className="h-3 w-3" /> Preferred location <span className="text-muted-foreground/60">(optional)</span>:
+                        </p>
+                        <div className="grid grid-cols-2 gap-2">
+                          {locations.map((loc) => {
+                            const selected = sel.location_id === loc.id;
+                            const locStyle = selected && brandColor
+                              ? {
+                                  borderColor: `hsl(${brandColor})`,
+                                  backgroundColor: `hsl(${brandColor} / 0.12)`,
+                                  color: `hsl(${brandColor})`,
+                                }
+                              : {};
+
+                            return (
+                              <button
+                                key={loc.id}
+                                onClick={() => updateSelection(sel.rank, "location_id", selected ? "" : loc.id)}
+                                className={cn(
+                                  "rounded-lg border px-3 py-2.5 text-sm font-medium transition-all text-left",
+                                  !selected && "border-border text-muted-foreground hover:border-muted-foreground/50 hover:text-foreground"
+                                )}
+                                style={locStyle}
+                              >
+                                {selected && <Check className="h-3 w-3 inline mr-1" />}
+                                <span className="block text-xs">{loc.name}</span>
+                                <span className="block text-[10px] opacity-60">{loc.location}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
                     )}
                   </div>
