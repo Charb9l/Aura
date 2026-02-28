@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import Navbar from "@/components/Navbar";
 import GalleryMosaic from "@/components/GalleryMosaic";
+import PagePhotoStrip from "@/components/PagePhotoStrip";
 
 interface Club {
   id: string;
@@ -79,8 +80,11 @@ const ClubsPage = () => {
             <Building2 className="h-8 w-8 text-primary" />
             <h1 className="font-heading text-4xl md:text-5xl font-bold text-foreground">{pageTitle}</h1>
           </div>
-          <p className="text-muted-foreground text-lg mb-12">{pageSubtitle}</p>
+          <p className="text-muted-foreground text-lg mb-6">{pageSubtitle}</p>
         </motion.div>
+
+        <PagePhotoStrip pageSlug="clubs" className="mb-10" />
+
 
         {loading ? (
           <p className="text-muted-foreground text-center py-20">Loading...</p>

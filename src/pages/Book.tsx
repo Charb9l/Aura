@@ -16,6 +16,7 @@ import { toast } from "@/components/ui/sonner";
 import Navbar from "@/components/Navbar";
 import PhoneInput from "@/components/PhoneInput";
 import ActivityFilter from "@/components/ActivityFilter";
+import PagePhotoStrip from "@/components/PagePhotoStrip";
 
 
 
@@ -302,8 +303,10 @@ const BookPage = () => {
       <div className="container mx-auto px-6 pt-28 pb-16">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="font-heading text-4xl md:text-5xl font-bold text-foreground mb-2">{pageTitle}</h1>
-          <p className="text-muted-foreground text-lg mb-10">{pageSubtitle}</p>
+          <p className="text-muted-foreground text-lg mb-6">{pageSubtitle}</p>
         </motion.div>
+
+        <PagePhotoStrip pageSlug="book" className="mb-10" />
 
         <form onSubmit={handleSubmit} className="space-y-10">
           {/* Activity selection */}

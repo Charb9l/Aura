@@ -15,6 +15,7 @@ import Navbar from "@/components/Navbar";
 import PhoneInput from "@/components/PhoneInput";
 import ActivityFilter from "@/components/ActivityFilter";
 import GalleryMosaic from "@/components/GalleryMosaic";
+import PagePhotoStrip from "@/components/PagePhotoStrip";
 
 interface AcademyClub {
   id: string;
@@ -274,6 +275,8 @@ const AcademyPage = () => {
             </div>
           </div>
         </motion.div>
+
+        <PagePhotoStrip pageSlug="academy" className="mb-10" />
 
         {/* Academy Club Cards */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
