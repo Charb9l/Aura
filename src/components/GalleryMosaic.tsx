@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, X, ZoomIn } from "lucide-react";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface GalleryMosaicProps {
@@ -12,109 +12,71 @@ interface GalleryMosaicProps {
 
 const GalleryMosaic = ({ images, alt = "Gallery", fallback, className }: GalleryMosaicProps) => {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   if (images.length === 0) {
     return fallback ? <>{fallback}</> : null;
   }
 
-  const openLightbox = (i: number) => setLightboxIndex(i);
   const closeLightbox = () => setLightboxIndex(null);
   const next = () => setLightboxIndex(prev => prev !== null ? (prev + 1) % images.length : 0);
   const prev = () => setLightboxIndex(prev => prev !== null ? (prev - 1 + images.length) % images.length : 0);
 
+  const scrollBy = (dir: "left" | "right") => {
+    scrollRef.current?.scrollBy({ left: dir === "left" ? -320 : 320, behavior: "smooth" });
+  };
+
   return (
     <>
-      {/* Mosaic Grid */}
-      <div className={cn("w-full", className)}>
-        {images.length === 1 && (
-          <button
-            onClick={() => openLightbox(0)}
-            className="relative w-full aspect-[16/9] overflow-hidden rounded-t-lg group"
-          >
-            <img src={images[0].image_url} alt={alt} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-            <div className="absolute inset-0 bg-background/0 group-hover:bg-background/20 transition-colors flex items-center justify-center">
-              <ZoomIn className="h-8 w-8 text-foreground opacity-0 group-hover:opacity-80 transition-opacity drop-shadow-lg" />
-            </div>
-          </button>
-        )}
-
-        {images.length === 2 && (
-          <div className="grid grid-cols-2 gap-1 rounded-t-lg overflow-hidden">
-            {images.map((img, i) => (
-              <button
-                key={img.id}
-                onClick={() => openLightbox(i)}
-                className="relative aspect-[4/3] overflow-hidden group"
-              >
-                <img src={img.image_url} alt={alt} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                <div className="absolute inset-0 bg-background/0 group-hover:bg-background/20 transition-colors flex items-center justify-center">
-                  <ZoomIn className="h-6 w-6 text-foreground opacity-0 group-hover:opacity-80 transition-opacity drop-shadow-lg" />
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
-
-        {images.length === 3 && (
-          <div className="grid grid-cols-3 grid-rows-2 gap-1 rounded-t-lg overflow-hidden h-[340px]">
+      {/* Horizontal filmstrip */}
+      <div className={cn("relative group/strip", className)}>
+        {/* Scroll arrows */}
+        {images.length > 1 && (
+          <>
             <button
-              onClick={() => openLightbox(0)}
-              className="relative col-span-2 row-span-2 overflow-hidden group"
+              onClick={() => scrollBy("left")}
+              className="absolute left-2 top-1/2 -translate-y-1/2 z-10 rounded-full bg-background/80 backdrop-blur-sm p-2 text-foreground shadow-lg opacity-0 group-hover/strip:opacity-100 transition-opacity hover:bg-background"
             >
-              <img src={images[0].image_url} alt={alt} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-              <div className="absolute inset-0 bg-background/0 group-hover:bg-background/20 transition-colors flex items-center justify-center">
-                <ZoomIn className="h-8 w-8 text-foreground opacity-0 group-hover:opacity-80 transition-opacity drop-shadow-lg" />
-              </div>
+              <ChevronLeft className="h-4 w-4" />
             </button>
-            {images.slice(1).map((img, i) => (
-              <button
-                key={img.id}
-                onClick={() => openLightbox(i + 1)}
-                className="relative overflow-hidden group"
-              >
-                <img src={img.image_url} alt={alt} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                <div className="absolute inset-0 bg-background/0 group-hover:bg-background/20 transition-colors flex items-center justify-center">
-                  <ZoomIn className="h-5 w-5 text-foreground opacity-0 group-hover:opacity-80 transition-opacity drop-shadow-lg" />
-                </div>
-              </button>
-            ))}
-          </div>
+            <button
+              onClick={() => scrollBy("right")}
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-10 rounded-full bg-background/80 backdrop-blur-sm p-2 text-foreground shadow-lg opacity-0 group-hover/strip:opacity-100 transition-opacity hover:bg-background"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </>
         )}
 
-        {images.length >= 4 && (
-          <div className="grid grid-cols-4 grid-rows-2 gap-1 rounded-t-lg overflow-hidden h-[340px]">
-            <button
-              onClick={() => openLightbox(0)}
-              className="relative col-span-2 row-span-2 overflow-hidden group"
+        <div
+          ref={scrollRef}
+          className="flex gap-2 overflow-x-auto scrollbar-hide scroll-smooth py-1 px-1"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
+          {images.map((img, i) => (
+            <motion.button
+              key={img.id}
+              onClick={() => setLightboxIndex(i)}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: i * 0.05 }}
+              className={cn(
+                "relative shrink-0 rounded-lg overflow-hidden group/img cursor-pointer",
+                images.length === 1 ? "w-full" : "w-[280px]"
+              )}
             >
-              <img src={images[0].image_url} alt={alt} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-              <div className="absolute inset-0 bg-background/0 group-hover:bg-background/20 transition-colors flex items-center justify-center">
-                <ZoomIn className="h-8 w-8 text-foreground opacity-0 group-hover:opacity-80 transition-opacity drop-shadow-lg" />
-              </div>
-            </button>
-            {images.slice(1, 4).map((img, i) => (
-              <button
-                key={img.id}
-                onClick={() => openLightbox(i + 1)}
+              <img
+                src={img.image_url}
+                alt={alt}
                 className={cn(
-                  "relative overflow-hidden group",
-                  i === 0 ? "col-span-2" : ""
+                  "object-cover transition-transform duration-500 group-hover/img:scale-105",
+                  images.length === 1 ? "w-full h-[300px]" : "w-[280px] h-[200px]"
                 )}
-              >
-                <img src={img.image_url} alt={alt} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                <div className="absolute inset-0 bg-background/0 group-hover:bg-background/20 transition-colors flex items-center justify-center">
-                  <ZoomIn className="h-5 w-5 text-foreground opacity-0 group-hover:opacity-80 transition-opacity drop-shadow-lg" />
-                </div>
-                {/* Show remaining count on last visible tile */}
-                {i === 2 && images.length > 4 && (
-                  <div className="absolute inset-0 bg-background/60 flex items-center justify-center">
-                    <span className="text-foreground font-heading text-2xl font-bold">+{images.length - 4}</span>
-                  </div>
-                )}
-              </button>
-            ))}
-          </div>
-        )}
+              />
+              <div className="absolute inset-0 bg-background/0 group-hover/img:bg-background/10 transition-colors" />
+            </motion.button>
+          ))}
+        </div>
       </div>
 
       {/* Lightbox Overlay */}
@@ -127,7 +89,6 @@ const GalleryMosaic = ({ images, alt = "Gallery", fallback, className }: Gallery
             className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-md flex items-center justify-center"
             onClick={closeLightbox}
           >
-            {/* Close */}
             <button
               onClick={closeLightbox}
               className="absolute top-5 right-5 rounded-full bg-secondary/80 p-2.5 text-foreground hover:bg-secondary transition-colors z-10"
@@ -135,12 +96,10 @@ const GalleryMosaic = ({ images, alt = "Gallery", fallback, className }: Gallery
               <X className="h-5 w-5" />
             </button>
 
-            {/* Counter */}
             <div className="absolute top-5 left-1/2 -translate-x-1/2 text-sm text-muted-foreground font-medium z-10">
               {lightboxIndex + 1} / {images.length}
             </div>
 
-            {/* Navigation */}
             {images.length > 1 && (
               <>
                 <button
@@ -158,7 +117,6 @@ const GalleryMosaic = ({ images, alt = "Gallery", fallback, className }: Gallery
               </>
             )}
 
-            {/* Image */}
             <AnimatePresence mode="wait">
               <motion.img
                 key={lightboxIndex}
@@ -173,7 +131,6 @@ const GalleryMosaic = ({ images, alt = "Gallery", fallback, className }: Gallery
               />
             </AnimatePresence>
 
-            {/* Thumbnail strip */}
             {images.length > 1 && (
               <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2 z-10">
                 {images.map((img, i) => (

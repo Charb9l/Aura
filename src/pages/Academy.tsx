@@ -316,34 +316,29 @@ const AcademyPage = () => {
       <Dialog open={!!selectedClub} onOpenChange={(o) => { if (!o) { setSelectedClub(null); setShowRegister(false); setSubmitted(false); } }}>
         <DialogContent className="bg-card border-border max-w-3xl w-[66vw] max-h-[85vh] overflow-y-auto p-0">
           {selectedClub && !submitted && !showRegister && (
-            <div>
+            <div className="p-6 space-y-5">
+              {/* Header */}
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  {selectedClub.logo_url && (
+                    <img src={selectedClub.logo_url} alt={selectedClub.name} className="h-10 w-10 rounded-full object-cover" />
+                  )}
+                  <h2 className="font-heading text-2xl font-bold text-foreground">{selectedClub.name}</h2>
+                </div>
+                <Button onClick={() => setShowRegister(true)} className="h-11 px-6 font-semibold glow">
+                  Register Now
+                </Button>
+              </div>
+              {selectedClub.description && (
+                <p className="text-muted-foreground leading-relaxed">{selectedClub.description}</p>
+              )}
+
+              {/* Gallery */}
               <GalleryMosaic
                 images={selectedCarouselPics}
                 alt={selectedClub.name}
-                fallback={
-                  <div className="h-[200px] bg-secondary rounded-t-lg flex items-center justify-center">
-                    <GraduationCap className="h-16 w-16 text-muted-foreground" />
-                  </div>
-                }
+                fallback={null}
               />
-
-              {/* Club info */}
-              <div className="p-6">
-                <div className="flex items-center justify-between gap-4 mb-4">
-                  <div className="flex items-center gap-3">
-                    {selectedClub.logo_url && (
-                      <img src={selectedClub.logo_url} alt={selectedClub.name} className="h-10 w-10 rounded-full object-cover" />
-                    )}
-                    <h2 className="font-heading text-2xl font-bold text-foreground">{selectedClub.name}</h2>
-                  </div>
-                  <Button onClick={() => setShowRegister(true)} className="h-11 px-6 font-semibold glow">
-                    Register Now
-                  </Button>
-                </div>
-                {selectedClub.description && (
-                  <p className="text-muted-foreground leading-relaxed">{selectedClub.description}</p>
-                )}
-              </div>
             </div>
           )}
 
