@@ -2,8 +2,8 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { motion, AnimatePresence } from "framer-motion";
-import { GraduationCap, CheckCircle2, ChevronLeft, ChevronRight, MapPin } from "lucide-react";
+import { motion } from "framer-motion";
+import { GraduationCap, CheckCircle2, ChevronLeft, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import Navbar from "@/components/Navbar";
 import PhoneInput from "@/components/PhoneInput";
 import ActivityFilter from "@/components/ActivityFilter";
+import GalleryMosaic from "@/components/GalleryMosaic";
 
 interface AcademyClub {
   id: string;
@@ -316,52 +317,15 @@ const AcademyPage = () => {
         <DialogContent className="bg-card border-border max-w-3xl w-[66vw] max-h-[85vh] overflow-y-auto p-0">
           {selectedClub && !submitted && !showRegister && (
             <div>
-              {/* Carousel */}
-              {selectedCarouselPics.length > 0 ? (
-                <div className="relative aspect-video bg-secondary overflow-hidden rounded-t-lg">
-                  <AnimatePresence mode="wait">
-                    <motion.img
-                      key={carouselIndex}
-                      src={selectedCarouselPics[carouselIndex]?.image_url}
-                      alt="Academy gallery"
-                      className="w-full h-full object-cover"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.3 }}
-                    />
-                  </AnimatePresence>
-                  {selectedCarouselPics.length > 1 && (
-                    <>
-                      <button
-                        onClick={() => setCarouselIndex(prev => prev === 0 ? selectedCarouselPics.length - 1 : prev - 1)}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-background/80 p-2 hover:bg-background transition-colors"
-                      >
-                        <ChevronLeft className="h-5 w-5" />
-                      </button>
-                      <button
-                        onClick={() => setCarouselIndex(prev => prev === selectedCarouselPics.length - 1 ? 0 : prev + 1)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-background/80 p-2 hover:bg-background transition-colors"
-                      >
-                        <ChevronRight className="h-5 w-5" />
-                      </button>
-                      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-                        {selectedCarouselPics.map((_, i) => (
-                          <button
-                            key={i}
-                            onClick={() => setCarouselIndex(i)}
-                            className={cn("h-2 w-2 rounded-full transition-all", i === carouselIndex ? "bg-primary w-6" : "bg-foreground/30")}
-                          />
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </div>
-              ) : (
-                <div className="aspect-video bg-secondary rounded-t-lg flex items-center justify-center">
-                  <GraduationCap className="h-16 w-16 text-muted-foreground" />
-                </div>
-              )}
+              <GalleryMosaic
+                images={selectedCarouselPics}
+                alt={selectedClub.name}
+                fallback={
+                  <div className="h-[200px] bg-secondary rounded-t-lg flex items-center justify-center">
+                    <GraduationCap className="h-16 w-16 text-muted-foreground" />
+                  </div>
+                }
+              />
 
               {/* Club info */}
               <div className="p-6">
