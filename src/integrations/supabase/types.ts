@@ -408,7 +408,7 @@ export type Database = {
           created_at: string
           id: string
           level_id: string
-          location_id: string | null
+          location_ids: string[]
           rank: number
           sport_id: string
           user_id: string
@@ -417,7 +417,7 @@ export type Database = {
           created_at?: string
           id?: string
           level_id: string
-          location_id?: string | null
+          location_ids?: string[]
           rank: number
           sport_id: string
           user_id: string
@@ -426,7 +426,7 @@ export type Database = {
           created_at?: string
           id?: string
           level_id?: string
-          location_id?: string | null
+          location_ids?: string[]
           rank?: number
           sport_id?: string
           user_id?: string
@@ -437,13 +437,6 @@ export type Database = {
             columns: ["level_id"]
             isOneToOne: false
             referencedRelation: "player_levels"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "player_selections_location_id_fkey"
-            columns: ["location_id"]
-            isOneToOne: false
-            referencedRelation: "club_locations"
             referencedColumns: ["id"]
           },
           {
