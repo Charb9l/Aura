@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.no-show-email]
 verify_jwt = false
+
+[functions.find-matches]
+verify_jwt = false
