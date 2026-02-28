@@ -33,13 +33,12 @@ interface Profile {
   phone: string | null;
 }
 
-interface ActivityInfo {
-  slug: string;
+interface ClubInfo {
+  id: string;
   name: string;
-  accent: string;
+  logo_url: string | null;
+  offerings: string[];
 }
-
-const DEFAULT_ACCENT = "hsl(var(--primary))";
 
 const TIME_SLOTS = [
   "08:00", "09:00", "10:00", "11:00", "12:00",
@@ -65,7 +64,7 @@ const ProfilePage = () => {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [activities, setActivities] = useState<ActivityInfo[]>([]);
+  const [clubs, setClubs] = useState<ClubInfo[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   const [showPending, setShowPending] = useState(false);
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
@@ -82,7 +81,7 @@ const ProfilePage = () => {
     if (!user) return;
 
     const fetchData = async () => {
-      const [bookingsRes, profileRes, offeringsRes] = await Promise.all([
+      const [bookingsRes, profileRes, clubsRes] = await Promise.all([
         supabase
           .from("bookings")
           .select("*")
@@ -94,20 +93,14 @@ const ProfilePage = () => {
           .eq("user_id", user.id)
           .maybeSingle(),
         supabase
-          .from("offerings")
-          .select("name, slug, brand_color")
+          .from("clubs")
+          .select("id, name, logo_url, offerings")
           .order("name"),
       ]);
 
       if (bookingsRes.data) setBookings(bookingsRes.data);
       if (profileRes.data) setProfile(profileRes.data);
-      if (offeringsRes.data) {
-        setActivities(offeringsRes.data.map(o => ({
-          slug: o.slug,
-          name: o.name,
-          accent: o.brand_color ? `hsl(${o.brand_color})` : DEFAULT_ACCENT,
-        })));
-      }
+      if (clubsRes.data) setClubs(clubsRes.data);
       setLoadingData(false);
     };
 
@@ -206,12 +199,12 @@ const ProfilePage = () => {
 
   const totalBookings = bookings.filter(b => b.attendance_status === "show").length;
 
-  // Loyalty: only "show" bookings count positively, "no_show" = -1 penalty
-  const activityPoints: Record<string, number> = {};
-  activities.forEach(a => {
-    const showCount = bookings.filter(b => b.activity === a.slug && b.attendance_status === "show").length;
-    const noShowCount = bookings.filter(b => b.activity === a.slug && b.attendance_status === "no_show").length;
-    activityPoints[a.slug] = Math.max(0, showCount - noShowCount);
+  // Loyalty per club: count bookings whose activity slug is in the club's offerings
+  const clubPoints: Record<string, number> = {};
+  clubs.forEach(club => {
+    const showCount = bookings.filter(b => club.offerings.includes(b.activity) && b.attendance_status === "show").length;
+    const noShowCount = bookings.filter(b => club.offerings.includes(b.activity) && b.attendance_status === "no_show").length;
+    clubPoints[club.id] = Math.max(0, showCount - noShowCount);
   });
 
   return (
@@ -430,29 +423,34 @@ const ProfilePage = () => {
           </div>
 
           <div className="grid md:grid-cols-2 gap-5">
-            {activities.map((activity, idx) => {
-              const rawPoints = activityPoints[activity.slug] || 0;
+            {clubs.map((club, idx) => {
+              const rawPoints = clubPoints[club.id] || 0;
               const cyclePoints = rawPoints % 10; // resets after 10
               const completedCycles = Math.floor(rawPoints / 10);
               const at10 = cyclePoints === 0 && rawPoints > 0 && completedCycles > 0;
 
               return (
                 <motion.div
-                  key={activity.slug}
+                  key={club.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.15 + idx * 0.05 }}
                   className="rounded-2xl border border-border bg-card p-5 overflow-hidden"
                 >
                   <div className="flex items-center gap-3 mb-4">
-                    <div
-                      className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm shrink-0"
-                      style={{ backgroundColor: activity.accent }}
-                    >
-                      {activity.name.charAt(0)}
-                    </div>
+                    {club.logo_url ? (
+                      <img
+                        src={club.logo_url}
+                        alt={club.name}
+                        className="w-10 h-10 rounded-lg object-contain bg-secondary p-1"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-primary/15 text-primary font-bold text-sm shrink-0">
+                        {club.name.charAt(0)}
+                      </div>
+                    )}
                     <div className="flex-1">
-                      <p className="font-heading font-bold text-foreground text-sm">{activity.name}</p>
+                      <p className="font-heading font-bold text-foreground text-sm">{club.name}</p>
                       <p className="text-xs text-muted-foreground">{rawPoints} total booking{rawPoints !== 1 ? "s" : ""}</p>
                     </div>
                     {cyclePoints >= 5 && cyclePoints < 10 && (
@@ -478,10 +476,9 @@ const ProfilePage = () => {
                             className={cn(
                               "w-full h-8 rounded-md flex items-center justify-center text-[10px] font-bold transition-all relative",
                               filled
-                                ? "text-primary-foreground"
+                                ? "bg-primary text-primary-foreground"
                                 : "border border-border text-muted-foreground/40"
                             )}
-                            style={filled ? { backgroundColor: activity.accent } : {}}
                           >
                             {is5Mark && !filled && <Gift className="h-3 w-3" />}
                             {is10Mark && !filled && <Zap className="h-3 w-3" />}
@@ -528,12 +525,12 @@ const ProfilePage = () => {
             transition={{ delay: 0.35 }}
             className="rounded-2xl border border-border bg-card p-6"
           >
-            <p className="text-sm text-muted-foreground mb-3">By Activity</p>
+            <p className="text-sm text-muted-foreground mb-3">By Club</p>
             <div className="space-y-2">
-              {activities.map(a => (
-                <div key={a.slug} className="flex justify-between items-center">
-                  <span className="text-sm text-foreground">{a.name}</span>
-                  <span className="text-sm font-bold" style={{ color: a.accent }}>{activityPoints[a.slug] || 0}</span>
+              {clubs.map(c => (
+                <div key={c.id} className="flex justify-between items-center">
+                  <span className="text-sm text-foreground">{c.name}</span>
+                  <span className="text-sm font-bold text-primary">{clubPoints[c.id] || 0}</span>
                 </div>
               ))}
             </div>
