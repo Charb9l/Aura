@@ -21,7 +21,8 @@ export const usePlayerProfileComplete = () => {
         .select("*", { count: "exact", head: true })
         .eq("user_id", user.id);
 
-      setIsComplete((count ?? 0) >= 3);
+      // At least 1 selection means complete
+      setIsComplete((count ?? 0) >= 1);
       setLoading(false);
     };
 
