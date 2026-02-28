@@ -124,56 +124,51 @@ const ClubsPage = () => {
 
       {/* Club Detail Dialog */}
       <Dialog open={!!selectedClub} onOpenChange={(o) => !o && setSelectedClub(null)}>
-        <DialogContent className="bg-card border-border max-w-4xl w-[66vw] max-h-[80vh] overflow-y-auto p-0">
+        <DialogContent className="bg-card border-border max-w-4xl w-[66vw] max-h-[80vh] overflow-y-auto">
           {selectedClub && (
-            <div>
+            <div className="p-6 space-y-5">
+              {/* Header */}
+              <div className="flex items-center gap-4">
+                {(() => {
+                  const logoSrc = selectedClub.logo_url?.startsWith("http") ? selectedClub.logo_url : null;
+                  return logoSrc ? (
+                    <div className="h-14 w-14 rounded-xl overflow-hidden bg-secondary shrink-0">
+                      <img src={logoSrc} alt={selectedClub.name} className="h-full w-full object-contain" />
+                    </div>
+                  ) : null;
+                })()}
+                <h2 className="font-heading text-2xl font-bold text-foreground flex-1">{selectedClub.name}</h2>
+                <Button
+                  onClick={() => {
+                    const activity = clubActivityMap[selectedClub.name];
+                    if (activity) navigate(`/book?activity=${activity}`);
+                  }}
+                  className="gap-2 glow shrink-0"
+                >
+                  Book Now <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+              {selectedClub.description && (
+                <p className="text-muted-foreground">{selectedClub.description}</p>
+              )}
+              <div className="flex flex-wrap gap-2">
+                {selectedClub.offerings.map((offering) => (
+                  <Badge key={offering} variant="secondary">{offering}</Badge>
+                ))}
+              </div>
+
+              {/* Gallery */}
               {picturesLoading ? (
-                <div className="h-[340px] bg-secondary flex items-center justify-center rounded-t-lg">
+                <div className="h-[200px] bg-secondary rounded-lg flex items-center justify-center">
                   <p className="text-muted-foreground">Loading pictures...</p>
                 </div>
               ) : (
                 <GalleryMosaic
                   images={clubPictures}
                   alt={selectedClub.name}
-                  fallback={
-                    <div className="h-[200px] bg-secondary flex items-center justify-center rounded-t-lg">
-                      <Building2 className="h-16 w-16 text-muted-foreground/30" />
-                    </div>
-                  }
+                  fallback={null}
                 />
               )}
-
-              {/* Content */}
-              <div className="p-6 space-y-4">
-                <div className="flex items-center gap-4">
-                  {(() => {
-                    const logoSrc = selectedClub.logo_url?.startsWith("http") ? selectedClub.logo_url : null;
-                    return logoSrc ? (
-                      <div className="h-14 w-14 rounded-xl overflow-hidden bg-secondary shrink-0">
-                        <img src={logoSrc} alt={selectedClub.name} className="h-full w-full object-contain" />
-                      </div>
-                    ) : null;
-                  })()}
-                  <h2 className="font-heading text-2xl font-bold text-foreground flex-1">{selectedClub.name}</h2>
-                  <Button
-                    onClick={() => {
-                      const activity = clubActivityMap[selectedClub.name];
-                      if (activity) navigate(`/book?activity=${activity}`);
-                    }}
-                    className="gap-2 glow shrink-0"
-                  >
-                    Book Now <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </div>
-                {selectedClub.description && (
-                  <p className="text-muted-foreground">{selectedClub.description}</p>
-                )}
-                <div className="flex flex-wrap gap-2">
-                  {selectedClub.offerings.map((offering) => (
-                    <Badge key={offering} variant="secondary">{offering}</Badge>
-                  ))}
-                </div>
-              </div>
             </div>
           )}
         </DialogContent>
