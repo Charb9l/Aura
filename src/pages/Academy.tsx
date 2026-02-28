@@ -275,7 +275,7 @@ const AcademyPage = () => {
         </motion.div>
 
         {/* Academy Club Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredClubs.map((club, i) => {
             const bubblePic = selectedBubblePic(club.id);
             const bgImage = bubblePic?.image_url || club.offeringImageUrl;
