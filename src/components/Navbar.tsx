@@ -1,7 +1,8 @@
+import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
-import { LogOut, User, ShieldCheck } from "lucide-react";
+import { LogOut, User, ShieldCheck, Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
@@ -16,10 +17,12 @@ const Navbar = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
     navigate("/");
+    setMobileOpen(false);
   };
 
   return (
@@ -37,8 +40,8 @@ const Navbar = () => {
           <span className="text-[10px] font-medium tracking-[0.25em] text-muted-foreground">WELLNESS HUB</span>
         </Link>
 
-        {/* Center: Nav Links */}
-        <div className="flex items-center gap-5">
+        {/* Center: Nav Links (desktop only) */}
+        <div className="hidden lg:flex items-center gap-5">
           {NAV_LINKS.map((link) => {
             const isActive = location.pathname === link.to;
             return (
@@ -47,9 +50,7 @@ const Navbar = () => {
                 to={link.to}
                 className={cn(
                   "text-sm font-medium tracking-wide transition-colors whitespace-nowrap",
-                  isActive
-                    ? "text-foreground"
-                    : "text-muted-foreground hover:text-foreground"
+                  isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 {link.label}
@@ -65,8 +66,8 @@ const Navbar = () => {
           })}
         </div>
 
-        {/* Right: Admin + Auth */}
-        <div className="flex items-center gap-3 shrink-0">
+        {/* Right: Admin + Auth (desktop only) */}
+        <div className="hidden lg:flex items-center gap-3 shrink-0">
           <Link
             to="/admin"
             className="rounded-full border border-border px-4 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:border-muted-foreground/50 transition-all flex items-center gap-1.5"
@@ -81,13 +82,11 @@ const Navbar = () => {
                 className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 <User className="h-4 w-4" />
-                <span className="hidden md:inline">
-                  {user.user_metadata?.full_name || user.email}
-                </span>
+                <span>{user.user_metadata?.full_name || user.email}</span>
               </Link>
               <button
                 onClick={handleSignOut}
-                className="rounded-full bg-secondary px-3 py-2 text-xs md:px-4 md:py-2.5 md:text-sm font-medium text-secondary-foreground hover:bg-secondary/80 transition-all flex items-center gap-1.5 md:gap-2"
+                className="rounded-full bg-secondary px-4 py-2.5 text-sm font-medium text-secondary-foreground hover:bg-secondary/80 transition-all flex items-center gap-2"
               >
                 <LogOut className="h-4 w-4" />
                 Sign Out
@@ -102,7 +101,83 @@ const Navbar = () => {
             </Link>
           )}
         </div>
+
+        {/* Mobile: hamburger + profile icon */}
+        <div className="flex lg:hidden items-center gap-2">
+          {user && (
+            <Link to="/profile" className="text-muted-foreground hover:text-foreground transition-colors p-2">
+              <User className="h-5 w-5" />
+            </Link>
+          )}
+          <button
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="text-muted-foreground hover:text-foreground transition-colors p-2"
+          >
+            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
       </div>
+
+      {/* Mobile dropdown */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="lg:hidden overflow-hidden border-t border-border glass"
+          >
+            <div className="container mx-auto px-6 py-4 flex flex-col gap-1">
+              {NAV_LINKS.map((link) => {
+                const isActive = location.pathname === link.to;
+                return (
+                  <Link
+                    key={link.to}
+                    to={link.to}
+                    onClick={() => setMobileOpen(false)}
+                    className={cn(
+                      "py-2.5 px-3 rounded-lg text-sm font-medium transition-colors",
+                      isActive
+                        ? "text-foreground bg-secondary"
+                        : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                    )}
+                  >
+                    {link.label}
+                  </Link>
+                );
+              })}
+
+              <div className="border-t border-border my-2" />
+
+              <Link
+                to="/admin"
+                onClick={() => setMobileOpen(false)}
+                className="py-2.5 px-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors flex items-center gap-2"
+              >
+                <ShieldCheck className="h-4 w-4" /> Admin
+              </Link>
+
+              {user ? (
+                <button
+                  onClick={handleSignOut}
+                  className="py-2.5 px-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors flex items-center gap-2 w-full text-left"
+                >
+                  <LogOut className="h-4 w-4" /> Sign Out
+                </button>
+              ) : (
+                <Link
+                  to="/auth"
+                  onClick={() => setMobileOpen(false)}
+                  className="py-2.5 px-3 rounded-lg text-sm font-medium text-primary hover:bg-primary/10 transition-colors"
+                >
+                  Login / Sign Up
+                </Link>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.nav>
   );
 };
