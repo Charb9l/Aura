@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Eye, Pencil, Plus, Trash2, Upload } from "lucide-react";
+import { Eye, Pencil, Plus, Trash2, Upload, ArrowUp, ArrowDown } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -150,6 +150,10 @@ const FieldsEditor = ({ fields, onChange, label }: { fields: FormField[]; onChan
       <div className="space-y-3">
         {fields.map((field, i) => (
           <div key={i} className="flex items-center gap-2 p-3 rounded-lg border border-border bg-secondary/50">
+            <div className="flex flex-col gap-1 shrink-0">
+              <Button type="button" variant="ghost" size="icon" className="h-7 w-7" disabled={i === 0} onClick={() => { const arr = [...fields]; [arr[i - 1], arr[i]] = [arr[i], arr[i - 1]]; onChange(arr); }}><ArrowUp className="h-3.5 w-3.5" /></Button>
+              <Button type="button" variant="ghost" size="icon" className="h-7 w-7" disabled={i === fields.length - 1} onClick={() => { const arr = [...fields]; [arr[i], arr[i + 1]] = [arr[i + 1], arr[i]]; onChange(arr); }}><ArrowDown className="h-3.5 w-3.5" /></Button>
+            </div>
             <div className="flex-1 grid grid-cols-2 gap-2">
               <Input value={field.label} onChange={(e) => updateField(i, { label: e.target.value })} placeholder="Field label (e.g. Full Name)" className="h-9 bg-background border-border text-sm" />
               <Select value={field.type} onValueChange={(v) => updateField(i, { type: v })}>
@@ -336,6 +340,10 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
               <div className="space-y-3">
                 {heroButtons.map((btn, i) => (
                   <div key={i} className="flex items-center gap-2 p-3 rounded-lg border border-border bg-secondary/50">
+                    <div className="flex flex-col gap-1 shrink-0">
+                      <Button type="button" variant="ghost" size="icon" className="h-7 w-7" disabled={i === 0} onClick={() => { const arr = [...heroButtons]; [arr[i - 1], arr[i]] = [arr[i], arr[i - 1]]; setHeroButtons(arr); }}><ArrowUp className="h-3.5 w-3.5" /></Button>
+                      <Button type="button" variant="ghost" size="icon" className="h-7 w-7" disabled={i === heroButtons.length - 1} onClick={() => { const arr = [...heroButtons]; [arr[i], arr[i + 1]] = [arr[i + 1], arr[i]]; setHeroButtons(arr); }}><ArrowDown className="h-3.5 w-3.5" /></Button>
+                    </div>
                     <div className="flex-1 space-y-2">
                       <Input value={btn.label} onChange={(e) => updateButton(i, "label", e.target.value)} placeholder="Button label" className="h-9 bg-background border-border text-sm" />
                       <Input value={btn.to} onChange={(e) => updateButton(i, "to", e.target.value)} placeholder="Link path (e.g. /book)" className="h-9 bg-background border-border text-sm font-mono" />
