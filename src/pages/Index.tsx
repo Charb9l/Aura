@@ -5,6 +5,7 @@ import ActivityCard from "@/components/ActivityCard";
 import ActivityFilter from "@/components/ActivityFilter";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import PagePhotoStrip from "@/components/PagePhotoStrip";
 
 interface OfferingData {
   id: string;
@@ -89,6 +90,8 @@ const Index = () => {
     <div className="min-h-screen">
       <Navbar />
       <HeroSection />
+
+      <PagePhotoStrip pageSlug="home" className="container mx-auto px-6 mt-6" />
 
       <section className="container mx-auto px-6 py-20">
         <motion.div
