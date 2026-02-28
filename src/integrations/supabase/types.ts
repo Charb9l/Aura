@@ -437,31 +437,10 @@ export type Database = {
             foreignKeyName: "player_selections_sport_id_fkey"
             columns: ["sport_id"]
             isOneToOne: false
-            referencedRelation: "player_sports"
+            referencedRelation: "offerings"
             referencedColumns: ["id"]
           },
         ]
-      }
-      player_sports: {
-        Row: {
-          created_at: string
-          display_order: number
-          id: string
-          name: string
-        }
-        Insert: {
-          created_at?: string
-          display_order?: number
-          id?: string
-          name: string
-        }
-        Update: {
-          created_at?: string
-          display_order?: number
-          id?: string
-          name?: string
-        }
-        Relationships: []
       }
       profiles: {
         Row: {

@@ -1,17 +1,17 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { motion, AnimatePresence } from "framer-motion";
-import { Gamepad2, Check, ChevronDown } from "lucide-react";
+import { motion } from "framer-motion";
+import { Gamepad2, Check, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 
-interface Sport {
+interface Offering {
   id: string;
   name: string;
-  display_order: number;
+  slug: string;
 }
 
 interface Level {
@@ -29,40 +29,43 @@ interface Selection {
 const MyPlayerSection = () => {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
-  const [sports, setSports] = useState<Sport[]>([]);
+  const [offerings, setOfferings] = useState<Offering[]>([]);
   const [levels, setLevels] = useState<Level[]>([]);
   const [selections, setSelections] = useState<Selection[]>([
     { rank: 1, sport_id: "", level_id: "" },
     { rank: 2, sport_id: "", level_id: "" },
     { rank: 3, sport_id: "", level_id: "" },
   ]);
-  const [existingIds, setExistingIds] = useState<string[]>([]);
+  const [hasSaved, setHasSaved] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
-      const [sportsRes, levelsRes, selectionsRes] = await Promise.all([
-        supabase.from("player_sports").select("*").order("display_order"),
+      const [offeringsRes, levelsRes, selectionsRes] = await Promise.all([
+        supabase.from("offerings").select("id, name, slug").order("name"),
         supabase.from("player_levels").select("*").order("display_order"),
         user
           ? supabase.from("player_selections").select("*").eq("user_id", user.id).order("rank")
           : Promise.resolve({ data: [] }),
       ]);
 
-      setSports((sportsRes.data as Sport[]) || []);
+      setOfferings((offeringsRes.data as Offering[]) || []);
       setLevels((levelsRes.data as Level[]) || []);
 
       const existing = (selectionsRes.data as any[]) || [];
-      setExistingIds(existing.map((e: any) => e.id));
+      setHasSaved(existing.length > 0);
 
       if (existing.length > 0) {
-        const mapped: Selection[] = [1, 2, 3].map((rank) => {
-          const found = existing.find((e: any) => e.rank === rank);
-          return found
-            ? { rank, sport_id: found.sport_id, level_id: found.level_id }
-            : { rank, sport_id: "", level_id: "" };
-        });
+        const mapped: Selection[] = existing.map((e: any, i: number) => ({
+          rank: e.rank ?? i + 1,
+          sport_id: e.sport_id,
+          level_id: e.level_id,
+        }));
+        // Pad to at least 3 slots
+        while (mapped.length < 3) {
+          mapped.push({ rank: mapped.length + 1, sport_id: "", level_id: "" });
+        }
         setSelections(mapped);
       }
       setLoaded(true);
@@ -70,26 +73,37 @@ const MyPlayerSection = () => {
     fetchData();
   }, [user]);
 
-  const isComplete = selections.every((s) => s.sport_id && s.level_id);
+  const filledSelections = selections.filter((s) => s.sport_id && s.level_id);
+  const isValid = filledSelections.length >= 1;
   const hasDuplicateSports = (() => {
     const picked = selections.map((s) => s.sport_id).filter(Boolean);
     return new Set(picked).size !== picked.length;
   })();
 
+  const addSlot = () => {
+    const nextRank = selections.length + 1;
+    setSelections((prev) => [...prev, { rank: nextRank, sport_id: "", level_id: "" }]);
+  };
+
+  const removeSlot = (rank: number) => {
+    if (selections.length <= 1) return;
+    setSelections((prev) =>
+      prev.filter((s) => s.rank !== rank).map((s, i) => ({ ...s, rank: i + 1 }))
+    );
+  };
+
   const handleSave = async () => {
-    if (!user || !isComplete || hasDuplicateSports) return;
+    if (!user || !isValid || hasDuplicateSports) return;
     setSaving(true);
 
-    // Delete existing and re-insert
-    if (existingIds.length > 0) {
-      await supabase.from("player_selections").delete().eq("user_id", user.id);
-    }
+    // Delete existing and re-insert only filled ones
+    await supabase.from("player_selections").delete().eq("user_id", user.id);
 
-    const rows = selections.map((s) => ({
+    const rows = filledSelections.map((s, i) => ({
       user_id: user.id,
       sport_id: s.sport_id,
       level_id: s.level_id,
-      rank: s.rank,
+      rank: i + 1,
     }));
 
     const { error } = await supabase.from("player_selections").insert(rows);
@@ -99,7 +113,7 @@ const MyPlayerSection = () => {
       toast.error("Failed to save: " + error.message);
     } else {
       toast.success("MyPlayer profile saved!");
-      setExistingIds(rows.map(() => "temp")); // mark as saved
+      setHasSaved(true);
       setOpen(false);
     }
   };
@@ -109,12 +123,6 @@ const MyPlayerSection = () => {
       prev.map((s) => (s.rank === rank ? { ...s, [field]: value } : s))
     );
   };
-
-  const getSportName = (id: string) => sports.find((s) => s.id === id)?.name || "";
-  const getLevelLabel = (id: string) => levels.find((l) => l.id === id)?.label || "";
-
-  const savedSelections = selections.filter((s) => s.sport_id && s.level_id);
-  const hasSaved = existingIds.length > 0;
 
   return (
     <>
@@ -147,36 +155,42 @@ const MyPlayerSection = () => {
               <Gamepad2 className="h-5 w-5 text-primary" />
               MyPlayer Profile
             </DialogTitle>
-            <p className="text-sm text-muted-foreground">Pick your top 3 sports and your level for each.</p>
+            <p className="text-sm text-muted-foreground">Pick your favourite sports and your level for each. At least 1 required.</p>
           </DialogHeader>
 
           {!loaded ? (
             <p className="text-muted-foreground text-center py-8">Loading...</p>
-          ) : sports.length === 0 ? (
+          ) : offerings.length === 0 ? (
             <p className="text-muted-foreground text-center py-8">No sports configured yet. Check back soon!</p>
           ) : (
             <div className="space-y-6 pt-2">
-              {[1, 2, 3].map((rank) => {
-                const sel = selections.find((s) => s.rank === rank)!;
+              {selections.map((sel, idx) => {
                 const otherSports = selections
-                  .filter((s) => s.rank !== rank && s.sport_id)
+                  .filter((s) => s.rank !== sel.rank && s.sport_id)
                   .map((s) => s.sport_id);
 
                 return (
-                  <div key={rank} className="rounded-xl border border-border bg-secondary/30 p-4 space-y-3">
-                    <p className="text-sm font-semibold text-foreground">
-                      #{rank} Sport
-                    </p>
+                  <div key={sel.rank} className="rounded-xl border border-border bg-secondary/30 p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-semibold text-foreground">
+                        #{idx + 1} Sport {idx === 0 && <span className="text-xs text-muted-foreground font-normal">(required)</span>}
+                      </p>
+                      {selections.length > 1 && (
+                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => removeSlot(sel.rank)}>
+                          <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
+                        </Button>
+                      )}
+                    </div>
 
                     {/* Sport selector */}
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      {sports.map((sport) => {
-                        const disabled = otherSports.includes(sport.id);
-                        const selected = sel.sport_id === sport.id;
+                      {offerings.map((offering) => {
+                        const disabled = otherSports.includes(offering.id);
+                        const selected = sel.sport_id === offering.id;
                         return (
                           <button
-                            key={sport.id}
-                            onClick={() => !disabled && updateSelection(rank, "sport_id", sport.id)}
+                            key={offering.id}
+                            onClick={() => !disabled && updateSelection(sel.rank, "sport_id", offering.id)}
                             disabled={disabled}
                             className={cn(
                               "rounded-lg border px-3 py-2.5 text-sm font-medium transition-all text-left",
@@ -188,7 +202,7 @@ const MyPlayerSection = () => {
                             )}
                           >
                             {selected && <Check className="h-3 w-3 inline mr-1" />}
-                            {sport.name}
+                            {offering.name}
                           </button>
                         );
                       })}
@@ -203,7 +217,7 @@ const MyPlayerSection = () => {
                           return (
                             <button
                               key={level.id}
-                              onClick={() => updateSelection(rank, "level_id", level.id)}
+                              onClick={() => updateSelection(sel.rank, "level_id", level.id)}
                               className={cn(
                                 "w-full rounded-lg border px-4 py-3 text-sm font-medium transition-all text-left",
                                 selected
@@ -222,13 +236,20 @@ const MyPlayerSection = () => {
                 );
               })}
 
+              {/* Add more button */}
+              {selections.length < offerings.length && (
+                <Button variant="outline" onClick={addSlot} className="w-full gap-2 rounded-xl">
+                  <Plus className="h-4 w-4" /> Add another sport
+                </Button>
+              )}
+
               {hasDuplicateSports && (
                 <p className="text-sm text-destructive">Each sport must be different.</p>
               )}
 
               <Button
                 onClick={handleSave}
-                disabled={!isComplete || hasDuplicateSports || saving}
+                disabled={!isValid || hasDuplicateSports || saving}
                 className="w-full h-12 font-bold rounded-xl glow"
               >
                 {saving ? "Saving..." : "Save MyPlayer Profile"}
