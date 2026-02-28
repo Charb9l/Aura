@@ -24,6 +24,7 @@ import AdminNavbar from "@/components/AdminNavbar";
 import CustomerVisionTab from "@/components/CustomerVisionTab";
 import AcademiesTab from "@/components/AcademiesTab";
 import AdminMyPlayerTab from "@/components/AdminMyPlayerTab";
+import ActivityColorPicker from "@/components/ActivityColorPicker";
 import OfferingsTab from "@/components/OfferingsTab";
 import Navbar from "@/components/Navbar";
 import PhoneInput from "@/components/PhoneInput";
@@ -2778,11 +2779,7 @@ const AdminDashboard = () => {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="settings">
             <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Settings</h1>
             <p className="text-muted-foreground mb-8">Configure your application settings.</p>
-            <Card className="bg-card border-border">
-              <CardContent className="py-12 text-center text-muted-foreground">
-                Settings coming soon.
-              </CardContent>
-            </Card>
+            <ActivityColorPicker />
           </motion.div>
         )}
 

@@ -333,6 +333,7 @@ export type Database = {
       }
       offerings: {
         Row: {
+          brand_color: string | null
           created_at: string
           id: string
           logo_url: string | null
@@ -340,6 +341,7 @@ export type Database = {
           slug: string
         }
         Insert: {
+          brand_color?: string | null
           created_at?: string
           id?: string
           logo_url?: string | null
@@ -347,6 +349,7 @@ export type Database = {
           slug: string
         }
         Update: {
+          brand_color?: string | null
           created_at?: string
           id?: string
           logo_url?: string | null
