@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
-import { LogOut, Menu, LayoutDashboard, Users, Settings, Tag, CalendarCheck, Eye, Package, Building2, GraduationCap } from "lucide-react";
+import { LogOut, Menu, LayoutDashboard, Users, Settings, Tag, CalendarCheck, Eye, Package, Building2, GraduationCap, Gamepad2 } from "lucide-react";
 
 const allMenuItems = [
   { label: "Dashboard", icon: LayoutDashboard, tab: "overview" },
@@ -12,6 +12,7 @@ const allMenuItems = [
   { label: "Clubs & Partners", icon: Building2, tab: "clubs" },
   { label: "Academies", icon: GraduationCap, tab: "academies" },
   { label: "Customer Vision", icon: Eye, tab: "customer-vision" },
+  { label: "MyPlayer", icon: Gamepad2, tab: "myplayer" },
   { label: "Settings", icon: Settings, tab: "settings" },
   { label: "Promotions", icon: Tag, tab: "promotions" },
 ];

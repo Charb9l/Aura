@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePlayerProfileComplete } from "@/hooks/usePlayerProfile";
 import { LogOut, User, ShieldCheck, Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -18,6 +19,8 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { isComplete: playerComplete } = usePlayerProfileComplete();
+  const showGlow = user && playerComplete === false;
 
   const handleSignOut = async () => {
     await signOut();
@@ -79,8 +82,14 @@ const Navbar = () => {
             <>
               <Link
                 to="/profile"
-                className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                className={cn(
+                  "flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors relative",
+                  showGlow && "text-primary"
+                )}
               >
+                {showGlow && (
+                  <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-primary animate-ping" />
+                )}
                 <User className="h-4 w-4" />
                 <span>{user.user_metadata?.full_name || user.email}</span>
               </Link>
@@ -105,7 +114,10 @@ const Navbar = () => {
         {/* Mobile: hamburger + profile icon */}
         <div className="flex lg:hidden items-center gap-2">
           {user && (
-            <Link to="/profile" className="text-muted-foreground hover:text-foreground transition-colors p-2">
+            <Link to="/profile" className={cn("text-muted-foreground hover:text-foreground transition-colors p-2 relative", showGlow && "text-primary")}>
+              {showGlow && (
+                <span className="absolute top-0.5 right-0.5 h-2.5 w-2.5 rounded-full bg-primary animate-ping" />
+              )}
               <User className="h-5 w-5" />
             </Link>
           )}

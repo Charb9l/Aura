@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import { Trophy, Star, Clock, ArrowRight, Gift, Zap, CalendarCheck, X, Pencil, Trash2, CalendarIcon } from "lucide-react";
+import MyPlayerSection from "@/components/MyPlayerSection";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -238,6 +239,9 @@ const ProfilePage = () => {
             )}
           </Button>
         </motion.div>
+
+        {/* MyPlayer Section */}
+        <MyPlayerSection />
 
         {/* Pending Bookings Dialog */}
         <Dialog open={showPending} onOpenChange={setShowPending}>
