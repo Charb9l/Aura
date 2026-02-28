@@ -15,11 +15,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { toast } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 
-import tennisImg from "@/assets/tennis-court.png";
-import basketballImg from "@/assets/basketball-court.png";
-import yogaImg from "@/assets/aerial-yoga-studio.png";
-import pilatesImg from "@/assets/pilates-studio.png";
-
 interface Booking {
   id: string;
   activity: string;
@@ -38,12 +33,13 @@ interface Profile {
   phone: string | null;
 }
 
-const ACTIVITIES = [
-  { slug: "tennis", name: "Tennis", image: tennisImg, accent: "hsl(212 70% 55%)" },
-  { slug: "basketball", name: "Basketball", image: basketballImg, accent: "hsl(262 50% 55%)" },
-  { slug: "aerial-yoga", name: "Aerial Yoga", image: yogaImg, accent: "hsl(100 22% 60%)" },
-  { slug: "pilates", name: "Pilates", image: pilatesImg, accent: "hsl(100 22% 60%)" },
-];
+interface ActivityInfo {
+  slug: string;
+  name: string;
+  accent: string;
+}
+
+const DEFAULT_ACCENT = "hsl(var(--primary))";
 
 const TIME_SLOTS = [
   "08:00", "09:00", "10:00", "11:00", "12:00",
@@ -69,6 +65,7 @@ const ProfilePage = () => {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [activities, setActivities] = useState<ActivityInfo[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   const [showPending, setShowPending] = useState(false);
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
@@ -85,7 +82,7 @@ const ProfilePage = () => {
     if (!user) return;
 
     const fetchData = async () => {
-      const [bookingsRes, profileRes] = await Promise.all([
+      const [bookingsRes, profileRes, offeringsRes] = await Promise.all([
         supabase
           .from("bookings")
           .select("*")
@@ -96,10 +93,21 @@ const ProfilePage = () => {
           .select("full_name, phone")
           .eq("user_id", user.id)
           .maybeSingle(),
+        supabase
+          .from("offerings")
+          .select("name, slug, brand_color")
+          .order("name"),
       ]);
 
       if (bookingsRes.data) setBookings(bookingsRes.data);
       if (profileRes.data) setProfile(profileRes.data);
+      if (offeringsRes.data) {
+        setActivities(offeringsRes.data.map(o => ({
+          slug: o.slug,
+          name: o.name,
+          accent: o.brand_color ? `hsl(${o.brand_color})` : DEFAULT_ACCENT,
+        })));
+      }
       setLoadingData(false);
     };
 
@@ -200,7 +208,7 @@ const ProfilePage = () => {
 
   // Loyalty: only "show" bookings count positively, "no_show" = -1 penalty
   const activityPoints: Record<string, number> = {};
-  ACTIVITIES.forEach(a => {
+  activities.forEach(a => {
     const showCount = bookings.filter(b => b.activity === a.slug && b.attendance_status === "show").length;
     const noShowCount = bookings.filter(b => b.activity === a.slug && b.attendance_status === "no_show").length;
     activityPoints[a.slug] = Math.max(0, showCount - noShowCount);
@@ -422,7 +430,7 @@ const ProfilePage = () => {
           </div>
 
           <div className="grid md:grid-cols-2 gap-5">
-            {ACTIVITIES.map((activity, idx) => {
+            {activities.map((activity, idx) => {
               const rawPoints = activityPoints[activity.slug] || 0;
               const cyclePoints = rawPoints % 10; // resets after 10
               const completedCycles = Math.floor(rawPoints / 10);
@@ -437,11 +445,12 @@ const ProfilePage = () => {
                   className="rounded-2xl border border-border bg-card p-5 overflow-hidden"
                 >
                   <div className="flex items-center gap-3 mb-4">
-                    <img
-                      src={activity.image}
-                      alt={activity.name}
-                      className="w-10 h-10 rounded-lg object-cover"
-                    />
+                    <div
+                      className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm shrink-0"
+                      style={{ backgroundColor: activity.accent }}
+                    >
+                      {activity.name.charAt(0)}
+                    </div>
                     <div className="flex-1">
                       <p className="font-heading font-bold text-foreground text-sm">{activity.name}</p>
                       <p className="text-xs text-muted-foreground">{rawPoints} total booking{rawPoints !== 1 ? "s" : ""}</p>
@@ -521,7 +530,7 @@ const ProfilePage = () => {
           >
             <p className="text-sm text-muted-foreground mb-3">By Activity</p>
             <div className="space-y-2">
-              {ACTIVITIES.map(a => (
+              {activities.map(a => (
                 <div key={a.slug} className="flex justify-between items-center">
                   <span className="text-sm text-foreground">{a.name}</span>
                   <span className="text-sm font-bold" style={{ color: a.accent }}>{activityPoints[a.slug] || 0}</span>

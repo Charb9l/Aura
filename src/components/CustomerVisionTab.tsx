@@ -43,6 +43,7 @@ const PAGES = [
   { name: "Book a Session", slug: "book", description: "Booking page title, subtitle, and detail fields" },
   { name: "Join Our Academies", slug: "academy", description: "Academy page title, subtitle, and form fields" },
   { name: "Clubs & Partners", slug: "clubs", description: "Clubs page title and subtitle" },
+  { name: "Find Your Match", slug: "matchmaker", description: "Matchmaker page title and subtitle" },
   { name: "Loyalty Program", slug: "loyalty", description: "Loyalty page main title and subtitle" },
 ];
 
