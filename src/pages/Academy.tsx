@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
@@ -79,6 +79,8 @@ const isValidEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 const AcademyPage = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const sportParam = searchParams.get("sport") || "";
 
   useEffect(() => {
     if (!loading && !user) navigate("/auth");
@@ -168,7 +170,24 @@ const AcademyPage = () => {
       .filter(Boolean) as (AcademyClub & { slug: string; brand: "tennis" | "basketball" | "wellness"; offeringImageUrl: string | null })[];
   }, [clubs, offerings]);
 
-  // Derive offerings that have academies for the sport filter
+  // Auto-open dialog when ?sport= param matches an academy club
+  const [autoOpened, setAutoOpened] = useState(false);
+  useEffect(() => {
+    if (sportParam && academyClubs.length > 0 && !autoOpened) {
+      const match = academyClubs.find(c => c.slug === sportParam);
+      if (match) {
+        setSelectedClub(match);
+        setCarouselIndex(0);
+        setShowRegister(false);
+        setSubmitted(false);
+        setSelectedLocationId("");
+        setAutoOpened(true);
+        // Clear the param so reopening the page is clean
+        setSearchParams({}, { replace: true });
+      }
+    }
+  }, [sportParam, academyClubs, autoOpened]);
+
   const academyOfferings = useMemo(() => {
     const slugs = new Set(academyClubs.map(s => s.slug));
     return offerings.filter(o => slugs.has(o.slug));
