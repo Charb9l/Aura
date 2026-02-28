@@ -15,9 +15,11 @@ interface MatchSport {
   brand_color: string | null;
   level_label: string;
   level_order: number;
+  playstyle: string | null;
   location_name: string | null;
   location_area: string | null;
   match_quality: "perfect" | "good" | "sport-only";
+  match_details: string[];
 }
 
 interface MatchProfile {
@@ -338,7 +340,30 @@ const MatchmakerPage = () => {
                                 >
                                   {sport.sport_name}
                                 </p>
-                                <p className="text-xs text-muted-foreground">{sport.level_label}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {sport.level_label}
+                                  {sport.playstyle && ` · ${sport.playstyle.replace("_", " ")}`}
+                                </p>
+                                {sport.match_details && sport.match_details.length > 0 && (
+                                  <div className="flex flex-wrap gap-1 mt-1">
+                                    {sport.match_details.map((d) => (
+                                      <span
+                                        key={d}
+                                        className="text-[10px] rounded-full px-1.5 py-0.5 font-medium"
+                                        style={{
+                                          backgroundColor: sport.brand_color
+                                            ? `hsl(${sport.brand_color} / 0.15)`
+                                            : "hsl(var(--accent))",
+                                          color: sport.brand_color
+                                            ? `hsl(${sport.brand_color})`
+                                            : "hsl(var(--accent-foreground))",
+                                        }}
+                                      >
+                                        ✓ {d}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
                               </div>
                               {sport.location_name && (
                                 <div className="flex items-center gap-1 text-xs text-muted-foreground">

@@ -2,11 +2,12 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
-import { Gamepad2, Check, Plus, Trash2, MapPin } from "lucide-react";
+import { Gamepad2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
+import SportSelectionCard, { type Selection } from "@/components/SportSelectionCard";
 
 interface Offering {
   id: string;
@@ -27,12 +28,16 @@ interface Location {
   location: string;
 }
 
-interface Selection {
-  rank: number;
-  sport_id: string;
-  level_id: string;
-  location_ids: string[];
-}
+const emptySelection = (rank: number): Selection => ({
+  rank,
+  sport_id: "",
+  level_id: "",
+  playstyle: "",
+  availability: [],
+  goals: [],
+  location_ids: [],
+  years_experience: null,
+});
 
 const MyPlayerSection = () => {
   const { user } = useAuth();
@@ -41,9 +46,9 @@ const MyPlayerSection = () => {
   const [levels, setLevels] = useState<Level[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
   const [selections, setSelections] = useState<Selection[]>([
-    { rank: 1, sport_id: "", level_id: "", location_ids: [] },
-    { rank: 2, sport_id: "", level_id: "", location_ids: [] },
-    { rank: 3, sport_id: "", level_id: "", location_ids: [] },
+    emptySelection(1),
+    emptySelection(2),
+    emptySelection(3),
   ]);
   const [hasSaved, setHasSaved] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -72,10 +77,14 @@ const MyPlayerSection = () => {
           rank: e.rank ?? i + 1,
           sport_id: e.sport_id,
           level_id: e.level_id,
+          playstyle: e.playstyle || "",
+          availability: (e.availability as any[]) || [],
+          goals: e.goals || [],
           location_ids: e.location_ids || [],
+          years_experience: e.years_experience ?? null,
         }));
         while (mapped.length < 3) {
-          mapped.push({ rank: mapped.length + 1, sport_id: "", level_id: "", location_ids: [] });
+          mapped.push(emptySelection(mapped.length + 1));
         }
         setSelections(mapped);
       }
@@ -84,7 +93,7 @@ const MyPlayerSection = () => {
     fetchData();
   }, [user]);
 
-  const filledSelections = selections.filter((s) => s.sport_id && s.level_id);
+  const filledSelections = selections.filter((s) => s.sport_id && s.level_id && s.playstyle);
   const isValid = filledSelections.length >= 1;
   const hasDuplicateSports = (() => {
     const picked = selections.map((s) => s.sport_id).filter(Boolean);
@@ -92,8 +101,7 @@ const MyPlayerSection = () => {
   })();
 
   const addSlot = () => {
-    const nextRank = selections.length + 1;
-    setSelections((prev) => [...prev, { rank: nextRank, sport_id: "", level_id: "", location_ids: [] }]);
+    setSelections((prev) => [...prev, emptySelection(prev.length + 1)]);
   };
 
   const removeSlot = (rank: number) => {
@@ -113,7 +121,11 @@ const MyPlayerSection = () => {
       user_id: user.id,
       sport_id: s.sport_id,
       level_id: s.level_id,
+      playstyle: s.playstyle,
+      availability: s.availability,
+      goals: s.goals,
       location_ids: s.location_ids,
+      years_experience: s.years_experience,
       rank: i + 1,
     }));
 
@@ -129,7 +141,7 @@ const MyPlayerSection = () => {
     }
   };
 
-  const updateSelection = (rank: number, field: keyof Selection, value: string) => {
+  const updateSelection = (rank: number, field: keyof Selection, value: any) => {
     setSelections((prev) =>
       prev.map((s) => (s.rank === rank ? { ...s, [field]: value } : s))
     );
@@ -142,16 +154,38 @@ const MyPlayerSection = () => {
         const has = s.location_ids.includes(locationId);
         return {
           ...s,
-          location_ids: has
-            ? s.location_ids.filter((id) => id !== locationId)
-            : [...s.location_ids, locationId],
+          location_ids: has ? s.location_ids.filter((id) => id !== locationId) : [...s.location_ids, locationId],
         };
       })
     );
   };
 
-  const getBrandColor = (sportId: string): string | null => {
-    return offerings.find((o) => o.id === sportId)?.brand_color || null;
+  const toggleAvailability = (rank: number, day: string, period: string) => {
+    setSelections((prev) =>
+      prev.map((s) => {
+        if (s.rank !== rank) return s;
+        const has = s.availability.some((a) => a.day === day && a.period === period);
+        return {
+          ...s,
+          availability: has
+            ? s.availability.filter((a) => !(a.day === day && a.period === period))
+            : [...s.availability, { day, period }],
+        };
+      })
+    );
+  };
+
+  const toggleGoal = (rank: number, goal: string) => {
+    setSelections((prev) =>
+      prev.map((s) => {
+        if (s.rank !== rank) return s;
+        const has = s.goals.includes(goal);
+        return {
+          ...s,
+          goals: has ? s.goals.filter((g) => g !== goal) : [...s.goals, goal],
+        };
+      })
+    );
   };
 
   return (
@@ -185,7 +219,9 @@ const MyPlayerSection = () => {
               <Gamepad2 className="h-5 w-5 text-primary" />
               MyPlayer Profile
             </DialogTitle>
-            <p className="text-sm text-muted-foreground">Pick your favourite sports, your level, and preferred location for each.</p>
+            <p className="text-sm text-muted-foreground">
+              Set up your sports profile — skill level, playstyle, availability, goals, and preferred locations.
+            </p>
           </DialogHeader>
 
           {!loaded ? (
@@ -195,149 +231,29 @@ const MyPlayerSection = () => {
           ) : (
             <div className="space-y-6 pt-2">
               {selections.map((sel, idx) => {
-                const brandColor = getBrandColor(sel.sport_id);
                 const otherSports = selections
                   .filter((s) => s.rank !== sel.rank && s.sport_id)
                   .map((s) => s.sport_id);
 
-                const cardStyle = brandColor
-                  ? {
-                      borderColor: `hsl(${brandColor})`,
-                      boxShadow: `0 0 15px hsl(${brandColor} / 0.25), inset 0 0 30px hsl(${brandColor} / 0.05)`,
-                    }
-                  : {};
-
                 return (
-                  <div
+                  <SportSelectionCard
                     key={sel.rank}
-                    className={cn(
-                      "rounded-xl border bg-secondary/30 p-4 space-y-3 transition-all duration-300",
-                      !brandColor && "border-border"
-                    )}
-                    style={cardStyle}
-                  >
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold text-foreground">
-                        #{idx + 1} Sport {idx === 0 && <span className="text-xs text-muted-foreground font-normal">(required)</span>}
-                      </p>
-                      {selections.length > 1 && (
-                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => removeSlot(sel.rank)}>
-                          <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
-                        </Button>
-                      )}
-                    </div>
-
-                    {/* Sport selector */}
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      {offerings.map((offering) => {
-                        const disabled = otherSports.includes(offering.id);
-                        const selected = sel.sport_id === offering.id;
-                        const offeringColor = offering.brand_color;
-
-                        const selectedStyle = selected && offeringColor
-                          ? {
-                              borderColor: `hsl(${offeringColor})`,
-                              backgroundColor: `hsl(${offeringColor} / 0.15)`,
-                              color: `hsl(${offeringColor})`,
-                              boxShadow: `0 0 10px hsl(${offeringColor} / 0.2)`,
-                            }
-                          : {};
-
-                        return (
-                          <button
-                            key={offering.id}
-                            onClick={() => !disabled && updateSelection(sel.rank, "sport_id", offering.id)}
-                            disabled={disabled}
-                            className={cn(
-                              "rounded-lg border px-3 py-2.5 text-sm font-medium transition-all text-left",
-                              disabled
-                                ? "border-border bg-muted text-muted-foreground/30 cursor-not-allowed"
-                                : selected
-                                  ? "shadow-sm"
-                                  : "border-border text-muted-foreground hover:border-muted-foreground/50 hover:text-foreground"
-                            )}
-                            style={selectedStyle}
-                          >
-                            {selected && <Check className="h-3 w-3 inline mr-1" />}
-                            {offering.name}
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    {/* Level selector */}
-                    {sel.sport_id && (
-                      <div className="space-y-1.5">
-                        <p className="text-xs font-medium text-muted-foreground">Your level:</p>
-                        {levels.map((level) => {
-                          const selected = sel.level_id === level.id;
-                          const levelStyle = selected && brandColor
-                            ? {
-                                borderColor: `hsl(${brandColor})`,
-                                backgroundColor: `hsl(${brandColor} / 0.12)`,
-                                color: `hsl(${brandColor})`,
-                              }
-                            : {};
-
-                          return (
-                            <button
-                              key={level.id}
-                              onClick={() => updateSelection(sel.rank, "level_id", level.id)}
-                              className={cn(
-                                "w-full rounded-lg border px-4 py-3 text-sm font-medium transition-all text-left",
-                                !selected && "border-border text-muted-foreground hover:border-muted-foreground/50 hover:text-foreground"
-                              )}
-                              style={levelStyle}
-                            >
-                              {selected && <Check className="h-3 w-3 inline mr-1.5" />}
-                              {level.label}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
-
-                    {/* Location selector */}
-                    {sel.sport_id && sel.level_id && locations.length > 0 && (
-                      <div className="space-y-1.5">
-                        <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                          <MapPin className="h-3 w-3" /> Preferred locations <span className="text-muted-foreground/60">(optional, select multiple)</span>:
-                        </p>
-                        <div className="grid grid-cols-2 gap-2">
-                          {locations.map((loc) => {
-                            const selected = sel.location_ids.includes(loc.id);
-                            const locStyle = selected && brandColor
-                              ? {
-                                  borderColor: `hsl(${brandColor})`,
-                                  backgroundColor: `hsl(${brandColor} / 0.12)`,
-                                  color: `hsl(${brandColor})`,
-                                }
-                              : {};
-
-                            return (
-                              <button
-                                key={loc.id}
-                                onClick={() => toggleLocation(sel.rank, loc.id)}
-                                className={cn(
-                                  "rounded-lg border px-3 py-2.5 text-sm font-medium transition-all text-left",
-                                  !selected && "border-border text-muted-foreground hover:border-muted-foreground/50 hover:text-foreground"
-                                )}
-                                style={locStyle}
-                              >
-                                {selected && <Check className="h-3 w-3 inline mr-1" />}
-                                <span className="block text-xs">{loc.name}</span>
-                                <span className="block text-[10px] opacity-60">{loc.location}</span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                    sel={sel}
+                    idx={idx}
+                    offerings={offerings}
+                    levels={levels}
+                    locations={locations}
+                    otherSports={otherSports}
+                    canRemove={selections.length > 1}
+                    onUpdate={updateSelection}
+                    onToggleLocation={toggleLocation}
+                    onToggleAvailability={toggleAvailability}
+                    onToggleGoal={toggleGoal}
+                    onRemove={removeSlot}
+                  />
                 );
               })}
 
-              {/* Add more button */}
               {selections.length < offerings.length && (
                 <Button variant="outline" onClick={addSlot} className="w-full gap-2 rounded-xl">
                   <Plus className="h-4 w-4" /> Add another sport
@@ -347,6 +263,10 @@ const MyPlayerSection = () => {
               {hasDuplicateSports && (
                 <p className="text-sm text-destructive">Each sport must be different.</p>
               )}
+
+              <p className="text-xs text-muted-foreground text-center">
+                Complete at least one sport with level and playstyle to save.
+              </p>
 
               <Button
                 onClick={handleSave}

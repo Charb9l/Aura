@@ -405,31 +405,43 @@ export type Database = {
       }
       player_selections: {
         Row: {
+          availability: Json
           created_at: string
+          goals: string[]
           id: string
           level_id: string
           location_ids: string[]
+          playstyle: string | null
           rank: number
           sport_id: string
           user_id: string
+          years_experience: number | null
         }
         Insert: {
+          availability?: Json
           created_at?: string
+          goals?: string[]
           id?: string
           level_id: string
           location_ids?: string[]
+          playstyle?: string | null
           rank: number
           sport_id: string
           user_id: string
+          years_experience?: number | null
         }
         Update: {
+          availability?: Json
           created_at?: string
+          goals?: string[]
           id?: string
           level_id?: string
           location_ids?: string[]
+          playstyle?: string | null
           rank?: number
           sport_id?: string
           user_id?: string
+          years_experience?: number | null
         }
         Relationships: [
           {
