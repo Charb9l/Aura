@@ -12,6 +12,7 @@ interface Offering {
   id: string;
   name: string;
   slug: string;
+  brand_color: string | null;
 }
 
 interface Level {
@@ -43,7 +44,7 @@ const MyPlayerSection = () => {
   useEffect(() => {
     const fetchData = async () => {
       const [offeringsRes, levelsRes, selectionsRes] = await Promise.all([
-        supabase.from("offerings").select("id, name, slug").order("name"),
+        supabase.from("offerings").select("id, name, slug, brand_color").order("name"),
         supabase.from("player_levels").select("*").order("display_order"),
         user
           ? supabase.from("player_selections").select("*").eq("user_id", user.id).order("rank")
@@ -62,7 +63,6 @@ const MyPlayerSection = () => {
           sport_id: e.sport_id,
           level_id: e.level_id,
         }));
-        // Pad to at least 3 slots
         while (mapped.length < 3) {
           mapped.push({ rank: mapped.length + 1, sport_id: "", level_id: "" });
         }
@@ -96,7 +96,6 @@ const MyPlayerSection = () => {
     if (!user || !isValid || hasDuplicateSports) return;
     setSaving(true);
 
-    // Delete existing and re-insert only filled ones
     await supabase.from("player_selections").delete().eq("user_id", user.id);
 
     const rows = filledSelections.map((s, i) => ({
@@ -122,6 +121,10 @@ const MyPlayerSection = () => {
     setSelections((prev) =>
       prev.map((s) => (s.rank === rank ? { ...s, [field]: value } : s))
     );
+  };
+
+  const getBrandColor = (sportId: string): string | null => {
+    return offerings.find((o) => o.id === sportId)?.brand_color || null;
   };
 
   return (
@@ -165,12 +168,27 @@ const MyPlayerSection = () => {
           ) : (
             <div className="space-y-6 pt-2">
               {selections.map((sel, idx) => {
+                const brandColor = getBrandColor(sel.sport_id);
                 const otherSports = selections
                   .filter((s) => s.rank !== sel.rank && s.sport_id)
                   .map((s) => s.sport_id);
 
+                const cardStyle = brandColor
+                  ? {
+                      borderColor: `hsl(${brandColor})`,
+                      boxShadow: `0 0 15px hsl(${brandColor} / 0.25), inset 0 0 30px hsl(${brandColor} / 0.05)`,
+                    }
+                  : {};
+
                 return (
-                  <div key={sel.rank} className="rounded-xl border border-border bg-secondary/30 p-4 space-y-3">
+                  <div
+                    key={sel.rank}
+                    className={cn(
+                      "rounded-xl border bg-secondary/30 p-4 space-y-3 transition-all duration-300",
+                      !brandColor && "border-border"
+                    )}
+                    style={cardStyle}
+                  >
                     <div className="flex items-center justify-between">
                       <p className="text-sm font-semibold text-foreground">
                         #{idx + 1} Sport {idx === 0 && <span className="text-xs text-muted-foreground font-normal">(required)</span>}
@@ -187,6 +205,17 @@ const MyPlayerSection = () => {
                       {offerings.map((offering) => {
                         const disabled = otherSports.includes(offering.id);
                         const selected = sel.sport_id === offering.id;
+                        const offeringColor = offering.brand_color;
+
+                        const selectedStyle = selected && offeringColor
+                          ? {
+                              borderColor: `hsl(${offeringColor})`,
+                              backgroundColor: `hsl(${offeringColor} / 0.15)`,
+                              color: `hsl(${offeringColor})`,
+                              boxShadow: `0 0 10px hsl(${offeringColor} / 0.2)`,
+                            }
+                          : {};
+
                         return (
                           <button
                             key={offering.id}
@@ -197,9 +226,10 @@ const MyPlayerSection = () => {
                               disabled
                                 ? "border-border bg-muted text-muted-foreground/30 cursor-not-allowed"
                                 : selected
-                                  ? "border-primary bg-primary/10 text-primary shadow-sm"
+                                  ? "shadow-sm"
                                   : "border-border text-muted-foreground hover:border-muted-foreground/50 hover:text-foreground"
                             )}
+                            style={selectedStyle}
                           >
                             {selected && <Check className="h-3 w-3 inline mr-1" />}
                             {offering.name}
@@ -214,16 +244,23 @@ const MyPlayerSection = () => {
                         <p className="text-xs font-medium text-muted-foreground">Your level:</p>
                         {levels.map((level) => {
                           const selected = sel.level_id === level.id;
+                          const levelStyle = selected && brandColor
+                            ? {
+                                borderColor: `hsl(${brandColor})`,
+                                backgroundColor: `hsl(${brandColor} / 0.12)`,
+                                color: `hsl(${brandColor})`,
+                              }
+                            : {};
+
                           return (
                             <button
                               key={level.id}
                               onClick={() => updateSelection(sel.rank, "level_id", level.id)}
                               className={cn(
                                 "w-full rounded-lg border px-4 py-3 text-sm font-medium transition-all text-left",
-                                selected
-                                  ? "border-primary bg-primary/10 text-primary"
-                                  : "border-border text-muted-foreground hover:border-muted-foreground/50 hover:text-foreground"
+                                !selected && "border-border text-muted-foreground hover:border-muted-foreground/50 hover:text-foreground"
                               )}
+                              style={levelStyle}
                             >
                               {selected && <Check className="h-3 w-3 inline mr-1.5" />}
                               {level.label}
