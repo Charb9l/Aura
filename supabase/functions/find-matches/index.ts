@@ -24,7 +24,6 @@ Deno.serve(async (req) => {
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceKey);
 
-    // Verify the caller
     const userClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -40,17 +39,9 @@ Deno.serve(async (req) => {
     const sportFilter = url.searchParams.get("sport_id");
     const locationFilter = url.searchParams.get("location_id");
 
-    // Get all player selections with joined data (excluding the current user)
     let query = supabase
       .from("player_selections")
-      .select(`
-        id,
-        rank,
-        sport_id,
-        level_id,
-        location_ids,
-        user_id
-      `)
+      .select("id, rank, sport_id, level_id, location_ids, user_id, playstyle, availability, goals, years_experience")
       .neq("user_id", user.id);
 
     if (sportFilter) query = query.eq("sport_id", sportFilter);
@@ -65,16 +56,14 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Get unique user IDs
     const userIds = [...new Set(selections.map((s: any) => s.user_id))];
 
-    // Fetch profiles, offerings, levels, locations in parallel
     const [profilesRes, offeringsRes, levelsRes, locationsRes, mySelectionsRes] = await Promise.all([
       supabase.from("profiles").select("user_id, full_name").in("user_id", userIds),
       supabase.from("offerings").select("id, name, slug, brand_color"),
       supabase.from("player_levels").select("id, label, display_order"),
       supabase.from("club_locations").select("id, name, location"),
-      supabase.from("player_selections").select("sport_id, level_id, location_ids").eq("user_id", user.id),
+      supabase.from("player_selections").select("sport_id, level_id, location_ids, playstyle, availability, goals").eq("user_id", user.id),
     ]);
 
     const profileMap = Object.fromEntries((profilesRes.data || []).map((p: any) => [p.user_id, p]));
@@ -83,24 +72,76 @@ Deno.serve(async (req) => {
     const locationMap = Object.fromEntries((locationsRes.data || []).map((l: any) => [l.id, l]));
     const mySelections = mySelectionsRes.data || [];
 
-    // Group selections by user
     const userSelectionsMap: Record<string, any[]> = {};
     for (const sel of selections) {
       if (!userSelectionsMap[sel.user_id]) userSelectionsMap[sel.user_id] = [];
       userSelectionsMap[sel.user_id].push(sel);
     }
 
-    // Build match profiles with compatibility scoring
+    // Scoring helper
+    const scoreSport = (theirs: any, mine: any) => {
+      let score = 0;
+      const details: string[] = [];
+
+      // Level match: +3
+      if (mine.level_id === theirs.level_id) {
+        score += 3;
+        details.push("level");
+      }
+
+      // Playstyle match: +2
+      if (mine.playstyle && theirs.playstyle && mine.playstyle === theirs.playstyle) {
+        score += 2;
+        details.push("playstyle");
+      }
+
+      // Location overlap: +2
+      const myLocs: string[] = mine.location_ids || [];
+      const theirLocs: string[] = theirs.location_ids || [];
+      if (myLocs.length > 0 && theirLocs.length > 0 && myLocs.some((id: string) => theirLocs.includes(id))) {
+        score += 2;
+        details.push("location");
+      }
+
+      // Availability overlap: +2
+      const myAvail: any[] = mine.availability || [];
+      const theirAvail: any[] = theirs.availability || [];
+      const hasAvailOverlap = myAvail.some((ma: any) =>
+        theirAvail.some((ta: any) => ma.day === ta.day && ma.period === ta.period)
+      );
+      if (myAvail.length > 0 && theirAvail.length > 0 && hasAvailOverlap) {
+        score += 2;
+        details.push("availability");
+      }
+
+      // Goals overlap: +1
+      const myGoals: string[] = mine.goals || [];
+      const theirGoals: string[] = theirs.goals || [];
+      const goalOverlap = myGoals.filter((g: string) => theirGoals.includes(g));
+      if (goalOverlap.length > 0) {
+        score += 1;
+        details.push("goals");
+      }
+
+      // Max score = 10 (sport itself counts as base)
+      // Determine quality tier
+      let matchQuality: "perfect" | "good" | "sport-only" = "sport-only";
+      if (score >= 7) matchQuality = "perfect";
+      else if (score >= 3) matchQuality = "good";
+
+      return { score, matchQuality, details };
+    };
+
     const matches = userIds.map((uid: string) => {
       const profile = profileMap[uid];
       const userSels = userSelectionsMap[uid] || [];
       const fullName = profile?.full_name || "Anonymous";
-
-      // Privacy: show first name + last initial
       const nameParts = fullName.trim().split(" ");
       const displayName = nameParts.length > 1
         ? `${nameParts[0]} ${nameParts[nameParts.length - 1][0]}.`
         : nameParts[0];
+
+      let bestScore = 0;
 
       const sports = userSels.map((s: any) => {
         const offering = offeringMap[s.sport_id];
@@ -108,18 +149,19 @@ Deno.serve(async (req) => {
         const locIds: string[] = s.location_ids || [];
         const locNames = locIds.map((lid: string) => locationMap[lid]).filter(Boolean);
 
-        // Compute match quality for this sport
         const mySel = mySelections.find((ms: any) => ms.sport_id === s.sport_id);
         let matchQuality: "perfect" | "good" | "sport-only" = "sport-only";
+        let score = 0;
+        let matchDetails: string[] = [];
+
         if (mySel) {
-          const myLocIds: string[] = mySel.location_ids || [];
-          const hasOverlap = myLocIds.some((id: string) => locIds.includes(id));
-          if (mySel.level_id === s.level_id && hasOverlap) {
-            matchQuality = "perfect";
-          } else if (mySel.level_id === s.level_id) {
-            matchQuality = "good";
-          }
+          const result = scoreSport(s, mySel);
+          matchQuality = result.matchQuality;
+          score = result.score;
+          matchDetails = result.details;
         }
+
+        if (score > bestScore) bestScore = score;
 
         return {
           sport_id: s.sport_id,
@@ -128,33 +170,27 @@ Deno.serve(async (req) => {
           brand_color: offering?.brand_color || null,
           level_label: level?.label || "Unknown",
           level_order: level?.display_order || 0,
+          playstyle: s.playstyle || null,
           location_name: locNames.length > 0 ? locNames.map((l: any) => l.name).join(", ") : null,
           location_area: locNames.length > 0 ? locNames.map((l: any) => l.location).join(", ") : null,
           match_quality: matchQuality,
+          match_details: matchDetails,
         };
       });
 
-      // Overall compatibility score
-      const bestMatch = sports.reduce(
-        (best: string, s: any) => {
-          if (s.match_quality === "perfect") return "perfect";
-          if (s.match_quality === "good" && best !== "perfect") return "good";
-          return best;
-        },
-        "sport-only"
-      );
+      const bestMatch = bestScore >= 7 ? "perfect" : bestScore >= 3 ? "good" : "sport-only";
 
       return {
         user_id: uid,
         display_name: displayName,
         sports,
         best_match: bestMatch,
+        match_score: bestScore,
       };
     });
 
-    // Sort: perfect matches first, then good, then sport-only
-    const order = { perfect: 0, good: 1, "sport-only": 2 };
-    matches.sort((a: any, b: any) => (order[a.best_match as keyof typeof order] ?? 2) - (order[b.best_match as keyof typeof order] ?? 2));
+    // Sort by score descending
+    matches.sort((a: any, b: any) => b.match_score - a.match_score);
 
     return new Response(JSON.stringify({ matches, offerings: offeringsRes.data, locations: locationsRes.data }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
