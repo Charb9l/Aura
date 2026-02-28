@@ -212,11 +212,6 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
   }, []);
 
   const openEditor = (slug: string) => {
-    // Academy edit redirects to the Academies tab
-    if (slug === "academy" && onNavigateTab) {
-      onNavigateTab("academies");
-      return;
-    }
     const content = allContent[slug] || {};
     if (slug === "home") {
       setHeroSubtitle(content.hero_subtitle || "");
