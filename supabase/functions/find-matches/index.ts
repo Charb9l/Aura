@@ -48,13 +48,13 @@ Deno.serve(async (req) => {
         rank,
         sport_id,
         level_id,
-        location_id,
+        location_ids,
         user_id
       `)
       .neq("user_id", user.id);
 
     if (sportFilter) query = query.eq("sport_id", sportFilter);
-    if (locationFilter) query = query.eq("location_id", locationFilter);
+    if (locationFilter) query = query.contains("location_ids", [locationFilter]);
 
     const { data: selections, error: selError } = await query;
     if (selError) throw selError;
@@ -74,7 +74,7 @@ Deno.serve(async (req) => {
       supabase.from("offerings").select("id, name, slug, brand_color"),
       supabase.from("player_levels").select("id, label, display_order"),
       supabase.from("club_locations").select("id, name, location"),
-      supabase.from("player_selections").select("sport_id, level_id, location_id").eq("user_id", user.id),
+      supabase.from("player_selections").select("sport_id, level_id, location_ids").eq("user_id", user.id),
     ]);
 
     const profileMap = Object.fromEntries((profilesRes.data || []).map((p: any) => [p.user_id, p]));
@@ -105,13 +105,16 @@ Deno.serve(async (req) => {
       const sports = userSels.map((s: any) => {
         const offering = offeringMap[s.sport_id];
         const level = levelMap[s.level_id];
-        const loc = s.location_id ? locationMap[s.location_id] : null;
+        const locIds: string[] = s.location_ids || [];
+        const locNames = locIds.map((lid: string) => locationMap[lid]).filter(Boolean);
 
         // Compute match quality for this sport
         const mySel = mySelections.find((ms: any) => ms.sport_id === s.sport_id);
         let matchQuality: "perfect" | "good" | "sport-only" = "sport-only";
         if (mySel) {
-          if (mySel.level_id === s.level_id && mySel.location_id && s.location_id && mySel.location_id === s.location_id) {
+          const myLocIds: string[] = mySel.location_ids || [];
+          const hasOverlap = myLocIds.some((id: string) => locIds.includes(id));
+          if (mySel.level_id === s.level_id && hasOverlap) {
             matchQuality = "perfect";
           } else if (mySel.level_id === s.level_id) {
             matchQuality = "good";
@@ -125,8 +128,8 @@ Deno.serve(async (req) => {
           brand_color: offering?.brand_color || null,
           level_label: level?.label || "Unknown",
           level_order: level?.display_order || 0,
-          location_name: loc?.name || null,
-          location_area: loc?.location || null,
+          location_name: locNames.length > 0 ? locNames.map((l: any) => l.name).join(", ") : null,
+          location_area: locNames.length > 0 ? locNames.map((l: any) => l.location).join(", ") : null,
           match_quality: matchQuality,
         };
       });

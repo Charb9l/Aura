@@ -31,7 +31,7 @@ interface Selection {
   rank: number;
   sport_id: string;
   level_id: string;
-  location_id: string;
+  location_ids: string[];
 }
 
 const MyPlayerSection = () => {
@@ -41,9 +41,9 @@ const MyPlayerSection = () => {
   const [levels, setLevels] = useState<Level[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
   const [selections, setSelections] = useState<Selection[]>([
-    { rank: 1, sport_id: "", level_id: "", location_id: "" },
-    { rank: 2, sport_id: "", level_id: "", location_id: "" },
-    { rank: 3, sport_id: "", level_id: "", location_id: "" },
+    { rank: 1, sport_id: "", level_id: "", location_ids: [] },
+    { rank: 2, sport_id: "", level_id: "", location_ids: [] },
+    { rank: 3, sport_id: "", level_id: "", location_ids: [] },
   ]);
   const [hasSaved, setHasSaved] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -72,10 +72,10 @@ const MyPlayerSection = () => {
           rank: e.rank ?? i + 1,
           sport_id: e.sport_id,
           level_id: e.level_id,
-          location_id: e.location_id || "",
+          location_ids: e.location_ids || [],
         }));
         while (mapped.length < 3) {
-          mapped.push({ rank: mapped.length + 1, sport_id: "", level_id: "", location_id: "" });
+          mapped.push({ rank: mapped.length + 1, sport_id: "", level_id: "", location_ids: [] });
         }
         setSelections(mapped);
       }
@@ -93,7 +93,7 @@ const MyPlayerSection = () => {
 
   const addSlot = () => {
     const nextRank = selections.length + 1;
-    setSelections((prev) => [...prev, { rank: nextRank, sport_id: "", level_id: "", location_id: "" }]);
+    setSelections((prev) => [...prev, { rank: nextRank, sport_id: "", level_id: "", location_ids: [] }]);
   };
 
   const removeSlot = (rank: number) => {
@@ -113,7 +113,7 @@ const MyPlayerSection = () => {
       user_id: user.id,
       sport_id: s.sport_id,
       level_id: s.level_id,
-      location_id: s.location_id || null,
+      location_ids: s.location_ids,
       rank: i + 1,
     }));
 
@@ -132,6 +132,21 @@ const MyPlayerSection = () => {
   const updateSelection = (rank: number, field: keyof Selection, value: string) => {
     setSelections((prev) =>
       prev.map((s) => (s.rank === rank ? { ...s, [field]: value } : s))
+    );
+  };
+
+  const toggleLocation = (rank: number, locationId: string) => {
+    setSelections((prev) =>
+      prev.map((s) => {
+        if (s.rank !== rank) return s;
+        const has = s.location_ids.includes(locationId);
+        return {
+          ...s,
+          location_ids: has
+            ? s.location_ids.filter((id) => id !== locationId)
+            : [...s.location_ids, locationId],
+        };
+      })
     );
   };
 
@@ -286,11 +301,11 @@ const MyPlayerSection = () => {
                     {sel.sport_id && sel.level_id && locations.length > 0 && (
                       <div className="space-y-1.5">
                         <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                          <MapPin className="h-3 w-3" /> Preferred location <span className="text-muted-foreground/60">(optional)</span>:
+                          <MapPin className="h-3 w-3" /> Preferred locations <span className="text-muted-foreground/60">(optional, select multiple)</span>:
                         </p>
                         <div className="grid grid-cols-2 gap-2">
                           {locations.map((loc) => {
-                            const selected = sel.location_id === loc.id;
+                            const selected = sel.location_ids.includes(loc.id);
                             const locStyle = selected && brandColor
                               ? {
                                   borderColor: `hsl(${brandColor})`,
@@ -302,7 +317,7 @@ const MyPlayerSection = () => {
                             return (
                               <button
                                 key={loc.id}
-                                onClick={() => updateSelection(sel.rank, "location_id", selected ? "" : loc.id)}
+                                onClick={() => toggleLocation(sel.rank, loc.id)}
                                 className={cn(
                                   "rounded-lg border px-3 py-2.5 text-sm font-medium transition-all text-left",
                                   !selected && "border-border text-muted-foreground hover:border-muted-foreground/50 hover:text-foreground"
