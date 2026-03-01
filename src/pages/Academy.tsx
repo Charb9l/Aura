@@ -74,6 +74,10 @@ const activityKeywords: Record<string, string[]> = {
   "aerial-yoga": ["yoga", "aerial"],
 };
 
+const getKeywordsForSlug = (slug: string): string[] => {
+  return activityKeywords[slug] || [slug];
+};
+
 const isValidEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 
 const AcademyPage = () => {
@@ -142,16 +146,19 @@ const AcademyPage = () => {
       .filter(c => c.offerings.some(o => o.toLowerCase().includes("academy")))
       .map(club => {
         let matchedSlug = "";
+        // First try matching against known keyword map
         for (const [slug, keywords] of Object.entries(activityKeywords)) {
           if (club.offerings.some(o => o.toLowerCase().includes("academy") && keywords.some(k => o.toLowerCase().includes(k)))) {
             matchedSlug = slug;
             break;
           }
         }
+        // Then try matching against all offerings slugs dynamically
         if (!matchedSlug) {
-          for (const [slug, keywords] of Object.entries(activityKeywords)) {
+          for (const offering of offerings) {
+            const keywords = getKeywordsForSlug(offering.slug);
             if (club.offerings.some(o => keywords.some(k => o.toLowerCase().includes(k)))) {
-              matchedSlug = slug;
+              matchedSlug = offering.slug;
               break;
             }
           }
