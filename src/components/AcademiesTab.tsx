@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
-import { LEBANESE_CITIES } from "@/lib/lebanese-cities";
+import { useLocations } from "@/hooks/useLocations";
 
 interface ClubRow {
   id: string;
@@ -38,6 +38,7 @@ interface ClubLocation {
 }
 
 const AcademiesTab = () => {
+  const { locations: locationsList } = useLocations();
   const [clubs, setClubs] = useState<ClubRow[]>([]);
   const [pictures, setPictures] = useState<AcademyPicture[]>([]);
   const [locations, setLocations] = useState<ClubLocation[]>([]);
@@ -341,8 +342,8 @@ const AcademiesTab = () => {
                     <SelectValue placeholder="Select city / area" />
                   </SelectTrigger>
                   <SelectContent className="bg-card border-border z-50 max-h-60">
-                    {LEBANESE_CITIES.map(city => (
-                      <SelectItem key={city} value={city}>{city}</SelectItem>
+                    {locationsList.map(loc => (
+                      <SelectItem key={loc.id} value={loc.name}>{loc.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
