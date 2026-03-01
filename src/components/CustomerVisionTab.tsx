@@ -528,28 +528,29 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {PAGES.map((page) => (
-                <TableRow key={page.slug}>
-                  <TableCell className="font-medium">{page.name}</TableCell>
-                  <TableCell className="text-muted-foreground text-sm">{page.description}</TableCell>
-                  <TableCell>
-                    <Button variant="ghost" size="icon" onClick={() => openEditor(page.slug)}>
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-              <TableRow>
-                <TableCell className="font-medium">
-                  Activities
-                </TableCell>
-                <TableCell className="text-muted-foreground text-sm">Add, edit, or remove activities and their images</TableCell>
-                <TableCell>
-                  <Button variant="ghost" size="icon" onClick={() => setActivitiesOpen(true)}>
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                </TableCell>
-              </TableRow>
+              {[...PAGES, { name: "Activities", slug: "activities", description: "Add, edit, or remove activities and their images" }]
+                .sort((a, b) => a.name.localeCompare(b.name))
+                .map((page) => (
+                  <TableRow key={page.slug}>
+                    <TableCell className="font-medium">{page.name}</TableCell>
+                    <TableCell className="text-muted-foreground text-sm">{page.description}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          if (page.slug === "activities") {
+                            setActivitiesOpen(true);
+                          } else {
+                            openEditor(page.slug);
+                          }
+                        }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
             </TableBody>
           </Table>
         </CardContent>
