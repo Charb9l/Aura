@@ -18,7 +18,7 @@ const allMenuItems = [
   { label: "Academies", icon: GraduationCap, tab: "academies" },
   { label: "Promotions", icon: Tag, tab: "promotions" },
   { label: "Customer Vision", icon: Eye, tab: "customer-vision" },
-  { label: "MyPlayer", icon: Gamepad2, tab: "myplayer" },
+  { label: "AI Matchmaker", icon: Gamepad2, tab: "matchmaker" },
   { label: "Habit Tracker", icon: TrendingUp, tab: "habits" },
   { label: "Reports", icon: FileBarChart, tab: "reports" },
   { label: "Settings", icon: Settings, tab: "settings" },
