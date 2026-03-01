@@ -5,6 +5,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { usePlayerProfileComplete } from "@/hooks/usePlayerProfile";
 import { useAvatar, getInitials } from "@/hooks/useAvatar";
 import { useAdminRole } from "@/hooks/useAdminRole";
+import { useBadgeLevels } from "@/hooks/useBadgeLevels";
+import { useBadgePoints } from "@/hooks/useBadgePoints";
 import { LogOut, ShieldCheck, Menu, X, LogIn } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -45,7 +47,14 @@ const Navbar = () => {
   const { isComplete: playerComplete } = usePlayerProfileComplete();
   const { avatarUrl } = useAvatar();
   const [hasPendingBookings, setHasPendingBookings] = useState(false);
-  const showGlow = user && (playerComplete === false || !avatarUrl || hasPendingBookings);
+  
+  // Badge point glow: check if user has unassigned badge level points
+  const [navBookings, setNavBookings] = useState<any[]>([]);
+  const { completedLevelCount } = useBadgeLevels(navBookings);
+  const { assignedLevels, loading: badgeLoading } = useBadgePoints();
+  const hasUnassignedBadgePoints = !badgeLoading && completedLevelCount > assignedLevels.size;
+
+  const showGlow = user && (playerComplete === false || !avatarUrl || hasPendingBookings || hasUnassignedBadgePoints);
   const { isAdmin } = useAdminRole();
 
   const initials = getInitials(user?.user_metadata?.full_name, user?.email);
@@ -68,10 +77,12 @@ const Navbar = () => {
     });
   }, []);
 
-  // Check for pending bookings to trigger profile glow
+  // Check for pending bookings & fetch bookings for badge calc
   useEffect(() => {
-    if (!user) { setHasPendingBookings(false); return; }
+    if (!user) { setHasPendingBookings(false); setNavBookings([]); return; }
     const today = new Date().toISOString().split("T")[0];
+    
+    // Pending bookings check
     supabase
       .from("bookings")
       .select("id", { count: "exact", head: true })
@@ -80,6 +91,13 @@ const Navbar = () => {
       .gte("booking_date", today)
       .is("attendance_status", null)
       .then(({ count }) => setHasPendingBookings((count ?? 0) > 0));
+
+    // Bookings for badge level calculation
+    supabase
+      .from("bookings")
+      .select("id, activity, activity_name, booking_date, booking_time, attendance_status, status")
+      .eq("user_id", user.id)
+      .then(({ data }) => setNavBookings(data || []));
   }, [user]);
 
   const handleSignOut = async () => {

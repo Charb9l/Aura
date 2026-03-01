@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
@@ -8,8 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Flame, Trophy, Target, TrendingUp, Zap, Star, Calendar, Sun, Moon, Clock, Sparkles, Gift } from "lucide-react";
+import { Flame, Trophy, Target, TrendingUp, Zap, Star, Calendar, Sun, Moon, Clock, Sparkles, Gift, ChevronDown, Shield, Award, Crown } from "lucide-react";
 import { format, parseISO, startOfWeek, subWeeks, isWithinInterval, startOfDay, endOfDay, differenceInDays, getDay, getHours } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface BookingRow {
   id: string;
@@ -36,6 +37,120 @@ interface PageContent {
   subtitle?: string;
   sections?: { key: string; title: string; description: string }[];
 }
+
+const LEVEL_ICONS = [
+  <Shield className="h-5 w-5" />,
+  <Award className="h-5 w-5" />,
+  <Crown className="h-5 w-5" />,
+];
+
+const LEVEL_COLORS = [
+  { text: "text-primary", border: "border-primary/40 bg-primary/5", bg: "bg-primary", ring: "ring-primary/20" },
+  { text: "text-accent", border: "border-accent/40 bg-accent/5", bg: "bg-accent", ring: "ring-accent/20" },
+  { text: "text-amber-400", border: "border-amber-400/40 bg-amber-400/5", bg: "bg-amber-400", ring: "ring-amber-400/20" },
+];
+
+interface BadgeLevelData {
+  name: string;
+  badges: BadgeDef[];
+  color: string;
+}
+
+const BadgeLevelsAccordion = ({ badgeLevels }: { badgeLevels: BadgeLevelData[] }) => {
+  const [openLevels, setOpenLevels] = useState<Set<number>>(new Set([0]));
+
+  const toggle = (i: number) => {
+    setOpenLevels(prev => {
+      const next = new Set(prev);
+      if (next.has(i)) next.delete(i); else next.add(i);
+      return next;
+    });
+  };
+
+  return (
+    <>
+      {badgeLevels.map((level, li) => {
+        const levelEarned = level.badges.filter(b => b.earned).length;
+        const levelComplete = levelEarned === level.badges.length;
+        const colors = LEVEL_COLORS[li];
+        const isOpen = openLevels.has(li);
+
+        return (
+          <motion.div key={level.name} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 + li * 0.1 }}>
+            <Card className="bg-card border-border overflow-hidden">
+              <button
+                onClick={() => toggle(li)}
+                className="w-full text-left"
+              >
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className={cn("text-base flex items-center gap-2", colors.text)}>
+                      {LEVEL_ICONS[li]}
+                      {level.name}
+                    </CardTitle>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">{levelEarned}/8</span>
+                      <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform duration-200", isOpen && "rotate-180")} />
+                    </div>
+                  </div>
+                  <Progress value={(levelEarned / 8) * 100} className="h-1.5 mt-2" />
+                  {levelComplete && (
+                    <p className="text-xs font-semibold text-emerald-400 mt-2 flex items-center gap-1">
+                      <Gift className="h-3.5 w-3.5" />
+                      Level complete! +1 free loyalty point earned
+                    </p>
+                  )}
+                </CardHeader>
+              </button>
+              <AnimatePresence initial={false}>
+                {isOpen && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className="overflow-hidden"
+                  >
+                    <CardContent className="pt-0">
+                      <div className="grid grid-cols-2 gap-3">
+                        {level.badges.map((badge) => (
+                          <div
+                            key={badge.id}
+                            className={cn(
+                              "relative p-3 rounded-xl border text-center transition-all",
+                              badge.earned ? colors.border : "border-border bg-secondary/30 opacity-60"
+                            )}
+                          >
+                            <div className={cn("mx-auto mb-1.5", badge.earned ? colors.text : "text-muted-foreground")}>
+                              {badge.icon}
+                            </div>
+                            <p className="text-xs font-semibold text-foreground">{badge.title}</p>
+                            <p className="text-[10px] text-muted-foreground mt-0.5">{badge.description}</p>
+                            {!badge.earned && (
+                              <div className="mt-2">
+                                <Progress value={(badge.progress / badge.target) * 100} className="h-1" />
+                                <p className="text-[10px] text-muted-foreground mt-0.5">{badge.progress}/{badge.target}</p>
+                              </div>
+                            )}
+                            {badge.earned && (
+                              <div className={cn("absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full flex items-center justify-center", colors.bg)}>
+                                <span className="text-[10px] text-primary-foreground">✓</span>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </Card>
+          </motion.div>
+        );
+      })}
+    </>
+  );
+};
 
 const HabitsPage = () => {
   const { user, loading: authLoading } = useAuth();
@@ -446,68 +561,8 @@ const HabitsPage = () => {
                 </Card>
               </motion.div>
 
-              {/* Badges — 3 Levels */}
-              {badgeLevels.map((level, li) => {
-                const levelEarned = level.badges.filter(b => b.earned).length;
-                const levelComplete = levelEarned === level.badges.length;
-                const levelColorClass = li === 0 ? "text-primary" : li === 1 ? "text-accent" : "text-amber-400";
-                const levelBorderClass = li === 0 ? "border-primary/40 bg-primary/5" : li === 1 ? "border-accent/40 bg-accent/5" : "border-amber-400/40 bg-amber-400/5";
-                const levelBgClass = li === 0 ? "bg-primary" : li === 1 ? "bg-accent" : "bg-amber-400";
-
-                return (
-                  <motion.div key={level.name} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 + li * 0.1 }}>
-                    <Card className="bg-card border-border">
-                      <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between">
-                          <CardTitle className={`text-base flex items-center gap-2 ${levelColorClass}`}>
-                            <Trophy className="h-5 w-5" />
-                            {level.name}
-                          </CardTitle>
-                          <span className="text-xs text-muted-foreground">{levelEarned}/8</span>
-                        </div>
-                        <Progress value={(levelEarned / 8) * 100} className="h-1.5 mt-2" />
-                        {levelComplete && (
-                          <p className="text-xs font-semibold text-emerald-400 mt-2 flex items-center gap-1">
-                            <Gift className="h-3.5 w-3.5" />
-                            Level complete! +1 free loyalty point earned
-                          </p>
-                        )}
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid grid-cols-2 gap-3">
-                          {level.badges.map((badge) => (
-                            <div
-                              key={badge.id}
-                              className={`relative p-3 rounded-xl border text-center transition-all ${
-                                badge.earned
-                                  ? levelBorderClass
-                                  : "border-border bg-secondary/30 opacity-60"
-                              }`}
-                            >
-                              <div className={`mx-auto mb-1.5 ${badge.earned ? levelColorClass : "text-muted-foreground"}`}>
-                                {badge.icon}
-                              </div>
-                              <p className="text-xs font-semibold text-foreground">{badge.title}</p>
-                              <p className="text-[10px] text-muted-foreground mt-0.5">{badge.description}</p>
-                              {!badge.earned && (
-                                <div className="mt-2">
-                                  <Progress value={(badge.progress / badge.target) * 100} className="h-1" />
-                                  <p className="text-[10px] text-muted-foreground mt-0.5">{badge.progress}/{badge.target}</p>
-                                </div>
-                              )}
-                              {badge.earned && (
-                                <div className={`absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full ${levelBgClass} flex items-center justify-center`}>
-                                  <span className="text-[10px] text-primary-foreground">✓</span>
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                );
-              })}
+              {/* Badges — 3 Levels (Collapsible) */}
+              <BadgeLevelsAccordion badgeLevels={badgeLevels} />
             </div>
           </div>
           </>
