@@ -32,6 +32,7 @@ import { BookingRow, ProfileRow, UserWithEmail, ClubRow, getBookingRevenue, ALL_
 import BookingsCalendarTab from "@/components/admin/BookingsCalendarTab";
 import SettingsTab from "@/components/admin/SettingsTab";
 import ClubsTab from "@/components/admin/ClubsTab";
+import ReportsTab from "@/components/admin/ReportsTab";
 
 // ─── Main Admin Dashboard ──────────────────────────────────────
 const AdminDashboard = () => {
@@ -376,7 +377,8 @@ const AdminDashboard = () => {
         {activeTab === "academies" && <AcademiesTab />}
         {activeTab === "customer-vision" && <CustomerVisionTab onNavigateTab={setActiveTab} />}
         {activeTab === "myplayer" && <AdminMyPlayerTab />}
-        {activeTab === "settings" && <SettingsTab bookings={bookings} />}
+        {activeTab === "settings" && <SettingsTab />}
+        {activeTab === "reports" && <ReportsTab />}
 
         {activeTab === "habits" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="habits">
