@@ -105,12 +105,15 @@ The admin will ask you a question about their data. You MUST respond with a vali
 }
 
 Rules:
-- Always generate relevant CSV data that answers the question
-- Include useful columns like dates, counts, revenue, percentages where appropriate
+- ALWAYS return individual booking-level rows (one row per booking), NOT aggregated totals
+- Each row MUST include ALL booking details: booking date, booking time, activity, activity name, customer full name, email, phone, court type, discount type, attendance status, status, created at, and calculated revenue
+- Filter the bookings based on the admin's question (date range, activity, customer, etc.)
+- Add a "Revenue ($)" column showing the calculated revenue per booking
 - If the question involves a date range, filter accordingly
 - If the question is vague, make reasonable assumptions and mention them in the summary
 - Keep the summary concise (2-3 sentences max)
 - Ensure all CSV values are strings
+- Sort by booking_date descending by default
 - RESPOND WITH ONLY THE JSON OBJECT, no markdown, no code blocks`;
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
