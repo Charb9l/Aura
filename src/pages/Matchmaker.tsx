@@ -58,6 +58,24 @@ const MatchmakerPage = () => {
   const [sportFilter, setSportFilter] = useState<string>("");
   const [locationFilter, setLocationFilter] = useState<string>("");
   const [hasProfile, setHasProfile] = useState<boolean | null>(null);
+  const [pageTitle, setPageTitle] = useState("Find Your Match");
+  const [pageSubtitle, setPageSubtitle] = useState("Get matched with players who share your sports, skill level, and preferred location. Your next opponent or partner is just a click away.");
+
+  useEffect(() => {
+    const fetchContent = async () => {
+      const { data } = await supabase
+        .from("page_content")
+        .select("content")
+        .eq("page_slug", "matchmaker")
+        .maybeSingle();
+      if (data?.content) {
+        const c = data.content as Record<string, string>;
+        if (c.title) setPageTitle(c.title);
+        if (c.subtitle) setPageSubtitle(c.subtitle);
+      }
+    };
+    fetchContent();
+  }, []);
 
   useEffect(() => {
     if (!user) {
@@ -120,10 +138,10 @@ const MatchmakerPage = () => {
             <span className="text-sm font-medium text-primary">AI-Powered</span>
           </div>
           <h1 className="font-heading text-5xl md:text-6xl font-bold text-foreground mb-4">
-            Find Your <span className="text-gradient">Match</span>
+            {pageTitle}
           </h1>
           <p className="text-lg text-muted-foreground max-w-xl mx-auto">
-            Get matched with players who share your sports, skill level, and preferred location. Your next opponent or partner is just a click away.
+            {pageSubtitle}
           </p>
         </motion.div>
 
