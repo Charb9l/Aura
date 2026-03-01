@@ -1,18 +1,19 @@
 import { useEffect, useState, useMemo, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { format, parseISO, differenceInHours, isBefore, startOfDay } from "date-fns";
+import { format, parseISO, differenceInHours, isBefore, startOfDay, startOfWeek, subWeeks, differenceInDays } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useAvatar, getInitials } from "@/hooks/useAvatar";
 import Navbar from "@/components/Navbar";
-import { Trophy, Star, Clock, ArrowRight, Gift, Zap, CalendarCheck, X, Pencil, Trash2, CalendarIcon, Camera } from "lucide-react";
+import { Trophy, Star, Clock, ArrowRight, Gift, Zap, CalendarCheck, X, Pencil, Trash2, CalendarIcon, Camera, Flame, Target, Sun, Moon, TrendingUp, Sparkles } from "lucide-react";
 import MyPlayerSection from "@/components/MyPlayerSection";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 
@@ -76,6 +77,10 @@ const ProfilePage = () => {
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [showBadgeReward, setShowBadgeReward] = useState(false);
+  const [selectedClubForPoint, setSelectedClubForPoint] = useState<string>("");
+  const [assigningPoint, setAssigningPoint] = useState(false);
+  const [assignedPoints, setAssignedPoints] = useState<Record<string, number>>({});
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -217,6 +222,67 @@ const ProfilePage = () => {
     }
   };
 
+  // Badge level completion = free loyalty points (must be before early return)
+  const completedBookingsForBadges = bookings.filter(b => b.attendance_status === "show");
+  const uniqueActivitiesCount = new Set(completedBookingsForBadges.map(b => b.activity)).size;
+
+  const badgeStreakData = useMemo(() => {
+    if (!completedBookingsForBadges.length) return { currentStreak: 0, longestStreak: 0 };
+    const weekSet = new Set<string>();
+    completedBookingsForBadges.forEach(b => {
+      const ws = startOfWeek(parseISO(b.booking_date), { weekStartsOn: 1 });
+      weekSet.add(format(ws, "yyyy-MM-dd"));
+    });
+    const sortedWeeks = Array.from(weekSet).sort().reverse();
+    let current = 0;
+    const thisWeek = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
+    const lastWeek = format(startOfWeek(subWeeks(new Date(), 1), { weekStartsOn: 1 }), "yyyy-MM-dd");
+    if (sortedWeeks[0] === thisWeek || sortedWeeks[0] === lastWeek) {
+      for (let i = 0; i < sortedWeeks.length; i++) {
+        const expected = format(startOfWeek(subWeeks(new Date(), sortedWeeks[0] === thisWeek ? i : i + 1), { weekStartsOn: 1 }), "yyyy-MM-dd");
+        if (sortedWeeks[i] === expected) current++;
+        else break;
+      }
+    }
+    const ascending = Array.from(weekSet).sort();
+    let longest = 1, run = 1;
+    for (let i = 1; i < ascending.length; i++) {
+      const diff = differenceInDays(parseISO(ascending[i]), parseISO(ascending[i - 1]));
+      if (diff === 7) { run++; longest = Math.max(longest, run); } else run = 1;
+    }
+    if (ascending.length <= 1) longest = ascending.length;
+    return { currentStreak: current, longestStreak: Math.max(longest, current) };
+  }, [completedBookingsForBadges]);
+
+  const morningCount = completedBookingsForBadges.filter(b => { const h = parseInt(b.booking_time); return h >= 6 && h < 12; }).length;
+  const eveningCount = completedBookingsForBadges.filter(b => { const h = parseInt(b.booking_time); return h >= 17; }).length;
+  const afternoonCount = completedBookingsForBadges.filter(b => { const h = parseInt(b.booking_time); return h >= 12 && h < 17; }).length;
+
+  const badgeWellness = useMemo(() => {
+    if (!completedBookingsForBadges.length) return 0;
+    const c = Math.min(badgeStreakData.currentStreak * 10, 40);
+    const v = Math.min(uniqueActivitiesCount * 10, 30);
+    const f = Math.min(completedBookingsForBadges.length * 2, 30);
+    return Math.min(c + v + f, 100);
+  }, [badgeStreakData.currentStreak, uniqueActivitiesCount, completedBookingsForBadges]);
+
+  const completedBadgeLevels = useMemo(() => {
+    const n = completedBookingsForBadges.length;
+    const u = uniqueActivitiesCount;
+    const ls = badgeStreakData.longestStreak;
+    const m = morningCount;
+    const e = eveningCount;
+    const a = afternoonCount;
+    const ws = badgeWellness;
+    const l1 = [n>=1, n>=3, u>=2, m>=3, e>=3, ls>=2, n>=5, ws>=30].filter(Boolean).length === 8;
+    const l2 = [n>=10, u>=3, ls>=4, m>=5, e>=5, n>=20, a>=5, ws>=60].filter(Boolean).length === 8;
+    const l3 = [n>=50, u>=5, ls>=8, m>=10, e>=10, n>=100, ls>=12, ws>=100].filter(Boolean).length === 8;
+    return (l1 ? 1 : 0) + (l2 ? 1 : 0) + (l3 ? 1 : 0);
+  }, [completedBookingsForBadges, uniqueActivitiesCount, badgeStreakData, morningCount, eveningCount, afternoonCount, badgeWellness]);
+
+  const totalAssigned = Object.values(assignedPoints).reduce((s, v) => s + v, 0);
+  const availableBadgePoints = completedBadgeLevels - totalAssigned;
+
   if (loading || loadingData) {
     return (
       <div className="min-h-screen">
@@ -236,6 +302,24 @@ const ProfilePage = () => {
     const showCount = bookings.filter(b => club.offerings.includes(b.activity) && b.attendance_status === "show").length;
     const noShowCount = bookings.filter(b => club.offerings.includes(b.activity) && b.attendance_status === "no_show").length;
     clubPoints[club.id] = Math.max(0, showCount - noShowCount);
+  });
+
+  const handleAssignPoint = () => {
+    if (!selectedClubForPoint || availableBadgePoints <= 0) return;
+    setAssignedPoints(prev => ({
+      ...prev,
+      [selectedClubForPoint]: (prev[selectedClubForPoint] || 0) + 1,
+    }));
+    const clubName = clubs.find(c => c.id === selectedClubForPoint)?.name;
+    toast.success(`+1 free loyalty point added to ${clubName}!`);
+    setSelectedClubForPoint("");
+    if (availableBadgePoints <= 1) setShowBadgeReward(false);
+  };
+
+  // Add badge points to club totals
+  const effectiveClubPoints: Record<string, number> = {};
+  clubs.forEach(club => {
+    effectiveClubPoints[club.id] = (clubPoints[club.id] || 0) + (assignedPoints[club.id] || 0);
   });
 
   return (
@@ -470,7 +554,65 @@ const ProfilePage = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Loyalty Trackers — 4 activities, 10 stages each */}
+        {/* Badge Reward Banner */}
+        {availableBadgePoints > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.08 }}
+            className="mb-6 rounded-2xl border border-amber-400/30 bg-amber-400/5 p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4"
+          >
+            <div className="flex items-center gap-3 flex-1">
+              <div className="h-12 w-12 rounded-xl bg-amber-400/15 flex items-center justify-center text-amber-400 shrink-0">
+                <Gift className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="font-heading font-bold text-foreground">
+                  {availableBadgePoints} Free Loyalty Point{availableBadgePoints > 1 ? "s" : ""} Available!
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  You completed a badge level. Assign your free point to any club.
+                </p>
+              </div>
+            </div>
+            <Button onClick={() => setShowBadgeReward(true)} className="gap-2 bg-amber-400 hover:bg-amber-500 text-background font-bold shrink-0">
+              <Gift className="h-4 w-4" /> Assign Point
+            </Button>
+          </motion.div>
+        )}
+
+        {/* Badge Reward Dialog */}
+        <Dialog open={showBadgeReward} onOpenChange={setShowBadgeReward}>
+          <DialogContent className="bg-card border-border max-w-md">
+            <DialogHeader>
+              <DialogTitle className="font-heading text-xl flex items-center gap-2">
+                <Gift className="h-5 w-5 text-amber-400" /> Assign Free Loyalty Point
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 pt-2">
+              <p className="text-sm text-muted-foreground">
+                You have <span className="font-bold text-foreground">{availableBadgePoints}</span> free point{availableBadgePoints > 1 ? "s" : ""} from completing badge levels. Choose a club to add a point to:
+              </p>
+              <Select value={selectedClubForPoint} onValueChange={setSelectedClubForPoint}>
+                <SelectTrigger className="h-12 bg-secondary border-border">
+                  <SelectValue placeholder="Select a club..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {clubs.map(club => (
+                    <SelectItem key={club.id} value={club.id}>
+                      {club.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button onClick={handleAssignPoint} disabled={!selectedClubForPoint} className="w-full h-12 font-bold glow">
+                Add +1 Point
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Loyalty Trackers */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -487,7 +629,7 @@ const ProfilePage = () => {
 
           <div className="grid md:grid-cols-2 gap-5">
             {clubs.map((club, idx) => {
-              const rawPoints = clubPoints[club.id] || 0;
+              const rawPoints = effectiveClubPoints[club.id] || 0;
               const cyclePoints = rawPoints % 10; // resets after 10
               const completedCycles = Math.floor(rawPoints / 10);
               const at10 = cyclePoints === 0 && rawPoints > 0 && completedCycles > 0;
@@ -593,7 +735,7 @@ const ProfilePage = () => {
               {clubs.map(c => (
                 <div key={c.id} className="flex justify-between items-center">
                   <span className="text-sm text-foreground">{c.name}</span>
-                  <span className="text-sm font-bold text-primary">{clubPoints[c.id] || 0}</span>
+                  <span className="text-sm font-bold text-primary">{effectiveClubPoints[c.id] || 0}</span>
                 </div>
               ))}
             </div>
