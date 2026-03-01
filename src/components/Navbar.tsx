@@ -171,7 +171,7 @@ const Navbar = () => {
                       <>
                         <div className="border-t-2 border-border" />
                         <Link
-                          to="/admin"
+                          to="/admin-login"
                           onClick={() => setDropdownOpen(false)}
                           className="flex items-center gap-2 px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors"
                         >
@@ -209,7 +209,7 @@ const Navbar = () => {
                     </Link>
                     <div className="border-t-2 border-border" />
                     <Link
-                      to="/admin"
+                      to="/admin-login"
                       onClick={() => setLoggedOutDropdownOpen(false)}
                       className="flex items-center gap-2 px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors"
                     >
@@ -277,7 +277,7 @@ const Navbar = () => {
                 <>
                   <div className="border-t border-border my-2" />
                   <Link
-                    to="/admin"
+                     to="/admin-login"
                     onClick={() => setMobileOpen(false)}
                     className="py-2.5 px-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors flex items-center gap-2"
                   >
@@ -304,7 +304,7 @@ const Navbar = () => {
                   </Link>
                   <div className="border-t-2 border-border my-2" />
                   <Link
-                    to="/admin"
+                    to="/admin-login"
                     onClick={() => setMobileOpen(false)}
                     className="py-2.5 px-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors flex items-center gap-2"
                   >
