@@ -48,9 +48,9 @@ interface OfferingRow {
 
 const PAGES = [
   { name: "AI Habit Tracker", slug: "habits", description: "Habit tracker page title, subtitle, and section descriptions" },
+  { name: "AI Matchmaker", slug: "matchmaker", description: "Matchmaker page title and subtitle" },
   { name: "Book a Session", slug: "book", description: "Booking page title, subtitle, and detail fields" },
   { name: "Clubs & Partners", slug: "clubs", description: "Clubs page title and subtitle" },
-  { name: "AI Matchmaker", slug: "matchmaker", description: "Matchmaker page title and subtitle" },
   { name: "Join Our Academies", slug: "academy", description: "Academy page title, subtitle, and form fields" },
   { name: "Loyalty Program", slug: "loyalty", description: "Loyalty page main title and subtitle" },
   { name: "Main Page", slug: "home", description: "Hero section, text, action buttons, and activity section" },
