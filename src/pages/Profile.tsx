@@ -245,12 +245,12 @@ const ProfilePage = () => {
         {/* Header with Avatar */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-10 flex items-center gap-5">
           {/* Avatar */}
-          <div className="relative group shrink-0">
+          <div className={cn("relative group shrink-0", !avatarUrl && "animate-pulse")}>
             <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
             {avatarUrl ? (
               <img src={avatarUrl} alt="Avatar" className="h-20 w-20 rounded-full object-cover border-2 border-border" />
             ) : (
-              <div className="h-20 w-20 rounded-full bg-primary/20 text-primary font-bold text-2xl flex items-center justify-center border-2 border-border">
+              <div className="h-20 w-20 rounded-full bg-primary/20 text-primary font-bold text-2xl flex items-center justify-center border-2 border-primary/50 shadow-[0_0_15px_hsl(var(--primary)/0.4)]">
                 {initials}
               </div>
             )}
