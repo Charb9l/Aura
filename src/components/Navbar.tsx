@@ -23,6 +23,19 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
   const { isComplete: playerComplete } = usePlayerProfileComplete();
   const { avatarUrl } = useAvatar();
   const showGlow = user && playerComplete === false;
@@ -105,19 +118,12 @@ const Navbar = () => {
           })}
         </div>
 
-        {/* Right: Admin + Auth (desktop only) */}
+        {/* Right: Auth dropdown (desktop only) */}
         <div className="hidden lg:flex items-center gap-3 shrink-0">
-          <Link
-            to="/admin"
-            className="rounded-full border border-border px-4 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:border-muted-foreground/50 transition-all flex items-center gap-1.5"
-          >
-            <ShieldCheck className="h-4 w-4" />
-            Admin
-          </Link>
           {user ? (
-            <>
-              <Link
-                to="/profile"
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={() => setDropdownOpen(prev => !prev)}
                 className={cn(
                   "flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors relative",
                   showGlow && "text-primary"
@@ -127,15 +133,41 @@ const Navbar = () => {
                   <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-primary animate-ping" />
                 )}
                 <AvatarDisplay />
-              </Link>
-              <button
-                onClick={handleSignOut}
-                className="rounded-full bg-secondary px-4 py-2.5 text-sm font-medium text-secondary-foreground hover:bg-secondary/80 transition-all flex items-center gap-2"
-              >
-                <LogOut className="h-4 w-4" />
-                Sign Out
               </button>
-            </>
+              <AnimatePresence>
+                {dropdownOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -5, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -5, scale: 0.95 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 mt-2 w-44 rounded-xl border border-border bg-card shadow-lg overflow-hidden"
+                  >
+                    <Link
+                      to="/profile"
+                      onClick={() => setDropdownOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors"
+                    >
+                      <AvatarDisplay /> Profile
+                    </Link>
+                    <button
+                      onClick={() => { setDropdownOpen(false); handleSignOut(); }}
+                      className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors"
+                    >
+                      <LogOut className="h-4 w-4" /> Sign Out
+                    </button>
+                    <div className="border-t-2 border-border" />
+                    <Link
+                      to="/admin"
+                      onClick={() => setDropdownOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors"
+                    >
+                      <ShieldCheck className="h-4 w-4" /> Admin
+                    </Link>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           ) : (
             <Link
               to="/auth"
