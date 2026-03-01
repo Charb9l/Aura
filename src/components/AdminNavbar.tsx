@@ -12,16 +12,16 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 
 const allMenuItems = [
   { label: "Dashboard", icon: LayoutDashboard, tab: "overview" },
-  { label: "Bookings", icon: CalendarCheck, tab: "bookings" },
-  { label: "Users", icon: Users, tab: "users" },
-  { label: "Clubs & Partners", icon: Building2, tab: "clubs" },
   { label: "Academies", icon: GraduationCap, tab: "academies" },
-  { label: "Promotions", icon: Tag, tab: "promotions" },
   { label: "Activities", icon: Package, tab: "activities" },
-  { label: "Customer Vision", icon: Eye, tab: "customer-vision" },
   { label: "AI Matchmaker", icon: Gamepad2, tab: "matchmaker" },
+  { label: "Bookings", icon: CalendarCheck, tab: "bookings" },
+  { label: "Clubs & Partners", icon: Building2, tab: "clubs" },
+  { label: "Customer Vision", icon: Eye, tab: "customer-vision" },
   { label: "Habit Tracker", icon: TrendingUp, tab: "habits" },
+  { label: "Promotions", icon: Tag, tab: "promotions" },
   { label: "Reports", icon: FileBarChart, tab: "reports" },
+  { label: "Users", icon: Users, tab: "users" },
   { label: "Settings", icon: Settings, tab: "settings" },
 ];
 
