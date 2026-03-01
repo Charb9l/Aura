@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   LogOut, LayoutDashboard, Users, Settings, Tag, CalendarCheck, Eye,
-  Building2, GraduationCap, Gamepad2, TrendingUp, PanelLeftClose, PanelLeft, FileBarChart,
+  Building2, GraduationCap, Gamepad2, TrendingUp, PanelLeftClose, PanelLeft, FileBarChart, Package,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
@@ -17,6 +17,7 @@ const allMenuItems = [
   { label: "Clubs & Partners", icon: Building2, tab: "clubs" },
   { label: "Academies", icon: GraduationCap, tab: "academies" },
   { label: "Promotions", icon: Tag, tab: "promotions" },
+  { label: "Activities", icon: Package, tab: "activities" },
   { label: "Customer Vision", icon: Eye, tab: "customer-vision" },
   { label: "AI Matchmaker", icon: Gamepad2, tab: "matchmaker" },
   { label: "Habit Tracker", icon: TrendingUp, tab: "habits" },

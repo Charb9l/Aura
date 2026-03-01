@@ -34,6 +34,7 @@ import SettingsTab from "@/components/admin/SettingsTab";
 import ClubsTab from "@/components/admin/ClubsTab";
 import ReportsTab from "@/components/admin/ReportsTab";
 import HabitsTab from "@/components/admin/HabitsTab";
+import ActivitiesTab from "@/components/admin/ActivitiesTab";
 
 // ─── Main Admin Dashboard ──────────────────────────────────────
 const AdminDashboard = () => {
@@ -382,6 +383,7 @@ const AdminDashboard = () => {
         {activeTab === "reports" && <ReportsTab />}
 
         {activeTab === "habits" && <HabitsTab />}
+        {activeTab === "activities" && <ActivitiesTab />}
 
         {activeTab === "promotions" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="promotions">
