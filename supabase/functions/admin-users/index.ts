@@ -113,9 +113,18 @@ Deno.serve(async (req) => {
         global: { headers: { Authorization: authHeader } },
       });
 
+      const { data: { user: caller } } = await callerClient.auth.getUser();
+      if (!caller) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       const { data: role, error: roleError } = await callerClient
         .from("user_roles")
         .select("club_id")
+        .eq("user_id", caller.id)
         .eq("role", "admin")
         .maybeSingle();
 
