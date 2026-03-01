@@ -313,38 +313,38 @@ const HabitsPage = () => {
           </div>
 
           {/* Top Stats Row */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-              <Card className="bg-card border-border text-center">
-                <CardContent className="pt-6 pb-4">
-                  <Flame className="h-8 w-8 text-orange-400 mx-auto mb-2" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 items-stretch">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="h-full">
+              <Card className="bg-card border-border text-center h-full">
+                <CardContent className="pt-6 pb-4 flex flex-col items-center justify-center h-full">
+                  <Flame className="h-8 w-8 text-orange-400 mb-2" />
                   <p className="text-3xl font-bold text-foreground">{currentStreak}</p>
                   <p className="text-xs text-muted-foreground mt-1">Week Streak</p>
                 </CardContent>
               </Card>
             </motion.div>
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-              <Card className="bg-card border-border text-center">
-                <CardContent className="pt-6 pb-4">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="h-full">
+              <Card className="bg-card border-border text-center h-full">
+                <CardContent className="pt-6 pb-4 flex flex-col items-center justify-center h-full">
                   <div className={`text-3xl font-bold ${getScoreColor(wellnessScore)}`}>{wellnessScore}</div>
                   <p className="text-xs text-muted-foreground mt-1">Wellness Score</p>
-                  <Progress value={wellnessScore} className="mt-2 h-1.5" />
+                  <Progress value={wellnessScore} className="mt-2 h-1.5 w-full" />
                 </CardContent>
               </Card>
             </motion.div>
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
-              <Card className="bg-card border-border text-center">
-                <CardContent className="pt-6 pb-4">
-                  <Trophy className="h-8 w-8 text-amber-400 mx-auto mb-2" />
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="h-full">
+              <Card className="bg-card border-border text-center h-full">
+                <CardContent className="pt-6 pb-4 flex flex-col items-center justify-center h-full">
+                  <Trophy className="h-8 w-8 text-amber-400 mb-2" />
                   <p className="text-3xl font-bold text-foreground">{earnedCount}/{badges.length}</p>
                   <p className="text-xs text-muted-foreground mt-1">Badges Earned</p>
                 </CardContent>
               </Card>
             </motion.div>
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-              <Card className="bg-card border-border text-center">
-                <CardContent className="pt-6 pb-4">
-                  <TrendingUp className="h-8 w-8 text-primary mx-auto mb-2" />
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="h-full">
+              <Card className="bg-card border-border text-center h-full">
+                <CardContent className="pt-6 pb-4 flex flex-col items-center justify-center h-full">
+                  <TrendingUp className="h-8 w-8 text-primary mb-2" />
                   <p className="text-3xl font-bold text-foreground">{completedBookings.length}</p>
                   <p className="text-xs text-muted-foreground mt-1">Sessions Done</p>
                 </CardContent>
