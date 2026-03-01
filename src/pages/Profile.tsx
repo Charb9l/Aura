@@ -243,7 +243,7 @@ const ProfilePage = () => {
       <Navbar />
       <div className="container mx-auto px-6 pt-28 pb-16">
         {/* Header with Avatar */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-10 flex items-center gap-5">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-10 flex items-center gap-4 sm:gap-5">
           {/* Avatar */}
           <div className={cn("relative group shrink-0", !avatarUrl && "animate-pulse")}>
             <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
@@ -275,7 +275,7 @@ const ProfilePage = () => {
             )}
           </div>
           <div>
-            <h1 className="font-heading text-3xl md:text-4xl font-bold text-foreground mb-1">
+            <h1 className="font-heading text-xl sm:text-3xl md:text-4xl font-bold text-foreground mb-1">
               Hey, {profile?.full_name || user?.email} 👋
             </h1>
             <p className="text-muted-foreground text-lg">Your activity hub & loyalty progress.</p>
@@ -309,7 +309,7 @@ const ProfilePage = () => {
 
         {/* Pending Bookings Dialog */}
         <Dialog open={showPending} onOpenChange={setShowPending}>
-          <DialogContent className="bg-card border-border max-w-3xl max-h-[66vh] overflow-y-auto">
+          <DialogContent className="bg-card border-border max-w-3xl w-[95vw] md:w-auto max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="font-heading text-xl flex items-center gap-2">
                 <CalendarCheck className="h-5 w-5 text-primary" />
@@ -336,8 +336,8 @@ const ProfilePage = () => {
                       key={booking.id}
                       className="rounded-xl border border-border bg-secondary/30 p-4"
                     >
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
                           <p className="font-heading font-semibold text-foreground">{booking.activity_name}</p>
                           <p className="text-sm text-muted-foreground">
                             {format(parseISO(booking.booking_date), "EEEE, MMMM d, yyyy")} at {booking.booking_time}
@@ -635,7 +635,7 @@ const ProfilePage = () => {
               {bookings.slice(0, 10).map((booking) => (
                 <div
                   key={booking.id}
-                  className="rounded-xl border border-border bg-card p-4 flex items-center justify-between"
+                  className="rounded-xl border border-border bg-card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
                 >
                   <div>
                     <p className="font-heading font-semibold text-foreground">{booking.activity_name}</p>

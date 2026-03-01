@@ -268,15 +268,15 @@ const AcademyPage = () => {
       <Navbar />
       <div className="container mx-auto px-6 pt-28 pb-16">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <div className="flex items-end justify-between gap-4 flex-wrap mb-10">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <GraduationCap className="h-8 w-8 text-primary" />
-                <h1 className="font-heading text-4xl md:text-5xl font-bold text-foreground">{pageTitle}</h1>
+                <GraduationCap className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+                <h1 className="font-heading text-2xl sm:text-4xl md:text-5xl font-bold text-foreground">{pageTitle}</h1>
               </div>
-              <p className="text-muted-foreground text-lg">{pageSubtitle}</p>
+              <p className="text-muted-foreground text-sm sm:text-lg">{pageSubtitle}</p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               {academyOfferings.length > 0 && (
                 <ActivityFilter offerings={academyOfferings} selected={filterSlugs} onChange={(s) => { setFilterSlugs(s); setFilterLocation(""); }} />
               )}
@@ -341,18 +341,18 @@ const AcademyPage = () => {
 
       {/* Club Detail Dialog */}
       <Dialog open={!!selectedClub} onOpenChange={(o) => { if (!o) { setSelectedClub(null); setShowRegister(false); setSubmitted(false); } }}>
-        <DialogContent className="bg-card border-border max-w-3xl w-[66vw] max-h-[85vh] overflow-y-auto p-0">
+        <DialogContent className="bg-card border-border max-w-3xl w-[95vw] md:w-[66vw] max-h-[85vh] overflow-y-auto p-0">
           {selectedClub && !submitted && !showRegister && (
             <div className="p-6 space-y-5">
               {/* Header */}
-              <div className="flex items-center justify-between gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   {selectedClub.logo_url && (
                     <img src={selectedClub.logo_url} alt={selectedClub.name} className="h-10 w-10 rounded-full object-cover" />
                   )}
-                  <h2 className="font-heading text-2xl font-bold text-foreground">{selectedClub.name}</h2>
+                  <h2 className="font-heading text-xl sm:text-2xl font-bold text-foreground">{selectedClub.name}</h2>
                 </div>
-                <Button onClick={() => user ? setShowRegister(true) : navigate("/auth")} className="h-11 px-6 font-semibold glow">
+                <Button onClick={() => user ? setShowRegister(true) : navigate("/auth")} className="h-11 px-6 font-semibold glow self-start sm:self-auto">
                   {user ? "Register Now" : "Login to Register"}
                 </Button>
               </div>

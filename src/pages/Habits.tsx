@@ -305,7 +305,7 @@ const HabitsPage = () => {
                 AI-Powered
               </Badge>
             </motion.div>
-            <h1 className="font-heading text-4xl md:text-5xl font-bold text-foreground mb-3">
+            <h1 className="font-heading text-2xl sm:text-4xl md:text-5xl font-bold text-foreground mb-3">
               {cmsContent.title || "AI Habit Tracker"}
             </h1>
             <p className="text-muted-foreground max-w-2xl mx-auto">

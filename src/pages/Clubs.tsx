@@ -78,7 +78,7 @@ const ClubsPage = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <div className="flex items-center gap-3 mb-2">
             <Building2 className="h-8 w-8 text-primary" />
-            <h1 className="font-heading text-4xl md:text-5xl font-bold text-foreground">{pageTitle}</h1>
+            <h1 className="font-heading text-2xl sm:text-4xl md:text-5xl font-bold text-foreground">{pageTitle}</h1>
           </div>
           <p className="text-muted-foreground text-lg mb-6">{pageSubtitle}</p>
         </motion.div>
@@ -128,11 +128,11 @@ const ClubsPage = () => {
 
       {/* Club Detail Dialog */}
       <Dialog open={!!selectedClub} onOpenChange={(o) => !o && setSelectedClub(null)}>
-        <DialogContent className="bg-card border-border max-w-4xl w-[66vw] max-h-[80vh] overflow-y-auto">
+        <DialogContent className="bg-card border-border max-w-4xl w-[95vw] md:w-[66vw] max-h-[85vh] overflow-y-auto">
           {selectedClub && (
             <div className="p-6 space-y-5">
               {/* Header */}
-              <div className="flex items-center gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                 {(() => {
                   const logoSrc = selectedClub.logo_url?.startsWith("http") ? selectedClub.logo_url : null;
                   return logoSrc ? (
@@ -141,13 +141,13 @@ const ClubsPage = () => {
                     </div>
                   ) : null;
                 })()}
-                <h2 className="font-heading text-2xl font-bold text-foreground flex-1">{selectedClub.name}</h2>
+                <h2 className="font-heading text-xl sm:text-2xl font-bold text-foreground flex-1">{selectedClub.name}</h2>
                 <Button
                   onClick={() => {
                     const activity = clubActivityMap[selectedClub.name];
                     if (activity) navigate(`/book?activity=${activity}`);
                   }}
-                  className="gap-2 glow shrink-0"
+                  className="gap-2 glow shrink-0 self-start sm:self-auto"
                 >
                   Book Now <ArrowRight className="h-4 w-4" />
                 </Button>
