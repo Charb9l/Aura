@@ -49,6 +49,30 @@ export type Database = {
           },
         ]
       }
+      availability_periods: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          label: string
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          label: string
+          value: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          label?: string
+          value?: string
+        }
+        Relationships: []
+      }
       booking_audit_log: {
         Row: {
           activity: string
@@ -307,6 +331,30 @@ export type Database = {
           },
         ]
       }
+      goals: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          label: string
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          label: string
+          value: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          label?: string
+          value?: string
+        }
+        Relationships: []
+      }
       hero_pictures: {
         Row: {
           created_at: string
@@ -477,6 +525,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      playstyles: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          label: string
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          label: string
+          value: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          label?: string
+          value?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {

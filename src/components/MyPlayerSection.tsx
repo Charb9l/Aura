@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
-import SportSelectionCard, { type Selection } from "@/components/SportSelectionCard";
+import SportSelectionCard, { type Selection, type PlaystyleOption, type GoalOption, type PeriodOption } from "@/components/SportSelectionCard";
 
 interface Offering {
   id: string;
@@ -45,6 +45,9 @@ const MyPlayerSection = () => {
   const [offerings, setOfferings] = useState<Offering[]>([]);
   const [levels, setLevels] = useState<Level[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
+  const [playstyles, setPlaystyles] = useState<PlaystyleOption[]>([]);
+  const [goals, setGoals] = useState<GoalOption[]>([]);
+  const [periods, setPeriods] = useState<PeriodOption[]>([]);
   const [selections, setSelections] = useState<Selection[]>([
     emptySelection(1),
     emptySelection(2),
@@ -56,10 +59,13 @@ const MyPlayerSection = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [offeringsRes, levelsRes, locationsRes, selectionsRes] = await Promise.all([
+      const [offeringsRes, levelsRes, locationsRes, playstylesRes, goalsRes, periodsRes, selectionsRes] = await Promise.all([
         supabase.from("offerings").select("id, name, slug, brand_color").order("name"),
         supabase.from("player_levels").select("*").order("display_order"),
         supabase.from("club_locations").select("*").order("name"),
+        supabase.from("playstyles").select("label, value").order("display_order"),
+        supabase.from("goals").select("label, value").order("display_order"),
+        supabase.from("availability_periods").select("label, value").order("display_order"),
         user
           ? supabase.from("player_selections").select("*").eq("user_id", user.id).order("rank")
           : Promise.resolve({ data: [] }),
@@ -68,6 +74,9 @@ const MyPlayerSection = () => {
       setOfferings((offeringsRes.data as Offering[]) || []);
       setLevels((levelsRes.data as Level[]) || []);
       setLocations((locationsRes.data as Location[]) || []);
+      setPlaystyles((playstylesRes.data as PlaystyleOption[]) || []);
+      setGoals((goalsRes.data as GoalOption[]) || []);
+      setPeriods((periodsRes.data as PeriodOption[]) || []);
 
       const existing = (selectionsRes.data as any[]) || [];
       setHasSaved(existing.length > 0);
@@ -243,6 +252,9 @@ const MyPlayerSection = () => {
                     offerings={offerings}
                     levels={levels}
                     locations={locations}
+                    playstyles={playstyles}
+                    goals={goals}
+                    periods={periods}
                     otherSports={otherSports}
                     canRemove={selections.length > 1}
                     onUpdate={updateSelection}
