@@ -203,6 +203,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
   const [pageTitle, setPageTitle] = useState("");
   const [pageSubtitle, setPageSubtitle] = useState("");
   const [pageFields, setPageFields] = useState<FormField[]>([]);
+  const [matchCriteria, setMatchCriteria] = useState<{ emoji: string; label: string }[]>([]);
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -229,6 +230,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
       setPageTitle(content.title || "");
       setPageSubtitle(content.subtitle || "");
       setPageFields([...(content.fields || [])]);
+      setMatchCriteria([...(content.criteria || [])]);
     }
     setEditingPage(slug);
   };
@@ -264,6 +266,9 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
     const content: any = { title: pageTitle, subtitle: pageSubtitle };
     if (slug === "book" || slug === "academy") {
       content.fields = pageFields.filter(f => f.label.trim());
+    }
+    if (slug === "matchmaker") {
+      content.criteria = matchCriteria.filter(c => c.label.trim());
     }
     saveContent(slug, content);
   };
@@ -418,6 +423,57 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
             {hasFields && (
               <div className="border-t border-border pt-6">
                 <FieldsEditor fields={pageFields} onChange={setPageFields} label={fieldsLabel} />
+              </div>
+            )}
+
+            {editingPage === "matchmaker" && (
+              <div className="border-t border-border pt-6">
+                <div className="flex items-center justify-between mb-3">
+                  <Label className="text-sm font-medium text-muted-foreground">Match Criteria Badges</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setMatchCriteria(prev => [...prev, { emoji: "✓", label: "" }])}
+                    className="gap-1.5 text-xs"
+                  >
+                    <Plus className="h-3.5 w-3.5" /> Add Criteria
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mb-3">These appear as styled pills below the subtitle on the matchmaker page.</p>
+                <div className="space-y-3">
+                  {matchCriteria.map((c, i) => (
+                    <div key={i} className="flex items-center gap-2 p-3 rounded-lg border border-border bg-secondary/50">
+                      <div className="flex flex-col gap-1 shrink-0">
+                        <Button type="button" variant="ghost" size="icon" className="h-7 w-7" disabled={i === 0} onClick={() => { const arr = [...matchCriteria]; [arr[i - 1], arr[i]] = [arr[i], arr[i - 1]]; setMatchCriteria(arr); }}><ArrowUp className="h-3.5 w-3.5" /></Button>
+                        <Button type="button" variant="ghost" size="icon" className="h-7 w-7" disabled={i === matchCriteria.length - 1} onClick={() => { const arr = [...matchCriteria]; [arr[i], arr[i + 1]] = [arr[i + 1], arr[i]]; setMatchCriteria(arr); }}><ArrowDown className="h-3.5 w-3.5" /></Button>
+                      </div>
+                      <Input
+                        value={c.emoji}
+                        onChange={(e) => setMatchCriteria(prev => prev.map((cr, idx) => idx === i ? { ...cr, emoji: e.target.value } : cr))}
+                        placeholder="✓"
+                        className="h-9 w-16 bg-background border-border text-sm text-center"
+                        maxLength={4}
+                      />
+                      <Input
+                        value={c.label}
+                        onChange={(e) => setMatchCriteria(prev => prev.map((cr, idx) => idx === i ? { ...cr, label: e.target.value } : cr))}
+                        placeholder="e.g. Skill Level"
+                        className="h-9 flex-1 bg-background border-border text-sm"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setMatchCriteria(prev => prev.filter((_, idx) => idx !== i))}
+                        className="shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  {matchCriteria.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No criteria yet. Click "Add Criteria" to create one.</p>}
+                </div>
               </div>
             )}
 
