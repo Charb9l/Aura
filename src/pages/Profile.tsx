@@ -261,7 +261,10 @@ const ProfilePage = () => {
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={uploadingAvatar}
-              className="absolute inset-0 rounded-full bg-background/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+              className={cn(
+                "absolute inset-0 rounded-full bg-background/60 transition-opacity flex items-center justify-center",
+                avatarUrl ? "opacity-0 group-hover:opacity-100 active:opacity-100" : "opacity-100"
+              )}
             >
               <Camera className="h-5 w-5 text-foreground" />
             </button>
