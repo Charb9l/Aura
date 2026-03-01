@@ -99,7 +99,7 @@ const HeroSection = () => {
           </h1>
         </motion.div>
 
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full max-w-2xl">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center justify-center gap-3 w-full max-w-5xl">
           {actions.map((action) => {
             const hasGlow = (action as any).glow;
             return (
@@ -108,7 +108,7 @@ const HeroSection = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: action.delay }}
-                className="flex-1"
+                className="w-full sm:w-[calc(33.333%-0.5rem)]"
               >
                 <Link
                   to={action.to}
