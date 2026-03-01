@@ -60,6 +60,7 @@ const MatchmakerPage = () => {
   const [hasProfile, setHasProfile] = useState<boolean | null>(null);
   const [pageTitle, setPageTitle] = useState("Find Your Match");
   const [pageSubtitle, setPageSubtitle] = useState("Get matched with players who share your sports, skill level, and preferred location. Your next opponent or partner is just a click away.");
+  const [criteria, setCriteria] = useState<{ emoji: string; label: string }[]>([]);
 
   useEffect(() => {
     const fetchContent = async () => {
@@ -69,9 +70,10 @@ const MatchmakerPage = () => {
         .eq("page_slug", "matchmaker")
         .maybeSingle();
       if (data?.content) {
-        const c = data.content as Record<string, string>;
+        const c = data.content as Record<string, any>;
         if (c.title) setPageTitle(c.title);
         if (c.subtitle) setPageSubtitle(c.subtitle);
+        if (Array.isArray(c.criteria)) setCriteria(c.criteria);
       }
     };
     fetchContent();
@@ -140,9 +142,27 @@ const MatchmakerPage = () => {
           <h1 className="font-heading text-5xl md:text-6xl font-bold text-foreground mb-4">
             {pageTitle}
           </h1>
-          <p className="text-lg text-muted-foreground max-w-xl mx-auto">
+          <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-8">
             {pageSubtitle}
           </p>
+          {criteria.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="flex flex-wrap items-center justify-center gap-3 max-w-2xl mx-auto"
+            >
+              {criteria.map((c, i) => (
+                <div
+                  key={i}
+                  className="inline-flex items-center gap-2 rounded-full bg-secondary border border-border px-4 py-2 text-sm font-medium text-foreground shadow-sm hover:bg-secondary/80 transition-colors"
+                >
+                  <span className="text-base">{c.emoji}</span>
+                  <span>{c.label}</span>
+                </div>
+              ))}
+            </motion.div>
+          )}
         </motion.div>
 
         {!user ? (
