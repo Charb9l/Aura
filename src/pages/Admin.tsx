@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useAdminRole } from "@/hooks/useAdminRole";
@@ -31,55 +32,7 @@ import { BookingRow, ProfileRow, UserWithEmail, ClubRow, getBookingRevenue, ALL_
 import BookingsCalendarTab from "@/components/admin/BookingsCalendarTab";
 import SettingsTab from "@/components/admin/SettingsTab";
 
-// ─── Login Form ────────────────────────────────────────────────
-const AdminLoginForm = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) toast.error(error.message);
-    setSubmitting(false);
-  };
-
-  return (
-    <div className="min-h-screen">
-      <Navbar />
-      <div className="flex min-h-screen items-center justify-center px-6 pt-20">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
-          <Card className="bg-card border-border">
-            <CardHeader className="text-center">
-              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
-                <ShieldCheck className="h-7 w-7 text-primary" />
-              </div>
-              <CardTitle className="text-2xl font-heading">Admin Access</CardTitle>
-              <p className="text-muted-foreground text-sm mt-1">Enter your admin credentials to continue.</p>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div>
-                  <Label htmlFor="admin-email">Email</Label>
-                  <Input id="admin-email" type="email" placeholder="admin@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required className="h-12 bg-secondary border-border mt-1" />
-                </div>
-                <div>
-                  <Label htmlFor="admin-password">Password</Label>
-                  <Input id="admin-password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required className="h-12 bg-secondary border-border mt-1" />
-                </div>
-                <Button type="submit" disabled={submitting} className="w-full h-12 text-base font-semibold glow">
-                  <LogIn className="h-4 w-4 mr-2" />
-                  {submitting ? "Signing in..." : "Sign In"}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
-    </div>
-  );
-};
+// Login form removed — now lives at /admin-login
 
 // ─── Clubs Tab (kept inline — tightly coupled to offerings CRUD) ──
 import { Textarea } from "@/components/ui/textarea";
@@ -945,13 +898,20 @@ const AdminDashboard = () => {
 const AdminPage = () => {
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, loading: roleLoading } = useAdminRole();
+  const navigate = useNavigate();
 
-  if (authLoading || roleLoading) return (<div className="min-h-screen"><Navbar /><div className="flex items-center justify-center min-h-screen"><p className="text-muted-foreground">Loading...</p></div></div>);
+  useEffect(() => {
+    if (authLoading || roleLoading) return;
+    if (!user) {
+      navigate("/admin-login", { replace: true });
+    }
+  }, [user, authLoading, roleLoading, navigate]);
 
-  if (!user || !isAdmin) {
-    if (user && !isAdmin) return (<div className="min-h-screen"><Navbar /><div className="flex min-h-screen items-center justify-center px-6 pt-20"><motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center"><ShieldCheck className="h-16 w-16 text-destructive mx-auto mb-4" /><h2 className="font-heading text-2xl font-bold text-foreground mb-2">Access Denied</h2><p className="text-muted-foreground">This account does not have admin privileges.</p></motion.div></div></div>);
-    return <AdminLoginForm />;
-  }
+  if (authLoading || roleLoading) return (<div className="min-h-screen flex items-center justify-center"><p className="text-muted-foreground">Loading...</p></div>);
+
+  if (!user) return null; // Will redirect
+
+  if (!isAdmin) return (<div className="min-h-screen"><Navbar /><div className="flex min-h-screen items-center justify-center px-6 pt-20"><motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center"><ShieldCheck className="h-16 w-16 text-destructive mx-auto mb-4" /><h2 className="font-heading text-2xl font-bold text-foreground mb-2">Access Denied</h2><p className="text-muted-foreground">This account does not have admin privileges.</p></motion.div></div></div>);
 
   return <AdminDashboard />;
 };
