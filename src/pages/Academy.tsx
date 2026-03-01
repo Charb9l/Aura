@@ -82,9 +82,7 @@ const AcademyPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const sportParam = searchParams.get("sport") || "";
 
-  useEffect(() => {
-    if (!loading && !user) navigate("/auth");
-  }, [user, loading, navigate]);
+  // No redirect — show content to logged-out users
 
   const [clubs, setClubs] = useState<AcademyClub[]>([]);
   const [offerings, setOfferings] = useState<OfferingData[]>([]);
@@ -347,8 +345,8 @@ const AcademyPage = () => {
                   )}
                   <h2 className="font-heading text-2xl font-bold text-foreground">{selectedClub.name}</h2>
                 </div>
-                <Button onClick={() => setShowRegister(true)} className="h-11 px-6 font-semibold glow">
-                  Register Now
+                <Button onClick={() => user ? setShowRegister(true) : navigate("/auth")} className="h-11 px-6 font-semibold glow">
+                  {user ? "Register Now" : "Login to Register"}
                 </Button>
               </div>
               {selectedClub.description && (
