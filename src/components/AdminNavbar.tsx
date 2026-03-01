@@ -1,8 +1,9 @@
-import { useState, useRef, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
-import { LogOut, Menu, LayoutDashboard, Users, Settings, Tag, CalendarCheck, Eye, Building2, GraduationCap, Gamepad2 } from "lucide-react";
+import { LogOut, LayoutDashboard, Users, Settings, Tag, CalendarCheck, Eye, Building2, GraduationCap, Gamepad2, ChevronLeft, ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const allMenuItems = [
   { label: "Academies", icon: GraduationCap, tab: "academies" },
@@ -27,8 +28,7 @@ interface AdminNavbarProps {
 const AdminNavbar = ({ activeTab, onTabChange, assignedClubId }: AdminNavbarProps) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const [collapsed, setCollapsed] = useState(false);
 
   const isAssignedAdmin = !!assignedClubId;
   const menuItems = isAssignedAdmin
@@ -40,109 +40,95 @@ const AdminNavbar = ({ activeTab, onTabChange, assignedClubId }: AdminNavbarProp
     navigate("/");
   };
 
-  // Close menu on outside click
-  useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, []);
-
-  const activeLabel = menuItems.find((m) => m.tab === activeTab)?.label || "Dashboard";
-
   return (
-    <motion.nav
-      initial={{ y: -20, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.5 }}
-      className="fixed top-0 left-0 right-0 z-50 glass"
+    <motion.aside
+      initial={{ x: -20, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      transition={{ duration: 0.3 }}
+      className={cn(
+        "fixed top-0 left-0 h-screen z-50 flex flex-col border-r border-border bg-card transition-all duration-300",
+        collapsed ? "w-16" : "w-56"
+      )}
     >
-      <div className="container mx-auto flex items-center justify-between px-6 py-4">
-        {/* Left: Logo + Dropdown */}
-        <div className="flex items-center gap-6">
-          <button
-            onClick={() => onTabChange("overview")}
-            className="font-heading font-bold tracking-tight text-foreground cursor-pointer"
-          >
-            <span className="text-xl font-bold">ELEVATE</span>
-            <br />
-            <span className="text-[10px] font-medium tracking-[0.25em] text-muted-foreground">WELLNESS HUB</span>
-          </button>
-
-          {/* Dropdown menu */}
-          <div className="relative" ref={menuRef}>
-            <button
-              onClick={() => setMenuOpen(!menuOpen)}
-              className="flex items-center gap-2 rounded-lg border border-border bg-secondary px-4 py-2.5 text-sm font-medium text-foreground hover:bg-secondary/80 transition-all"
-            >
-              <Menu className="h-4 w-4" />
-              {activeLabel}
-              <svg
-                className={`h-3 w-3 transition-transform ${menuOpen ? "rotate-180" : ""}`}
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 10 6"
-              >
-                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4" />
-              </svg>
-            </button>
-
-            <AnimatePresence>
-              {menuOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: -4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -4 }}
-                  transition={{ duration: 0.15 }}
-                  className="absolute left-0 top-full mt-2 z-50 w-52 rounded-xl border border-border bg-card shadow-xl overflow-hidden"
-                >
-                  <div className="py-1.5">
-                    {menuItems.map((item) => (
-                      <button
-                        key={item.tab}
-                        onClick={() => {
-                          onTabChange(item.tab);
-                          setMenuOpen(false);
-                        }}
-                        className={`flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors ${
-                          activeTab === item.tab
-                            ? "bg-primary/10 text-primary font-medium"
-                            : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                        }`}
-                      >
-                        <item.icon className="h-4 w-4" />
-                        {item.label}
-                      </button>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
-
-        {/* Right: User + Sign out */}
-        <div className="flex items-center gap-3">
-          {user && (
+      {/* Logo */}
+      <div className={cn("flex items-center px-4 py-5 border-b border-border", collapsed && "justify-center px-2")}>
+        <button
+          onClick={() => onTabChange("overview")}
+          className="font-heading font-bold tracking-tight text-foreground cursor-pointer"
+        >
+          {collapsed ? (
+            <span className="text-lg font-bold">E</span>
+          ) : (
             <>
-              <span className="hidden md:block text-sm text-muted-foreground">
-                {user.user_metadata?.full_name || user.email}
-              </span>
-              <button
-                onClick={handleSignOut}
-                className="rounded-full bg-secondary px-4 py-2.5 text-sm font-medium text-secondary-foreground hover:bg-secondary/80 transition-all flex items-center gap-2"
-              >
-                <LogOut className="h-4 w-4" />
-                Sign Out
-              </button>
+              <span className="text-lg font-bold">ELEVATE</span>
+              <br />
+              <span className="text-[9px] font-medium tracking-[0.2em] text-muted-foreground">WELLNESS HUB</span>
             </>
           )}
-        </div>
+        </button>
       </div>
-    </motion.nav>
+
+      {/* Menu items */}
+      <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
+        {menuItems.map((item) => (
+          <button
+            key={item.tab}
+            onClick={() => onTabChange(item.tab)}
+            title={collapsed ? item.label : undefined}
+            className={cn(
+              "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+              collapsed && "justify-center px-0",
+              activeTab === item.tab
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+            )}
+          >
+            <item.icon className="h-4 w-4 shrink-0" />
+            {!collapsed && <span>{item.label}</span>}
+          </button>
+        ))}
+      </nav>
+
+      {/* Bottom: user + sign out + collapse */}
+      <div className="border-t border-border p-3 space-y-2">
+        {user && !collapsed && (
+          <p className="text-xs text-muted-foreground truncate px-1">
+            {user.user_metadata?.full_name || user.email}
+          </p>
+        )}
+        <div className="flex items-center gap-1">
+          <button
+            onClick={handleSignOut}
+            title="Sign Out"
+            className={cn(
+              "flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors",
+              collapsed && "justify-center px-0 w-full"
+            )}
+          >
+            <LogOut className="h-4 w-4 shrink-0" />
+            {!collapsed && <span>Sign Out</span>}
+          </button>
+          {!collapsed && (
+            <button
+              onClick={() => setCollapsed(true)}
+              className="ml-auto p-1.5 rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+              title="Collapse sidebar"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+        {collapsed && (
+          <button
+            onClick={() => setCollapsed(false)}
+            className="w-full flex justify-center p-1.5 rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+            title="Expand sidebar"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+    </motion.aside>
   );
 };
 

@@ -1,11 +1,12 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, parseISO, differenceInHours, isBefore, startOfDay } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useAvatar, getInitials } from "@/hooks/useAvatar";
 import Navbar from "@/components/Navbar";
-import { Trophy, Star, Clock, ArrowRight, Gift, Zap, CalendarCheck, X, Pencil, Trash2, CalendarIcon } from "lucide-react";
+import { Trophy, Star, Clock, ArrowRight, Gift, Zap, CalendarCheck, X, Pencil, Trash2, CalendarIcon, Camera } from "lucide-react";
 import MyPlayerSection from "@/components/MyPlayerSection";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -62,6 +63,8 @@ const canDeleteBooking = (booking: Booking): boolean => {
 const ProfilePage = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const { avatarUrl, setAvatarUrl } = useAvatar();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [clubs, setClubs] = useState<ClubInfo[]>([]);
@@ -72,6 +75,34 @@ const ProfilePage = () => {
   const [editTime, setEditTime] = useState("");
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    if (!file.type.startsWith("image/")) { toast.error("Please select an image file"); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("Image must be under 5MB"); return; }
+
+    setUploadingAvatar(true);
+    const ext = file.name.split(".").pop();
+    const path = `${user.id}/avatar.${ext}`;
+
+    const { error: uploadErr } = await supabase.storage
+      .from("avatars")
+      .upload(path, file, { upsert: true });
+
+    if (uploadErr) { toast.error("Upload failed: " + uploadErr.message); setUploadingAvatar(false); return; }
+
+    const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
+    const publicUrl = urlData.publicUrl + "?t=" + Date.now();
+
+    await supabase.from("profiles").update({ avatar_url: publicUrl } as any).eq("user_id", user.id);
+    setAvatarUrl(publicUrl);
+    setUploadingAvatar(false);
+    toast.success("Profile photo updated!");
+  };
+
+  const initials = getInitials(user?.user_metadata?.full_name, user?.email);
 
   useEffect(() => {
     if (!loading && !user) navigate("/auth");
@@ -211,12 +242,37 @@ const ProfilePage = () => {
     <div className="min-h-screen">
       <Navbar />
       <div className="container mx-auto px-6 pt-28 pb-16">
-        {/* Header */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
-          <h1 className="font-heading text-3xl md:text-4xl font-bold text-foreground mb-1">
-            Hey, {profile?.full_name || user?.email} 👋
-          </h1>
-          <p className="text-muted-foreground text-lg">Your activity hub & loyalty progress.</p>
+        {/* Header with Avatar */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-10 flex items-center gap-5">
+          {/* Avatar */}
+          <div className="relative group shrink-0">
+            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="Avatar" className="h-20 w-20 rounded-full object-cover border-2 border-border" />
+            ) : (
+              <div className="h-20 w-20 rounded-full bg-primary/20 text-primary font-bold text-2xl flex items-center justify-center border-2 border-border">
+                {initials}
+              </div>
+            )}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingAvatar}
+              className="absolute inset-0 rounded-full bg-background/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+            >
+              <Camera className="h-5 w-5 text-foreground" />
+            </button>
+            {uploadingAvatar && (
+              <div className="absolute inset-0 rounded-full bg-background/70 flex items-center justify-center">
+                <span className="text-xs text-muted-foreground animate-pulse">...</span>
+              </div>
+            )}
+          </div>
+          <div>
+            <h1 className="font-heading text-3xl md:text-4xl font-bold text-foreground mb-1">
+              Hey, {profile?.full_name || user?.email} 👋
+            </h1>
+            <p className="text-muted-foreground text-lg">Your activity hub & loyalty progress.</p>
+          </div>
         </motion.div>
 
         {/* Pending Bookings Button */}

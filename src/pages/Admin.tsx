@@ -2498,9 +2498,9 @@ const AdminDashboard = () => {
 
   if (loadingData) {
     return (
-      <div className="min-h-screen">
+      <div className="min-h-screen flex">
         <AdminNavbar activeTab={activeTab} onTabChange={setActiveTab} assignedClubId={myClubId} />
-        <div className="flex items-center justify-center min-h-screen">
+        <div className="flex-1 ml-56 flex items-center justify-center">
           <p className="text-muted-foreground">Loading...</p>
         </div>
       </div>
@@ -2582,9 +2582,9 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen flex">
       <AdminNavbar activeTab={activeTab} onTabChange={setActiveTab} assignedClubId={myClubId} />
-      <div className="container mx-auto px-6 pt-28 pb-16">
+      <div className="flex-1 ml-56 px-8 pt-10 pb-16">
 
         {/* Dashboard / Overview */}
         {activeTab === "overview" && (

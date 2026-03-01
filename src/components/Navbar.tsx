@@ -1,9 +1,10 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlayerProfileComplete } from "@/hooks/usePlayerProfile";
-import { LogOut, User, ShieldCheck, Menu, X } from "lucide-react";
+import { useAvatar, getInitials } from "@/hooks/useAvatar";
+import { LogOut, ShieldCheck, Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -22,7 +23,10 @@ const Navbar = () => {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const { isComplete: playerComplete } = usePlayerProfileComplete();
+  const { avatarUrl } = useAvatar();
   const showGlow = user && playerComplete === false;
+
+  const initials = getInitials(user?.user_metadata?.full_name, user?.email);
 
   // Fetch glow routes from CMS
   const [glowRoutes, setGlowRoutes] = useState<Set<string>>(new Set());
@@ -42,6 +46,17 @@ const Navbar = () => {
     await signOut();
     navigate("/");
     setMobileOpen(false);
+  };
+
+  const AvatarDisplay = ({ size = "sm" }: { size?: "sm" | "md" }) => {
+    const sizeClass = size === "md" ? "h-8 w-8 text-xs" : "h-7 w-7 text-[10px]";
+    return avatarUrl ? (
+      <img src={avatarUrl} alt="Avatar" className={cn(sizeClass, "rounded-full object-cover border border-border")} />
+    ) : (
+      <div className={cn(sizeClass, "rounded-full bg-primary/20 text-primary font-bold flex items-center justify-center border border-border")}>
+        {initials}
+      </div>
+    );
   };
 
   return (
@@ -103,15 +118,14 @@ const Navbar = () => {
               <Link
                 to="/profile"
                 className={cn(
-                  "flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors relative",
+                  "flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors relative",
                   showGlow && "text-primary"
                 )}
               >
                 {showGlow && (
                   <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-primary animate-ping" />
                 )}
-                <User className="h-4 w-4" />
-                <span>{user.user_metadata?.full_name || user.email}</span>
+                <AvatarDisplay />
               </Link>
               <button
                 onClick={handleSignOut}
@@ -134,11 +148,11 @@ const Navbar = () => {
         {/* Mobile: hamburger + profile icon */}
         <div className="flex lg:hidden items-center gap-2">
           {user && (
-            <Link to="/profile" className={cn("text-muted-foreground hover:text-foreground transition-colors p-2 relative", showGlow && "text-primary")}>
+            <Link to="/profile" className={cn("text-muted-foreground hover:text-foreground transition-colors p-1 relative", showGlow && "text-primary")}>
               {showGlow && (
-                <span className="absolute top-0.5 right-0.5 h-2.5 w-2.5 rounded-full bg-primary animate-ping" />
+                <span className="absolute top-0 right-0 h-2.5 w-2.5 rounded-full bg-primary animate-ping" />
               )}
-              <User className="h-5 w-5" />
+              <AvatarDisplay size="md" />
             </Link>
           )}
           <button
