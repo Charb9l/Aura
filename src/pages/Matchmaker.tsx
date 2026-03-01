@@ -165,8 +165,8 @@ const MatchmakerPage = () => {
                     className="group relative inline-flex items-center gap-2.5 rounded-2xl px-5 py-3 text-sm font-semibold text-foreground cursor-default overflow-hidden"
                     style={{
                       background: `linear-gradient(135deg, hsl(${hue} 50% 15% / 0.6), hsl(${hue} 40% 20% / 0.3))`,
-                      border: `1px solid hsl(${hue} 50% 40% / 0.25)`,
-                      boxShadow: `0 0 20px hsl(${hue} 60% 50% / 0.08), inset 0 1px 0 hsl(${hue} 50% 80% / 0.08)`,
+                      border: `1px solid hsl(${hue} 50% 40% / 0.35)`,
+                      boxShadow: `0 0 12px hsl(${hue} 60% 50% / 0.25), 0 0 30px hsl(${hue} 60% 50% / 0.12), inset 0 1px 0 hsl(${hue} 50% 80% / 0.1)`,
                     }}
                   >
                     <span
