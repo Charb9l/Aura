@@ -425,7 +425,6 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
   const [editingPage, setEditingPage] = useState<string | null>(null);
   const [allContent, setAllContent] = useState<Record<string, any>>({});
   const [saving, setSaving] = useState(false);
-  const [activitiesOpen, setActivitiesOpen] = useState(false);
 
   // Editable state
   const [heroSubtitle, setHeroSubtitle] = useState("");
@@ -539,7 +538,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {[...PAGES, { name: "Activities", slug: "activities", description: "Add, edit, or remove activities and their images" }]
+              {PAGES
                 .sort((a, b) => a.name.localeCompare(b.name))
                 .map((page) => (
                   <TableRow key={page.slug}>
@@ -549,13 +548,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => {
-                          if (page.slug === "activities") {
-                            setActivitiesOpen(true);
-                          } else {
-                            openEditor(page.slug);
-                          }
-                        }}
+                        onClick={() => openEditor(page.slug)}
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
@@ -566,9 +559,6 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
           </Table>
         </CardContent>
       </Card>
-
-      {/* Activities Manager Dialog */}
-      <ActivitiesManager open={activitiesOpen} onOpenChange={setActivitiesOpen} />
 
       {/* Home Page Editor */}
       <Dialog open={editingPage === "home"} onOpenChange={(o) => !o && setEditingPage(null)}>
