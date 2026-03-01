@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlayerProfileComplete } from "@/hooks/usePlayerProfile";
 import { useAvatar, getInitials } from "@/hooks/useAvatar";
+import { useAdminRole } from "@/hooks/useAdminRole";
 import { LogOut, ShieldCheck, Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,6 +40,7 @@ const Navbar = () => {
   const { isComplete: playerComplete } = usePlayerProfileComplete();
   const { avatarUrl } = useAvatar();
   const showGlow = user && playerComplete === false;
+  const { isAdmin } = useAdminRole();
 
   const initials = getInitials(user?.user_metadata?.full_name, user?.email);
 
@@ -156,14 +158,18 @@ const Navbar = () => {
                     >
                       <LogOut className="h-4 w-4" /> Sign Out
                     </button>
-                    <div className="border-t-2 border-border" />
-                    <Link
-                      to="/admin"
-                      onClick={() => setDropdownOpen(false)}
-                      className="flex items-center gap-2 px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors"
-                    >
-                      <ShieldCheck className="h-4 w-4" /> Admin
-                    </Link>
+                    {isAdmin && (
+                      <>
+                        <div className="border-t-2 border-border" />
+                        <Link
+                          to="/admin"
+                          onClick={() => setDropdownOpen(false)}
+                          className="flex items-center gap-2 px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors"
+                        >
+                          <ShieldCheck className="h-4 w-4" /> Admin
+                        </Link>
+                      </>
+                    )}
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -229,15 +235,18 @@ const Navbar = () => {
                 );
               })}
 
-              <div className="border-t border-border my-2" />
-
-              <Link
-                to="/admin"
-                onClick={() => setMobileOpen(false)}
-                className="py-2.5 px-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors flex items-center gap-2"
-              >
-                <ShieldCheck className="h-4 w-4" /> Admin
-              </Link>
+              {isAdmin && (
+                <>
+                  <div className="border-t border-border my-2" />
+                  <Link
+                    to="/admin"
+                    onClick={() => setMobileOpen(false)}
+                    className="py-2.5 px-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors flex items-center gap-2"
+                  >
+                    <ShieldCheck className="h-4 w-4" /> Admin
+                  </Link>
+                </>
+              )}
 
               {user ? (
                 <button
