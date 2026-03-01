@@ -2449,6 +2449,16 @@ const AdminDashboard = () => {
   const [bookingCustomDate, setBookingCustomDate] = useState<Date | undefined>(new Date());
   const [revenueCustomRange, setRevenueCustomRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: subDays(new Date(), 6), to: new Date() });
 
+  // Dashboard filter: activity or club
+  const [bookingFilterType, setBookingFilterType] = useState<string>("all");
+  const [bookingFilterValue, setBookingFilterValue] = useState<string>("all");
+  const [revenueFilterType, setRevenueFilterType] = useState<string>("all");
+  const [revenueFilterValue, setRevenueFilterValue] = useState<string>("all");
+
+  // Reset filter value when type changes
+  useEffect(() => { setBookingFilterValue("all"); }, [bookingFilterType]);
+  useEffect(() => { setRevenueFilterValue("all"); }, [revenueFilterType]);
+
   const todayStr = format(new Date(), "yyyy-MM-dd");
   const dailyRevenue = filteredBookings.filter(b => b.booking_date === todayStr).reduce((sum, b) => sum + getBookingRevenue(b), 0);
   const totalRevenue = filteredBookings.reduce((sum, b) => sum + getBookingRevenue(b), 0);
@@ -2461,6 +2471,17 @@ const AdminDashboard = () => {
     return Object.entries(grouped).map(([name, value]) => ({ name, value }));
   }, [filteredBookings]);
 
+  // Helper: filter bookings by activity or club
+  const applyDashboardFilter = (list: BookingRow[], filterType: string, filterValue: string) => {
+    if (filterType === "all" || filterValue === "all") return list;
+    if (filterType === "activity") return list.filter(b => b.activity === filterValue);
+    if (filterType === "club") {
+      const clubActivities = clubActivityMap[filterValue] || [];
+      return list.filter(b => clubActivities.includes(b.activity));
+    }
+    return list;
+  };
+
   const bookingChartData = useMemo(() => {
     const now = new Date();
     let start: Date, end: Date;
@@ -2469,14 +2490,13 @@ const AdminDashboard = () => {
     else if (bookingRange === "monthly") { start = startOfMonth(now); end = endOfDay(now); }
     else if (bookingRange === "custom" && bookingCustomDate) { start = startOfDay(bookingCustomDate); end = endOfDay(bookingCustomDate); }
     else { start = startOfDay(now); end = endOfDay(now); }
-    const filtered = filteredBookings.filter(b => {
+    let filtered = filteredBookings.filter(b => {
       const d = parseISO(b.booking_date);
       return isWithinInterval(d, { start, end });
     });
-    const grouped: Record<string, number> = {};
-    filtered.forEach(b => { grouped[b.activity] = (grouped[b.activity] || 0) + 1; });
-    return ALL_CATEGORIES.map(c => ({ name: c.label, value: grouped[c.key] || 0 }));
-  }, [filteredBookings, bookingRange, bookingCustomDate]);
+    filtered = applyDashboardFilter(filtered, bookingFilterType, bookingFilterValue);
+    return [{ name: "Bookings", value: filtered.length }];
+  }, [filteredBookings, bookingRange, bookingCustomDate, bookingFilterType, bookingFilterValue, clubActivityMap]);
 
   const revenueByCategoryFiltered = useMemo(() => {
     const now = new Date();
@@ -2487,14 +2507,14 @@ const AdminDashboard = () => {
     else if (revenueRange === "custom" && bookingCustomDate) { start = startOfDay(bookingCustomDate); end = endOfDay(bookingCustomDate); }
     else if (revenueRange === "custom-range" && revenueCustomRange.from && revenueCustomRange.to) { start = startOfDay(revenueCustomRange.from); end = endOfDay(revenueCustomRange.to); }
     else { start = startOfDay(now); end = endOfDay(now); }
-    const filtered = filteredBookings.filter(b => {
+    let filtered = filteredBookings.filter(b => {
       const d = parseISO(b.booking_date);
       return isWithinInterval(d, { start, end });
     });
-    const grouped: Record<string, number> = {};
-    filtered.forEach(b => { grouped[b.activity] = (grouped[b.activity] || 0) + getBookingRevenue(b); });
-    return ALL_CATEGORIES.map(c => ({ name: c.label, value: grouped[c.key] || 0 }));
-  }, [bookings, revenueRange, bookingCustomDate, revenueCustomRange]);
+    filtered = applyDashboardFilter(filtered, revenueFilterType, revenueFilterValue);
+    const total = filtered.reduce((sum, b) => sum + getBookingRevenue(b), 0);
+    return [{ name: "Revenue", value: total }];
+  }, [filteredBookings, revenueRange, bookingCustomDate, revenueCustomRange, revenueFilterType, revenueFilterValue, clubActivityMap]);
 
   if (loadingData) {
     return (
@@ -2615,19 +2635,51 @@ const AdminDashboard = () => {
 
             <Card className="bg-card border-border mb-6">
               <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <CardTitle className="text-lg">Bookings by Category</CardTitle>
-                <DateRangeFilter value={bookingRange} onChange={setBookingRange} showCustomDate customDate={bookingCustomDate} onCustomDateChange={setBookingCustomDate} />
+                <CardTitle className="text-lg">Bookings</CardTitle>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Select value={bookingFilterType} onValueChange={setBookingFilterType}>
+                    <SelectTrigger className="w-[120px] h-9 bg-secondary border-border text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All</SelectItem>
+                      <SelectItem value="activity">Activity</SelectItem>
+                      <SelectItem value="club">Club</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {bookingFilterType === "activity" && (
+                    <Select value={bookingFilterValue} onValueChange={setBookingFilterValue}>
+                      <SelectTrigger className="w-[150px] h-9 bg-secondary border-border text-sm">
+                        <SelectValue placeholder="All Activities" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Activities</SelectItem>
+                        {ALL_CATEGORIES.map(c => <SelectItem key={c.key} value={c.key}>{c.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  {bookingFilterType === "club" && (
+                    <Select value={bookingFilterValue} onValueChange={setBookingFilterValue}>
+                      <SelectTrigger className="w-[180px] h-9 bg-secondary border-border text-sm">
+                        <SelectValue placeholder="All Clubs" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Clubs</SelectItem>
+                        {clubs.sort((a, b) => a.name.localeCompare(b.name)).map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  <DateRangeFilter value={bookingRange} onChange={setBookingRange} showCustomDate customDate={bookingCustomDate} onCustomDateChange={setBookingCustomDate} />
+                </div>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={bookingChartData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(240, 6%, 18%)" />
                     <XAxis dataKey="name" tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} />
-                    <YAxis allowDecimals={false} domain={[0, 12]} ticks={[0, 3, 6, 9, 12]} tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} />
+                    <YAxis allowDecimals={false} tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} />
                     <Tooltip contentStyle={{ background: "hsl(240, 8%, 10%)", border: "1px solid hsl(240, 6%, 18%)", borderRadius: 8, color: "hsl(0, 0%, 95%)" }} />
-                    <Bar dataKey="value" name="Bookings" radius={[4, 4, 0, 0]} animationDuration={800} animationEasing="ease-out">
-                      {bookingChartData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
-                    </Bar>
+                    <Bar dataKey="value" name="Bookings" radius={[4, 4, 0, 0]} animationDuration={800} animationEasing="ease-out" fill={CHART_COLORS[0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -2636,18 +2688,50 @@ const AdminDashboard = () => {
             <Card className="bg-card border-border">
               <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <CardTitle className="text-lg">Revenue</CardTitle>
-                <DateRangeFilter value={revenueRange} onChange={setRevenueRange} showCustomDate customDate={bookingCustomDate} onCustomDateChange={setBookingCustomDate} showCustomRange customRange={revenueCustomRange} onCustomRangeChange={(r) => setRevenueCustomRange({ from: r.from, to: r.to })} />
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Select value={revenueFilterType} onValueChange={setRevenueFilterType}>
+                    <SelectTrigger className="w-[120px] h-9 bg-secondary border-border text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All</SelectItem>
+                      <SelectItem value="activity">Activity</SelectItem>
+                      <SelectItem value="club">Club</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {revenueFilterType === "activity" && (
+                    <Select value={revenueFilterValue} onValueChange={setRevenueFilterValue}>
+                      <SelectTrigger className="w-[150px] h-9 bg-secondary border-border text-sm">
+                        <SelectValue placeholder="All Activities" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Activities</SelectItem>
+                        {ALL_CATEGORIES.map(c => <SelectItem key={c.key} value={c.key}>{c.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  {revenueFilterType === "club" && (
+                    <Select value={revenueFilterValue} onValueChange={setRevenueFilterValue}>
+                      <SelectTrigger className="w-[180px] h-9 bg-secondary border-border text-sm">
+                        <SelectValue placeholder="All Clubs" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Clubs</SelectItem>
+                        {clubs.sort((a, b) => a.name.localeCompare(b.name)).map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  <DateRangeFilter value={revenueRange} onChange={setRevenueRange} showCustomDate customDate={bookingCustomDate} onCustomDateChange={setBookingCustomDate} showCustomRange customRange={revenueCustomRange} onCustomRangeChange={(r) => setRevenueCustomRange({ from: r.from, to: r.to })} />
+                </div>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={revenueByCategoryFiltered}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(240, 6%, 18%)" />
                     <XAxis dataKey="name" tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} />
-                    <YAxis domain={[0, 1000]} ticks={[0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]} tickFormatter={(v: number) => `$${v}`} tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} />
+                    <YAxis tickFormatter={(v: number) => `$${v}`} tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} />
                     <Tooltip contentStyle={{ background: "hsl(240, 8%, 10%)", border: "1px solid hsl(240, 6%, 18%)", borderRadius: 8, color: "hsl(0, 0%, 95%)" }} formatter={(v: number) => [`$${v}`, "Revenue"]} />
-                    <Bar dataKey="value" name="Revenue" radius={[4, 4, 0, 0]} animationDuration={800} animationEasing="ease-out">
-                      {revenueByCategoryFiltered.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
-                    </Bar>
+                    <Bar dataKey="value" name="Revenue" radius={[4, 4, 0, 0]} animationDuration={800} animationEasing="ease-out" fill={CHART_COLORS[1]} />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
