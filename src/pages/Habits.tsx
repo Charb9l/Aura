@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
@@ -157,6 +157,8 @@ const HabitsPage = () => {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showLevelInfo, setShowLevelInfo] = useState(false);
+  const levelInfoRef = useRef<HTMLDivElement>(null);
   const [cmsContent, setCmsContent] = useState<PageContent>({});
 
   useEffect(() => {
@@ -180,6 +182,17 @@ const HabitsPage = () => {
     };
     fetchBookings();
   }, [user, authLoading]);
+
+  // Close level info on click outside
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (levelInfoRef.current && !levelInfoRef.current.contains(e.target as Node)) {
+        setShowLevelInfo(false);
+      }
+    };
+    if (showLevelInfo) document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [showLevelInfo]);
 
   // === Calculations ===
   const completedBookings = useMemo(() =>
@@ -319,8 +332,6 @@ const HabitsPage = () => {
     ];
   }, [completedBookings, longestStreak, currentStreak, uniqueActivities, timeDistribution, wellnessScore]);
 
-  const totalEarned = badgeLevels.reduce((sum, lvl) => sum + lvl.badges.filter(b => b.earned).length, 0);
-  const totalBadges = badgeLevels.reduce((sum, lvl) => sum + lvl.badges.length, 0);
   const completedLevels = badgeLevels.filter(lvl => lvl.badges.every(b => b.earned)).length;
 
   // AI Insights
@@ -431,14 +442,53 @@ const HabitsPage = () => {
                 </CardContent>
               </Card>
             </motion.div>
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="h-full">
-              <Card className="bg-card border-border text-center h-full">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="h-full relative">
+              <Card
+                className="bg-card border-border text-center h-full cursor-pointer hover:border-primary/40 transition-colors"
+                onClick={() => setShowLevelInfo(prev => !prev)}
+              >
                 <CardContent className="pt-6 pb-4 flex flex-col items-center justify-center h-full">
-                  <Trophy className="h-8 w-8 text-amber-400 mb-2" />
-                  <p className="text-3xl font-bold text-foreground">{totalEarned}/{totalBadges}</p>
-                  <p className="text-xs text-muted-foreground mt-1">Badges Earned</p>
+                  {completedLevels === 0 && <Shield className="h-8 w-8 text-primary mb-2" />}
+                  {completedLevels === 1 && <Award className="h-8 w-8 text-accent mb-2" />}
+                  {completedLevels === 2 && <Crown className="h-8 w-8 text-amber-400 mb-2" />}
+                  {completedLevels === 3 && <Crown className="h-8 w-8 text-amber-400 mb-2" />}
+                  <p className="text-3xl font-bold text-foreground">{completedLevels}/3</p>
+                  <p className="text-xs text-muted-foreground mt-1">Level Reached</p>
                 </CardContent>
               </Card>
+              <AnimatePresence>
+                {showLevelInfo && (
+                  <motion.div
+                    ref={levelInfoRef}
+                    initial={{ opacity: 0, y: -8, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -8, scale: 0.95 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute z-50 top-full mt-2 left-1/2 -translate-x-1/2 w-72 bg-popover border border-border rounded-xl shadow-xl p-4 text-left"
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <Gift className="h-4 w-4 text-primary" />
+                      <p className="text-sm font-semibold text-foreground">Level Rewards</p>
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      There are <span className="font-semibold text-foreground">3 levels</span> with 8 badges each. Every time you complete all 8 badges in a level, you earn a <span className="font-semibold text-primary">free loyalty point</span> that you can assign to any club of your choice in your profile!
+                    </p>
+                    <div className="mt-3 space-y-1.5">
+                      {badgeLevels.map((lvl, i) => {
+                        const earned = lvl.badges.filter(b => b.earned).length;
+                        const complete = earned === lvl.badges.length;
+                        return (
+                          <div key={i} className="flex items-center gap-2 text-xs">
+                            <span className={cn(complete ? LEVEL_COLORS[i].text : "text-muted-foreground")}>{LEVEL_ICONS[i]}</span>
+                            <span className={cn("flex-1", complete ? "text-foreground font-medium" : "text-muted-foreground")}>{lvl.name}</span>
+                            <span className={cn("text-[10px]", complete ? "text-emerald-400" : "text-muted-foreground")}>{complete ? "✓ +1 point" : `${earned}/8`}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="h-full">
               <Card className="bg-card border-border text-center h-full">
