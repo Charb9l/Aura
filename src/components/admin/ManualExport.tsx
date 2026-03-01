@@ -4,10 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "@/components/ui/sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { getBookingRevenue, type BookingRow } from "./types";
 
@@ -30,14 +30,9 @@ const ALL_FIELDS = [
 
 type FieldKey = (typeof ALL_FIELDS)[number]["key"];
 
-const ACTIVITY_OPTIONS = [
-  { key: "basketball", label: "Basketball" },
-  { key: "tennis", label: "Tennis" },
-  { key: "pilates", label: "Pilates" },
-  { key: "aerial-yoga", label: "Aerial Yoga" },
-];
 
 const ManualExport = () => {
+  const [activityOptions, setActivityOptions] = useState<{ key: string; label: string }[]>([]);
   const [selectedFields, setSelectedFields] = useState<Set<FieldKey>>(
     new Set(ALL_FIELDS.map((f) => f.key))
   );
@@ -46,6 +41,12 @@ const ManualExport = () => {
   const [selectedActivities, setSelectedActivities] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState<BookingRow[] | null>(null);
+
+  useEffect(() => {
+    supabase.from("offerings").select("slug, name").order("name").then(({ data }) => {
+      if (data) setActivityOptions(data.map((o) => ({ key: o.slug, label: o.name })));
+    });
+  }, []);
 
   const toggleField = (key: FieldKey) => {
     setSelectedFields((prev) => {
@@ -185,7 +186,7 @@ const ManualExport = () => {
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground">Activity</Label>
               <div className="flex flex-wrap gap-1.5">
-                {ACTIVITY_OPTIONS.map((a) => (
+                {activityOptions.map((a) => (
                   <button
                     key={a.key}
                     onClick={() => toggleActivity(a.key)}
