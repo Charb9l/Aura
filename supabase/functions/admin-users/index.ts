@@ -18,10 +18,14 @@ async function verifyAdmin(req: Request) {
     global: { headers: { Authorization: authHeader } },
   });
 
-  // JWT-backed check through RLS (avoids fragile /auth/v1/user session lookups)
+  // Get caller identity
+  const { data: { user: caller }, error: userError } = await callerClient.auth.getUser();
+  if (userError || !caller) return null;
+
   const { data: roleData, error: roleError } = await callerClient
     .from("user_roles")
     .select("user_id")
+    .eq("user_id", caller.id)
     .eq("role", "admin")
     .maybeSingle();
 
