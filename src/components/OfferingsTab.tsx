@@ -65,7 +65,7 @@ const OfferingsTab = () => {
       .from("offerings").insert({ name: addName.trim(), slug }).select().single();
 
     if (error || !newOffering) {
-      toast.error("Failed to add offering: " + (error?.message || "Unknown error"));
+      toast.error("Failed to add activity: " + (error?.message || "Unknown error"));
       setAddSaving(false);
       return;
     }

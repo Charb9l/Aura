@@ -6,13 +6,16 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Checkbox } from "@/components/ui/checkbox";
 
 interface ActivityFilterProps {
-  offerings: { id: string; name: string; slug: string }[];
+  activities?: { id: string; name: string; slug: string }[];
   selected: string[];
   onChange: (selected: string[]) => void;
+  /** @deprecated Use activities prop */
+  offerings?: { id: string; name: string; slug: string }[];
 }
 
-const ActivityFilter = ({ offerings, selected, onChange }: ActivityFilterProps) => {
+const ActivityFilter = ({ activities, selected, onChange, offerings: offeringsProp }: ActivityFilterProps) => {
   const [open, setOpen] = useState(false);
+  const items = activities?.length ? activities : offeringsProp || [];
 
   const toggle = (slug: string) => {
     if (selected.includes(slug)) {
@@ -38,7 +41,7 @@ const ActivityFilter = ({ offerings, selected, onChange }: ActivityFilterProps) 
       <PopoverContent className="w-56 p-3 bg-card border-border" align="start">
         <p className="text-xs font-medium text-muted-foreground mb-3">Show activities</p>
         <div className="space-y-2">
-          {offerings.map((o) => (
+          {items.map((o) => (
             <label
               key={o.id}
               className="flex items-center gap-2.5 cursor-pointer rounded-lg px-2 py-1.5 hover:bg-secondary transition-colors"

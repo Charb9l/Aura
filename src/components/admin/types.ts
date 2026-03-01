@@ -61,7 +61,7 @@ export interface AuditLogRow {
   created_by: string | null;
 }
 
-export interface OfferingRow {
+export interface ActivityRow {
   id: string;
   name: string;
   slug: string;
@@ -69,6 +69,9 @@ export interface OfferingRow {
   brand_color?: string | null;
   created_at: string;
 }
+
+/** @deprecated Use ActivityRow instead */
+export type OfferingRow = ActivityRow;
 
 export const ACTIVITY_PRICES: Record<string, number> = {
   tennis: 15,
