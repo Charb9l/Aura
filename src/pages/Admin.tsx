@@ -2752,10 +2752,6 @@ const AdminDashboard = () => {
           <ClubsTab isMasterAdmin={!myClubId} />
         )}
 
-        {/* Activities */}
-        {activeTab === "offerings" && (
-          <OfferingsTab />
-        )}
 
         {/* Academies */}
         {activeTab === "academies" && (
