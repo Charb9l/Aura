@@ -33,6 +33,7 @@ import BookingsCalendarTab from "@/components/admin/BookingsCalendarTab";
 import SettingsTab from "@/components/admin/SettingsTab";
 import ClubsTab from "@/components/admin/ClubsTab";
 import ReportsTab from "@/components/admin/ReportsTab";
+import HabitsTab from "@/components/admin/HabitsTab";
 
 // ─── Main Admin Dashboard ──────────────────────────────────────
 const AdminDashboard = () => {
@@ -380,20 +381,7 @@ const AdminDashboard = () => {
         {activeTab === "settings" && <SettingsTab />}
         {activeTab === "reports" && <ReportsTab />}
 
-        {activeTab === "habits" && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="habits">
-            <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Habit Tracker</h1>
-            <p className="text-muted-foreground mb-8">Manage the AI Habit Tracker page settings and content.</p>
-            <Card className="bg-card border-border"><CardContent className="p-6">
-              <p className="text-muted-foreground text-sm">The Habit Tracker page content is managed via the <button onClick={() => setActiveTab("customer-vision")} className="text-primary underline underline-offset-2 font-medium">Customer Vision</button> tab.</p>
-              <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="p-4 rounded-lg border border-border bg-secondary/30"><p className="text-sm font-semibold text-foreground mb-1">🔥 Streaks</p><p className="text-xs text-muted-foreground">Tracks consecutive weeks of activity per user.</p></div>
-                <div className="p-4 rounded-lg border border-border bg-secondary/30"><p className="text-sm font-semibold text-foreground mb-1">🏆 8 Badges</p><p className="text-xs text-muted-foreground">First Step, Iron Will, Explorer, Early Bird, Night Owl, Dedicated, Unstoppable, Centurion.</p></div>
-                <div className="p-4 rounded-lg border border-border bg-secondary/30"><p className="text-sm font-semibold text-foreground mb-1">📊 Wellness Score</p><p className="text-xs text-muted-foreground">0-100 score based on consistency (40%), variety (30%), frequency (30%).</p></div>
-              </div>
-            </CardContent></Card>
-          </motion.div>
-        )}
+        {activeTab === "habits" && <HabitsTab />}
 
         {activeTab === "promotions" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="promotions">

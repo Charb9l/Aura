@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Building2, Pencil, Trash2, Upload, X, Image, GraduationCap, MapPin } from "lucide-react";
+import PageContentEditor from "./PageContentEditor";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -290,6 +291,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
         </div>
         {isMasterAdmin && (
           <div className="flex gap-3">
+            <PageContentEditor pageSlug="clubs" pageName="Clubs & Partners" />
             <Button onClick={() => setShowAddClub(true)} className="h-11 px-5 font-semibold glow gap-2">
               <Building2 className="h-4 w-4" /> Add Club
             </Button>
