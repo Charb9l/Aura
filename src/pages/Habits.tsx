@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Flame, Trophy, Target, TrendingUp, Zap, Star, Calendar, Sun, Moon, Clock, Sparkles } from "lucide-react";
@@ -51,7 +52,7 @@ const HabitsPage = () => {
 
   useEffect(() => {
     if (authLoading) return;
-    if (!user) { navigate("/auth"); return; }
+    if (!user) { setLoading(false); return; }
     const fetchBookings = async () => {
       setLoading(true);
       const { data } = await supabase
@@ -63,7 +64,7 @@ const HabitsPage = () => {
       setLoading(false);
     };
     fetchBookings();
-  }, [user, authLoading, navigate]);
+  }, [user, authLoading]);
 
   // === Calculations ===
   const completedBookings = useMemo(() =>
@@ -312,6 +313,21 @@ const HabitsPage = () => {
             </p>
           </div>
 
+          {!user ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center py-20"
+            >
+              <Sparkles className="h-16 w-16 text-muted-foreground/30 mx-auto mb-4" />
+              <h2 className="font-heading text-2xl font-bold text-foreground mb-2">Sign in to track your habits</h2>
+              <p className="text-muted-foreground mb-6">Create an account and start booking sessions to unlock your personalized wellness dashboard.</p>
+              <Button onClick={() => navigate("/auth")} className="glow px-8 h-12 font-semibold text-base">
+                Login / Sign Up
+              </Button>
+            </motion.div>
+          ) : (
+          <>
           {/* Top Stats Row */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 items-stretch">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="h-full">
@@ -506,6 +522,8 @@ const HabitsPage = () => {
               </motion.div>
             </div>
           </div>
+          </>
+          )}
         </motion.div>
       </div>
     </div>

@@ -49,7 +49,7 @@ const MATCH_BADGE = {
 };
 
 const MatchmakerPage = () => {
-  const { user, loading: authLoading } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [matches, setMatches] = useState<MatchProfile[]>([]);
   const [offerings, setOfferings] = useState<Offering[]>([]);
@@ -80,9 +80,8 @@ const MatchmakerPage = () => {
   }, []);
 
   useEffect(() => {
-    if (authLoading) return;
     if (!user) {
-      navigate("/auth");
+      setLoading(false);
       return;
     }
 
@@ -94,7 +93,7 @@ const MatchmakerPage = () => {
       setHasProfile((count ?? 0) >= 1);
     };
     checkProfile();
-  }, [user, authLoading, navigate]);
+  }, [user]);
 
   useEffect(() => {
     if (!user || hasProfile === null || hasProfile === false) return;
@@ -205,7 +204,20 @@ const MatchmakerPage = () => {
           )}
         </motion.div>
 
-        {hasProfile === false ? (
+        {!user ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-20"
+          >
+            <Users className="h-16 w-16 text-muted-foreground/30 mx-auto mb-4" />
+            <h2 className="font-heading text-2xl font-bold text-foreground mb-2">Sign in to find matches</h2>
+            <p className="text-muted-foreground mb-6">Create an account and set up your MyPlayer profile to get started.</p>
+            <Button onClick={() => navigate("/auth")} className="glow px-8 h-12 font-semibold text-base">
+              Login / Sign Up
+            </Button>
+          </motion.div>
+        ) : hasProfile === false ? (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
