@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Eye, Pencil, Plus, Trash2, Upload, ArrowUp, ArrowDown } from "lucide-react";
+import { Eye, Pencil, Plus, Trash2, Upload, ArrowUp, ArrowDown, Package, ExternalLink } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -311,6 +311,20 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
                   </TableCell>
                 </TableRow>
               ))}
+              <TableRow>
+                <TableCell className="font-medium">
+                  <span className="flex items-center gap-2">
+                    <Package className="h-4 w-4 text-primary" />
+                    Activities
+                  </span>
+                </TableCell>
+                <TableCell className="text-muted-foreground text-sm">Add, edit, or remove activities and their images</TableCell>
+                <TableCell>
+                  <Button variant="ghost" size="icon" onClick={() => onNavigateTab?.("offerings")}>
+                    <ExternalLink className="h-4 w-4" />
+                  </Button>
+                </TableCell>
+              </TableRow>
             </TableBody>
           </Table>
         </CardContent>
