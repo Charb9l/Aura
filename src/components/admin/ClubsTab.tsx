@@ -19,6 +19,26 @@ import { useLocations } from "@/hooks/useLocations";
 
 interface ClubLocationRow { id: string; club_id: string; name: string; location: string; }
 interface ClubPictureRow { id: string; club_id: string; image_url: string; display_order: number; }
+interface AcademyPictureRow { id: string; club_id: string; image_url: string; picture_type: string; display_order: number; }
+
+const DropZone = ({ id, dragging, setDragging, onFiles, uploading, hint, multiple }: {
+  id: string; dragging: boolean; setDragging: (v: boolean) => void; onFiles: (files: FileList | File[]) => void; uploading: boolean; hint: string; multiple?: boolean;
+}) => (
+  <div
+    onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+    onDragLeave={() => setDragging(false)}
+    onDrop={(e) => { e.preventDefault(); setDragging(false); onFiles(e.dataTransfer.files); }}
+    onClick={() => document.getElementById(id)?.click()}
+    className={cn("relative border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer", dragging ? "border-primary bg-primary/5" : "border-border hover:border-muted-foreground/50")}
+  >
+    <input id={id} type="file" accept="image/*" multiple={multiple} className="hidden" onChange={(e) => { if (e.target.files) onFiles(e.target.files); e.target.value = ""; }} />
+    <div className="flex flex-col items-center gap-2">
+      <Upload className="h-6 w-6 text-muted-foreground" />
+      <p className="text-sm font-medium text-foreground">{uploading ? "Uploading..." : hint}</p>
+      <p className="text-xs text-muted-foreground">PNG, JPG, WEBP — up to 10MB each</p>
+    </div>
+  </div>
+);
 
 const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
   const { locations: locationsList } = useLocations();
@@ -75,6 +95,25 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
   const [editOfferingSaving, setEditOfferingSaving] = useState(false);
   const [editOfferingDragging, setEditOfferingDragging] = useState(false);
 
+  // Academy pictures state — Add Club
+  const [addAcademyBubbleFile, setAddAcademyBubbleFile] = useState<File | null>(null);
+  const [addAcademyBubblePreview, setAddAcademyBubblePreview] = useState<string | null>(null);
+  const [addAcademyGalleryFiles, setAddAcademyGalleryFiles] = useState<File[]>([]);
+  const [addAcademyGalleryPreviews, setAddAcademyGalleryPreviews] = useState<string[]>([]);
+  const [addAcademyBubbleDragging, setAddAcademyBubbleDragging] = useState(false);
+  const [addAcademyGalleryDragging, setAddAcademyGalleryDragging] = useState(false);
+
+  // Academy pictures state — Edit Club
+  const [editAcademyBubble, setEditAcademyBubble] = useState<AcademyPictureRow | null>(null);
+  const [editAcademyBubbleFile, setEditAcademyBubbleFile] = useState<File | null>(null);
+  const [editAcademyBubblePreview, setEditAcademyBubblePreview] = useState<string | null>(null);
+  const [editAcademyGallery, setEditAcademyGallery] = useState<AcademyPictureRow[]>([]);
+  const [editAcademyGalleryFiles, setEditAcademyGalleryFiles] = useState<File[]>([]);
+  const [editAcademyGalleryPreviews, setEditAcademyGalleryPreviews] = useState<string[]>([]);
+  const [editAcademyBubbleDragging, setEditAcademyBubbleDragging] = useState(false);
+  const [editAcademyGalleryDragging, setEditAcademyGalleryDragging] = useState(false);
+  const [academyPicUploading, setAcademyPicUploading] = useState(false);
+
   useEffect(() => {
     const fetchData = async () => {
       const [clubsRes, offeringsRes, locRes] = await Promise.all([
@@ -90,13 +129,27 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
     fetchData();
   }, []);
 
-  const openEdit = (club: ClubRow) => {
+  const openEdit = async (club: ClubRow) => {
     setEditClub(club); setEditName(club.name); setEditDescription(club.description || "");
     setEditOfferings(club.offerings || []); setEditHasAcademy(club.has_academy || false);
     setEditShowAcademySportPicker(false);
     setEditClubLocations(clubLocations.filter(l => l.club_id === club.id));
     setEditNewLocations([]); setEditLogoFile(null);
     setEditLogoPreview(club.logo_url?.startsWith("http") ? club.logo_url : null);
+    // Reset academy picture state
+    setEditAcademyBubble(null); setEditAcademyBubbleFile(null); setEditAcademyBubblePreview(null);
+    setEditAcademyGallery([]); setEditAcademyGalleryFiles([]); setEditAcademyGalleryPreviews([]);
+    // Load academy pictures if has academy
+    if (club.has_academy) {
+      const { data } = await supabase.from("academy_pictures").select("*").eq("club_id", club.id).order("display_order");
+      if (data) {
+        const pics = data as unknown as AcademyPictureRow[];
+        const bubble = pics.find(p => p.picture_type === "bubble") || null;
+        setEditAcademyBubble(bubble);
+        if (bubble) setEditAcademyBubblePreview(bubble.image_url);
+        setEditAcademyGallery(pics.filter(p => p.picture_type === "carousel"));
+      }
+    }
   };
 
   const handleFileSelect = (file: File) => {
@@ -106,6 +159,32 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
   };
 
   const handleDrop = (e: React.DragEvent) => { e.preventDefault(); setDragging(false); const file = e.dataTransfer.files[0]; if (file) handleFileSelect(file); };
+
+  // Academy picture upload helper
+  const uploadAcademyPicture = async (clubId: string, file: File, type: "bubble" | "carousel", order: number): Promise<AcademyPictureRow | null> => {
+    if (file.size > 10 * 1024 * 1024) { toast.error(`${file.name} too large (max 10MB)`); return null; }
+    const id = crypto.randomUUID();
+    const ext = file.name.split(".").pop() || "jpg";
+    const filePath = `${clubId}/${type}/${id}.${ext}`;
+    const { error: uploadError } = await supabase.storage.from("academy-pictures").upload(filePath, file, { cacheControl: "3600" });
+    if (uploadError) { toast.error(`Upload failed: ${uploadError.message}`); return null; }
+    const { data: urlData } = supabase.storage.from("academy-pictures").getPublicUrl(filePath);
+    const { data: newPic, error: dbError } = await supabase
+      .from("academy_pictures")
+      .insert({ club_id: clubId, image_url: urlData.publicUrl, picture_type: type, display_order: order } as any)
+      .select().single();
+    if (dbError) { toast.error(`Save failed: ${dbError.message}`); return null; }
+    return newPic as unknown as AcademyPictureRow;
+  };
+
+  const deleteAcademyPicture = async (pic: AcademyPictureRow) => {
+    const urlParts = pic.image_url.split("/academy-pictures/");
+    if (urlParts[1]) {
+      const storagePath = urlParts[1].split("?")[0];
+      await supabase.storage.from("academy-pictures").remove([storagePath]);
+    }
+    await supabase.from("academy_pictures").delete().eq("id", pic.id);
+  };
 
   const handleSave = async () => {
     if (!editClub) return;
@@ -128,6 +207,19 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
     const originalIds = clubLocations.filter(l => l.club_id === editClub.id).map(l => l.id);
     const deletedIds = originalIds.filter(id => !existingIds.includes(id));
     if (deletedIds.length > 0) { await supabase.from("club_locations").delete().in("id", deletedIds); setClubLocations(prev => prev.filter(l => !deletedIds.includes(l.id))); }
+
+    // Upload new academy pictures
+    if (editHasAcademy) {
+      if (editAcademyBubbleFile) {
+        // Delete old bubble if exists
+        if (editAcademyBubble) await deleteAcademyPicture(editAcademyBubble);
+        await uploadAcademyPicture(editClub.id, editAcademyBubbleFile, "bubble", 0);
+      }
+      for (let i = 0; i < editAcademyGalleryFiles.length; i++) {
+        await uploadAcademyPicture(editClub.id, editAcademyGalleryFiles[i], "carousel", editAcademyGallery.length + i);
+      }
+    }
+
     setSaving(false);
     if (error) { toast.error("Failed to update club: " + error.message); }
     else { toast.success("Club updated successfully"); setClubs(prev => prev.map(c => c.id === editClub.id ? { ...c, name: editName, description: editDescription || null, logo_url: logoUrl, offerings: editOfferings, has_academy: editHasAcademy } : c)); setEditClub(null); }
@@ -167,21 +259,35 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
     let logoUrl: string | null = null;
     if (addClubLogoFile) {
       const ext = addClubLogoFile.name.split(".").pop() || "png";
-      const filePath = `${newClub.id}.${ext}`;
+      const filePath = `${(newClub as any).id}.${ext}`;
       const { error: uploadError } = await supabase.storage.from("club-logos").upload(filePath, addClubLogoFile, { upsert: true, cacheControl: "0" });
-      if (!uploadError) { const { data: urlData } = supabase.storage.from("club-logos").getPublicUrl(filePath); logoUrl = `${urlData.publicUrl}?t=${Date.now()}`; await supabase.from("clubs").update({ logo_url: logoUrl }).eq("id", newClub.id); }
+      if (!uploadError) { const { data: urlData } = supabase.storage.from("club-logos").getPublicUrl(filePath); logoUrl = `${urlData.publicUrl}?t=${Date.now()}`; await supabase.from("clubs").update({ logo_url: logoUrl }).eq("id", (newClub as any).id); }
     }
     if (addClubLocations.length > 0) {
       const locsToInsert = addClubLocations.filter(l => l.name.trim() && l.location.trim()).map(l => ({ club_id: (newClub as any).id, name: l.name.trim(), location: l.location.trim() }));
       if (locsToInsert.length > 0) { const { data: newLocs } = await supabase.from("club_locations").insert(locsToInsert).select(); if (newLocs) setClubLocations(prev => [...prev, ...(newLocs as unknown as ClubLocationRow[])]); }
     }
     if (addClubPicFiles.length > 0) await uploadClubPictures((newClub as any).id, addClubPicFiles);
+
+    // Upload academy pictures if has academy
+    if (addClubHasAcademy) {
+      const clubId = (newClub as any).id;
+      if (addAcademyBubbleFile) {
+        await uploadAcademyPicture(clubId, addAcademyBubbleFile, "bubble", 0);
+      }
+      for (let i = 0; i < addAcademyGalleryFiles.length; i++) {
+        await uploadAcademyPicture(clubId, addAcademyGalleryFiles[i], "carousel", i);
+      }
+    }
+
     setAddClubSaving(false);
     toast.success(`Club "${addClubName.trim()}" added successfully`);
     setClubs(prev => [...prev, { ...newClub as unknown as ClubRow, logo_url: logoUrl }].sort((a, b) => a.name.localeCompare(b.name)));
     setShowAddClub(false); setAddClubName(""); setAddClubDescription(""); setAddClubOfferings([]); setAddClubHasAcademy(false);
     setAddClubLogoFile(null); setAddClubLogoPreview(null); setAddClubLocations([]); setShowAcademySportPicker(false);
     setAddClubPicFiles([]); setAddClubPicPreviews([]);
+    setAddAcademyBubbleFile(null); setAddAcademyBubblePreview(null);
+    setAddAcademyGalleryFiles([]); setAddAcademyGalleryPreviews([]);
   };
 
   const openPictures = async (club: ClubRow) => {
@@ -282,6 +388,150 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
     setEditOfferingLogoPreview(offering.logo_url || null); setEditOfferingLogoFile(null); setOfferingsDialogMode("edit");
   };
 
+  // Helper: handle delete of an existing academy picture in edit mode
+  const handleDeleteEditAcademyPic = async (pic: AcademyPictureRow) => {
+    if (!confirm("Remove this picture?")) return;
+    await deleteAcademyPicture(pic);
+    if (pic.picture_type === "bubble") {
+      setEditAcademyBubble(null);
+      setEditAcademyBubblePreview(null);
+    } else {
+      setEditAcademyGallery(prev => prev.filter(p => p.id !== pic.id));
+    }
+    toast.success("Picture removed");
+  };
+
+  // Academy pictures section JSX (reused in both Add and Edit dialogs)
+  const renderAcademyPicturesSection = (mode: "add" | "edit") => {
+    const isAdd = mode === "add";
+    const bubblePreview = isAdd ? addAcademyBubblePreview : editAcademyBubblePreview;
+    const bubbleDragging = isAdd ? addAcademyBubbleDragging : editAcademyBubbleDragging;
+    const setBubbleDragging = isAdd ? setAddAcademyBubbleDragging : setEditAcademyBubbleDragging;
+    const galleryPreviews = isAdd ? addAcademyGalleryPreviews : editAcademyGalleryPreviews;
+    const galleryDragging = isAdd ? addAcademyGalleryDragging : editAcademyGalleryDragging;
+    const setGalleryDragging = isAdd ? setAddAcademyGalleryDragging : setEditAcademyGalleryDragging;
+
+    return (
+      <div className="border border-primary/20 bg-primary/5 rounded-xl p-4 space-y-5">
+        <div className="flex items-center gap-2 mb-1">
+          <GraduationCap className="h-4 w-4 text-primary" />
+          <Label className="text-sm font-semibold text-primary">Academy Pictures</Label>
+        </div>
+
+        {/* Bubble Image */}
+        <div>
+          <Label className="text-xs font-medium text-muted-foreground mb-2 block">
+            Bubble Image <span className="text-xs opacity-70">(shown on the academy card — 1 image)</span>
+          </Label>
+          {bubblePreview ? (
+            <div className="flex gap-3">
+              <div className="group relative rounded-lg overflow-hidden border border-border bg-card w-40 aspect-video">
+                <img src={bubblePreview} alt="Bubble" className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-background/0 group-hover:bg-background/60 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!isAdd && editAcademyBubble) {
+                        handleDeleteEditAcademyPic(editAcademyBubble);
+                      } else {
+                        if (isAdd) { setAddAcademyBubbleFile(null); setAddAcademyBubblePreview(null); }
+                        else { setEditAcademyBubbleFile(null); setEditAcademyBubblePreview(null); }
+                      }
+                    }}
+                    className="rounded-full bg-destructive p-2 text-destructive-foreground shadow-lg hover:bg-destructive/90"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <DropZone
+              id={`${mode}-academy-bubble-drop`}
+              dragging={bubbleDragging}
+              setDragging={setBubbleDragging}
+              onFiles={(files) => {
+                const file = Array.from(files)[0];
+                if (!file || !file.type.startsWith("image/")) return;
+                if (isAdd) { setAddAcademyBubbleFile(file); setAddAcademyBubblePreview(URL.createObjectURL(file)); }
+                else { setEditAcademyBubbleFile(file); setEditAcademyBubblePreview(URL.createObjectURL(file)); }
+              }}
+              uploading={false}
+              hint="Drop 1 image for the academy card"
+            />
+          )}
+        </div>
+
+        {/* Gallery Images */}
+        <div>
+          <Label className="text-xs font-medium text-muted-foreground mb-2 block">
+            Gallery Images <span className="text-xs opacity-70">(shown when customer clicks the academy)</span>
+          </Label>
+          <DropZone
+            id={`${mode}-academy-gallery-drop`}
+            dragging={galleryDragging}
+            setDragging={setGalleryDragging}
+            onFiles={(files) => {
+              const fileArr = Array.from(files).filter(f => f.type.startsWith("image/") && f.size <= 10 * 1024 * 1024);
+              if (isAdd) {
+                setAddAcademyGalleryFiles(prev => [...prev, ...fileArr]);
+                setAddAcademyGalleryPreviews(prev => [...prev, ...fileArr.map(f => URL.createObjectURL(f))]);
+              } else {
+                setEditAcademyGalleryFiles(prev => [...prev, ...fileArr]);
+                setEditAcademyGalleryPreviews(prev => [...prev, ...fileArr.map(f => URL.createObjectURL(f))]);
+              }
+            }}
+            uploading={false}
+            hint="Drop images for the academy gallery"
+            multiple
+          />
+
+          {/* Existing gallery pics (edit mode) */}
+          {!isAdd && editAcademyGallery.length > 0 && (
+            <div className="grid grid-cols-3 gap-3 mt-3">
+              {editAcademyGallery.map(pic => (
+                <div key={pic.id} className="group relative rounded-lg overflow-hidden border border-border bg-card aspect-video">
+                  <img src={pic.image_url} alt="Gallery" className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-background/0 group-hover:bg-background/60 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                    <button type="button" onClick={() => handleDeleteEditAcademyPic(pic)} className="rounded-full bg-destructive p-2 text-destructive-foreground shadow-lg hover:bg-destructive/90">
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* New gallery pic previews */}
+          {galleryPreviews.length > 0 && (
+            <div className="grid grid-cols-3 gap-3 mt-3">
+              {galleryPreviews.map((preview, i) => (
+                <div key={`new-${i}`} className="relative rounded-lg overflow-hidden border border-primary/30 bg-card aspect-video">
+                  <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (isAdd) {
+                        setAddAcademyGalleryFiles(prev => prev.filter((_, j) => j !== i));
+                        setAddAcademyGalleryPreviews(prev => prev.filter((_, j) => j !== i));
+                      } else {
+                        setEditAcademyGalleryFiles(prev => prev.filter((_, j) => j !== i));
+                        setEditAcademyGalleryPreviews(prev => prev.filter((_, j) => j !== i));
+                      }
+                    }}
+                    className="absolute top-1 right-1 rounded-full bg-destructive p-1 text-destructive-foreground"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="clubs">
       <div className="flex items-center justify-between mb-8">
@@ -345,7 +595,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
 
       {/* Edit Club Dialog */}
       <Dialog open={!!editClub} onOpenChange={(o) => !o && setEditClub(null)}>
-        <DialogContent className="bg-card border-border max-w-lg max-h-[67vh] overflow-y-auto">
+        <DialogContent className="bg-card border-border max-w-2xl w-[66vw] max-h-[80vh] overflow-y-auto">
           <DialogHeader><DialogTitle className="font-heading flex items-center gap-2"><Building2 className="h-5 w-5 text-primary" /> Edit Club</DialogTitle></DialogHeader>
           {editClub && (
             <div className="space-y-5 pt-2">
@@ -367,6 +617,10 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                 </Select>
                 {editShowAcademySportPicker && (<div className="mt-3 p-3 rounded-lg border border-primary/30 bg-primary/5 space-y-2"><Label className="text-xs font-medium text-primary block">Choose Academy Sport</Label><div className="flex flex-wrap gap-2">{offeringNames.map(name => { const sportName = name.replace(/\s*(Court|Studio|Classes|Rental|\(Kids\))/gi, "").trim(); const academyLabel = `${sportName} Academy`; if (editOfferings.includes(academyLabel)) return null; return (<Button key={name} type="button" variant="outline" size="sm" onClick={() => { setEditOfferings(prev => [...prev, academyLabel]); setEditHasAcademy(true); setEditShowAcademySportPicker(false); }}>{sportName}</Button>); })}</div><Button type="button" variant="ghost" size="sm" onClick={() => setEditShowAcademySportPicker(false)} className="text-xs text-muted-foreground">Cancel</Button></div>)}
               </div>
+
+              {/* Academy Pictures — only shown when academy is selected */}
+              {editHasAcademy && renderAcademyPicturesSection("edit")}
+
               <div>
                 <Label className="text-sm font-medium text-muted-foreground mb-2 block">Locations</Label>
                 {editClubLocations.map((loc) => (<div key={loc.id} className="flex gap-2 mb-2"><Input value={loc.name} disabled className="h-10 bg-secondary border-border opacity-70" /><Input value={loc.location} disabled className="h-10 bg-secondary border-border opacity-70" /><Button type="button" variant="ghost" size="icon" onClick={() => setEditClubLocations(prev => prev.filter(l => l.id !== loc.id))} className="shrink-0 text-destructive hover:text-destructive"><X className="h-4 w-4" /></Button></div>))}
@@ -403,13 +657,17 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
             <div><Label className="text-sm font-medium text-muted-foreground mb-2 block">Description</Label><Textarea value={addClubDescription} onChange={(e) => setAddClubDescription(e.target.value)} className="bg-secondary border-border min-h-[100px]" placeholder="Brief description..." /></div>
             <div>
               <Label className="text-sm font-medium text-muted-foreground mb-2 block">Activities</Label>
-              <div className="flex flex-wrap gap-2 mb-3">{addClubOfferings.map((o) => (<Badge key={o} variant="secondary" className="text-xs flex items-center gap-1 pr-1">{o}<button type="button" onClick={() => { setAddClubOfferings(prev => prev.filter(x => x !== o)); if (o.toLowerCase().includes("academy")) { if (!addClubOfferings.filter(x => x !== o).some(x => x.toLowerCase().includes("academy"))) setAddClubHasAcademy(false); } }} className="ml-1 rounded-full hover:bg-destructive/20 p-0.5"><X className="h-3 w-3" /></button></Badge>))}</div>
+              <div className="flex flex-wrap gap-2 mb-3">{addClubOfferings.map((o) => (<Badge key={o} variant="secondary" className="text-xs flex items-center gap-1 pr-1">{o}<button type="button" onClick={() => { setAddClubOfferings(prev => prev.filter(x => x !== o)); if (o.toLowerCase().includes("academy")) { if (!addClubOfferings.filter(x => x !== o).some(x => x.toLowerCase().includes("academy"))) { setAddClubHasAcademy(false); } } }} className="ml-1 rounded-full hover:bg-destructive/20 p-0.5"><X className="h-3 w-3" /></button></Badge>))}</div>
               <Select value="" onValueChange={(v) => { if (v === "__academy__") { setShowAcademySportPicker(true); return; } if (v && !addClubOfferings.includes(v)) setAddClubOfferings(prev => [...prev, v]); }}>
                 <SelectTrigger className="h-10 bg-secondary border-border"><SelectValue placeholder="Select an activity..." /></SelectTrigger>
                 <SelectContent className="bg-card border-border z-50">{offeringNames.filter(o => !addClubOfferings.includes(o)).map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}<SelectItem value="__academy__" className="font-semibold text-primary"><span className="flex items-center gap-1.5"><GraduationCap className="h-3.5 w-3.5" /> Academy</span></SelectItem></SelectContent>
               </Select>
               {showAcademySportPicker && (<div className="mt-3 p-3 rounded-lg border border-primary/30 bg-primary/5 space-y-2"><Label className="text-xs font-medium text-primary block">Choose Academy Sport</Label><div className="flex flex-wrap gap-2">{offeringNames.map(name => { const sportName = name.replace(/\s*(Court|Studio|Classes|Rental|\(Kids\))/gi, "").trim(); const academyLabel = `${sportName} Academy`; if (addClubOfferings.includes(academyLabel)) return null; return (<Button key={name} type="button" variant="outline" size="sm" onClick={() => { setAddClubOfferings(prev => [...prev, academyLabel]); setAddClubHasAcademy(true); setShowAcademySportPicker(false); }}>{sportName}</Button>); })}</div><Button type="button" variant="ghost" size="sm" onClick={() => setShowAcademySportPicker(false)} className="text-xs text-muted-foreground">Cancel</Button></div>)}
             </div>
+
+            {/* Academy Pictures — only shown when academy is selected */}
+            {addClubHasAcademy && renderAcademyPicturesSection("add")}
+
             <div>
               <Label className="text-sm font-medium text-muted-foreground mb-2 block">Locations</Label>
               {addClubLocations.map((loc, i) => (<div key={i} className="flex gap-2 mb-2"><Input placeholder="Court/Location Name" value={loc.name} onChange={(e) => { const updated = [...addClubLocations]; updated[i].name = e.target.value; setAddClubLocations(updated); }} className="h-10 bg-secondary border-border" /><Select value={loc.location} onValueChange={(val) => { const updated = [...addClubLocations]; updated[i].location = val; setAddClubLocations(updated); }}><SelectTrigger className="h-10 bg-secondary border-border"><SelectValue placeholder="Select city" /></SelectTrigger><SelectContent className="bg-card border-border z-50 max-h-60">{locationsList.map(loc => (<SelectItem key={loc.id} value={loc.name}>{loc.name}</SelectItem>))}</SelectContent></Select><Button type="button" variant="ghost" size="icon" onClick={() => setAddClubLocations(prev => prev.filter((_, j) => j !== i))} className="shrink-0 text-destructive hover:text-destructive"><X className="h-4 w-4" /></Button></div>))}
