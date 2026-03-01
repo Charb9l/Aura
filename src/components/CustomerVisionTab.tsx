@@ -15,6 +15,17 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface HeroButton { to: string; label: string; glow?: boolean; }
 interface FormField { key: string; label: string; type: string; required: boolean; }
+interface NavItem { to: string; label: string; }
+
+const DEFAULT_NAV_ORDER: NavItem[] = [
+  { to: "/", label: "Home" },
+  { to: "/habits", label: "AI Habit Tracker" },
+  { to: "/matchmaker", label: "AI Matchmaker" },
+  { to: "/book", label: "Book Now" },
+  { to: "/academy", label: "Academies" },
+  { to: "/clubs", label: "Clubs & Partners" },
+  { to: "/loyalty", label: "Loyalty" },
+];
 
 interface HomeContent {
   hero_subtitle: string;
@@ -23,6 +34,7 @@ interface HomeContent {
   hero_buttons: HeroButton[];
   section_title: string;
   section_subtitle: string;
+  nav_order?: NavItem[];
 }
 
 interface PageContent {
@@ -426,6 +438,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
   const [heroButtons, setHeroButtons] = useState<HeroButton[]>([]);
   const [sectionTitle, setSectionTitle] = useState("");
   const [sectionSubtitle, setSectionSubtitle] = useState("");
+  const [navOrder, setNavOrder] = useState<NavItem[]>(DEFAULT_NAV_ORDER);
 
   // Generic page state
   const [pageTitle, setPageTitle] = useState("");
@@ -454,6 +467,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
       setHeroButtons([...(content.hero_buttons || [])]);
       setSectionTitle(content.section_title || "What's Your Move?");
       setSectionSubtitle(content.section_subtitle || "Choose your activity and book in seconds.");
+      setNavOrder(content.nav_order?.length ? [...content.nav_order] : [...DEFAULT_NAV_ORDER]);
     } else {
       setPageTitle(content.title || "");
       setPageSubtitle(content.subtitle || "");
@@ -487,6 +501,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
       hero_buttons: heroButtons.filter(b => b.label.trim() && b.to.trim()),
       section_title: sectionTitle,
       section_subtitle: sectionSubtitle,
+      nav_order: navOrder,
     });
   };
 
@@ -616,6 +631,23 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
                   </div>
                 ))}
                 {heroButtons.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No buttons yet.</p>}
+              </div>
+            </div>
+
+            {/* Navigation Menu Order */}
+            <div className="border-t border-border pt-6">
+              <Label className="text-sm font-medium text-muted-foreground mb-3 block">Navigation Menu Order</Label>
+              <div className="space-y-2">
+                {navOrder.map((item, i) => (
+                  <div key={item.to} className="flex items-center gap-2 p-2.5 rounded-lg border border-border bg-secondary/50">
+                    <div className="flex flex-col gap-0.5 shrink-0">
+                      <Button type="button" variant="ghost" size="icon" className="h-6 w-6" disabled={i === 0} onClick={() => { const arr = [...navOrder]; [arr[i - 1], arr[i]] = [arr[i], arr[i - 1]]; setNavOrder(arr); }}><ArrowUp className="h-3 w-3" /></Button>
+                      <Button type="button" variant="ghost" size="icon" className="h-6 w-6" disabled={i === navOrder.length - 1} onClick={() => { const arr = [...navOrder]; [arr[i], arr[i + 1]] = [arr[i + 1], arr[i]]; setNavOrder(arr); }}><ArrowDown className="h-3 w-3" /></Button>
+                    </div>
+                    <span className="flex-1 text-sm font-medium text-foreground">{item.label}</span>
+                    <span className="text-xs text-muted-foreground font-mono">{item.to}</span>
+                  </div>
+                ))}
               </div>
             </div>
 

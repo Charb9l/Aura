@@ -9,7 +9,7 @@ import { LogOut, ShieldCheck, Menu, X, LogIn } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
-const NAV_LINKS = [
+const DEFAULT_NAV_LINKS = [
   { to: "/", label: "Home" },
   { to: "/habits", label: "AI Habit Tracker" },
   { to: "/matchmaker", label: "AI Matchmaker" },
@@ -49,8 +49,9 @@ const Navbar = () => {
 
   const initials = getInitials(user?.user_metadata?.full_name, user?.email);
 
-  // Fetch glow routes from CMS
+  // Fetch glow routes and nav order from CMS
   const [glowRoutes, setGlowRoutes] = useState<Set<string>>(new Set());
+  const [NAV_LINKS, setNavLinks] = useState(DEFAULT_NAV_LINKS);
   useEffect(() => {
     supabase.from("page_content").select("content").eq("page_slug", "home").single().then(({ data }) => {
       if (data) {
@@ -59,6 +60,9 @@ const Navbar = () => {
           (content?.hero_buttons || []).filter((b: any) => b.glow).map((b: any) => b.to)
         );
         setGlowRoutes(routes);
+        if (content?.nav_order?.length) {
+          setNavLinks(content.nav_order);
+        }
       }
     });
   }, []);
