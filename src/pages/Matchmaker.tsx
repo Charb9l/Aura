@@ -150,17 +150,45 @@ const MatchmakerPage = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="flex flex-wrap items-center justify-center gap-3 max-w-2xl mx-auto"
+              className="flex flex-wrap items-center justify-center gap-3 max-w-3xl mx-auto"
             >
-              {criteria.map((c, i) => (
-                <div
-                  key={i}
-                  className="inline-flex items-center gap-2 rounded-full bg-secondary border border-border px-4 py-2 text-sm font-medium text-foreground shadow-sm hover:bg-secondary/80 transition-colors"
-                >
-                  <span className="text-base">{c.emoji}</span>
-                  <span>{c.label}</span>
-                </div>
-              ))}
+              {criteria.map((c, i) => {
+                const hues = [160, 200, 280, 40, 340];
+                const hue = hues[i % hues.length];
+                return (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.3 + i * 0.08, type: "spring", stiffness: 200 }}
+                    whileHover={{ scale: 1.08, y: -2 }}
+                    className="group relative inline-flex items-center gap-2.5 rounded-2xl px-5 py-3 text-sm font-semibold text-foreground cursor-default overflow-hidden"
+                    style={{
+                      background: `linear-gradient(135deg, hsl(${hue} 50% 15% / 0.6), hsl(${hue} 40% 20% / 0.3))`,
+                      border: `1px solid hsl(${hue} 50% 40% / 0.25)`,
+                      boxShadow: `0 0 20px hsl(${hue} 60% 50% / 0.08), inset 0 1px 0 hsl(${hue} 50% 80% / 0.08)`,
+                    }}
+                  >
+                    <span
+                      className="flex items-center justify-center h-6 w-6 rounded-full text-xs font-bold"
+                      style={{
+                        background: `hsl(${hue} 60% 50% / 0.2)`,
+                        color: `hsl(${hue} 70% 65%)`,
+                        border: `1px solid hsl(${hue} 60% 50% / 0.3)`,
+                      }}
+                    >
+                      {c.emoji || "✓"}
+                    </span>
+                    <span>{c.label}</span>
+                    <div
+                      className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                      style={{
+                        background: `radial-gradient(circle at 30% 50%, hsl(${hue} 60% 50% / 0.1), transparent 70%)`,
+                      }}
+                    />
+                  </motion.div>
+                );
+              })}
             </motion.div>
           )}
         </motion.div>
