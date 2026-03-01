@@ -18,13 +18,12 @@ import PhoneInput from "@/components/PhoneInput";
 import ActivityFilter from "@/components/ActivityFilter";
 import PagePhotoStrip from "@/components/PagePhotoStrip";
 
-
-
 interface OfferingData {
   id: string;
   name: string;
   slug: string;
   logo_url: string | null;
+  brand_color: string | null;
 }
 
 interface ClubLocation {
@@ -34,35 +33,11 @@ interface ClubLocation {
   location: string;
 }
 
-const brandForSlug = (slug: string): "tennis" | "basketball" | "wellness" => {
-  if (slug === "tennis") return "tennis";
-  if (slug === "basketball") return "basketball";
-  return "wellness";
-};
-
 const activityOfferingKeywords: Record<string, string[]> = {
   basketball: ["basketball"],
   tennis: ["tennis"],
   pilates: ["pilates"],
   "aerial-yoga": ["yoga", "aerial"],
-};
-
-const brandBorder = {
-  tennis: "border-brand-tennis",
-  basketball: "border-brand-basketball",
-  wellness: "border-brand-wellness",
-};
-
-const brandGlow = {
-  tennis: "shadow-[0_0_20px_hsl(212_70%_55%/0.3)]",
-  basketball: "shadow-[0_0_20px_hsl(25_90%_55%/0.3)]",
-  wellness: "shadow-[0_0_20px_hsl(100_22%_60%/0.3)]",
-};
-
-const brandInputClass = {
-  tennis: "border-brand-tennis/50 focus:border-brand-tennis shadow-[0_0_12px_hsl(212_70%_55%/0.15)]",
-  basketball: "border-brand-basketball/50 focus:border-brand-basketball shadow-[0_0_12px_hsl(25_90%_55%/0.15)]",
-  wellness: "border-brand-wellness/50 focus:border-brand-wellness shadow-[0_0_12px_hsl(100_22%_60%/0.15)]",
 };
 
 const timeSlots = [
@@ -75,13 +50,23 @@ const isValidEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 
 interface FormField { key: string; label: string; type: string; required: boolean; }
 
+/** Build inline style objects from an HSL brand_color string like "212 70% 55%" */
+const makeBrandStyles = (brandColor: string | null | undefined) => {
+  const c = brandColor || "220 14% 60%"; // fallback muted
+  return {
+    border: { borderColor: `hsl(${c})` },
+    glow: { borderColor: `hsl(${c})`, boxShadow: `0 0 20px hsl(${c} / 0.3)` },
+    glowSm: { borderColor: `hsl(${c})`, boxShadow: `0 0 12px hsl(${c} / 0.15)` },
+    bg10: { borderColor: `hsl(${c})`, backgroundColor: `hsl(${c} / 0.1)`, color: `hsl(${c})`, boxShadow: `0 0 12px hsl(${c} / 0.3)` },
+    selectedDay: `hsl(${c})`,
+  };
+};
+
 const BookPage = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const preselected = searchParams.get("activity") || "";
-
-  // No redirect — show content to logged-out users
 
   const [offerings, setOfferings] = useState<OfferingData[]>([]);
   const [filterSlugs, setFilterSlugs] = useState<string[]>([]);
@@ -108,7 +93,6 @@ const BookPage = () => {
     { key: "phone", label: "Phone Number", type: "phone", required: true },
   ]);
 
-  // Fetch offerings, clubs, and page content on mount
   useEffect(() => {
     const fetchData = async () => {
       const [offRes, clubRes, locRes, contentRes] = await Promise.all([
@@ -130,7 +114,6 @@ const BookPage = () => {
     fetchData();
   }, []);
 
-  // Available locations based on sport filter
   const availableFilterLocations = useMemo(() => {
     const sportFiltered = filterSlugs.length > 0 ? offerings.filter(o => filterSlugs.includes(o.slug)) : offerings;
     const sportKeywords = sportFiltered.flatMap(o => activityOfferingKeywords[o.slug] || [o.slug]);
@@ -141,10 +124,8 @@ const BookPage = () => {
     return Array.from(new Map(locs.map(l => [l.location, l])).values()).sort((a, b) => a.location.localeCompare(b.location));
   }, [filterSlugs, offerings, clubs, clubLocations]);
 
-  // Reset location filter when sport filter changes
   useEffect(() => { setFilterLocation(""); }, [filterSlugs]);
 
-  // Filter offerings further by selected location
   const filteredOfferings = useMemo(() => {
     let result = filterSlugs.length > 0 ? offerings.filter(o => filterSlugs.includes(o.slug)) : offerings;
     if (filterLocation && filterLocation !== "__all__") {
@@ -157,7 +138,6 @@ const BookPage = () => {
     return result;
   }, [filterSlugs, filterLocation, offerings, clubs, clubLocations]);
 
-  // Filter clubs that offer the selected activity
   const matchingClubs = useMemo(() => {
     if (!selectedActivity) return [];
     const keywords = activityOfferingKeywords[selectedActivity] || [selectedActivity];
@@ -166,7 +146,6 @@ const BookPage = () => {
     ).sort((a, b) => a.name.localeCompare(b.name));
   }, [selectedActivity, clubs]);
 
-  // Auto-select club if only one matches
   useEffect(() => {
     if (matchingClubs.length === 1) {
       setSelectedClub(matchingClubs[0].id);
@@ -175,14 +154,12 @@ const BookPage = () => {
     }
   }, [matchingClubs]);
 
-  // Locations for the resolved club
   const resolvedClubId = selectedClub || (matchingClubs.length === 1 ? matchingClubs[0].id : "");
   const locationsForClub = useMemo(() => {
     if (!resolvedClubId) return [];
     return clubLocations.filter(l => l.club_id === resolvedClubId).sort((a, b) => a.name.localeCompare(b.name));
   }, [resolvedClubId, clubLocations]);
 
-  // Auto-select if only one location
   useEffect(() => {
     if (locationsForClub.length === 1) {
       setSelectedLocation(locationsForClub[0].id);
@@ -191,9 +168,10 @@ const BookPage = () => {
     }
   }, [locationsForClub]);
 
-  const selectedBrand = selectedActivity ? brandForSlug(selectedActivity) : undefined;
+  // Dynamic brand color from the selected offering
+  const selectedOffering = offerings.find(o => o.slug === selectedActivity);
+  const brand = makeBrandStyles(selectedOffering?.brand_color);
 
-  // Fetch booked time slots when activity or date changes
   useEffect(() => {
     const fetchBookedSlots = async () => {
       if (!selectedActivity || !date) {
@@ -217,7 +195,6 @@ const BookPage = () => {
     const offering = offerings.find(o => o.slug === selectedActivity);
     const activityName = offering?.name || selectedActivity;
 
-    // Calculate loyalty discount
     let discountType: string | null = null;
     const [showRes, noShowRes] = await Promise.all([
       supabase
@@ -329,8 +306,7 @@ const BookPage = () => {
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
               {filteredOfferings.map((a) => {
-                const brand = brandForSlug(a.slug);
-                const imgSrc = a.logo_url || "";
+                const aBrand = makeBrandStyles(a.brand_color);
                 return (
                   <button
                     type="button"
@@ -338,12 +314,11 @@ const BookPage = () => {
                     onClick={() => { setSelectedActivity(a.slug); setSelectedClub(""); setSelectedLocation(""); setCourtType(""); setDate(undefined); setSelectedTime(""); }}
                     className={cn(
                       "relative overflow-hidden rounded-xl border-2 transition-all aspect-[3/4]",
-                      selectedActivity === a.slug
-                        ? cn(brandBorder[brand], brandGlow[brand])
-                        : "border-border hover:border-muted-foreground/50"
+                      selectedActivity !== a.slug && "border-border hover:border-muted-foreground/50"
                     )}
+                    style={selectedActivity === a.slug ? aBrand.glow : undefined}
                   >
-                    {imgSrc && <img src={imgSrc} alt={a.name} className="h-full w-full object-cover" />}
+                    {a.logo_url && <img src={a.logo_url} alt={a.name} className="h-full w-full object-cover" />}
                     <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
                     <span className="absolute bottom-3 left-3 right-3 font-heading text-sm font-semibold text-foreground">
                       {a.name}
@@ -369,7 +344,7 @@ const BookPage = () => {
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}>
               <Label className="text-sm font-medium text-muted-foreground mb-4 block">Choose Club</Label>
               <Select value={selectedClub} onValueChange={setSelectedClub}>
-                <SelectTrigger className={cn("w-full max-w-sm h-12", selectedClub && selectedBrand === "tennis" && "border-brand-tennis shadow-[0_0_12px_hsl(212_70%_55%/0.3)]", selectedClub && selectedBrand === "basketball" && "border-brand-basketball shadow-[0_0_12px_hsl(25_90%_55%/0.3)]", selectedClub && selectedBrand === "wellness" && "border-brand-wellness shadow-[0_0_12px_hsl(100_22%_60%/0.3)]")}>
+                <SelectTrigger className="w-full max-w-sm h-12" style={selectedClub ? brand.glowSm : undefined}>
                   <SelectValue placeholder="Select a club..." />
                 </SelectTrigger>
                 <SelectContent className="bg-card border-border z-50">
@@ -386,7 +361,7 @@ const BookPage = () => {
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.13 }}>
               <Label className="text-sm font-medium text-muted-foreground mb-4 block">Choose Location</Label>
               <Select value={selectedLocation} onValueChange={setSelectedLocation}>
-                <SelectTrigger className={cn("w-full max-w-sm h-12", selectedLocation && selectedBrand && brandInputClass[selectedBrand])}>
+                <SelectTrigger className="w-full max-w-sm h-12" style={selectedLocation ? brand.glowSm : undefined}>
                   <SelectValue placeholder="Select a location..." />
                 </SelectTrigger>
                 <SelectContent className="bg-card border-border z-50">
@@ -400,7 +375,7 @@ const BookPage = () => {
           {selectedActivity && resolvedClubId && locationsForClub.length === 1 && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.13 }}>
               <Label className="text-sm font-medium text-muted-foreground mb-4 block">Location</Label>
-              <div className={cn("w-full max-w-sm h-12 flex items-center px-4 rounded-md border bg-secondary", selectedBrand && brandInputClass[selectedBrand])}>
+              <div className="w-full max-w-sm h-12 flex items-center px-4 rounded-md border bg-secondary" style={brand.glowSm}>
                 <span className="text-foreground">{locationsForClub[0].name} — {locationsForClub[0].location}</span>
               </div>
             </motion.div>
@@ -417,10 +392,9 @@ const BookPage = () => {
                     onClick={() => setCourtType(ct.value)}
                     className={cn(
                       "rounded-xl border-2 px-4 py-4 text-left transition-all",
-                     courtType === ct.value
-                        ? "border-brand-basketball shadow-[0_0_20px_hsl(25_90%_55%/0.3)] bg-brand-basketball/10"
-                        : "border-border hover:border-muted-foreground/50"
+                      courtType !== ct.value && "border-border hover:border-muted-foreground/50"
                     )}
+                    style={courtType === ct.value ? { ...brand.glow, backgroundColor: `hsl(${selectedOffering?.brand_color || "30 80% 55%"} / 0.1)` } : undefined}
                   >
                     <span className="font-heading text-sm font-semibold text-foreground block">{ct.label}</span>
                   </button>
@@ -442,10 +416,8 @@ const BookPage = () => {
                       "w-full justify-start text-left font-normal h-12",
                       !selectedActivity && "opacity-50 cursor-not-allowed",
                       !date && "text-muted-foreground",
-                      date && selectedBrand === "tennis" && "border-brand-tennis shadow-[0_0_12px_hsl(212_70%_55%/0.3)]",
-                      date && selectedBrand === "basketball" && "border-brand-basketball shadow-[0_0_12px_hsl(25_90%_55%/0.3)]",
-                      date && selectedBrand === "wellness" && "border-brand-wellness shadow-[0_0_12px_hsl(100_22%_60%/0.3)]",
                     )}
+                    style={date ? brand.glowSm : undefined}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {date ? format(date, "PPP") : "Pick a date"}
@@ -460,15 +432,11 @@ const BookPage = () => {
                     initialFocus
                     className="p-3 pointer-events-auto"
                     classNames={{
-                      day_selected: cn(
-                        "text-white hover:text-white focus:text-white",
-                        selectedBrand === "tennis"
-                          ? "bg-brand-tennis hover:bg-brand-tennis focus:bg-brand-tennis"
-                          : selectedBrand === "wellness"
-                            ? "bg-brand-wellness hover:bg-brand-wellness focus:bg-brand-wellness"
-                            : "bg-brand-basketball hover:bg-brand-basketball focus:bg-brand-basketball"
-                      ),
+                      day_selected: "text-white hover:text-white focus:text-white",
                     }}
+                    styles={{
+                      day_selected: { backgroundColor: brand.selectedDay, color: "white" },
+                    } as any}
                   />
                 </PopoverContent>
               </Popover>
@@ -491,14 +459,11 @@ const BookPage = () => {
                           ? "border-border bg-muted text-muted-foreground/40 cursor-not-allowed opacity-50 line-through"
                           : !selectedActivity
                             ? "border-border text-muted-foreground/40 cursor-not-allowed opacity-50"
-                            : selectedTime === time
-                              ? selectedBrand === "tennis"
-                                ? "border-brand-tennis bg-brand-tennis/10 text-brand-tennis shadow-[0_0_12px_hsl(212_70%_55%/0.3)]"
-                                : selectedBrand === "wellness"
-                                  ? "border-brand-wellness bg-brand-wellness/10 text-brand-wellness shadow-[0_0_12px_hsl(100_22%_60%/0.3)]"
-                                  : "border-brand-basketball bg-brand-basketball/10 text-brand-basketball shadow-[0_0_12px_hsl(25_90%_55%/0.3)]"
-                              : "border-border text-muted-foreground hover:border-muted-foreground/50 hover:text-foreground"
+                            : selectedTime !== time
+                              ? "border-border text-muted-foreground hover:border-muted-foreground/50 hover:text-foreground"
+                              : ""
                       )}
+                      style={selectedTime === time && !isBooked && selectedActivity ? brand.bg10 : undefined}
                     >
                       <Clock className="h-3 w-3" />
                       {time}
@@ -527,7 +492,8 @@ const BookPage = () => {
                     value={val}
                     onChange={setter ? (e) => setter(e.target.value) : undefined}
                     required={field.required}
-                    className={cn("h-12 bg-secondary border-border", selectedBrand && brandInputClass[selectedBrand])}
+                    className="h-12 bg-secondary border-border"
+                    style={selectedActivity ? brand.glowSm : undefined}
                   />
                 );
               })}
