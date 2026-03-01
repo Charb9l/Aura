@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { motion } from "framer-motion";
 import { format, subDays, startOfDay, startOfWeek, startOfMonth, endOfDay, isWithinInterval, parseISO, isSameDay } from "date-fns";
-import { CalendarCheck, TrendingUp, ShieldCheck, LogIn, UserPlus, Pencil, DollarSign, Building2, Clock, User, Mail, Phone, MapPin, FileText, Trash2, CheckCircle, XCircle, Upload, X, Image, History, GraduationCap } from "lucide-react";
+import { CalendarCheck, TrendingUp, ShieldCheck, LogIn, UserPlus, Pencil, DollarSign, Building2, Clock, User, Mail, Phone, MapPin, FileText, Trash2, CheckCircle, XCircle, Upload, X, Image, History, GraduationCap, Palette } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -230,6 +230,202 @@ const CreateAdminForm = () => {
   );
 };
 
+const SettingsTab = () => {
+  const [activeSection, setActiveSection] = useState<string | null>(null);
+  const { user } = useAuth();
+  const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [loadingProfile, setLoadingProfile] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    setEmail(user.email || "");
+    const fetchProfile = async () => {
+      setLoadingProfile(true);
+      const { data } = await supabase
+        .from("profiles")
+        .select("full_name, phone")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (data) {
+        setFullName(data.full_name || "");
+        setPhone(data.phone || "");
+      }
+      setLoadingProfile(false);
+    };
+    fetchProfile();
+  }, [user]);
+
+  const handleSaveProfile = async () => {
+    if (!user) return;
+    setSaving(true);
+
+    const { error: profileErr } = await supabase
+      .from("profiles")
+      .update({ full_name: fullName, phone })
+      .eq("user_id", user.id);
+
+    if (profileErr) {
+      toast.error("Failed to update profile: " + profileErr.message);
+      setSaving(false);
+      return;
+    }
+
+    if (email !== user.email) {
+      const { error: emailErr } = await supabase.auth.updateUser({ email });
+      if (emailErr) {
+        toast.error("Failed to update email: " + emailErr.message);
+        setSaving(false);
+        return;
+      }
+    }
+
+    if (newPassword) {
+      if (newPassword.length < 6) {
+        toast.error("Password must be at least 6 characters");
+        setSaving(false);
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        toast.error("Passwords do not match");
+        setSaving(false);
+        return;
+      }
+      const { error: passErr } = await supabase.auth.updateUser({ password: newPassword });
+      if (passErr) {
+        toast.error("Failed to update password: " + passErr.message);
+        setSaving(false);
+        return;
+      }
+    }
+
+    setSaving(false);
+    setNewPassword("");
+    setConfirmPassword("");
+    toast.success("Account updated successfully");
+  };
+
+  if (activeSection === "colors") {
+    return (
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="settings-colors">
+        <Button variant="ghost" size="sm" className="mb-4 gap-2" onClick={() => setActiveSection(null)}>
+          ← Back to Settings
+        </Button>
+        <ActivityColorPicker />
+      </motion.div>
+    );
+  }
+
+  if (activeSection === "account") {
+    return (
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="settings-account">
+        <Button variant="ghost" size="sm" className="mb-4 gap-2" onClick={() => setActiveSection(null)}>
+          ← Back to Settings
+        </Button>
+        <Card className="bg-card border-border max-w-lg">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <User className="h-5 w-5 text-primary" />
+              My Account
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">Edit your admin account details and credentials.</p>
+          </CardHeader>
+          <CardContent>
+            {loadingProfile ? (
+              <p className="text-muted-foreground text-sm py-6 text-center">Loading...</p>
+            ) : (
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="acc-name">Full Name</Label>
+                  <Input id="acc-name" value={fullName} onChange={(e) => setFullName(e.target.value)} className="h-12 bg-secondary border-border mt-1" />
+                </div>
+                <div>
+                  <Label htmlFor="acc-email">Email</Label>
+                  <Input id="acc-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="h-12 bg-secondary border-border mt-1" />
+                </div>
+                <div>
+                  <Label htmlFor="acc-phone">Phone</Label>
+                  <PhoneInput id="acc-phone" value={phone} onChange={setPhone} className="mt-1" />
+                </div>
+                <div className="border-t border-border pt-4 mt-4">
+                  <p className="text-sm font-medium text-foreground mb-3">Change Password</p>
+                  <div className="space-y-3">
+                    <div>
+                      <Label htmlFor="acc-pass">New Password</Label>
+                      <Input id="acc-pass" type="password" placeholder="••••••••" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="h-12 bg-secondary border-border mt-1" />
+                    </div>
+                    <div>
+                      <Label htmlFor="acc-pass-confirm">Confirm New Password</Label>
+                      <Input id="acc-pass-confirm" type="password" placeholder="••••••••" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="h-12 bg-secondary border-border mt-1" />
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1.5">Leave blank to keep your current password.</p>
+                </div>
+                <Button onClick={handleSaveProfile} disabled={saving} className="w-full h-12 text-base font-semibold glow mt-2">
+                  {saving ? "Saving..." : "Save Changes"}
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="settings">
+      <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Settings</h1>
+      <p className="text-muted-foreground mb-8">Configure your application settings.</p>
+      <Card className="bg-card border-border">
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow className="border-border">
+                <TableHead>Setting</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead className="w-16"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow className="border-border cursor-pointer hover:bg-secondary/50" onClick={() => setActiveSection("account")}>
+                <TableCell className="font-medium">
+                  <span className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-primary" />
+                    My Account
+                  </span>
+                </TableCell>
+                <TableCell className="text-muted-foreground text-sm">Edit your name, email, phone, and password</TableCell>
+                <TableCell>
+                  <Button variant="ghost" size="icon">
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                </TableCell>
+              </TableRow>
+              <TableRow className="border-border cursor-pointer hover:bg-secondary/50" onClick={() => setActiveSection("colors")}>
+                <TableCell className="font-medium">
+                  <span className="flex items-center gap-2">
+                    <Palette className="h-4 w-4 text-primary" />
+                    Activity Brand Colors
+                  </span>
+                </TableCell>
+                <TableCell className="text-muted-foreground text-sm">Set brand colors for each activity across the customer experience</TableCell>
+                <TableCell>
+                  <Button variant="ghost" size="icon">
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+};
 
 
 
@@ -2772,11 +2968,7 @@ const AdminDashboard = () => {
 
         {/* Settings */}
         {activeTab === "settings" && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="settings">
-            <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Settings</h1>
-            <p className="text-muted-foreground mb-8">Configure your application settings.</p>
-            <ActivityColorPicker />
-          </motion.div>
+          <SettingsTab />
         )}
 
         {/* Promotions */}
