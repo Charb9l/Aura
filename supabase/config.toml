@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.manage-admin]
 verify_jwt = false
+
+[functions.ai-report]
+verify_jwt = false

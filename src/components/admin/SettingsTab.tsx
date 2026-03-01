@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { User, Palette, Clock, Bell, Download, Info, Pencil, Shield, MapPin, Plus, Trash2, Check, X } from "lucide-react";
+import { User, Palette, Clock, Bell, Info, Pencil, Shield, MapPin, Plus, Trash2, Check, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -13,14 +13,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import PhoneInput from "@/components/PhoneInput";
 import ActivityColorPicker from "@/components/ActivityColorPicker";
 import { useLocations, LocationRow } from "@/hooks/useLocations";
-import { BookingRow, getBookingRevenue } from "./types";
-import { format } from "date-fns";
 
-interface Props {
-  bookings?: BookingRow[];
-}
-
-const SettingsTab = ({ bookings = [] }: Props) => {
+const SettingsTab = () => {
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const { user } = useAuth();
   const { locations, refetch: refetchLocations } = useLocations();
@@ -106,34 +100,6 @@ const SettingsTab = ({ bookings = [] }: Props) => {
     toast.success("Account updated successfully");
   };
 
-  const handleExportBookings = () => {
-    if (bookings.length === 0) {
-      toast.error("No bookings to export");
-      return;
-    }
-    const headers = ["Date", "Time", "Activity", "Customer", "Email", "Phone", "Court Type", "Discount", "Attendance", "Revenue"];
-    const rows = bookings.map(b => [
-      b.booking_date,
-      b.booking_time,
-      b.activity_name,
-      b.full_name,
-      b.email,
-      b.phone,
-      b.court_type || "",
-      b.discount_type || "",
-      b.attendance_status || "",
-      `$${getBookingRevenue(b)}`,
-    ]);
-    const csv = [headers.join(","), ...rows.map(r => r.map(v => `"${v}"`).join(","))].join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `bookings-export-${format(new Date(), "yyyy-MM-dd")}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast.success("Bookings exported successfully");
-  };
 
   // --- Section renders ---
 
@@ -242,41 +208,6 @@ const SettingsTab = ({ bookings = [] }: Props) => {
     );
   }
 
-  if (activeSection === "export") {
-    return (
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="settings-export">
-        <Button variant="ghost" size="sm" className="mb-4 gap-2" onClick={() => setActiveSection(null)}>
-          ← Back to Settings
-        </Button>
-        <Card className="bg-card border-border max-w-lg">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Download className="h-5 w-5 text-primary" />
-              Data Export
-            </CardTitle>
-            <p className="text-sm text-muted-foreground">Export your platform data for external use or backups.</p>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="p-4 rounded-lg border border-border bg-secondary/30">
-                <div className="flex items-center justify-between mb-2">
-                  <div>
-                    <p className="text-sm font-medium text-foreground">All Bookings</p>
-                    <p className="text-xs text-muted-foreground">{bookings.length} records — CSV format</p>
-                  </div>
-                  <Button size="sm" variant="outline" onClick={handleExportBookings} className="gap-2">
-                    <Download className="h-3.5 w-3.5" />
-                    Export
-                  </Button>
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground">Exports include all booking records with customer details, activity, pricing, and attendance status.</p>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-    );
-  }
 
   if (activeSection === "about") {
     return (
@@ -447,7 +378,7 @@ const SettingsTab = ({ bookings = [] }: Props) => {
     { id: "locations", icon: MapPin, label: "Locations", description: "Manage the master list of cities and areas for club venues" },
     { id: "colors", icon: Palette, label: "Activity Brand Colors", description: "Set brand colors for each activity across the customer experience" },
     { id: "hours", icon: Clock, label: "Operating Hours", description: "View booking calendar hours of operation" },
-    { id: "export", icon: Download, label: "Data Export", description: "Download booking data as CSV for reporting" },
+    { id: "about", icon: Info, label: "About", description: "Platform information and version details" },
     { id: "about", icon: Info, label: "About", description: "Platform information and version details" },
   ];
 

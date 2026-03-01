@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   LogOut, LayoutDashboard, Users, Settings, Tag, CalendarCheck, Eye,
-  Building2, GraduationCap, Gamepad2, TrendingUp, PanelLeftClose, PanelLeft,
+  Building2, GraduationCap, Gamepad2, TrendingUp, PanelLeftClose, PanelLeft, FileBarChart,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
@@ -20,6 +20,7 @@ const allMenuItems = [
   { label: "Customer Vision", icon: Eye, tab: "customer-vision" },
   { label: "MyPlayer", icon: Gamepad2, tab: "myplayer" },
   { label: "Habit Tracker", icon: TrendingUp, tab: "habits" },
+  { label: "Reports", icon: FileBarChart, tab: "reports" },
   { label: "Settings", icon: Settings, tab: "settings" },
 ];
 
