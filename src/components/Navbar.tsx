@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { usePlayerProfileComplete } from "@/hooks/usePlayerProfile";
 import { useAvatar, getInitials } from "@/hooks/useAvatar";
 import { useAdminRole } from "@/hooks/useAdminRole";
-import { LogOut, ShieldCheck, Menu, X } from "lucide-react";
+import { LogOut, ShieldCheck, Menu, X, LogIn } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -183,9 +183,9 @@ const Navbar = () => {
             <div className="relative" ref={loggedOutDropdownRef}>
               <button
                 onClick={() => setLoggedOutDropdownOpen(prev => !prev)}
-                className="rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:glow"
+                className="rounded-full bg-primary p-2.5 text-primary-foreground transition-all hover:glow"
               >
-                Login / Sign Up
+                <LogIn className="h-5 w-5" />
               </button>
               <AnimatePresence>
                 {loggedOutDropdownOpen && (
