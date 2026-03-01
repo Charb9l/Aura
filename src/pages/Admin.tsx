@@ -15,6 +15,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
+import { LEBANESE_CITIES } from "@/lib/lebanese-cities";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -1814,7 +1815,10 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                   {editNewLocations.map((loc, i) => (
                     <div key={`new-${i}`} className="flex gap-2 mb-2">
                       <Input placeholder="Court/Location Name" value={loc.name} onChange={(e) => { const updated = [...editNewLocations]; updated[i].name = e.target.value; setEditNewLocations(updated); }} className="h-10 bg-secondary border-border" />
-                      <Input placeholder="Address/Area" value={loc.location} onChange={(e) => { const updated = [...editNewLocations]; updated[i].location = e.target.value; setEditNewLocations(updated); }} className="h-10 bg-secondary border-border" />
+                      <Select value={loc.location} onValueChange={(val) => { const updated = [...editNewLocations]; updated[i].location = val; setEditNewLocations(updated); }}>
+                        <SelectTrigger className="h-10 bg-secondary border-border"><SelectValue placeholder="Select city" /></SelectTrigger>
+                        <SelectContent className="bg-card border-border z-50 max-h-60">{LEBANESE_CITIES.map(city => (<SelectItem key={city} value={city}>{city}</SelectItem>))}</SelectContent>
+                      </Select>
                       <Button type="button" variant="ghost" size="icon" onClick={() => setEditNewLocations(prev => prev.filter((_, j) => j !== i))} className="shrink-0 text-destructive hover:text-destructive"><X className="h-4 w-4" /></Button>
                     </div>
                   ))}
@@ -1984,7 +1988,10 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                 {addClubLocations.map((loc, i) => (
                   <div key={i} className="flex gap-2 mb-2">
                     <Input placeholder="Court/Location Name" value={loc.name} onChange={(e) => { const updated = [...addClubLocations]; updated[i].name = e.target.value; setAddClubLocations(updated); }} className="h-10 bg-secondary border-border" />
-                    <Input placeholder="Address/Area" value={loc.location} onChange={(e) => { const updated = [...addClubLocations]; updated[i].location = e.target.value; setAddClubLocations(updated); }} className="h-10 bg-secondary border-border" />
+                    <Select value={loc.location} onValueChange={(val) => { const updated = [...addClubLocations]; updated[i].location = val; setAddClubLocations(updated); }}>
+                      <SelectTrigger className="h-10 bg-secondary border-border"><SelectValue placeholder="Select city" /></SelectTrigger>
+                      <SelectContent className="bg-card border-border z-50 max-h-60">{LEBANESE_CITIES.map(city => (<SelectItem key={city} value={city}>{city}</SelectItem>))}</SelectContent>
+                    </Select>
                     <Button type="button" variant="ghost" size="icon" onClick={() => setAddClubLocations(prev => prev.filter((_, j) => j !== i))} className="shrink-0 text-destructive hover:text-destructive"><X className="h-4 w-4" /></Button>
                   </div>
                 ))}

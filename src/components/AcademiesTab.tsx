@@ -7,9 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { LEBANESE_CITIES } from "@/lib/lebanese-cities";
 
 interface ClubRow {
   id: string;
@@ -334,7 +336,16 @@ const AcademiesTab = () => {
               <Label className="text-sm font-medium text-muted-foreground mb-3 block">Add New Location</Label>
               <div className="space-y-3">
                 <Input value={newLocName} onChange={(e) => setNewLocName(e.target.value)} placeholder="Location name (e.g. Main Campus)" className="h-11 bg-secondary border-border" />
-                <Input value={newLocAddress} onChange={(e) => setNewLocAddress(e.target.value)} placeholder="Address / Area (e.g. Dbayeh)" className="h-11 bg-secondary border-border" />
+                <Select value={newLocAddress} onValueChange={setNewLocAddress}>
+                  <SelectTrigger className="h-11 bg-secondary border-border">
+                    <SelectValue placeholder="Select city / area" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-card border-border z-50 max-h-60">
+                    {LEBANESE_CITIES.map(city => (
+                      <SelectItem key={city} value={city}>{city}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <Button onClick={handleAddLocation} disabled={addingLoc || !newLocName.trim() || !newLocAddress.trim()} className="w-full h-11 gap-2">
                   <Plus className="h-4 w-4" />
                   {addingLoc ? "Adding..." : "Add Location"}
