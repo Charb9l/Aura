@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Flame, Trophy, Target, TrendingUp, Zap, Star, Calendar, Sun, Moon, Clock, Sparkles } from "lucide-react";
+import { Flame, Trophy, Target, TrendingUp, Zap, Star, Calendar, Sun, Moon, Clock, Sparkles, Gift } from "lucide-react";
 import { format, parseISO, startOfWeek, subWeeks, isWithinInterval, startOfDay, endOfDay, differenceInDays, getDay, getHours } from "date-fns";
 
 interface BookingRow {
@@ -165,83 +165,48 @@ const HabitsPage = () => {
     return Object.values(counts).sort((a, b) => b.count - a.count)[0];
   }, [completedBookings]);
 
-  // Badges
-  const badges: BadgeDef[] = useMemo(() => [
-    {
-      id: "first_step",
-      icon: <Star className="h-5 w-5" />,
-      title: "First Step",
-      description: "Complete your first booking",
-      earned: completedBookings.length >= 1,
-      progress: Math.min(completedBookings.length, 1),
-      target: 1,
-    },
-    {
-      id: "iron_will",
-      icon: <Flame className="h-5 w-5" />,
-      title: "Iron Will",
-      description: "Maintain a 4-week streak",
-      earned: longestStreak >= 4,
-      progress: Math.min(currentStreak, 4),
-      target: 4,
-    },
-    {
-      id: "explorer",
-      icon: <Target className="h-5 w-5" />,
-      title: "Explorer",
-      description: "Try 3 different activities",
-      earned: uniqueActivities >= 3,
-      progress: Math.min(uniqueActivities, 3),
-      target: 3,
-    },
-    {
-      id: "early_bird",
-      icon: <Sun className="h-5 w-5" />,
-      title: "Early Bird",
-      description: "Complete 5 morning sessions",
-      earned: timeDistribution.morning >= 5,
-      progress: Math.min(timeDistribution.morning, 5),
-      target: 5,
-    },
-    {
-      id: "night_owl",
-      icon: <Moon className="h-5 w-5" />,
-      title: "Night Owl",
-      description: "Complete 5 evening sessions",
-      earned: timeDistribution.evening >= 5,
-      progress: Math.min(timeDistribution.evening, 5),
-      target: 5,
-    },
-    {
-      id: "dedicated",
-      icon: <Trophy className="h-5 w-5" />,
-      title: "Dedicated",
-      description: "Complete 20 total sessions",
-      earned: completedBookings.length >= 20,
-      progress: Math.min(completedBookings.length, 20),
-      target: 20,
-    },
-    {
-      id: "unstoppable",
-      icon: <Zap className="h-5 w-5" />,
-      title: "Unstoppable",
-      description: "Maintain an 8-week streak",
-      earned: longestStreak >= 8,
-      progress: Math.min(currentStreak, 8),
-      target: 8,
-    },
-    {
-      id: "centurion",
-      icon: <Sparkles className="h-5 w-5" />,
-      title: "Centurion",
-      description: "Reach a Wellness Score of 100",
-      earned: wellnessScore >= 100,
-      progress: wellnessScore,
-      target: 100,
-    },
-  ], [completedBookings, longestStreak, currentStreak, uniqueActivities, timeDistribution, wellnessScore]);
+  // Badge Levels — 3 levels, 8 badges each
+  const badgeLevels = useMemo(() => {
+    const level1: BadgeDef[] = [
+      { id: "l1_first_step", icon: <Star className="h-5 w-5" />, title: "First Step", description: "Complete your first session", earned: completedBookings.length >= 1, progress: Math.min(completedBookings.length, 1), target: 1 },
+      { id: "l1_three_sessions", icon: <Zap className="h-5 w-5" />, title: "Getting Started", description: "Complete 3 sessions", earned: completedBookings.length >= 3, progress: Math.min(completedBookings.length, 3), target: 3 },
+      { id: "l1_explorer", icon: <Target className="h-5 w-5" />, title: "Explorer", description: "Try 2 different activities", earned: uniqueActivities >= 2, progress: Math.min(uniqueActivities, 2), target: 2 },
+      { id: "l1_early_bird", icon: <Sun className="h-5 w-5" />, title: "Early Bird", description: "Complete 3 morning sessions", earned: timeDistribution.morning >= 3, progress: Math.min(timeDistribution.morning, 3), target: 3 },
+      { id: "l1_night_owl", icon: <Moon className="h-5 w-5" />, title: "Night Owl", description: "Complete 3 evening sessions", earned: timeDistribution.evening >= 3, progress: Math.min(timeDistribution.evening, 3), target: 3 },
+      { id: "l1_streak_2", icon: <Flame className="h-5 w-5" />, title: "On Fire", description: "2-week streak", earned: longestStreak >= 2, progress: Math.min(currentStreak, 2), target: 2 },
+      { id: "l1_five_sessions", icon: <TrendingUp className="h-5 w-5" />, title: "Committed", description: "Complete 5 sessions", earned: completedBookings.length >= 5, progress: Math.min(completedBookings.length, 5), target: 5 },
+      { id: "l1_wellness_30", icon: <Sparkles className="h-5 w-5" />, title: "Warming Up", description: "Reach Wellness Score 30", earned: wellnessScore >= 30, progress: Math.min(wellnessScore, 30), target: 30 },
+    ];
+    const level2: BadgeDef[] = [
+      { id: "l2_ten_sessions", icon: <Star className="h-5 w-5" />, title: "Regular", description: "Complete 10 sessions", earned: completedBookings.length >= 10, progress: Math.min(completedBookings.length, 10), target: 10 },
+      { id: "l2_explorer_3", icon: <Target className="h-5 w-5" />, title: "Adventurer", description: "Try 3 different activities", earned: uniqueActivities >= 3, progress: Math.min(uniqueActivities, 3), target: 3 },
+      { id: "l2_streak_4", icon: <Flame className="h-5 w-5" />, title: "Iron Will", description: "4-week streak", earned: longestStreak >= 4, progress: Math.min(currentStreak, 4), target: 4 },
+      { id: "l2_morning_5", icon: <Sun className="h-5 w-5" />, title: "Dawn Warrior", description: "Complete 5 morning sessions", earned: timeDistribution.morning >= 5, progress: Math.min(timeDistribution.morning, 5), target: 5 },
+      { id: "l2_evening_5", icon: <Moon className="h-5 w-5" />, title: "Moonlight Athlete", description: "Complete 5 evening sessions", earned: timeDistribution.evening >= 5, progress: Math.min(timeDistribution.evening, 5), target: 5 },
+      { id: "l2_twenty_sessions", icon: <Trophy className="h-5 w-5" />, title: "Dedicated", description: "Complete 20 sessions", earned: completedBookings.length >= 20, progress: Math.min(completedBookings.length, 20), target: 20 },
+      { id: "l2_afternoon_5", icon: <TrendingUp className="h-5 w-5" />, title: "Afternoon Pro", description: "Complete 5 afternoon sessions", earned: timeDistribution.afternoon >= 5, progress: Math.min(timeDistribution.afternoon, 5), target: 5 },
+      { id: "l2_wellness_60", icon: <Sparkles className="h-5 w-5" />, title: "Rising Star", description: "Reach Wellness Score 60", earned: wellnessScore >= 60, progress: Math.min(wellnessScore, 60), target: 60 },
+    ];
+    const level3: BadgeDef[] = [
+      { id: "l3_fifty_sessions", icon: <Star className="h-5 w-5" />, title: "Veteran", description: "Complete 50 sessions", earned: completedBookings.length >= 50, progress: Math.min(completedBookings.length, 50), target: 50 },
+      { id: "l3_explorer_5", icon: <Target className="h-5 w-5" />, title: "All-Rounder", description: "Try 5 different activities", earned: uniqueActivities >= 5, progress: Math.min(uniqueActivities, 5), target: 5 },
+      { id: "l3_streak_8", icon: <Flame className="h-5 w-5" />, title: "Unstoppable", description: "8-week streak", earned: longestStreak >= 8, progress: Math.min(currentStreak, 8), target: 8 },
+      { id: "l3_morning_10", icon: <Sun className="h-5 w-5" />, title: "Sunrise Legend", description: "10 morning sessions", earned: timeDistribution.morning >= 10, progress: Math.min(timeDistribution.morning, 10), target: 10 },
+      { id: "l3_evening_10", icon: <Moon className="h-5 w-5" />, title: "Night Legend", description: "10 evening sessions", earned: timeDistribution.evening >= 10, progress: Math.min(timeDistribution.evening, 10), target: 10 },
+      { id: "l3_hundred_sessions", icon: <Trophy className="h-5 w-5" />, title: "Centurion", description: "Complete 100 sessions", earned: completedBookings.length >= 100, progress: Math.min(completedBookings.length, 100), target: 100 },
+      { id: "l3_streak_12", icon: <Zap className="h-5 w-5" />, title: "Relentless", description: "12-week streak", earned: longestStreak >= 12, progress: Math.min(currentStreak, 12), target: 12 },
+      { id: "l3_wellness_100", icon: <Sparkles className="h-5 w-5" />, title: "Transcendent", description: "Reach Wellness Score 100", earned: wellnessScore >= 100, progress: wellnessScore, target: 100 },
+    ];
+    return [
+      { name: "Level 1 — Rookie", badges: level1, color: "primary" },
+      { name: "Level 2 — Athlete", badges: level2, color: "accent" },
+      { name: "Level 3 — Legend", badges: level3, color: "amber" },
+    ];
+  }, [completedBookings, longestStreak, currentStreak, uniqueActivities, timeDistribution, wellnessScore]);
 
-  const earnedCount = badges.filter(b => b.earned).length;
+  const totalEarned = badgeLevels.reduce((sum, lvl) => sum + lvl.badges.filter(b => b.earned).length, 0);
+  const totalBadges = badgeLevels.reduce((sum, lvl) => sum + lvl.badges.length, 0);
+  const completedLevels = badgeLevels.filter(lvl => lvl.badges.every(b => b.earned)).length;
 
   // AI Insights
   const insights = useMemo(() => {
@@ -260,13 +225,16 @@ const HabitsPage = () => {
     if (timeDistribution.morning > timeDistribution.evening * 2) tips.push("☀️ You're a morning person! Your energy peaks early — keep it up.");
     else if (timeDistribution.evening > timeDistribution.morning * 2) tips.push("🌙 Night owl detected! You prefer evening sessions. Consider mixing in a morning workout for balance.");
 
-    const nextBadge = badges.find(b => !b.earned);
+    const allBadges = badgeLevels.flatMap(l => l.badges);
+    const nextBadge = allBadges.find(b => !b.earned);
     if (nextBadge) tips.push(`🏆 Next badge: "${nextBadge.title}" — ${nextBadge.description}. You're ${Math.round((nextBadge.progress / nextBadge.target) * 100)}% there!`);
+
+    if (completedLevels > 0) tips.push(`🎁 You've completed ${completedLevels} badge level${completedLevels > 1 ? "s" : ""}! That's ${completedLevels} free loyalty point${completedLevels > 1 ? "s" : ""} to add to any club.`);
 
     if (favoriteActivity) tips.push(`💪 Your go-to: ${favoriteActivity.name} with ${favoriteActivity.count} sessions. ${uniqueActivities < 3 ? "Try something new to level up!" : "Well-rounded athlete!"}`);
 
     return tips;
-  }, [completedBookings, currentStreak, uniqueActivities, timeDistribution, badges, favoriteActivity]);
+  }, [completedBookings, currentStreak, uniqueActivities, timeDistribution, badgeLevels, completedLevels, favoriteActivity]);
 
   if (authLoading || loading) {
     return (
@@ -352,7 +320,7 @@ const HabitsPage = () => {
               <Card className="bg-card border-border text-center h-full">
                 <CardContent className="pt-6 pb-4 flex flex-col items-center justify-center h-full">
                   <Trophy className="h-8 w-8 text-amber-400 mb-2" />
-                  <p className="text-3xl font-bold text-foreground">{earnedCount}/{badges.length}</p>
+                  <p className="text-3xl font-bold text-foreground">{totalEarned}/{totalBadges}</p>
                   <p className="text-xs text-muted-foreground mt-1">Badges Earned</p>
                 </CardContent>
               </Card>
@@ -478,48 +446,68 @@ const HabitsPage = () => {
                 </Card>
               </motion.div>
 
-              {/* Badges */}
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-                <Card className="bg-card border-border">
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Trophy className="h-5 w-5 text-primary" />
-                      Badges
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 gap-3">
-                      {badges.map((badge) => (
-                        <div
-                          key={badge.id}
-                          className={`relative p-3 rounded-xl border text-center transition-all ${
-                            badge.earned
-                              ? "border-primary/40 bg-primary/5"
-                              : "border-border bg-secondary/30 opacity-60"
-                          }`}
-                        >
-                          <div className={`mx-auto mb-1.5 ${badge.earned ? "text-primary" : "text-muted-foreground"}`}>
-                            {badge.icon}
-                          </div>
-                          <p className="text-xs font-semibold text-foreground">{badge.title}</p>
-                          <p className="text-[10px] text-muted-foreground mt-0.5">{badge.description}</p>
-                          {!badge.earned && (
-                            <div className="mt-2">
-                              <Progress value={(badge.progress / badge.target) * 100} className="h-1" />
-                              <p className="text-[10px] text-muted-foreground mt-0.5">{badge.progress}/{badge.target}</p>
-                            </div>
-                          )}
-                          {badge.earned && (
-                            <div className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-primary flex items-center justify-center">
-                              <span className="text-[10px] text-primary-foreground">✓</span>
-                            </div>
-                          )}
+              {/* Badges — 3 Levels */}
+              {badgeLevels.map((level, li) => {
+                const levelEarned = level.badges.filter(b => b.earned).length;
+                const levelComplete = levelEarned === level.badges.length;
+                const levelColorClass = li === 0 ? "text-primary" : li === 1 ? "text-accent" : "text-amber-400";
+                const levelBorderClass = li === 0 ? "border-primary/40 bg-primary/5" : li === 1 ? "border-accent/40 bg-accent/5" : "border-amber-400/40 bg-amber-400/5";
+                const levelBgClass = li === 0 ? "bg-primary" : li === 1 ? "bg-accent" : "bg-amber-400";
+
+                return (
+                  <motion.div key={level.name} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 + li * 0.1 }}>
+                    <Card className="bg-card border-border">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className={`text-base flex items-center gap-2 ${levelColorClass}`}>
+                            <Trophy className="h-5 w-5" />
+                            {level.name}
+                          </CardTitle>
+                          <span className="text-xs text-muted-foreground">{levelEarned}/8</span>
                         </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
+                        <Progress value={(levelEarned / 8) * 100} className="h-1.5 mt-2" />
+                        {levelComplete && (
+                          <p className="text-xs font-semibold text-emerald-400 mt-2 flex items-center gap-1">
+                            <Gift className="h-3.5 w-3.5" />
+                            Level complete! +1 free loyalty point earned
+                          </p>
+                        )}
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-2 gap-3">
+                          {level.badges.map((badge) => (
+                            <div
+                              key={badge.id}
+                              className={`relative p-3 rounded-xl border text-center transition-all ${
+                                badge.earned
+                                  ? levelBorderClass
+                                  : "border-border bg-secondary/30 opacity-60"
+                              }`}
+                            >
+                              <div className={`mx-auto mb-1.5 ${badge.earned ? levelColorClass : "text-muted-foreground"}`}>
+                                {badge.icon}
+                              </div>
+                              <p className="text-xs font-semibold text-foreground">{badge.title}</p>
+                              <p className="text-[10px] text-muted-foreground mt-0.5">{badge.description}</p>
+                              {!badge.earned && (
+                                <div className="mt-2">
+                                  <Progress value={(badge.progress / badge.target) * 100} className="h-1" />
+                                  <p className="text-[10px] text-muted-foreground mt-0.5">{badge.progress}/{badge.target}</p>
+                                </div>
+                              )}
+                              {badge.earned && (
+                                <div className={`absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full ${levelBgClass} flex items-center justify-center`}>
+                                  <span className="text-[10px] text-primary-foreground">✓</span>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              })}
             </div>
           </div>
           </>
