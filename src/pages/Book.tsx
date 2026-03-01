@@ -81,9 +81,7 @@ const BookPage = () => {
   const [searchParams] = useSearchParams();
   const preselected = searchParams.get("activity") || "";
 
-  useEffect(() => {
-    if (!loading && !user) navigate("/auth");
-  }, [user, loading, navigate]);
+  // No redirect — show content to logged-out users
 
   const [offerings, setOfferings] = useState<OfferingData[]>([]);
   const [filterSlugs, setFilterSlugs] = useState<string[]>([]);
@@ -356,7 +354,17 @@ const BookPage = () => {
             </div>
           </motion.div>
 
-          {/* Club selector */}
+          {!user ? (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20">
+              <CalendarIcon className="h-16 w-16 text-muted-foreground/30 mx-auto mb-4" />
+              <h2 className="font-heading text-2xl font-bold text-foreground mb-2">Sign in to book a session</h2>
+              <p className="text-muted-foreground mb-6">Create an account to reserve your spot and start earning loyalty points.</p>
+              <Button onClick={() => navigate("/auth")} className="glow px-8 h-12 font-semibold text-base">
+                Login / Sign Up
+              </Button>
+            </motion.div>
+          ) : (
+          <>
           {selectedActivity && matchingClubs.length > 1 && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}>
               <Label className="text-sm font-medium text-muted-foreground mb-4 block">Choose Club</Label>
@@ -531,6 +539,8 @@ const BookPage = () => {
               {submitting ? "Booking..." : "Confirm Booking"}
             </Button>
           </motion.div>
+          </>
+          )}
         </form>
       </div>
     </div>
