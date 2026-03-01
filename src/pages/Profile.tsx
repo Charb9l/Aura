@@ -230,7 +230,7 @@ const ProfilePage = () => {
 
   const totalBookings = bookings.filter(b => b.attendance_status === "show").length;
 
-  // Loyalty per club: count bookings whose activity slug is in the club's offerings
+  // Loyalty per club: count bookings whose activity slug is in the club's activities
   const clubPoints: Record<string, number> = {};
   clubs.forEach(club => {
     const showCount = bookings.filter(b => club.offerings.includes(b.activity) && b.attendance_status === "show").length;
