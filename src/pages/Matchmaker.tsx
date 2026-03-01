@@ -139,7 +139,7 @@ const MatchmakerPage = () => {
             <Sparkles className="h-4 w-4 text-primary" />
             <span className="text-sm font-medium text-primary">AI-Powered</span>
           </div>
-          <h1 className="font-heading text-5xl md:text-6xl font-bold text-foreground mb-4">
+          <h1 className="font-heading text-3xl sm:text-5xl md:text-6xl font-bold text-foreground mb-4">
             {pageTitle}
           </h1>
           <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-8">
@@ -150,7 +150,7 @@ const MatchmakerPage = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="flex flex-nowrap items-center justify-center gap-3 max-w-full mx-auto overflow-x-auto"
+              className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 max-w-full mx-auto"
             >
               {criteria.map((c, i) => {
                 const hues = [160, 200, 280, 40, 340];

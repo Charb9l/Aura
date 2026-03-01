@@ -56,7 +56,7 @@ const LoyaltyPage = () => {
               <span className="text-sm font-medium text-primary">Rewards Program</span>
             </motion.div>
 
-            <h1 className="font-heading text-4xl md:text-6xl font-bold text-foreground mb-4">
+            <h1 className="font-heading text-2xl sm:text-4xl md:text-6xl font-bold text-foreground mb-4">
               {title.split(". ").length > 1 ? (
                 <>{title.split(". ")[0]}. <span className="text-gradient">{title.split(". ").slice(1).join(". ")}</span></>
               ) : (
@@ -141,7 +141,7 @@ const LoyaltyPage = () => {
               {Array.from({ length: 10 }, (_, i) => (
                 <div key={i} className="flex flex-col items-center gap-2">
                   <div
-                    className={`w-8 h-8 md:w-10 md:h-10 rounded-full border-2 flex items-center justify-center text-xs font-bold transition-all ${
+                    className={`w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-full border-2 flex items-center justify-center text-[10px] sm:text-xs font-bold transition-all ${
                       i < 5
                         ? "border-primary/30 bg-primary/5 text-primary/60"
                         : i < 10

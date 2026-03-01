@@ -284,7 +284,7 @@ const BookPage = () => {
         <div className="flex min-h-screen items-center justify-center px-6 pt-20">
           <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center">
             <CheckCircle2 className="h-20 w-20 text-primary mx-auto mb-6" />
-            <h1 className="font-heading text-4xl font-bold text-foreground mb-3">Booking Confirmed!</h1>
+            <h1 className="font-heading text-2xl sm:text-4xl font-bold text-foreground mb-3">Booking Confirmed!</h1>
             <p className="text-muted-foreground text-lg mb-2">
               {offering?.name || selectedActivity} — {date && format(date, "PPP")} at {selectedTime}
             </p>
@@ -300,7 +300,7 @@ const BookPage = () => {
       <Navbar />
       <div className="container mx-auto px-6 pt-28 pb-16">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="font-heading text-4xl md:text-5xl font-bold text-foreground mb-2">{pageTitle}</h1>
+          <h1 className="font-heading text-2xl sm:text-4xl md:text-5xl font-bold text-foreground mb-2">{pageTitle}</h1>
           <p className="text-muted-foreground text-lg mb-6">{pageSubtitle}</p>
         </motion.div>
 
@@ -309,7 +309,7 @@ const BookPage = () => {
         <form onSubmit={handleSubmit} className="space-y-10">
           {/* Activity selection */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-            <div className="flex items-center gap-3 mb-4 flex-wrap">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
               <Label className="text-sm font-medium text-muted-foreground">Choose Activity</Label>
               <ActivityFilter offerings={offerings} selected={filterSlugs} onChange={setFilterSlugs} />
               <Select value={filterLocation} onValueChange={setFilterLocation}>
@@ -327,7 +327,7 @@ const BookPage = () => {
                 <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={() => setFilterLocation("")}>Clear location</Button>
               )}
             </div>
-            <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
               {filteredOfferings.map((a) => {
                 const brand = brandForSlug(a.slug);
                 const imgSrc = a.logo_url || "";

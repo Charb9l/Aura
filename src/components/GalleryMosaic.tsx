@@ -35,13 +35,13 @@ const GalleryMosaic = ({ images, alt = "Gallery", fallback, className }: Gallery
           <>
             <button
               onClick={() => scrollBy("left")}
-              className="absolute left-2 top-1/2 -translate-y-1/2 z-10 rounded-full bg-background/80 backdrop-blur-sm p-2 text-foreground shadow-lg opacity-0 group-hover/strip:opacity-100 transition-opacity hover:bg-background"
+              className="absolute left-2 top-1/2 -translate-y-1/2 z-10 rounded-full bg-background/80 backdrop-blur-sm p-2 text-foreground shadow-lg sm:opacity-0 sm:group-hover/strip:opacity-100 transition-opacity hover:bg-background"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
             <button
               onClick={() => scrollBy("right")}
-              className="absolute right-2 top-1/2 -translate-y-1/2 z-10 rounded-full bg-background/80 backdrop-blur-sm p-2 text-foreground shadow-lg opacity-0 group-hover/strip:opacity-100 transition-opacity hover:bg-background"
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-10 rounded-full bg-background/80 backdrop-blur-sm p-2 text-foreground shadow-lg sm:opacity-0 sm:group-hover/strip:opacity-100 transition-opacity hover:bg-background"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
