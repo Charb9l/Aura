@@ -12,25 +12,22 @@ async function verifyAdmin(req: Request) {
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-  const callerClient = createClient(supabaseUrl, serviceKey);
+  const callerClient = createClient(supabaseUrl, anonKey, {
+    global: { headers: { Authorization: authHeader } },
+  });
 
-  const token = authHeader.replace("Bearer ", "");
-  const { data: { user }, error: userError } = await callerClient.auth.getUser(token);
-  if (userError || !user) return null;
-
-  const userId = user.id;
-
-  const adminClient = createClient(supabaseUrl, serviceKey);
-  const { data: roleData } = await adminClient
+  // JWT-backed check through RLS (avoids fragile /auth/v1/user session lookups)
+  const { data: roleData, error: roleError } = await callerClient
     .from("user_roles")
-    .select("role")
-    .eq("user_id", userId)
+    .select("user_id")
     .eq("role", "admin")
     .maybeSingle();
 
-  if (!roleData) return null;
+  if (roleError || !roleData) return null;
+
+  const adminClient = createClient(supabaseUrl, serviceKey);
   return adminClient;
 }
 
@@ -108,21 +105,22 @@ Deno.serve(async (req) => {
     // GET current admin's club_id
     if (action === "my-club") {
       const authHeader = req.headers.get("Authorization")!;
-      const token = authHeader.replace("Bearer ", "");
-      const { data: { user }, error: userErr } = await adminClient.auth.getUser(token);
-      if (userErr || !user) {
-        return new Response(JSON.stringify({ error: "Not authenticated" }), {
+      const callerClient = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
+        global: { headers: { Authorization: authHeader } },
+      });
+
+      const { data: role, error: roleError } = await callerClient
+        .from("user_roles")
+        .select("club_id")
+        .eq("role", "admin")
+        .maybeSingle();
+
+      if (roleError) {
+        return new Response(JSON.stringify({ error: roleError.message }), {
           status: 401,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const userId = user.id;
-      const { data: role } = await adminClient
-        .from("user_roles")
-        .select("club_id")
-        .eq("user_id", userId)
-        .eq("role", "admin")
-        .maybeSingle();
 
       return new Response(JSON.stringify({ club_id: role?.club_id || null }), {
         status: 200,
