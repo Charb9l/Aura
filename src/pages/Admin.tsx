@@ -232,7 +232,7 @@ const AdminDashboard = () => {
     return (
       <div className="min-h-screen flex">
         <AdminNavbar activeTab={activeTab} onTabChange={setActiveTab} assignedClubId={myClubId} />
-        <div className="flex-1 ml-60 flex items-center justify-center"><p className="text-muted-foreground text-sm">Loading...</p></div>
+        <div className="flex-1 md:ml-60 mt-14 md:mt-0 flex items-center justify-center"><p className="text-muted-foreground text-sm">Loading...</p></div>
       </div>
     );
   }
@@ -272,11 +272,11 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen flex bg-background">
       <AdminNavbar activeTab={activeTab} onTabChange={setActiveTab} assignedClubId={myClubId} />
-      <div className="flex-1 ml-60 px-10 pt-8 pb-16">
+      <div className="flex-1 md:ml-60 px-4 md:px-10 pt-[72px] md:pt-8 pb-16">
 
         {activeTab === "overview" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="overview">
-            <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Dashboard</h1>
+            <h1 className="font-heading text-2xl md:text-4xl font-bold text-foreground mb-2">Dashboard</h1>
             <p className="text-muted-foreground mb-8">Revenue overview and booking analytics.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
               <Card className="bg-card border-border"><CardHeader className="flex flex-row items-center justify-between pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Today's Revenue</CardTitle><DollarSign className="h-5 w-5 text-brand-tennis" /></CardHeader><CardContent><div className="text-3xl font-bold font-heading text-foreground">${dailyRevenue.toLocaleString()}</div></CardContent></Card>
@@ -292,7 +292,7 @@ const AdminDashboard = () => {
                   <DateRangeFilter value={bookingRange} onChange={setBookingRange} showCustomDate customDate={bookingCustomDate} onCustomDateChange={setBookingCustomDate} />
                 </div>
               </CardHeader>
-              <CardContent><ResponsiveContainer width="100%" height={300}><BarChart data={bookingChartData}><CartesianGrid strokeDasharray="3 3" stroke="hsl(240, 6%, 18%)" /><XAxis dataKey="name" tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} /><YAxis allowDecimals={false} tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} /><Tooltip contentStyle={{ background: "hsl(240, 8%, 10%)", border: "1px solid hsl(240, 6%, 18%)", borderRadius: 8, color: "hsl(0, 0%, 95%)" }} /><Bar dataKey="value" name="Bookings" radius={[4, 4, 0, 0]} animationDuration={800} fill={CHART_COLORS[0]} /></BarChart></ResponsiveContainer></CardContent>
+              <CardContent className="overflow-x-auto"><ResponsiveContainer width="100%" height={250}><BarChart data={bookingChartData}><CartesianGrid strokeDasharray="3 3" stroke="hsl(240, 6%, 18%)" /><XAxis dataKey="name" tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} /><YAxis allowDecimals={false} tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} /><Tooltip contentStyle={{ background: "hsl(240, 8%, 10%)", border: "1px solid hsl(240, 6%, 18%)", borderRadius: 8, color: "hsl(0, 0%, 95%)" }} /><Bar dataKey="value" name="Bookings" radius={[4, 4, 0, 0]} animationDuration={800} fill={CHART_COLORS[0]} /></BarChart></ResponsiveContainer></CardContent>
             </Card>
             <Card className="bg-card border-border">
               <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -304,21 +304,21 @@ const AdminDashboard = () => {
                   <DateRangeFilter value={revenueRange} onChange={setRevenueRange} showCustomDate customDate={bookingCustomDate} onCustomDateChange={setBookingCustomDate} showCustomRange customRange={revenueCustomRange} onCustomRangeChange={(r) => setRevenueCustomRange({ from: r.from, to: r.to })} />
                 </div>
               </CardHeader>
-              <CardContent><ResponsiveContainer width="100%" height={300}><BarChart data={revenueByCategoryFiltered}><CartesianGrid strokeDasharray="3 3" stroke="hsl(240, 6%, 18%)" /><XAxis dataKey="name" tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} /><YAxis tickFormatter={(v: number) => `$${v}`} tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} /><Tooltip contentStyle={{ background: "hsl(240, 8%, 10%)", border: "1px solid hsl(240, 6%, 18%)", borderRadius: 8, color: "hsl(0, 0%, 95%)" }} formatter={(v: number) => [`$${v}`, "Revenue"]} /><Bar dataKey="value" name="Revenue" radius={[4, 4, 0, 0]} animationDuration={800} fill={CHART_COLORS[1]} /></BarChart></ResponsiveContainer></CardContent>
+              <CardContent className="overflow-x-auto"><ResponsiveContainer width="100%" height={250}><BarChart data={revenueByCategoryFiltered}><CartesianGrid strokeDasharray="3 3" stroke="hsl(240, 6%, 18%)" /><XAxis dataKey="name" tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} /><YAxis tickFormatter={(v: number) => `$${v}`} tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} /><Tooltip contentStyle={{ background: "hsl(240, 8%, 10%)", border: "1px solid hsl(240, 6%, 18%)", borderRadius: 8, color: "hsl(0, 0%, 95%)" }} formatter={(v: number) => [`$${v}`, "Revenue"]} /><Bar dataKey="value" name="Revenue" radius={[4, 4, 0, 0]} animationDuration={800} fill={CHART_COLORS[1]} /></BarChart></ResponsiveContainer></CardContent>
             </Card>
           </motion.div>
         )}
 
         {activeTab === "users" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="users">
-            <div className="flex items-center justify-between mb-8">
-              <h1 className="font-heading text-4xl font-bold text-foreground">Registered Customers</h1>
-              <Button variant="outline" size="sm" className="gap-2" onClick={() => openFormerDialog("customer")}><History className="h-4 w-4" /> Current & Former</Button>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-8">
+              <h1 className="font-heading text-2xl md:text-4xl font-bold text-foreground">Registered Customers</h1>
+              <Button variant="outline" size="sm" className="gap-2 self-start" onClick={() => openFormerDialog("customer")}><History className="h-4 w-4" /> Current & Former</Button>
             </div>
-            <Card className="bg-card border-border mb-10"><CardContent className="p-0"><Table><TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Email</TableHead><TableHead>Phone</TableHead><TableHead className="w-[80px]">Edit</TableHead></TableRow></TableHeader><TableBody>{allUsers.filter(u => !adminUsers.some(a => a.user_id === u.user_id && a.club_id)).sort((a, b) => (a.full_name || a.email || "").localeCompare(b.full_name || b.email || "")).length === 0 ? (<TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">No customers yet.</TableCell></TableRow>) : allUsers.filter(u => !adminUsers.some(a => a.user_id === u.user_id && a.club_id)).sort((a, b) => (a.full_name || a.email || "").localeCompare(b.full_name || b.email || "")).map(u => (<TableRow key={u.user_id}><TableCell className="font-medium">{u.full_name || "—"}</TableCell><TableCell>{u.email}</TableCell><TableCell>{u.phone || "—"}</TableCell><TableCell><Button variant="ghost" size="icon" onClick={() => openEditDialog(u)}><Pencil className="h-4 w-4" /></Button></TableCell></TableRow>))}</TableBody></Table></CardContent></Card>
+            <Card className="bg-card border-border mb-10"><CardContent className="p-0 overflow-x-auto"><Table><TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Email</TableHead><TableHead className="hidden sm:table-cell">Phone</TableHead><TableHead className="w-[80px]">Edit</TableHead></TableRow></TableHeader><TableBody>{allUsers.filter(u => !adminUsers.some(a => a.user_id === u.user_id && a.club_id)).sort((a, b) => (a.full_name || a.email || "").localeCompare(b.full_name || b.email || "")).length === 0 ? (<TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">No customers yet.</TableCell></TableRow>) : allUsers.filter(u => !adminUsers.some(a => a.user_id === u.user_id && a.club_id)).sort((a, b) => (a.full_name || a.email || "").localeCompare(b.full_name || b.email || "")).map(u => (<TableRow key={u.user_id}><TableCell className="font-medium">{u.full_name || "—"}</TableCell><TableCell className="text-xs sm:text-sm">{u.email}</TableCell><TableCell className="hidden sm:table-cell">{u.phone || "—"}</TableCell><TableCell><Button variant="ghost" size="icon" onClick={() => openEditDialog(u)}><Pencil className="h-4 w-4" /></Button></TableCell></TableRow>))}</TableBody></Table></CardContent></Card>
 
-            <div className="flex items-center justify-between mb-6"><div><h2 className="font-heading text-2xl font-bold text-foreground mb-2">Club Admins</h2><p className="text-muted-foreground">Administrators assigned to clubs.</p></div><Button variant="outline" size="sm" className="gap-2" onClick={() => openFormerDialog("admin")}><History className="h-4 w-4" /> Current & Former</Button></div>
-            <Card className="bg-card border-border"><CardContent className="p-0"><Table><TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Email</TableHead><TableHead>Phone</TableHead><TableHead>Assigned Club</TableHead><TableHead className="w-[80px]">Edit</TableHead></TableRow></TableHeader><TableBody>{adminUsers.length === 0 ? (<TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">No club admins yet.</TableCell></TableRow>) : adminUsers.slice().sort((a, b) => (a.full_name || a.email || "").localeCompare(b.full_name || b.email || "")).map(u => (<TableRow key={u.user_id}><TableCell className="font-medium">{u.full_name || "—"}</TableCell><TableCell>{u.email}</TableCell><TableCell>{u.phone || "—"}</TableCell><TableCell>{u.club_id ? clubs.find(c => c.id === u.club_id)?.name || "—" : <Badge className="bg-primary/10 text-primary">Super Admin</Badge>}</TableCell><TableCell><Button variant="ghost" size="icon" onClick={() => openEditAdmin(u)}><Pencil className="h-4 w-4" /></Button></TableCell></TableRow>))}</TableBody></Table></CardContent></Card>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6"><div><h2 className="font-heading text-xl md:text-2xl font-bold text-foreground mb-2">Club Admins</h2><p className="text-muted-foreground text-sm">Administrators assigned to clubs.</p></div><Button variant="outline" size="sm" className="gap-2 self-start" onClick={() => openFormerDialog("admin")}><History className="h-4 w-4" /> Current & Former</Button></div>
+            <Card className="bg-card border-border"><CardContent className="p-0 overflow-x-auto"><Table><TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Email</TableHead><TableHead className="hidden sm:table-cell">Phone</TableHead><TableHead className="hidden md:table-cell">Assigned Club</TableHead><TableHead className="w-[80px]">Edit</TableHead></TableRow></TableHeader><TableBody>{adminUsers.length === 0 ? (<TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">No club admins yet.</TableCell></TableRow>) : adminUsers.slice().sort((a, b) => (a.full_name || a.email || "").localeCompare(b.full_name || b.email || "")).map(u => (<TableRow key={u.user_id}><TableCell className="font-medium">{u.full_name || "—"}</TableCell><TableCell className="text-xs sm:text-sm">{u.email}</TableCell><TableCell className="hidden sm:table-cell">{u.phone || "—"}</TableCell><TableCell className="hidden md:table-cell">{u.club_id ? clubs.find(c => c.id === u.club_id)?.name || "—" : <Badge className="bg-primary/10 text-primary">Super Admin</Badge>}</TableCell><TableCell><Button variant="ghost" size="icon" onClick={() => openEditAdmin(u)}><Pencil className="h-4 w-4" /></Button></TableCell></TableRow>))}</TableBody></Table></CardContent></Card>
 
             {/* Edit User Dialog */}
             <Dialog open={!!editUser} onOpenChange={(open) => !open && setEditUser(null)}>
@@ -350,8 +350,8 @@ const AdminDashboard = () => {
 
         {activeTab === "admins" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="admins">
-            <div className="flex items-center justify-between mb-8"><div><h1 className="font-heading text-4xl font-bold text-foreground mb-2">Admins</h1><p className="text-muted-foreground">Manage admin accounts.</p></div><Button onClick={() => setShowCreateAdmin(true)} className="h-11 px-5 font-semibold glow"><UserPlus className="h-4 w-4 mr-2" /> Add Admin</Button></div>
-            <Card className="bg-card border-border"><CardContent className="p-0"><Table><TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Email</TableHead><TableHead>Phone</TableHead><TableHead>Assigned Club</TableHead><TableHead className="w-[80px]">Edit</TableHead></TableRow></TableHeader><TableBody>{adminUsers.length === 0 ? (<TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">No admins yet.</TableCell></TableRow>) : adminUsers.slice().sort((a, b) => (a.full_name || a.email || "").localeCompare(b.full_name || b.email || "")).map(u => (<TableRow key={u.user_id}><TableCell className="font-medium">{u.full_name || "—"}</TableCell><TableCell>{u.email}</TableCell><TableCell>{u.phone || "—"}</TableCell><TableCell>{u.club_id ? <Badge variant="secondary" className="text-xs">{clubs.find(c => c.id === u.club_id)?.name || "Unknown"}</Badge> : <span className="text-xs text-muted-foreground">All Clubs (Master)</span>}</TableCell><TableCell><Button variant="ghost" size="icon" onClick={() => openEditAdmin(u)}><Pencil className="h-4 w-4" /></Button></TableCell></TableRow>))}</TableBody></Table></CardContent></Card>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-8"><div><h1 className="font-heading text-2xl md:text-4xl font-bold text-foreground mb-2">Admins</h1><p className="text-muted-foreground text-sm">Manage admin accounts.</p></div><Button onClick={() => setShowCreateAdmin(true)} className="h-11 px-5 font-semibold glow self-start"><UserPlus className="h-4 w-4 mr-2" /> Add Admin</Button></div>
+            <Card className="bg-card border-border"><CardContent className="p-0 overflow-x-auto"><Table><TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Email</TableHead><TableHead className="hidden sm:table-cell">Phone</TableHead><TableHead className="hidden md:table-cell">Assigned Club</TableHead><TableHead className="w-[80px]">Edit</TableHead></TableRow></TableHeader><TableBody>{adminUsers.length === 0 ? (<TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">No admins yet.</TableCell></TableRow>) : adminUsers.slice().sort((a, b) => (a.full_name || a.email || "").localeCompare(b.full_name || b.email || "")).map(u => (<TableRow key={u.user_id}><TableCell className="font-medium">{u.full_name || "—"}</TableCell><TableCell className="text-xs sm:text-sm">{u.email}</TableCell><TableCell className="hidden sm:table-cell">{u.phone || "—"}</TableCell><TableCell className="hidden md:table-cell">{u.club_id ? <Badge variant="secondary" className="text-xs">{clubs.find(c => c.id === u.club_id)?.name || "Unknown"}</Badge> : <span className="text-xs text-muted-foreground">All Clubs (Master)</span>}</TableCell><TableCell><Button variant="ghost" size="icon" onClick={() => openEditAdmin(u)}><Pencil className="h-4 w-4" /></Button></TableCell></TableRow>))}</TableBody></Table></CardContent></Card>
             <Dialog open={showCreateAdmin} onOpenChange={setShowCreateAdmin}>
               <DialogContent className="bg-card border-border"><DialogHeader><DialogTitle className="font-heading">Add Admin</DialogTitle></DialogHeader>
                 <form onSubmit={handleCreateAdmin} className="space-y-4 pt-2">
@@ -369,7 +369,7 @@ const AdminDashboard = () => {
 
         {activeTab === "bookings" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="bookings">
-            <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Bookings</h1>
+            <h1 className="font-heading text-2xl md:text-4xl font-bold text-foreground mb-2">Bookings</h1>
             <p className="text-muted-foreground mb-8">View daily bookings by time slot.</p>
             <BookingsCalendarTab bookings={myClubId ? filteredBookings : bookings} clubs={clubs} isMasterAdmin={!myClubId} onDeleteBooking={(id) => setBookings(prev => prev.filter(b => b.id !== id))} onUpdateBooking={(id, updates) => setBookings(prev => prev.map(b => b.id === id ? { ...b, ...updates } : b))} onAddBooking={(b) => setBookings(prev => [b, ...prev])} allUsers={allUsers} />
           </motion.div>
@@ -387,7 +387,7 @@ const AdminDashboard = () => {
 
         {activeTab === "promotions" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="promotions">
-            <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Promotions</h1>
+            <h1 className="font-heading text-2xl md:text-4xl font-bold text-foreground mb-2">Promotions</h1>
             <p className="text-muted-foreground mb-8">Manage deals and promotional offers.</p>
             <Card className="bg-card border-border"><CardContent className="py-12 text-center text-muted-foreground">Promotions coming soon.</CardContent></Card>
           </motion.div>
