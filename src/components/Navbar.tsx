@@ -25,13 +25,18 @@ const Navbar = () => {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [loggedOutDropdownOpen, setLoggedOutDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const loggedOutDropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown on outside click
+  // Close dropdowns on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setDropdownOpen(false);
+      }
+      if (loggedOutDropdownRef.current && !loggedOutDropdownRef.current.contains(e.target as Node)) {
+        setLoggedOutDropdownOpen(false);
       }
     };
     document.addEventListener("mousedown", handler);
@@ -175,12 +180,41 @@ const Navbar = () => {
               </AnimatePresence>
             </div>
           ) : (
-            <Link
-              to="/auth"
-              className="rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:glow"
-            >
-              Login / Sign Up
-            </Link>
+            <div className="relative" ref={loggedOutDropdownRef}>
+              <button
+                onClick={() => setLoggedOutDropdownOpen(prev => !prev)}
+                className="rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:glow"
+              >
+                Login / Sign Up
+              </button>
+              <AnimatePresence>
+                {loggedOutDropdownOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -5, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -5, scale: 0.95 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 mt-2 w-44 rounded-xl border border-border bg-card shadow-lg overflow-hidden"
+                  >
+                    <Link
+                      to="/auth"
+                      onClick={() => setLoggedOutDropdownOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors"
+                    >
+                      Login / Sign Up
+                    </Link>
+                    <div className="border-t-2 border-border" />
+                    <Link
+                      to="/admin"
+                      onClick={() => setLoggedOutDropdownOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors"
+                    >
+                      <ShieldCheck className="h-4 w-4" /> Admin
+                    </Link>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           )}
         </div>
 
