@@ -23,7 +23,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import AdminNavbar from "@/components/AdminNavbar";
 import CustomerVisionTab from "@/components/CustomerVisionTab";
 import AcademiesTab from "@/components/AcademiesTab";
-import AdminMyPlayerTab from "@/components/AdminMyPlayerTab";
+import MatchmakerTab from "@/components/admin/MatchmakerTab";
 import Navbar from "@/components/Navbar";
 import PhoneInput from "@/components/PhoneInput";
 
@@ -377,7 +377,7 @@ const AdminDashboard = () => {
         {activeTab === "clubs" && <ClubsTab isMasterAdmin={!myClubId} />}
         {activeTab === "academies" && <AcademiesTab />}
         {activeTab === "customer-vision" && <CustomerVisionTab onNavigateTab={setActiveTab} />}
-        {activeTab === "myplayer" && <AdminMyPlayerTab />}
+        {activeTab === "matchmaker" && <MatchmakerTab />}
         {activeTab === "settings" && <SettingsTab />}
         {activeTab === "reports" && <ReportsTab />}
 
