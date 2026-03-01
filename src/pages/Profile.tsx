@@ -250,9 +250,13 @@ const ProfilePage = () => {
             {avatarUrl ? (
               <img src={avatarUrl} alt="Avatar" className="h-20 w-20 rounded-full object-cover border-2 border-border" />
             ) : (
-              <div className="h-20 w-20 rounded-full bg-primary/20 text-primary font-bold text-2xl flex items-center justify-center border-2 border-primary/50 shadow-[0_0_15px_hsl(var(--primary)/0.4)]">
-                {initials}
-              </div>
+              <>
+                <div className="h-20 w-20 rounded-full bg-primary/20 text-primary font-bold text-2xl flex items-center justify-center border-2 border-primary/50 shadow-[0_0_15px_hsl(var(--primary)/0.4)]">
+                  {initials}
+                </div>
+                <span className="absolute top-0 right-0 h-4 w-4 rounded-full bg-primary border-2 border-background animate-ping" />
+                <span className="absolute top-0 right-0 h-4 w-4 rounded-full bg-primary border-2 border-background" />
+              </>
             )}
             <button
               onClick={() => fileInputRef.current?.click()}
