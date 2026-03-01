@@ -47,12 +47,13 @@ interface OfferingRow {
 }
 
 const PAGES = [
-  { name: "Main Page", slug: "home", description: "Hero section, text, action buttons, and activity section" },
+  { name: "AI Habit Tracker", slug: "habits", description: "Habit tracker page title, subtitle, and section descriptions" },
   { name: "Book a Session", slug: "book", description: "Booking page title, subtitle, and detail fields" },
-  { name: "Join Our Academies", slug: "academy", description: "Academy page title, subtitle, and form fields" },
   { name: "Clubs & Partners", slug: "clubs", description: "Clubs page title and subtitle" },
   { name: "Find Your Match", slug: "matchmaker", description: "Matchmaker page title and subtitle" },
+  { name: "Join Our Academies", slug: "academy", description: "Academy page title, subtitle, and form fields" },
   { name: "Loyalty Program", slug: "loyalty", description: "Loyalty page main title and subtitle" },
+  { name: "Main Page", slug: "home", description: "Hero section, text, action buttons, and activity section" },
 ];
 
 // === Pictures Manager ===
