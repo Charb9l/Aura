@@ -1,4 +1,4 @@
-import { Check, Trash2, MapPin, Clock, Target, Flame } from "lucide-react";
+import { Check, Trash2, MapPin, Clock, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -33,25 +33,22 @@ export interface Selection {
   years_experience: number | null;
 }
 
-const PLAYSTYLES = [
-  { value: "casual", label: "Casual" },
-  { value: "competitive", label: "Competitive" },
-  { value: "very_competitive", label: "Very Competitive" },
-];
+export interface PlaystyleOption {
+  value: string;
+  label: string;
+}
 
-const GOALS = [
-  { value: "fitness", label: "Fitness", icon: Flame },
-  { value: "competition", label: "Competition", icon: Target },
-  { value: "social", label: "Social", icon: null },
-  { value: "training", label: "Training", icon: null },
-];
+export interface GoalOption {
+  value: string;
+  label: string;
+}
+
+export interface PeriodOption {
+  value: string;
+  label: string;
+}
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const PERIODS = [
-  { value: "morning", label: "Morning" },
-  { value: "afternoon", label: "Afternoon" },
-  { value: "night", label: "Night" },
-];
 
 interface Props {
   sel: Selection;
@@ -59,6 +56,9 @@ interface Props {
   offerings: Offering[];
   levels: Level[];
   locations: Location[];
+  playstyles: PlaystyleOption[];
+  goals: GoalOption[];
+  periods: PeriodOption[];
   otherSports: string[];
   canRemove: boolean;
   onUpdate: (rank: number, field: keyof Selection, value: any) => void;
@@ -69,7 +69,7 @@ interface Props {
 }
 
 const SportSelectionCard = ({
-  sel, idx, offerings, levels, locations, otherSports,
+  sel, idx, offerings, levels, locations, playstyles, goals, periods, otherSports,
   canRemove, onUpdate, onToggleLocation, onToggleAvailability, onToggleGoal, onRemove,
 }: Props) => {
   const brandColor = offerings.find((o) => o.id === sel.sport_id)?.brand_color || null;
@@ -180,7 +180,7 @@ const SportSelectionCard = ({
           <div className="space-y-1.5">
             <p className="text-xs font-medium text-muted-foreground">Playstyle:</p>
             <div className="flex gap-2">
-              {PLAYSTYLES.map((ps) => {
+              {playstyles.map((ps) => {
                 const selected = sel.playstyle === ps.value;
                 return (
                   <button
@@ -208,7 +208,7 @@ const SportSelectionCard = ({
             <div className="grid grid-cols-4 gap-1 text-xs">
               {/* Header row */}
               <div />
-              {PERIODS.map((p) => (
+              {periods.map((p) => (
                 <div key={p.value} className="text-center text-muted-foreground/70 font-medium pb-1">
                   {p.label}
                 </div>
@@ -219,7 +219,7 @@ const SportSelectionCard = ({
                   <div key={`label-${day}`} className="flex items-center text-muted-foreground font-medium">
                     {day}
                   </div>
-                  {PERIODS.map((period) => {
+                  {periods.map((period) => {
                     const active = hasAvail(day, period.value);
                     return (
                       <button
@@ -246,7 +246,7 @@ const SportSelectionCard = ({
               <Target className="h-3 w-3" /> Goals <span className="text-muted-foreground/60">(select multiple)</span>:
             </p>
             <div className="grid grid-cols-2 gap-2">
-              {GOALS.map((goal) => {
+              {goals.map((goal) => {
                 const selected = sel.goals.includes(goal.value);
                 return (
                   <button
