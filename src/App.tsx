@@ -14,6 +14,7 @@ import LoyaltyPage from "./pages/Loyalty";
 import ClubsPage from "./pages/Clubs";
 import AdminPage from "./pages/Admin";
 import MatchmakerPage from "./pages/Matchmaker";
+import HabitsPage from "./pages/Habits";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/matchmaker" element={<MatchmakerPage />} />
+            <Route path="/habits" element={<HabitsPage />} />
             <Route path="/book" element={<BookPage />} />
             <Route path="/academy" element={<AcademyPage />} />
             <Route path="/auth" element={<AuthPage />} />

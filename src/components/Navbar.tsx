@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const NAV_LINKS = [
   { to: "/", label: "Home" },
+  { to: "/habits", label: "AI Habit Tracker" },
   { to: "/matchmaker", label: "AI Matchmaker" },
   { to: "/book", label: "Book Now" },
   { to: "/academy", label: "Academies" },

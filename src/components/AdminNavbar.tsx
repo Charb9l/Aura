@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
-import { LogOut, LayoutDashboard, Users, Settings, Tag, CalendarCheck, Eye, Building2, GraduationCap, Gamepad2, ChevronLeft, ChevronRight } from "lucide-react";
+import { LogOut, LayoutDashboard, Users, Settings, Tag, CalendarCheck, Eye, Building2, GraduationCap, Gamepad2, TrendingUp, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const allMenuItems = [
@@ -11,6 +11,7 @@ const allMenuItems = [
   { label: "Clubs & Partners", icon: Building2, tab: "clubs" },
   { label: "Customer Vision", icon: Eye, tab: "customer-vision" },
   { label: "Dashboard", icon: LayoutDashboard, tab: "overview" },
+  { label: "Habit Tracker", icon: TrendingUp, tab: "habits" },
   { label: "MyPlayer", icon: Gamepad2, tab: "myplayer" },
   { label: "Promotions", icon: Tag, tab: "promotions" },
   { label: "Settings", icon: Settings, tab: "settings" },
