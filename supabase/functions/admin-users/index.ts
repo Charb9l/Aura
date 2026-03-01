@@ -12,17 +12,15 @@ async function verifyAdmin(req: Request) {
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+  
 
-  const callerClient = createClient(supabaseUrl, anonKey, {
-    global: { headers: { Authorization: authHeader } },
-  });
+  const callerClient = createClient(supabaseUrl, serviceKey);
 
   const token = authHeader.replace("Bearer ", "");
-  const { data: claimsData, error: claimsError } = await callerClient.auth.getClaims(token);
-  if (claimsError || !claimsData?.claims?.sub) return null;
+  const { data: { user }, error: userError } = await callerClient.auth.getUser(token);
+  if (userError || !user) return null;
 
-  const userId = claimsData.claims.sub;
+  const userId = user.id;
 
   const adminClient = createClient(supabaseUrl, serviceKey);
   const { data: roleData } = await adminClient
@@ -110,18 +108,15 @@ Deno.serve(async (req) => {
     // GET current admin's club_id
     if (action === "my-club") {
       const authHeader = req.headers.get("Authorization")!;
-      const callerClient = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
-        global: { headers: { Authorization: authHeader } },
-      });
       const token = authHeader.replace("Bearer ", "");
-      const { data: claimsData, error: claimsErr } = await callerClient.auth.getClaims(token);
-      if (claimsErr || !claimsData?.claims?.sub) {
+      const { data: { user }, error: userErr } = await adminClient.auth.getUser(token);
+      if (userErr || !user) {
         return new Response(JSON.stringify({ error: "Not authenticated" }), {
           status: 401,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const userId = claimsData.claims.sub;
+      const userId = user.id;
       const { data: role } = await adminClient
         .from("user_roles")
         .select("club_id")
