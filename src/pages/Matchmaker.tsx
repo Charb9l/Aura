@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
-import { Users, Sparkles, MapPin, Trophy, Filter, Zap, Star, ArrowRight } from "lucide-react";
+import { Users, Sparkles, MapPin, Trophy, Filter, Zap, Star, ArrowRight, Gauge, Swords, CalendarClock, Target, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -155,6 +155,17 @@ const MatchmakerPage = () => {
               {criteria.map((c, i) => {
                 const hues = [160, 200, 280, 40, 340];
                 const hue = hues[i % hues.length];
+
+                const iconMap: Record<string, LucideIcon> = {
+                  skill: Gauge, level: Gauge,
+                  playstyle: Swords, style: Swords,
+                  availability: CalendarClock, schedule: CalendarClock, time: CalendarClock,
+                  goal: Target, goals: Target,
+                  location: MapPin, locations: MapPin, preferred: MapPin,
+                };
+                const key = c.label.toLowerCase().split(" ").find((w: string) => iconMap[w]) || "";
+                const Icon = iconMap[key] || Sparkles;
+
                 return (
                   <motion.div
                     key={i}
@@ -170,14 +181,14 @@ const MatchmakerPage = () => {
                     }}
                   >
                     <span
-                      className="flex items-center justify-center h-6 w-6 rounded-full text-xs font-bold"
+                      className="flex items-center justify-center h-6 w-6 rounded-full"
                       style={{
                         background: `hsl(${hue} 60% 50% / 0.2)`,
                         color: `hsl(${hue} 70% 65%)`,
                         border: `1px solid hsl(${hue} 60% 50% / 0.3)`,
                       }}
                     >
-                      {c.emoji || "✓"}
+                      <Icon className="h-3.5 w-3.5" />
                     </span>
                     <span>{c.label}</span>
                     <div
