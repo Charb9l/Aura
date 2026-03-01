@@ -17,8 +17,6 @@ serve(async (req) => {
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const adminClient = createClient(supabaseUrl, serviceKey);
 
-    // Verify the user is admin
-    const anonClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!);
     const { data: { user }, error: authErr } = await adminClient.auth.getUser(authHeader.replace("Bearer ", ""));
     if (authErr || !user) throw new Error("Unauthorized");
 
@@ -39,15 +37,12 @@ serve(async (req) => {
     const { data: bookings } = await adminClient
       .from("bookings")
       .select("*")
-      .order("booking_date", { ascending: false });
+      .order("booking_date", { ascending: false })
+      .limit(500);
 
     const { data: clubs } = await adminClient
       .from("clubs")
       .select("id, name, offerings");
-
-    const { data: profiles } = await adminClient
-      .from("profiles")
-      .select("user_id, full_name, phone");
 
     const totalBookings = bookings?.length || 0;
     const dateRange = bookings && bookings.length > 0
@@ -57,64 +52,38 @@ serve(async (req) => {
     const activitiesSummary = bookings ? [...new Set(bookings.map(b => b.activity))].join(", ") : "none";
     const clubsSummary = clubs?.map(c => `${c.name} (offerings: ${c.offerings.join(", ")})`).join("; ") || "none";
 
-    // Build a compact data representation for the AI
+    // Compact representation
     const bookingsJson = JSON.stringify(bookings?.map(b => ({
-      id: b.id,
       date: b.booking_date,
       time: b.booking_time,
-      activity: b.activity,
-      activity_name: b.activity_name,
-      customer: b.full_name,
+      act: b.activity,
+      act_name: b.activity_name,
+      name: b.full_name,
       email: b.email,
       phone: b.phone,
       status: b.status,
-      court_type: b.court_type,
-      discount_type: b.discount_type,
-      attendance: b.attendance_status,
-      created_by: b.created_by,
+      court: b.court_type || "",
+      discount: b.discount_type || "",
+      attendance: b.attendance_status || "",
       created_at: b.created_at,
     })) || []);
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const systemPrompt = `You are a data analyst assistant for Elevate Wellness Hub, a multi-sport booking and wellness platform in Lebanon.
+    const systemPrompt = `You are a data analyst for Elevate Wellness Hub, a multi-sport booking platform in Lebanon.
 
-You have access to the following data:
+DATA CONTEXT:
 - ${totalBookings} bookings spanning ${dateRange}
 - Activities: ${activitiesSummary}
 - Clubs: ${clubsSummary}
 
-PRICING RULES:
-- Tennis: $15/session
-- Aerial Yoga: $20/session
-- Pilates: $20/session
-- Basketball Half Court: $45/session
-- Basketball Full Court: $90/session
-- If discount_type is "free", revenue = $0
-- If discount_type is "50%", revenue = base * 0.5
+PRICING: Tennis=$15, Aerial Yoga=$20, Pilates=$20, Basketball Half=$45, Basketball Full=$90. discount "free"→$0, "50%"→half.
 
-Here is the complete bookings data:
+BOOKINGS DATA (act=activity slug, act_name=display name, court=court_type, discount=discount_type):
 ${bookingsJson}
 
-The admin will ask you a question about their data. You MUST respond with a valid JSON object with this exact structure:
-{
-  "summary": "A brief human-readable summary of the findings",
-  "csv_headers": ["Column1", "Column2", ...],
-  "csv_rows": [["val1", "val2", ...], ...]
-}
-
-Rules:
-- ALWAYS return individual booking-level rows (one row per booking), NOT aggregated totals
-- Each row MUST include ALL booking details: booking date, booking time, activity, activity name, customer full name, email, phone, court type, discount type, attendance status, status, created at, and calculated revenue
-- Filter the bookings based on the admin's question (date range, activity, customer, etc.)
-- Add a "Revenue ($)" column showing the calculated revenue per booking
-- If the question involves a date range, filter accordingly
-- If the question is vague, make reasonable assumptions and mention them in the summary
-- Keep the summary concise (2-3 sentences max)
-- Ensure all CSV values are strings
-- Sort by booking_date descending by default
-- RESPOND WITH ONLY THE JSON OBJECT, no markdown, no code blocks`;
+TASK: The admin asks a question. Use the generate_report tool to return filtered booking-level rows with ALL details per booking. Always include: date, time, activity, activity_name, customer name, email, phone, court_type, discount_type, attendance_status, status, created_at, and calculated revenue. Sort by date descending.`;
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -123,11 +92,45 @@ Rules:
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: prompt },
         ],
+        tools: [
+          {
+            type: "function",
+            function: {
+              name: "generate_report",
+              description: "Generate a CSV report with individual booking rows matching the admin's query.",
+              parameters: {
+                type: "object",
+                properties: {
+                  summary: {
+                    type: "string",
+                    description: "Brief 1-3 sentence summary of findings",
+                  },
+                  csv_headers: {
+                    type: "array",
+                    items: { type: "string" },
+                    description: "Column headers for the CSV",
+                  },
+                  csv_rows: {
+                    type: "array",
+                    items: {
+                      type: "array",
+                      items: { type: "string" },
+                    },
+                    description: "Array of rows, each row is an array of string values matching headers",
+                  },
+                },
+                required: ["summary", "csv_headers", "csv_rows"],
+                additionalProperties: false,
+              },
+            },
+          },
+        ],
+        tool_choice: { type: "function", function: { name: "generate_report" } },
       }),
     });
 
@@ -148,17 +151,30 @@ Rules:
     }
 
     const aiData = await aiResponse.json();
-    let content = aiData.choices?.[0]?.message?.content || "";
-
-    // Strip markdown code blocks if present
-    content = content.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
-
+    
+    // Extract from tool call response
+    const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
     let parsed;
-    try {
-      parsed = JSON.parse(content);
-    } catch {
-      console.error("Failed to parse AI response:", content);
-      throw new Error("AI returned an invalid response. Please try rephrasing your question.");
+
+    if (toolCall?.function?.arguments) {
+      try {
+        parsed = JSON.parse(toolCall.function.arguments);
+      } catch {
+        console.error("Failed to parse tool call arguments:", toolCall.function.arguments);
+        throw new Error("AI returned an invalid response. Please try rephrasing your question.");
+      }
+    } else {
+      // Fallback: try content
+      let content = aiData.choices?.[0]?.message?.content || "";
+      content = content.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
+      console.error("No tool call found, raw content:", content.substring(0, 200));
+      if (!content) throw new Error("AI returned an empty response. Please try again.");
+      try {
+        parsed = JSON.parse(content);
+      } catch {
+        console.error("Failed to parse fallback content:", content.substring(0, 200));
+        throw new Error("AI returned an invalid response. Please try rephrasing your question.");
+      }
     }
 
     return new Response(JSON.stringify(parsed), {
