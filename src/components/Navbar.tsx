@@ -44,7 +44,8 @@ const Navbar = () => {
   }, []);
   const { isComplete: playerComplete } = usePlayerProfileComplete();
   const { avatarUrl } = useAvatar();
-  const showGlow = user && playerComplete === false;
+  const [hasPendingBookings, setHasPendingBookings] = useState(false);
+  const showGlow = user && (playerComplete === false || !avatarUrl || hasPendingBookings);
   const { isAdmin } = useAdminRole();
 
   const initials = getInitials(user?.user_metadata?.full_name, user?.email);
@@ -66,6 +67,20 @@ const Navbar = () => {
       }
     });
   }, []);
+
+  // Check for pending bookings to trigger profile glow
+  useEffect(() => {
+    if (!user) { setHasPendingBookings(false); return; }
+    const today = new Date().toISOString().split("T")[0];
+    supabase
+      .from("bookings")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .eq("status", "confirmed")
+      .gte("booking_date", today)
+      .is("attendance_status", null)
+      .then(({ count }) => setHasPendingBookings((count ?? 0) > 0));
+  }, [user]);
 
   const handleSignOut = async () => {
     await signOut();
