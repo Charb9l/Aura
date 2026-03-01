@@ -1,14 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   LogOut, LayoutDashboard, Users, Settings, Tag, CalendarCheck, Eye,
-  Building2, GraduationCap, Gamepad2, TrendingUp, PanelLeftClose, PanelLeft, FileBarChart, Package,
+  Building2, GraduationCap, Gamepad2, TrendingUp, PanelLeftClose, PanelLeft, FileBarChart, Package, Menu, X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const allMenuItems = [
   { label: "Dashboard", icon: LayoutDashboard, tab: "overview" },
@@ -36,7 +36,20 @@ interface AdminNavbarProps {
 const AdminNavbar = ({ activeTab, onTabChange, assignedClubId }: AdminNavbarProps) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  // Close mobile menu on tab change
+  const handleTabChange = (tab: string) => {
+    onTabChange(tab);
+    if (isMobile) setMobileOpen(false);
+  };
+
+  // Close mobile menu on resize to desktop
+  useEffect(() => {
+    if (!isMobile) setMobileOpen(false);
+  }, [isMobile]);
 
   const isAssignedAdmin = !!assignedClubId;
   const menuItems = isAssignedAdmin
@@ -48,22 +61,22 @@ const AdminNavbar = ({ activeTab, onTabChange, assignedClubId }: AdminNavbarProp
     navigate("/");
   };
 
-  const sidebarWidth = collapsed ? "w-[68px]" : "w-60";
+  const activeLabel = allMenuItems.find(i => i.tab === activeTab)?.label || "Admin";
 
   const NavItem = ({ item }: { item: typeof allMenuItems[0] }) => {
     const isActive = activeTab === item.tab;
+    const showLabel = isMobile || !collapsed;
     const content = (
       <button
-        onClick={() => onTabChange(item.tab)}
+        onClick={() => handleTabChange(item.tab)}
         className={cn(
-          "group relative flex w-full items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-all duration-200",
-          collapsed && "justify-center px-2",
+          "group relative flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-all duration-200",
+          !isMobile && collapsed && "justify-center px-2",
           isActive
             ? "bg-primary/8 text-foreground"
             : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
         )}
       >
-        {/* Active indicator bar */}
         {isActive && (
           <motion.div
             layoutId="activeTab"
@@ -76,7 +89,7 @@ const AdminNavbar = ({ activeTab, onTabChange, assignedClubId }: AdminNavbarProp
           isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
         )} />
         <AnimatePresence mode="wait">
-          {!collapsed && (
+          {showLabel && (
             <motion.span
               initial={{ opacity: 0, width: 0 }}
               animate={{ opacity: 1, width: "auto" }}
@@ -91,7 +104,7 @@ const AdminNavbar = ({ activeTab, onTabChange, assignedClubId }: AdminNavbarProp
       </button>
     );
 
-    if (collapsed) {
+    if (!isMobile && collapsed) {
       return (
         <Tooltip delayDuration={0}>
           <TooltipTrigger asChild>{content}</TooltipTrigger>
@@ -104,32 +117,100 @@ const AdminNavbar = ({ activeTab, onTabChange, assignedClubId }: AdminNavbarProp
     return content;
   };
 
+  // ─── Mobile: top bar + overlay drawer ───────────────────────
+  if (isMobile) {
+    return (
+      <>
+        {/* Fixed top bar */}
+        <div className="fixed top-0 left-0 right-0 z-50 h-14 flex items-center justify-between px-4 border-b border-border/60 bg-background">
+          <button onClick={() => setMobileOpen(true)} className="flex items-center justify-center rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
+            <Menu className="h-5 w-5" />
+          </button>
+          <span className="font-heading font-bold text-sm text-foreground">{activeLabel}</span>
+          <div className="w-9" /> {/* spacer for centering */}
+        </div>
+
+        {/* Overlay backdrop + drawer */}
+        <AnimatePresence>
+          {mobileOpen && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm"
+                onClick={() => setMobileOpen(false)}
+              />
+              <motion.aside
+                initial={{ x: -280 }}
+                animate={{ x: 0 }}
+                exit={{ x: -280 }}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                className="fixed top-0 left-0 bottom-0 z-50 w-[280px] flex flex-col border-r border-border/60 bg-background"
+              >
+                {/* Header */}
+                <div className="flex items-center justify-between h-14 px-5 border-b border-border/60 shrink-0">
+                  <button onClick={() => handleTabChange("overview")} className="font-heading font-bold tracking-tight text-foreground cursor-pointer">
+                    <div className="flex flex-col leading-tight">
+                      <span className="text-base font-bold tracking-wide">ELEVATE</span>
+                      <span className="text-[8px] font-medium tracking-[0.25em] text-muted-foreground uppercase">Wellness Hub</span>
+                    </div>
+                  </button>
+                  <button onClick={() => setMobileOpen(false)} className="flex items-center justify-center rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+
+                {/* Nav */}
+                <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-0.5">
+                  {menuItems.map((item) => <NavItem key={item.tab} item={item} />)}
+                </nav>
+
+                {/* Footer */}
+                <div className="shrink-0 border-t border-border/60">
+                  {user && (
+                    <div className="px-5 pt-3 pb-1">
+                      <p className="text-[11px] text-muted-foreground truncate font-medium">
+                        {user.user_metadata?.full_name || user.email}
+                      </p>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-1 px-3 py-3">
+                    <button onClick={handleSignOut} className="flex items-center gap-2 rounded-lg px-3 py-2 text-[13px] text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
+                      <LogOut className="h-[18px] w-[18px]" />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                </div>
+              </motion.aside>
+            </>
+          )}
+        </AnimatePresence>
+      </>
+    );
+  }
+
+  // ─── Desktop: fixed sidebar ─────────────────────────────────
   return (
     <motion.aside
       initial={false}
       animate={{ width: collapsed ? 68 : 240 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className={cn(
-        "fixed top-0 left-0 h-screen z-50 flex flex-col border-r border-border/60 bg-background"
-      )}
+      className="fixed top-0 left-0 h-screen z-50 flex flex-col border-r border-border/60 bg-background"
     >
       {/* Header */}
       <div className={cn(
         "flex items-center h-16 border-b border-border/60 shrink-0",
         collapsed ? "justify-center px-2" : "px-5"
       )}>
-        <button
-          onClick={() => onTabChange("overview")}
-          className="font-heading font-bold tracking-tight text-foreground cursor-pointer"
-        >
+        <button onClick={() => handleTabChange("overview")} className="font-heading font-bold tracking-tight text-foreground cursor-pointer">
           {collapsed ? (
             <span className="text-base font-bold">E</span>
           ) : (
             <div className="flex flex-col leading-tight">
               <span className="text-base font-bold tracking-wide">ELEVATE</span>
-              <span className="text-[8px] font-medium tracking-[0.25em] text-muted-foreground uppercase">
-                Wellness Hub
-              </span>
+              <span className="text-[8px] font-medium tracking-[0.25em] text-muted-foreground uppercase">Wellness Hub</span>
             </div>
           )}
         </button>
@@ -137,14 +218,11 @@ const AdminNavbar = ({ activeTab, onTabChange, assignedClubId }: AdminNavbarProp
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-0.5">
-        {menuItems.map((item) => (
-          <NavItem key={item.tab} item={item} />
-        ))}
+        {menuItems.map((item) => <NavItem key={item.tab} item={item} />)}
       </nav>
 
       {/* Footer */}
       <div className="shrink-0 border-t border-border/60">
-        {/* User info */}
         {user && !collapsed && (
           <div className="px-5 pt-3 pb-1">
             <p className="text-[11px] text-muted-foreground truncate font-medium">
@@ -152,52 +230,33 @@ const AdminNavbar = ({ activeTab, onTabChange, assignedClubId }: AdminNavbarProp
             </p>
           </div>
         )}
-
-        <div className={cn(
-          "flex items-center gap-1 px-3 py-3",
-          collapsed && "flex-col"
-        )}>
-          {/* Sign out */}
+        <div className={cn("flex items-center gap-1 px-3 py-3", collapsed && "flex-col")}>
           {collapsed ? (
             <Tooltip delayDuration={0}>
               <TooltipTrigger asChild>
-                <button
-                  onClick={handleSignOut}
-                  className="flex items-center justify-center rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-                >
+                <button onClick={handleSignOut} className="flex items-center justify-center rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
                   <LogOut className="h-[18px] w-[18px]" />
                 </button>
               </TooltipTrigger>
               <TooltipContent side="right" className="text-xs">Sign Out</TooltipContent>
             </Tooltip>
           ) : (
-            <button
-              onClick={handleSignOut}
-              className="flex items-center gap-2 rounded-lg px-3 py-2 text-[13px] text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-            >
+            <button onClick={handleSignOut} className="flex items-center gap-2 rounded-lg px-3 py-2 text-[13px] text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
               <LogOut className="h-[18px] w-[18px]" />
               <span>Sign Out</span>
             </button>
           )}
-
-          {/* Collapse toggle */}
           {collapsed ? (
             <Tooltip delayDuration={0}>
               <TooltipTrigger asChild>
-                <button
-                  onClick={() => setCollapsed(false)}
-                  className="flex items-center justify-center rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-                >
+                <button onClick={() => setCollapsed(false)} className="flex items-center justify-center rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
                   <PanelLeft className="h-[18px] w-[18px]" />
                 </button>
               </TooltipTrigger>
               <TooltipContent side="right" className="text-xs">Expand</TooltipContent>
             </Tooltip>
           ) : (
-            <button
-              onClick={() => setCollapsed(true)}
-              className="ml-auto flex items-center justify-center rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-            >
+            <button onClick={() => setCollapsed(true)} className="ml-auto flex items-center justify-center rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
               <PanelLeftClose className="h-[18px] w-[18px]" />
             </button>
           )}
