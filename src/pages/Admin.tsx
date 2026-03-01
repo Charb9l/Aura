@@ -229,7 +229,7 @@ const AdminDashboard = () => {
     return (
       <div className="min-h-screen flex">
         <AdminNavbar activeTab={activeTab} onTabChange={setActiveTab} assignedClubId={myClubId} />
-        <div className="flex-1 ml-56 flex items-center justify-center"><p className="text-muted-foreground">Loading...</p></div>
+        <div className="flex-1 ml-60 flex items-center justify-center"><p className="text-muted-foreground text-sm">Loading...</p></div>
       </div>
     );
   }
@@ -267,9 +267,9 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex bg-background">
       <AdminNavbar activeTab={activeTab} onTabChange={setActiveTab} assignedClubId={myClubId} />
-      <div className="flex-1 ml-56 px-8 pt-10 pb-16">
+      <div className="flex-1 ml-60 px-10 pt-8 pb-16">
 
         {activeTab === "overview" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="overview">
