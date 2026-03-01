@@ -73,6 +73,38 @@ export type Database = {
         }
         Relationships: []
       }
+      badge_point_assignments: {
+        Row: {
+          badge_level: number
+          club_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          badge_level: number
+          club_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          badge_level?: number
+          club_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "badge_point_assignments_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_audit_log: {
         Row: {
           activity: string

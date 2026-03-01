@@ -1,12 +1,14 @@
 import { useEffect, useState, useMemo, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { format, parseISO, differenceInHours, isBefore, startOfDay, startOfWeek, subWeeks, differenceInDays } from "date-fns";
+import { format, parseISO, differenceInHours, startOfDay } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useAvatar, getInitials } from "@/hooks/useAvatar";
+import { useBadgeLevels } from "@/hooks/useBadgeLevels";
+import { useBadgePoints } from "@/hooks/useBadgePoints";
 import Navbar from "@/components/Navbar";
-import { Trophy, Star, Clock, ArrowRight, Gift, Zap, CalendarCheck, X, Pencil, Trash2, CalendarIcon, Camera, Flame, Target, Sun, Moon, TrendingUp, Sparkles } from "lucide-react";
+import { Trophy, Clock, ArrowRight, Gift, Zap, CalendarCheck, Pencil, Trash2, CalendarIcon, Camera } from "lucide-react";
 import MyPlayerSection from "@/components/MyPlayerSection";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -80,7 +82,9 @@ const ProfilePage = () => {
   const [showBadgeReward, setShowBadgeReward] = useState(false);
   const [selectedClubForPoint, setSelectedClubForPoint] = useState<string>("");
   const [assigningPoint, setAssigningPoint] = useState(false);
-  const [assignedPoints, setAssignedPoints] = useState<Record<string, number>>({});
+  
+  // Use persistent badge points
+  const { assignments: badgeAssignments, assignedLevels, assignPoint: persistAssignPoint, refetch: refetchBadgePoints } = useBadgePoints();
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -222,66 +226,17 @@ const ProfilePage = () => {
     }
   };
 
-  // Badge level completion = free loyalty points (must be before early return)
-  const completedBookingsForBadges = bookings.filter(b => b.attendance_status === "show");
-  const uniqueActivitiesCount = new Set(completedBookingsForBadges.map(b => b.activity)).size;
+  // Badge level completion using shared hook
+  const { completedLevelCount: completedBadgeLevels } = useBadgeLevels(bookings);
+  const availableBadgePoints = completedBadgeLevels - assignedLevels.size;
 
-  const badgeStreakData = useMemo(() => {
-    if (!completedBookingsForBadges.length) return { currentStreak: 0, longestStreak: 0 };
-    const weekSet = new Set<string>();
-    completedBookingsForBadges.forEach(b => {
-      const ws = startOfWeek(parseISO(b.booking_date), { weekStartsOn: 1 });
-      weekSet.add(format(ws, "yyyy-MM-dd"));
-    });
-    const sortedWeeks = Array.from(weekSet).sort().reverse();
-    let current = 0;
-    const thisWeek = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
-    const lastWeek = format(startOfWeek(subWeeks(new Date(), 1), { weekStartsOn: 1 }), "yyyy-MM-dd");
-    if (sortedWeeks[0] === thisWeek || sortedWeeks[0] === lastWeek) {
-      for (let i = 0; i < sortedWeeks.length; i++) {
-        const expected = format(startOfWeek(subWeeks(new Date(), sortedWeeks[0] === thisWeek ? i : i + 1), { weekStartsOn: 1 }), "yyyy-MM-dd");
-        if (sortedWeeks[i] === expected) current++;
-        else break;
-      }
+  // Find next unassigned level number
+  const nextUnassignedLevel = useMemo(() => {
+    for (let i = 1; i <= 3; i++) {
+      if (!assignedLevels.has(i) && i <= completedBadgeLevels) return i;
     }
-    const ascending = Array.from(weekSet).sort();
-    let longest = 1, run = 1;
-    for (let i = 1; i < ascending.length; i++) {
-      const diff = differenceInDays(parseISO(ascending[i]), parseISO(ascending[i - 1]));
-      if (diff === 7) { run++; longest = Math.max(longest, run); } else run = 1;
-    }
-    if (ascending.length <= 1) longest = ascending.length;
-    return { currentStreak: current, longestStreak: Math.max(longest, current) };
-  }, [completedBookingsForBadges]);
-
-  const morningCount = completedBookingsForBadges.filter(b => { const h = parseInt(b.booking_time); return h >= 6 && h < 12; }).length;
-  const eveningCount = completedBookingsForBadges.filter(b => { const h = parseInt(b.booking_time); return h >= 17; }).length;
-  const afternoonCount = completedBookingsForBadges.filter(b => { const h = parseInt(b.booking_time); return h >= 12 && h < 17; }).length;
-
-  const badgeWellness = useMemo(() => {
-    if (!completedBookingsForBadges.length) return 0;
-    const c = Math.min(badgeStreakData.currentStreak * 10, 40);
-    const v = Math.min(uniqueActivitiesCount * 10, 30);
-    const f = Math.min(completedBookingsForBadges.length * 2, 30);
-    return Math.min(c + v + f, 100);
-  }, [badgeStreakData.currentStreak, uniqueActivitiesCount, completedBookingsForBadges]);
-
-  const completedBadgeLevels = useMemo(() => {
-    const n = completedBookingsForBadges.length;
-    const u = uniqueActivitiesCount;
-    const ls = badgeStreakData.longestStreak;
-    const m = morningCount;
-    const e = eveningCount;
-    const a = afternoonCount;
-    const ws = badgeWellness;
-    const l1 = [n>=1, n>=3, u>=2, m>=3, e>=3, ls>=2, n>=5, ws>=30].filter(Boolean).length === 8;
-    const l2 = [n>=10, u>=3, ls>=4, m>=5, e>=5, n>=20, a>=5, ws>=60].filter(Boolean).length === 8;
-    const l3 = [n>=50, u>=5, ls>=8, m>=10, e>=10, n>=100, ls>=12, ws>=100].filter(Boolean).length === 8;
-    return (l1 ? 1 : 0) + (l2 ? 1 : 0) + (l3 ? 1 : 0);
-  }, [completedBookingsForBadges, uniqueActivitiesCount, badgeStreakData, morningCount, eveningCount, afternoonCount, badgeWellness]);
-
-  const totalAssigned = Object.values(assignedPoints).reduce((s, v) => s + v, 0);
-  const availableBadgePoints = completedBadgeLevels - totalAssigned;
+    return null;
+  }, [assignedLevels, completedBadgeLevels]);
 
   if (loading || loadingData) {
     return (
@@ -304,22 +259,29 @@ const ProfilePage = () => {
     clubPoints[club.id] = Math.max(0, showCount - noShowCount);
   });
 
-  const handleAssignPoint = () => {
-    if (!selectedClubForPoint || availableBadgePoints <= 0) return;
-    setAssignedPoints(prev => ({
-      ...prev,
-      [selectedClubForPoint]: (prev[selectedClubForPoint] || 0) + 1,
-    }));
-    const clubName = clubs.find(c => c.id === selectedClubForPoint)?.name;
-    toast.success(`+1 free loyalty point added to ${clubName}!`);
-    setSelectedClubForPoint("");
-    if (availableBadgePoints <= 1) setShowBadgeReward(false);
+  const handleAssignPoint = async () => {
+    if (!selectedClubForPoint || availableBadgePoints <= 0 || !nextUnassignedLevel) return;
+    setAssigningPoint(true);
+    const success = await persistAssignPoint(selectedClubForPoint, nextUnassignedLevel);
+    setAssigningPoint(false);
+    if (success) {
+      const clubName = clubs.find(c => c.id === selectedClubForPoint)?.name;
+      toast.success(`+1 free loyalty point added to ${clubName}!`);
+      setSelectedClubForPoint("");
+      if (availableBadgePoints <= 1) setShowBadgeReward(false);
+    } else {
+      toast.error("Failed to assign point. You may have already assigned this level's point.");
+    }
   };
 
   // Add badge points to club totals
+  const badgePointsByClub: Record<string, number> = {};
+  badgeAssignments.forEach(a => {
+    badgePointsByClub[a.club_id] = (badgePointsByClub[a.club_id] || 0) + 1;
+  });
   const effectiveClubPoints: Record<string, number> = {};
   clubs.forEach(club => {
-    effectiveClubPoints[club.id] = (clubPoints[club.id] || 0) + (assignedPoints[club.id] || 0);
+    effectiveClubPoints[club.id] = (clubPoints[club.id] || 0) + (badgePointsByClub[club.id] || 0);
   });
 
   return (
@@ -605,8 +567,8 @@ const ProfilePage = () => {
                   ))}
                 </SelectContent>
               </Select>
-              <Button onClick={handleAssignPoint} disabled={!selectedClubForPoint} className="w-full h-12 font-bold glow">
-                Add +1 Point
+              <Button onClick={handleAssignPoint} disabled={!selectedClubForPoint || assigningPoint} className="w-full h-12 font-bold glow">
+                {assigningPoint ? "Assigning..." : "Add +1 Point"}
               </Button>
             </div>
           </DialogContent>
