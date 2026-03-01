@@ -86,7 +86,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
   const [clubLocations, setClubLocations] = useState<ClubLocationRow[]>([]);
   const [offerings, setOfferings] = useState<OfferingRow[]>([]);
 
-  // Pictures Dialog state (club + academy pictures, immediate upload)
+  // Pictures Dialog state (logo + club + academy pictures, immediate upload)
   const [picturesClub, setPicturesClub] = useState<ClubRow | null>(null);
   const [clubPictures, setClubPictures] = useState<ClubPictureRow[]>([]);
   const [picAcademyBubble, setPicAcademyBubble] = useState<AcademyPictureRow | null>(null);
@@ -96,6 +96,10 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
   const [academyPicUploading, setAcademyPicUploading] = useState(false);
   const [picBubbleDragging, setPicBubbleDragging] = useState(false);
   const [picGalleryDragging, setPicGalleryDragging] = useState(false);
+  const [picLogoPreview, setPicLogoPreview] = useState<string | null>(null);
+  const [picLogoFile, setPicLogoFile] = useState<File | null>(null);
+  const [picLogoDragging, setPicLogoDragging] = useState(false);
+  const [picLogoUploading, setPicLogoUploading] = useState(false);
 
   // Offerings Dialog state
   const [showOfferingsDialog, setShowOfferingsDialog] = useState(false);
@@ -150,16 +154,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
   const handleSave = async () => {
     if (!editClub) return;
     setSaving(true);
-    let logoUrl = editClub.logo_url;
-    if (editLogoFile) {
-      const ext = editLogoFile.name.split(".").pop() || "png";
-      const filePath = `${editClub.id}.${ext}`;
-      const { error: uploadError } = await supabase.storage.from("club-logos").upload(filePath, editLogoFile, { upsert: true, cacheControl: "0" });
-      if (uploadError) { toast.error("Logo upload failed: " + uploadError.message); setSaving(false); return; }
-      const { data: urlData } = supabase.storage.from("club-logos").getPublicUrl(filePath);
-      logoUrl = `${urlData.publicUrl}?t=${Date.now()}`;
-    }
-    const { error } = await supabase.from("clubs").update({ name: editName, description: editDescription || null, logo_url: logoUrl, offerings: editOfferings, has_academy: editHasAcademy }).eq("id", editClub.id);
+    const { error } = await supabase.from("clubs").update({ name: editName, description: editDescription || null, logo_url: editClub.logo_url, offerings: editOfferings, has_academy: editHasAcademy }).eq("id", editClub.id);
     if (editNewLocations.length > 0) {
       const locsToInsert = editNewLocations.filter(l => l.name.trim() && l.location.trim()).map(l => ({ club_id: editClub.id, name: l.name.trim(), location: l.location.trim() }));
       if (locsToInsert.length > 0) { const { data: newLocs } = await supabase.from("club_locations").insert(locsToInsert).select(); if (newLocs) setClubLocations(prev => [...prev, ...(newLocs as unknown as ClubLocationRow[])]); }
@@ -170,7 +165,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
     if (deletedIds.length > 0) { await supabase.from("club_locations").delete().in("id", deletedIds); setClubLocations(prev => prev.filter(l => !deletedIds.includes(l.id))); }
     setSaving(false);
     if (error) { toast.error("Failed to update club: " + error.message); }
-    else { toast.success("Club updated successfully"); setClubs(prev => prev.map(c => c.id === editClub.id ? { ...c, name: editName, description: editDescription || null, logo_url: logoUrl, offerings: editOfferings, has_academy: editHasAcademy } : c)); setEditClub(null); }
+    else { toast.success("Club updated successfully"); setClubs(prev => prev.map(c => c.id === editClub.id ? { ...c, name: editName, description: editDescription || null, logo_url: editClub.logo_url, offerings: editOfferings, has_academy: editHasAcademy } : c)); setEditClub(null); }
   };
 
   const getLogoSrc = (club: ClubRow) => club.logo_url?.startsWith("http") ? club.logo_url : null;
@@ -269,6 +264,8 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
   const openPictures = async (club: ClubRow) => {
     setPicturesClub(club); setPicturesLoading(true);
     setPicAcademyBubble(null); setPicAcademyGallery([]);
+    setPicLogoPreview(club.logo_url?.startsWith("http") ? club.logo_url : null);
+    setPicLogoFile(null);
     const clubPicsPromise = supabase.from("club_pictures").select("*").eq("club_id", club.id).order("display_order");
     const academyPicsPromise = club.has_academy
       ? supabase.from("academy_pictures").select("*").eq("club_id", club.id).order("display_order")
@@ -281,6 +278,42 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
       setPicAcademyGallery(pics.filter(p => p.picture_type === "carousel"));
     }
     setPicturesLoading(false);
+  };
+
+  const handlePicLogoUpload = async (files: FileList | File[]) => {
+    if (!picturesClub) return;
+    const file = Array.from(files).find(f => f.type.startsWith("image/"));
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { toast.error("Image must be under 5MB"); return; }
+    setPicLogoUploading(true);
+    const ext = file.name.split(".").pop() || "png";
+    const filePath = `${picturesClub.id}.${ext}`;
+    const { error: uploadError } = await supabase.storage.from("club-logos").upload(filePath, file, { upsert: true, cacheControl: "0" });
+    if (uploadError) { toast.error("Logo upload failed: " + uploadError.message); setPicLogoUploading(false); return; }
+    const { data: urlData } = supabase.storage.from("club-logos").getPublicUrl(filePath);
+    const logoUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+    await supabase.from("clubs").update({ logo_url: logoUrl }).eq("id", picturesClub.id);
+    setPicLogoPreview(logoUrl);
+    setClubs(prev => prev.map(c => c.id === picturesClub.id ? { ...c, logo_url: logoUrl } : c));
+    setPicLogoUploading(false);
+    toast.success("Logo updated");
+  };
+
+  const handleDeleteLogo = async () => {
+    if (!picturesClub || !confirm("Remove the club logo?")) return;
+    // Remove from storage
+    const logoUrl = picturesClub.logo_url;
+    if (logoUrl) {
+      const urlParts = logoUrl.split("/club-logos/");
+      if (urlParts[1]) {
+        const storagePath = urlParts[1].split("?")[0];
+        await supabase.storage.from("club-logos").remove([storagePath]);
+      }
+    }
+    await supabase.from("clubs").update({ logo_url: null }).eq("id", picturesClub.id);
+    setPicLogoPreview(null);
+    setClubs(prev => prev.map(c => c.id === picturesClub.id ? { ...c, logo_url: null } : c));
+    toast.success("Logo removed");
   };
 
   const handlePictureUpload = async (files: FileList | File[]) => {
@@ -517,13 +550,6 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
           {editClub && (
             <div className="space-y-5 pt-2">
               <div><Label className="text-sm font-medium text-muted-foreground mb-2 block">Club Name</Label><Input value={editName} onChange={(e) => setEditName(e.target.value)} className="h-12 bg-secondary border-border" /></div>
-              <div>
-                <Label className="text-sm font-medium text-muted-foreground mb-2 block">Club Logo</Label>
-                <div onDragOver={(e) => { e.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={handleDrop} className={cn("relative border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer", dragging ? "border-primary bg-primary/5" : "border-border hover:border-muted-foreground/50")} onClick={() => document.getElementById("club-logo-input")?.click()}>
-                  <input id="club-logo-input" type="file" accept="image/*" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) handleFileSelect(file); }} />
-                  {editLogoPreview ? (<div className="flex flex-col items-center gap-3"><div className="h-24 w-24 rounded-xl overflow-hidden bg-secondary"><img src={editLogoPreview} alt="Logo preview" className="h-full w-full object-contain" /></div><p className="text-xs text-muted-foreground">Click or drag to replace</p></div>) : (<div className="flex flex-col items-center gap-2 py-4"><Upload className="h-8 w-8 text-muted-foreground" /><p className="text-sm text-muted-foreground">Drag & drop or click to upload</p></div>)}
-                </div>
-              </div>
               <div><Label className="text-sm font-medium text-muted-foreground mb-2 block">Description</Label><Textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} className="bg-secondary border-border min-h-[100px]" placeholder="Brief description..." /></div>
               <div>
                 <Label className="text-sm font-medium text-muted-foreground mb-2 block">Activities</Label>
@@ -599,6 +625,27 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
             <p className="text-center text-muted-foreground py-8 text-sm">Loading...</p>
           ) : (
             <div className="space-y-8 pt-2">
+              {/* ── Club Logo ── */}
+              <div>
+                <Label className="text-sm font-semibold text-foreground mb-3 block flex items-center gap-2">
+                  <Building2 className="h-4 w-4 text-primary" />
+                  Club Logo
+                </Label>
+                {picLogoPreview ? (
+                  <div className="group relative rounded-xl overflow-hidden border border-border bg-card w-28 h-28">
+                    <img src={picLogoPreview} alt="Logo" className="w-full h-full object-contain p-2" />
+                    <div className="absolute inset-0 bg-background/0 group-hover:bg-background/60 transition-all flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+                      <button onClick={() => document.getElementById("pic-logo-input")?.click()} className="rounded-full bg-secondary p-2 text-foreground shadow-lg hover:bg-secondary/80"><Pencil className="h-4 w-4" /></button>
+                      <button onClick={handleDeleteLogo} className="rounded-full bg-destructive p-2 text-destructive-foreground shadow-lg hover:bg-destructive/90"><Trash2 className="h-4 w-4" /></button>
+                    </div>
+                    <input id="pic-logo-input" type="file" accept="image/*" className="hidden" onChange={(e) => { if (e.target.files) handlePicLogoUpload(e.target.files); e.target.value = ""; }} />
+                  </div>
+                ) : (
+                  <DropZone id="pic-logo-drop" dragging={picLogoDragging} setDragging={setPicLogoDragging}
+                    onFiles={handlePicLogoUpload} uploading={picLogoUploading} hint="Drop or click to upload club logo" />
+                )}
+              </div>
+
               {/* ── Club Images ── */}
               <div>
                 <Label className="text-sm font-semibold text-foreground mb-3 block flex items-center gap-2">
