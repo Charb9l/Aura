@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { GraduationCap, Upload, Trash2, Image, MapPin, Plus } from "lucide-react";
+import PageContentEditor from "./admin/PageContentEditor";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -164,9 +165,12 @@ const AcademiesTab = () => {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="academies">
-      <div className="mb-8">
-        <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Academies</h1>
-        <p className="text-muted-foreground">Manage academy pictures and locations for clubs with the "Academy" activity.</p>
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Academies</h1>
+          <p className="text-muted-foreground">Manage academy pictures and locations for clubs with the "Academy" activity.</p>
+        </div>
+        <PageContentEditor pageSlug="academy" pageName="Academies" />
       </div>
 
       {academyClubs.length === 0 ? (
