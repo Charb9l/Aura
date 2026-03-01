@@ -541,10 +541,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
               ))}
               <TableRow>
                 <TableCell className="font-medium">
-                  <span className="flex items-center gap-2">
-                    <Package className="h-4 w-4 text-primary" />
-                    Activities
-                  </span>
+                  Activities
                 </TableCell>
                 <TableCell className="text-muted-foreground text-sm">Add, edit, or remove activities and their images</TableCell>
                 <TableCell>

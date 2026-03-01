@@ -637,7 +637,7 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
               </SelectTrigger>
               <SelectContent className="bg-card border-border z-50">
                 <SelectItem value="all">All Clubs &amp; Partners</SelectItem>
-                {clubs.map(c => (
+                {clubs.slice().sort((a, b) => a.name.localeCompare(b.name)).map(c => (
                   <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                 ))}
               </SelectContent>
@@ -1632,7 +1632,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                 <TableRow><TableCell colSpan={isMasterAdmin ? 4 : 3} className="text-center text-muted-foreground py-8">Loading...</TableCell></TableRow>
               ) : clubs.length === 0 ? (
                 <TableRow><TableCell colSpan={isMasterAdmin ? 4 : 3} className="text-center text-muted-foreground py-8">No clubs yet.</TableCell></TableRow>
-              ) : clubs.map((club) => {
+              ) : clubs.slice().sort((a, b) => a.name.localeCompare(b.name)).map((club) => {
                 const logoSrc = getLogoSrc(club);
                 return (
                   <TableRow key={club.id}>
@@ -2717,7 +2717,7 @@ const AdminDashboard = () => {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">All Clubs</SelectItem>
-                        {clubs.sort((a, b) => a.name.localeCompare(b.name)).map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                        {clubs.slice().sort((a, b) => a.name.localeCompare(b.name)).map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   )}
@@ -2762,9 +2762,14 @@ const AdminDashboard = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {allUsers.filter(u => !adminUsers.some(a => a.user_id === u.user_id && a.club_id)).length === 0 ? (
+                    {allUsers
+                      .filter(u => !adminUsers.some(a => a.user_id === u.user_id && a.club_id))
+                      .sort((a, b) => (a.full_name || a.email || "").localeCompare(b.full_name || b.email || "")).length === 0 ? (
                       <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">No customers yet.</TableCell></TableRow>
-                    ) : allUsers.filter(u => !adminUsers.some(a => a.user_id === u.user_id && a.club_id)).map((u) => (
+                    ) : allUsers
+                      .filter(u => !adminUsers.some(a => a.user_id === u.user_id && a.club_id))
+                      .sort((a, b) => (a.full_name || a.email || "").localeCompare(b.full_name || b.email || ""))
+                      .map((u) => (
                       <TableRow key={u.user_id}>
                         <TableCell className="font-medium">{u.full_name || "—"}</TableCell>
                         <TableCell>{u.email}</TableCell>
@@ -2807,7 +2812,7 @@ const AdminDashboard = () => {
                   <TableBody>
                     {adminUsers.length === 0 ? (
                       <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">No club admins yet.</TableCell></TableRow>
-                    ) : adminUsers.map((u) => (
+                    ) : adminUsers.slice().sort((a, b) => (a.full_name || a.email || "").localeCompare(b.full_name || b.email || "")).map((u) => (
                       <TableRow key={u.user_id}>
                         <TableCell className="font-medium">{u.full_name || "—"}</TableCell>
                         <TableCell>{u.email}</TableCell>
@@ -2889,7 +2894,7 @@ const AdminDashboard = () => {
                       </SelectTrigger>
                       <SelectContent className="bg-card border-border z-50">
                         <SelectItem value="none">All Clubs (Master Admin)</SelectItem>
-                        {clubs.map(c => (
+                        {clubs.slice().sort((a, b) => a.name.localeCompare(b.name)).map(c => (
                           <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                         ))}
                       </SelectContent>
@@ -2943,7 +2948,7 @@ const AdminDashboard = () => {
                   <TableBody>
                     {adminUsers.length === 0 ? (
                       <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">No admins yet.</TableCell></TableRow>
-                    ) : adminUsers.map((u) => (
+                    ) : adminUsers.slice().sort((a, b) => (a.full_name || a.email || "").localeCompare(b.full_name || b.email || "")).map((u) => (
                       <TableRow key={u.user_id}>
                         <TableCell className="font-medium">{u.full_name || "—"}</TableCell>
                         <TableCell>{u.email}</TableCell>
@@ -3001,7 +3006,7 @@ const AdminDashboard = () => {
                       </SelectTrigger>
                       <SelectContent className="bg-card border-border z-50">
                         <SelectItem value="none">All Clubs (Master Admin)</SelectItem>
-                        {clubs.map(c => (
+                        {clubs.slice().sort((a, b) => a.name.localeCompare(b.name)).map(c => (
                           <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                         ))}
                       </SelectContent>
@@ -3135,7 +3140,10 @@ const AdminDashboard = () => {
                     {(formerDialogType === "customer"
                       ? allUsers.filter(u => !adminUsers.some(a => a.user_id === u.user_id && a.club_id))
                       : adminUsers
-                    ).map((u) => (
+                    )
+                      .slice()
+                      .sort((a, b) => (a.full_name || a.email || "").localeCompare(b.full_name || b.email || ""))
+                      .map((u) => (
                       <TableRow key={u.user_id}>
                         <TableCell className="font-medium">{u.full_name || "—"}</TableCell>
                         <TableCell>{u.email}</TableCell>
@@ -3172,7 +3180,7 @@ const AdminDashboard = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {formerUsers.map((fu: any) => (
+                      {formerUsers.slice().sort((a: any, b: any) => (a.full_name || a.email || "").localeCompare(b.full_name || b.email || "")).map((fu: any) => (
                         <TableRow key={fu.id}>
                           <TableCell className="font-medium">{fu.full_name || "—"}</TableCell>
                           <TableCell>{fu.email}</TableCell>
