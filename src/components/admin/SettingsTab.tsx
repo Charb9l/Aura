@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { User, Palette, Clock, Bell, Download, Info, Pencil, Shield } from "lucide-react";
+import { User, Palette, Clock, Bell, Download, Info, Pencil, Shield, MapPin, Plus, Trash2, Check, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import PhoneInput from "@/components/PhoneInput";
 import ActivityColorPicker from "@/components/ActivityColorPicker";
+import { useLocations, LocationRow } from "@/hooks/useLocations";
 import { BookingRow, getBookingRevenue } from "./types";
 import { format } from "date-fns";
 
@@ -22,6 +23,7 @@ interface Props {
 const SettingsTab = ({ bookings = [] }: Props) => {
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const { user } = useAuth();
+  const { locations, refetch: refetchLocations } = useLocations();
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -29,6 +31,12 @@ const SettingsTab = ({ bookings = [] }: Props) => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [saving, setSaving] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(true);
+
+  // Locations management state
+  const [newLocationName, setNewLocationName] = useState("");
+  const [editingLocationId, setEditingLocationId] = useState<string | null>(null);
+  const [editingLocationName, setEditingLocationName] = useState("");
+  const [savingLocation, setSavingLocation] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -313,9 +321,130 @@ const SettingsTab = ({ bookings = [] }: Props) => {
     );
   }
 
+  if (activeSection === "locations") {
+    const handleAddLocation = async () => {
+      if (!newLocationName.trim()) return;
+      setSavingLocation(true);
+      const { error } = await supabase.from("locations").insert({ name: newLocationName.trim() });
+      if (error) {
+        toast.error(error.message.includes("duplicate") ? "Location already exists" : error.message);
+      } else {
+        toast.success("Location added");
+        setNewLocationName("");
+        refetchLocations();
+      }
+      setSavingLocation(false);
+    };
+
+    const handleUpdateLocation = async () => {
+      if (!editingLocationId || !editingLocationName.trim()) return;
+      setSavingLocation(true);
+      const { error } = await supabase.from("locations").update({ name: editingLocationName.trim() }).eq("id", editingLocationId);
+      if (error) {
+        toast.error(error.message.includes("duplicate") ? "Location already exists" : error.message);
+      } else {
+        toast.success("Location updated");
+        setEditingLocationId(null);
+        refetchLocations();
+      }
+      setSavingLocation(false);
+    };
+
+    const handleDeleteLocation = async (id: string, name: string) => {
+      if (!confirm(`Delete "${name}"? Existing club locations using this city won't be affected.`)) return;
+      const { error } = await supabase.from("locations").delete().eq("id", id);
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success("Location deleted");
+        refetchLocations();
+      }
+    };
+
+    return (
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="settings-locations">
+        <Button variant="ghost" size="sm" className="mb-4 gap-2" onClick={() => setActiveSection(null)}>
+          ← Back to Settings
+        </Button>
+        <Card className="bg-card border-border max-w-lg">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <MapPin className="h-5 w-5 text-primary" />
+              Manage Locations
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">Add, edit, or remove cities/areas available for club locations.</p>
+          </CardHeader>
+          <CardContent>
+            {/* Add new location */}
+            <div className="flex gap-2 mb-4">
+              <Input
+                placeholder="New city / area name..."
+                value={newLocationName}
+                onChange={(e) => setNewLocationName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleAddLocation()}
+                className="h-10 bg-secondary border-border"
+              />
+              <Button onClick={handleAddLocation} disabled={savingLocation || !newLocationName.trim()} size="sm" className="h-10 px-4 gap-1.5">
+                <Plus className="h-4 w-4" /> Add
+              </Button>
+            </div>
+
+            {/* Location list */}
+            <div className="max-h-[50vh] overflow-y-auto space-y-1">
+              {locations.map((loc) => (
+                <div key={loc.id} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-secondary/50 group">
+                  {editingLocationId === loc.id ? (
+                    <>
+                      <Input
+                        value={editingLocationName}
+                        onChange={(e) => setEditingLocationName(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && handleUpdateLocation()}
+                        className="h-8 bg-secondary border-border text-sm flex-1"
+                        autoFocus
+                      />
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={handleUpdateLocation} disabled={savingLocation}>
+                        <Check className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditingLocationId(null)}>
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-sm text-foreground flex-1">{loc.name}</span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => { setEditingLocationId(loc.id); setEditingLocationName(loc.name); }}
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => handleDeleteLocation(loc.id, loc.name)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <p className="text-xs text-muted-foreground mt-4">{locations.length} locations in the master list. These appear as options when assigning club venues.</p>
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  }
+
   // --- Main settings list ---
   const settingsItems = [
     { id: "account", icon: User, label: "My Account", description: "Edit your name, email, phone, and password" },
+    { id: "locations", icon: MapPin, label: "Locations", description: "Manage the master list of cities and areas for club venues" },
     { id: "colors", icon: Palette, label: "Activity Brand Colors", description: "Set brand colors for each activity across the customer experience" },
     { id: "hours", icon: Clock, label: "Operating Hours", description: "View booking calendar hours of operation" },
     { id: "export", icon: Download, label: "Data Export", description: "Download booking data as CSV for reporting" },
