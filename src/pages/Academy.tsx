@@ -208,7 +208,7 @@ const AcademyPage = () => {
     locs.forEach(l => {
       if (!uniqueMap.has(l.location)) uniqueMap.set(l.location, l);
     });
-    return Array.from(uniqueMap.values());
+    return Array.from(uniqueMap.values()).sort((a, b) => a.location.localeCompare(b.location));
   }, [sportFilteredClubs, allLocations]);
 
   // Filter by location second
@@ -230,7 +230,7 @@ const AcademyPage = () => {
   // Locations for selected club (for registration)
   const selectedClubLocations = useMemo(() => {
     if (!selectedClub) return [];
-    return allLocations.filter(l => l.club_id === selectedClub.id);
+    return allLocations.filter(l => l.club_id === selectedClub.id).sort((a, b) => a.name.localeCompare(b.name));
   }, [selectedClub, allLocations]);
 
   const openClubDialog = (club: AcademyClub & { slug: string; brand: string }) => {

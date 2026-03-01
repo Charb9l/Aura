@@ -5,15 +5,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import { LogOut, Menu, LayoutDashboard, Users, Settings, Tag, CalendarCheck, Eye, Building2, GraduationCap, Gamepad2 } from "lucide-react";
 
 const allMenuItems = [
-  { label: "Dashboard", icon: LayoutDashboard, tab: "overview" },
-  { label: "Bookings", icon: CalendarCheck, tab: "bookings" },
-  { label: "Users", icon: Users, tab: "users" },
-  { label: "Clubs & Partners", icon: Building2, tab: "clubs" },
   { label: "Academies", icon: GraduationCap, tab: "academies" },
+  { label: "Bookings", icon: CalendarCheck, tab: "bookings" },
+  { label: "Clubs & Partners", icon: Building2, tab: "clubs" },
   { label: "Customer Vision", icon: Eye, tab: "customer-vision" },
+  { label: "Dashboard", icon: LayoutDashboard, tab: "overview" },
   { label: "MyPlayer", icon: Gamepad2, tab: "myplayer" },
-  { label: "Settings", icon: Settings, tab: "settings" },
   { label: "Promotions", icon: Tag, tab: "promotions" },
+  { label: "Settings", icon: Settings, tab: "settings" },
+  { label: "Users", icon: Users, tab: "users" },
 ];
 
 const assignedAdminTabs = new Set(["overview", "promotions", "bookings"]);

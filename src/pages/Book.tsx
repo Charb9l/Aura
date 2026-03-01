@@ -140,7 +140,7 @@ const BookPage = () => {
       clubs.filter(c => c.offerings.some(o => sportKeywords.some(k => o.toLowerCase().includes(k)))).map(c => c.id)
     );
     const locs = clubLocations.filter(l => relevantClubIds.has(l.club_id));
-    return Array.from(new Map(locs.map(l => [l.location, l])).values());
+    return Array.from(new Map(locs.map(l => [l.location, l])).values()).sort((a, b) => a.location.localeCompare(b.location));
   }, [filterSlugs, offerings, clubs, clubLocations]);
 
   // Reset location filter when sport filter changes
@@ -165,7 +165,7 @@ const BookPage = () => {
     const keywords = activityOfferingKeywords[selectedActivity] || [selectedActivity];
     return clubs.filter(c =>
       c.offerings.some(o => keywords.some(k => o.toLowerCase().includes(k)))
-    );
+    ).sort((a, b) => a.name.localeCompare(b.name));
   }, [selectedActivity, clubs]);
 
   // Auto-select club if only one matches
@@ -181,7 +181,7 @@ const BookPage = () => {
   const resolvedClubId = selectedClub || (matchingClubs.length === 1 ? matchingClubs[0].id : "");
   const locationsForClub = useMemo(() => {
     if (!resolvedClubId) return [];
-    return clubLocations.filter(l => l.club_id === resolvedClubId);
+    return clubLocations.filter(l => l.club_id === resolvedClubId).sort((a, b) => a.name.localeCompare(b.name));
   }, [resolvedClubId, clubLocations]);
 
   // Auto-select if only one location
