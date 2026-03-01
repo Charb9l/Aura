@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useState, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -31,9 +31,13 @@ interface HeroContent {
   hero_buttons: { to: string; label: string; glow?: boolean }[];
 }
 
+const PANEL_COUNT = 4; // Always show 4 background panels
+const CYCLE_INTERVAL = 5000; // Rotate images every 5 seconds
+
 const HeroSection = () => {
-  const [heroPictures, setHeroPictures] = useState<{ image: string; alt: string }[]>([]);
+  const [allPictures, setAllPictures] = useState<{ image: string; alt: string }[]>([]);
   const [content, setContent] = useState<HeroContent | null>(null);
+  const [cycleIndex, setCycleIndex] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -42,7 +46,7 @@ const HeroSection = () => {
         supabase.from("page_content").select("*").eq("page_slug", "home").single(),
       ]);
       if (picRes.data && picRes.data.length > 0) {
-        setHeroPictures(picRes.data.map((p: any) => ({ image: p.image_url, alt: "Hero image" })));
+        setAllPictures(picRes.data.map((p: any) => ({ image: p.image_url, alt: "Hero image" })));
       }
       if (contentRes.data) {
         setContent(contentRes.data.content as unknown as HeroContent);
@@ -51,8 +55,25 @@ const HeroSection = () => {
     fetchData();
   }, []);
 
-  const panels = heroPictures.length > 0 ? heroPictures : fallbackPanels;
-  const colClass = panels.length <= 2 ? "grid-cols-1 md:grid-cols-2" : panels.length === 3 ? "grid-cols-1 md:grid-cols-3" : "grid-cols-2 md:grid-cols-4";
+  // Cycle through images when we have more than PANEL_COUNT
+  useEffect(() => {
+    if (allPictures.length <= PANEL_COUNT) return;
+    const timer = setInterval(() => {
+      setCycleIndex(prev => (prev + 1) % allPictures.length);
+    }, CYCLE_INTERVAL);
+    return () => clearInterval(timer);
+  }, [allPictures.length]);
+
+  // Pick which images to show in the 4 panels — rotates through all uploaded images
+  const panels = useMemo(() => {
+    const pics = allPictures.length > 0 ? allPictures : fallbackPanels;
+    if (pics.length <= PANEL_COUNT) return pics;
+    // Distribute across panels, cycling through the full set
+    return Array.from({ length: PANEL_COUNT }, (_, i) => {
+      const idx = (cycleIndex + i) % pics.length;
+      return pics[idx];
+    });
+  }, [allPictures, cycleIndex]);
 
   const subtitle = content?.hero_subtitle || "Movement & Mindfulness";
   const titleLine1 = content?.hero_title_line1 || "Your Journey.";
@@ -61,20 +82,26 @@ const HeroSection = () => {
 
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
-      {/* Dynamic panel background */}
-      <div className={`absolute inset-0 grid ${colClass}`}>
-        {panels.map((panel, i) => (
-          <div key={i} className="relative overflow-hidden">
-            <motion.img
-              initial={{ scale: 1.1 }}
-              animate={{ scale: 1 }}
-              transition={{ duration: 1.4, delay: i * 0.15, ease: "easeOut" }}
-              src={panel.image}
-              alt={panel.alt}
-              className="h-full w-full object-cover"
-            />
-          </div>
-        ))}
+      {/* Dynamic panel background — always 4 panels, cycling through all uploaded images */}
+      <div className="absolute inset-0 grid grid-cols-2 md:grid-cols-4">
+        <AnimatePresence mode="popLayout">
+          {panels.map((panel, i) => (
+            <motion.div
+              key={`${panel.image}-${i}`}
+              className="relative overflow-hidden"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1.2, delay: i * 0.1 }}
+            >
+              <img
+                src={panel.image}
+                alt={panel.alt}
+                className="h-full w-full object-cover"
+              />
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
 
       {/* Overlay */}
