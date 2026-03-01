@@ -290,13 +290,23 @@ const Navbar = () => {
                   <LogOut className="h-4 w-4" /> Sign Out
                 </button>
               ) : (
-                <Link
-                  to="/auth"
-                  onClick={() => setMobileOpen(false)}
-                  className="py-2.5 px-3 rounded-lg text-sm font-medium text-primary hover:bg-primary/10 transition-colors"
-                >
-                  Login / Sign Up
-                </Link>
+                <>
+                  <Link
+                    to="/auth"
+                    onClick={() => setMobileOpen(false)}
+                    className="py-2.5 px-3 rounded-lg text-sm font-medium text-primary hover:bg-primary/10 transition-colors flex items-center gap-2"
+                  >
+                    <LogIn className="h-4 w-4" /> Login / Sign Up
+                  </Link>
+                  <div className="border-t-2 border-border my-2" />
+                  <Link
+                    to="/admin"
+                    onClick={() => setMobileOpen(false)}
+                    className="py-2.5 px-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors flex items-center gap-2"
+                  >
+                    <ShieldCheck className="h-4 w-4" /> Admin
+                  </Link>
+                </>
               )}
             </div>
           </motion.div>
