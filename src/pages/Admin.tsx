@@ -45,6 +45,7 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
 
   const [editUser, setEditUser] = useState<UserWithEmail | null>(null);
+  const [editName, setEditName] = useState("");
   const [editEmail, setEditEmail] = useState("");
   const [editPhone, setEditPhone] = useState("");
   const [editPassword, setEditPassword] = useState("");
@@ -119,19 +120,20 @@ const AdminDashboard = () => {
     fetchData();
   }, []);
 
-  const openEditDialog = (u: UserWithEmail) => { setEditUser(u); setEditEmail(u.email); setEditPhone(u.phone || ""); setEditPassword(""); };
+  const openEditDialog = (u: UserWithEmail) => { setEditUser(u); setEditName(u.full_name || ""); setEditEmail(u.email); setEditPhone(u.phone || ""); setEditPassword(""); };
 
   const handleSaveUser = async () => {
     if (!editUser) return;
     setEditSaving(true);
     const body: Record<string, string> = { user_id: editUser.user_id };
+    if (editName !== (editUser.full_name || "")) body.full_name = editName;
     if (editEmail !== editUser.email) body.email = editEmail;
     if (editPhone !== (editUser.phone || "")) body.phone = editPhone;
     if (editPassword) body.password = editPassword;
     const { data, error } = await supabase.functions.invoke("admin-users", { body: { ...body, action: "update" } });
     setEditSaving(false);
     if (error || data?.error) { toast.error(data?.error || error?.message || "Update failed"); }
-    else { toast.success("User updated successfully"); setAllUsers(prev => prev.map(u => u.user_id === editUser.user_id ? { ...u, email: editEmail || u.email, phone: editPhone } : u)); setEditUser(null); }
+    else { toast.success("User updated successfully"); setAllUsers(prev => prev.map(u => u.user_id === editUser.user_id ? { ...u, full_name: editName || u.full_name, email: editEmail || u.email, phone: editPhone } : u)); setEditUser(null); }
   };
 
   const handleCreateAdmin = async (e: React.FormEvent) => {
@@ -324,6 +326,7 @@ const AdminDashboard = () => {
             <Dialog open={!!editUser} onOpenChange={(open) => !open && setEditUser(null)}>
               <DialogContent className="bg-card border-border"><DialogHeader><DialogTitle className="font-heading">Edit User — {editUser?.full_name || editUser?.email}</DialogTitle></DialogHeader>
                 <div className="space-y-4 pt-2">
+                  <div><Label htmlFor="edit-name">Full Name</Label><Input id="edit-name" value={editName} onChange={(e) => setEditName(e.target.value)} className="h-12 bg-secondary border-border mt-1" /></div>
                   <div><Label htmlFor="edit-email">Email</Label><Input id="edit-email" type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} className="h-12 bg-secondary border-border mt-1" /></div>
                   <div><Label htmlFor="edit-phone">Phone</Label><PhoneInput id="edit-phone" value={editPhone} onChange={setEditPhone} className="mt-1" /></div>
                   <div><Label htmlFor="edit-password">New Password <span className="text-muted-foreground text-xs">(leave empty to keep current)</span></Label><Input id="edit-password" type="password" placeholder="••••••••" value={editPassword} onChange={(e) => setEditPassword(e.target.value)} className="h-12 bg-secondary border-border mt-1" /></div>
