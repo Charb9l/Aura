@@ -226,8 +226,8 @@ const AdminNavbar = ({ activeTab, onTabChange, assignedClubId }: AdminNavbarProp
             <span className="text-base font-bold">E</span>
           ) : (
             <div className="flex flex-col leading-tight">
-              <span className="text-base font-bold tracking-wide">ELEVATE</span>
-              <span className="text-[8px] font-medium tracking-[0.25em] text-muted-foreground uppercase">Wellness Hub</span>
+              <span className="text-base font-bold tracking-wide">{brandName.line1}</span>
+              {brandName.line2 && <span className="text-[8px] font-medium tracking-[0.25em] text-muted-foreground uppercase">{brandName.line2}</span>}
             </div>
           )}
         </button>
