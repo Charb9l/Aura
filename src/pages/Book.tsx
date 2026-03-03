@@ -175,6 +175,16 @@ const BookPage = () => {
   const selectedOffering = offerings.find(o => o.slug === selectedActivity);
   const brand = makeBrandStyles(selectedOffering?.brand_color);
 
+  // Get price for current selection from DB
+  const getActivityPrice = (slug: string, label?: string | null): number | null => {
+    if (!resolvedClubId) return null;
+    const match = activityPrices.find(p => p.club_id === resolvedClubId && p.activity_slug === slug && p.price_label === (label || null));
+    return match ? Number(match.price) : null;
+  };
+  const currentPrice = selectedActivity === "basketball"
+    ? (courtType ? getActivityPrice("basketball", courtType) : null)
+    : getActivityPrice(selectedActivity);
+
   useEffect(() => {
     const fetchBookedSlots = async () => {
       if (!selectedActivity || !date) {
