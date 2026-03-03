@@ -302,9 +302,6 @@ const SettingsTab = () => {
     { id: "account", icon: User, label: "My Account", description: "Edit your name, email, phone, and password" },
     { id: "locations", icon: MapPin, label: "Locations", description: "Manage the master list of cities and areas for club venues" },
     { id: "colors", icon: Palette, label: "Activity Brand Colors", description: "Set brand colors for each activity across the customer experience" },
-    { id: "hours", icon: Clock, label: "Operating Hours", description: "View booking calendar hours of operation" },
-    { id: "about", icon: Info, label: "About", description: "Platform information and version details" },
-    { id: "about", icon: Info, label: "About", description: "Platform information and version details" },
   ];
 
   return (
