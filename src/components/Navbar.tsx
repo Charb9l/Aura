@@ -103,9 +103,13 @@ const Navbar = () => {
       <div className="container mx-auto flex items-center justify-between px-8 py-5">
         {/* Logo */}
         <Link to="/" className="font-heading tracking-tight text-foreground shrink-0">
-          <span className="text-2xl font-light">ELEVATE</span>
-          <br />
-          <span className="text-[9px] font-body font-light tracking-[0.35em] text-muted-foreground uppercase">Wellness Hub</span>
+          <span className="text-2xl font-light">{platformName.line1}</span>
+          {platformName.line2 && (
+            <>
+              <br />
+              <span className="text-[9px] font-body font-light tracking-[0.35em] text-muted-foreground uppercase">{platformName.line2}</span>
+            </>
+          )}
         </Link>
 
         {/* Center: Nav Links (desktop) */}

@@ -78,29 +78,37 @@ const HeroSection = () => {
   const titleLine2 = content?.hero_title_line2 || "Your Space.";
   const actions = content?.hero_buttons?.map((b, i) => ({ ...b, delay: 0.4 + i * 0.1 })) || defaultActions;
 
+  const bgPicture = content?.background_picture || "";
+
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
-      {/* Dynamic panel background */}
-      <div className="absolute inset-0 grid grid-cols-2 md:grid-cols-4">
-        <AnimatePresence mode="popLayout">
-          {panels.map((panel, i) => (
-            <motion.div
-              key={`${panel.image}-${i}`}
-              className="relative overflow-hidden"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 1.2, delay: i * 0.1 }}
-            >
-              <img
-                src={panel.image}
-                alt={panel.alt}
-                className="h-full w-full object-cover saturate-[0.3] contrast-[1.1]"
-              />
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
+      {/* Background: either single picture or dynamic panels */}
+      {bgPicture ? (
+        <div className="absolute inset-0">
+          <img src={bgPicture} alt="Background" className="h-full w-full object-cover saturate-[0.3] contrast-[1.1]" />
+        </div>
+      ) : panels.length > 0 ? (
+        <div className="absolute inset-0 grid grid-cols-2 md:grid-cols-4">
+          <AnimatePresence mode="popLayout">
+            {panels.map((panel, i) => (
+              <motion.div
+                key={`${panel.image}-${i}`}
+                className="relative overflow-hidden"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 1.2, delay: i * 0.1 }}
+              >
+                <img
+                  src={panel.image}
+                  alt={panel.alt}
+                  className="h-full w-full object-cover saturate-[0.3] contrast-[1.1]"
+                />
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+      ) : null}
 
       {/* Overlay — deep obsidian fade */}
       <div className="absolute inset-0 bg-background/80" />
