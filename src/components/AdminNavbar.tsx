@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import {
-  LogOut, LayoutDashboard, Users, Settings, Tag, CalendarCheck, Eye,
+  LogOut, LayoutDashboard, Users, Settings, Tag, CalendarCheck,
   Building2, GraduationCap, Gamepad2, TrendingUp, PanelLeftClose, PanelLeft, FileBarChart, Package, Menu, X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
