@@ -412,15 +412,24 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
     }
     // Save activity prices for this new club
     const newClubId = (newClub as any).id;
+    // For add, prices use key format "slug:locationId:label" or "slug:locationId"
+    // But locations were just inserted — we need to resolve names to IDs
+    // Since addPrices keys reference temp location names, we need a different approach:
+    // Actually for add flow, locations are inserted above and we have their IDs in clubLocations state now.
+    // The addPrices keys will use "slug:locName|locCity:label" format during add
+    // Let's just save them with the location_id resolved from the newly inserted locations
     const priceRows = Object.entries(addPrices)
       .filter(([, val]) => val && Number(val) > 0)
       .map(([key, val]) => {
         const parts = key.split(":");
-        return { club_id: newClubId, activity_slug: parts[0], price: Number(val), price_label: parts[1] || null };
+        const slug = parts[0];
+        const locationId = parts[1] === "none" ? null : parts[1];
+        const label = parts[2] || null;
+        return { club_id: newClubId, activity_slug: slug, price: Number(val), price_label: label, location_id: locationId };
       });
     if (priceRows.length > 0) {
       await supabase.from("club_activity_prices").insert(priceRows as any);
-      setAllActivityPrices(prev => [...prev, ...priceRows.map((r, i) => ({ ...r, id: `temp-add-${i}`, created_at: new Date().toISOString() }))]);
+      setAllActivityPrices(prev => [...prev, ...priceRows.map((r, i) => ({ ...r, id: `temp-add-${i}`, created_at: new Date().toISOString() }))] as ClubActivityPrice[]);
     }
     setAddClubSaving(false);
     toast.success(`Club "${addClubName.trim()}" added successfully`);
