@@ -515,23 +515,23 @@ const HabitsPage = () => {
                     <p className="text-sm text-muted-foreground">Last 12 weeks of booking activity</p>
                   </CardHeader>
                   <CardContent>
-                    <div className="flex gap-1">
-                      {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
-                        <div key={i} className="flex-1 text-center text-[10px] text-muted-foreground mb-1">{d}</div>
-                      ))}
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      {heatmapData.map((week, wi) => (
-                        <div key={wi} className="flex gap-1">
-                          {week.map((day, di) => (
+                    <div className="overflow-x-auto">
+                      <div className="inline-grid gap-[3px]" style={{ gridTemplateRows: "repeat(7, 1fr)", gridAutoFlow: "column", gridAutoColumns: "min-content" }}>
+                        {/* Day labels */}
+                        {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
+                          <div key={`label-${i}`} className="w-3 h-3 flex items-center justify-end pr-1 text-[8px] text-muted-foreground leading-none">{i % 2 === 0 ? d : ""}</div>
+                        ))}
+                        {/* Week columns */}
+                        {heatmapData.map((week, wi) =>
+                          week.map((day, di) => (
                             <div
-                              key={di}
-                              className={`flex-1 aspect-square rounded-sm ${getHeatmapColor(day.count)} transition-all hover:ring-1 hover:ring-primary/50`}
+                              key={`${wi}-${di}`}
+                              className={`w-3 h-3 rounded-[2px] ${getHeatmapColor(day.count)} transition-all hover:ring-1 hover:ring-primary/50`}
                               title={`${format(day.date, "MMM dd")}: ${day.count} booking${day.count !== 1 ? "s" : ""}`}
                             />
-                          ))}
-                        </div>
-                      ))}
+                          ))
+                        )}
+                      </div>
                     </div>
                     <div className="flex items-center justify-end gap-1.5 mt-3">
                       <span className="text-[10px] text-muted-foreground">Less</span>
