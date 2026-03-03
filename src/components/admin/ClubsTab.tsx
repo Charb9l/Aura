@@ -21,14 +21,13 @@ import AdminFinderInput from "./AdminFinderInput";
 /** Map offering name to booking activity slug */
 const offeringToSlug = (name: string): string | null => {
   const lower = name.toLowerCase();
-  if (lower.includes("academy")) return null; // academies don't have bookable prices
+  if (lower.includes("academy")) return null;
   if (lower.includes("basketball")) return "basketball";
   if (lower.includes("tennis")) return "tennis";
   if (lower.includes("pilates")) return "pilates";
   if (lower.includes("yoga") || lower.includes("aerial")) return "aerial-yoga";
   return lower.replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 };
-import AdminFinderInput from "./AdminFinderInput";
 
 interface ClubLocationRow { id: string; club_id: string; name: string; location: string; activity: string | null; }
 interface ClubPictureRow { id: string; club_id: string; image_url: string; display_order: number; }
