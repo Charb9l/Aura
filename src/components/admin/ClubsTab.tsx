@@ -765,6 +765,12 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
         <DialogContent className="bg-card border-border max-w-2xl w-[66vw] max-h-[80vh] overflow-y-auto">
           <DialogHeader><DialogTitle className="font-heading text-xl flex items-center gap-2"><Building2 className="h-5 w-5 text-primary" /> Add Club / Partner</DialogTitle></DialogHeader>
           <div className="space-y-5 pt-2">
+            {/* Published checkbox */}
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" checked={addClubPublished} onChange={(e) => setAddClubPublished(e.target.checked)} className="rounded border-border h-4 w-4" />
+              <span className="text-sm font-medium text-foreground">Published</span>
+              <span className="text-xs text-muted-foreground">(visible to customers)</span>
+            </label>
             {/* 1. Name */}
             <div><Label className="text-sm font-medium text-muted-foreground mb-2 block">Club Name</Label><Input value={addClubName} onChange={(e) => setAddClubName(e.target.value)} placeholder="Enter club name" className="h-12 bg-secondary border-border" /></div>
 
