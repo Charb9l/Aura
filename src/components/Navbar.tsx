@@ -51,7 +51,8 @@ const Navbar = () => {
   const { completedLevelCount } = useBadgeLevels(navBookings);
   const { assignedLevels, loading: badgeLoading } = useBadgePoints();
   const hasUnassignedBadgePoints = !badgeLoading && completedLevelCount > assignedLevels.size;
-  const showGlow = user && (playerComplete === false || !avatarUrl || hasPendingBookings || hasUnassignedBadgePoints);
+  const pendingNudgeCount = usePendingNudgeCount();
+  const showGlow = user && (playerComplete === false || !avatarUrl || hasPendingBookings || hasUnassignedBadgePoints || pendingNudgeCount > 0);
   const { isAdmin } = useAdminRole();
   const initials = getInitials(user?.user_metadata?.full_name, user?.email);
 
