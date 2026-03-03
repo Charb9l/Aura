@@ -520,12 +520,15 @@ const BookPage = () => {
             </div>
           </motion.div>
 
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="flex items-center gap-4">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="flex items-center gap-5">
             <Button type="submit" disabled={!selectedActivity || !date || !selectedTime || !name || !email || !isValidEmail(email) || !phone || (selectedActivity === "basketball" && !courtType) || (matchingClubs.length > 1 && !selectedClub) || !selectedLocation || submitting} className="h-14 px-10 text-lg font-bold rounded-xl glow">
               {submitting ? "Booking..." : "Confirm Booking"}
             </Button>
-            {currentPrice !== null && selectedActivity !== "basketball" && (
-              <span className="text-lg font-semibold text-foreground">${currentPrice}</span>
+            {currentPrice !== null && (
+              <div className="flex items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 px-5 py-2.5 backdrop-blur-sm">
+                <span className="text-xs uppercase tracking-widest text-muted-foreground font-medium">Total</span>
+                <span className="font-heading text-2xl font-bold text-primary">${currentPrice}</span>
+              </div>
             )}
           </motion.div>
           </>
