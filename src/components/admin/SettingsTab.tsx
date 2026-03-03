@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { User, Palette, Pencil, MapPin, Plus, Trash2, Check, X, Eye } from "lucide-react";
+import { User, Pencil, MapPin, Plus, Trash2, Check, X, Eye } from "lucide-react";
 import CustomerVisionTab from "@/components/CustomerVisionTab";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -12,7 +12,7 @@ import { toast } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import PhoneInput from "@/components/PhoneInput";
-import ActivityColorPicker from "@/components/ActivityColorPicker";
+
 import { useLocations, LocationRow } from "@/hooks/useLocations";
 
 const SettingsTab = () => {
@@ -104,16 +104,6 @@ const SettingsTab = () => {
 
   // --- Section renders ---
 
-  if (activeSection === "colors") {
-    return (
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="settings-colors">
-        <Button variant="ghost" size="sm" className="mb-4 gap-2" onClick={() => setActiveSection(null)}>
-          ← Back to Settings
-        </Button>
-        <ActivityColorPicker />
-      </motion.div>
-    );
-  }
 
   if (activeSection === "account") {
     return (
@@ -314,7 +304,6 @@ const SettingsTab = () => {
     { id: "customer-vision", icon: Eye, label: "Customer Vision", description: "Manage landing page content, branding, and page settings" },
     { id: "account", icon: User, label: "My Account", description: "Edit your name, email, phone, and password" },
     { id: "locations", icon: MapPin, label: "Locations", description: "Manage the master list of cities and areas for club venues" },
-    { id: "colors", icon: Palette, label: "Activity Brand Colors", description: "Set brand colors for each activity across the customer experience" },
   ];
 
   return (

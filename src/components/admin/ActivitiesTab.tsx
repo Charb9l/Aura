@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { Plus, Pencil, Trash2, Upload, Package, Image as ImageIcon } from "lucide-react";
+import { Plus, Pencil, Trash2, Upload, Package, Image as ImageIcon, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import AdminFinderInput from "./AdminFinderInput";
@@ -9,12 +9,37 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+
+const COLOR_PALETTE = [
+  { label: "Orange", hsl: "30 80% 55%" },
+  { label: "Amber", hsl: "38 92% 50%" },
+  { label: "Red", hsl: "0 72% 51%" },
+  { label: "Rose", hsl: "350 65% 55%" },
+  { label: "Pink", hsl: "330 65% 60%" },
+  { label: "Fuchsia", hsl: "292 60% 55%" },
+  { label: "Purple", hsl: "262 50% 55%" },
+  { label: "Violet", hsl: "270 60% 60%" },
+  { label: "Indigo", hsl: "234 60% 55%" },
+  { label: "Blue", hsl: "212 70% 55%" },
+  { label: "Sky", hsl: "199 80% 55%" },
+  { label: "Cyan", hsl: "186 70% 50%" },
+  { label: "Teal", hsl: "172 60% 42%" },
+  { label: "Emerald", hsl: "155 60% 42%" },
+  { label: "Dark Green", hsl: "142 50% 35%" },
+  { label: "Green", hsl: "142 60% 45%" },
+  { label: "Lime", hsl: "84 60% 50%" },
+  { label: "Sage", hsl: "100 22% 60%" },
+  { label: "Yellow", hsl: "48 90% 50%" },
+  { label: "Slate", hsl: "215 20% 50%" },
+];
 
 interface OfferingRow {
   id: string;
   name: string;
   slug: string;
   logo_url: string | null;
+  brand_color: string | null;
   created_at: string;
 }
 
@@ -36,7 +61,7 @@ const ActivitiesTab = () => {
 
   const fetchOfferings = async () => {
     setLoading(true);
-    const { data } = await supabase.from("offerings").select("*").order("name");
+    const { data } = await supabase.from("offerings").select("id, name, slug, logo_url, brand_color, created_at").order("name");
     if (data) setOfferings(data as unknown as OfferingRow[]);
     setLoading(false);
   };
@@ -186,6 +211,42 @@ const ActivitiesTab = () => {
                 <p className="font-medium text-foreground truncate">{o.name}</p>
                 <p className="text-xs text-muted-foreground font-mono">{o.slug}</p>
               </div>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    className="h-8 w-8 rounded-lg border border-border shrink-0 hover:scale-110 transition-transform"
+                    style={{ backgroundColor: o.brand_color ? `hsl(${o.brand_color})` : "hsl(var(--muted))" }}
+                    title="Set brand color"
+                  />
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-3" align="end">
+                  <p className="text-xs text-muted-foreground mb-2 font-medium">Brand Color</p>
+                  <div className="grid grid-cols-5 gap-1.5">
+                    {COLOR_PALETTE.map((color) => {
+                      const isSelected = o.brand_color === color.hsl;
+                      return (
+                        <button
+                          key={color.hsl}
+                          onClick={async () => {
+                            const { error } = await supabase.from("offerings").update({ brand_color: color.hsl }).eq("id", o.id);
+                            if (error) { toast.error("Failed to save color"); return; }
+                            setOfferings(prev => prev.map(x => x.id === o.id ? { ...x, brand_color: color.hsl } : x));
+                            toast.success("Color updated");
+                          }}
+                          title={color.label}
+                          className={cn(
+                            "h-7 w-7 rounded-md border-2 transition-all relative hover:scale-110",
+                            isSelected ? "border-foreground ring-2 ring-foreground/20 scale-110" : "border-transparent hover:border-muted-foreground/40"
+                          )}
+                          style={{ backgroundColor: `hsl(${color.hsl})` }}
+                        >
+                          {isSelected && <Check className="h-3 w-3 text-white absolute inset-0 m-auto drop-shadow-md" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </PopoverContent>
+              </Popover>
               <Button variant="ghost" size="icon" onClick={() => openEdit(o)}><Pencil className="h-4 w-4" /></Button>
               <Button variant="ghost" size="icon" onClick={() => handleDelete(o)} className="text-destructive hover:text-destructive hover:bg-destructive/10"><Trash2 className="h-4 w-4" /></Button>
             </div>
