@@ -291,19 +291,24 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
     const priceRows = Object.entries(editPrices)
       .filter(([, val]) => val && Number(val) > 0)
       .map(([key, val]) => {
+        // key format: "slug:locationId:label" or "slug:locationId"
         const parts = key.split(":");
+        const slug = parts[0];
+        const locationId = parts[1] === "none" ? null : parts[1];
+        const label = parts[2] || null;
         return {
           club_id: editClub.id,
-          activity_slug: parts[0],
+          activity_slug: slug,
           price: Number(val),
-          price_label: parts[1] || null,
+          price_label: label,
+          location_id: locationId,
         };
       });
     if (priceRows.length > 0) {
       await supabase.from("club_activity_prices").insert(priceRows as any);
     }
     // Update local cache
-    setAllActivityPrices(prev => [...prev.filter(p => p.club_id !== editClub.id), ...priceRows.map((r, i) => ({ ...r, id: `temp-${i}`, created_at: new Date().toISOString() }))]);
+    setAllActivityPrices(prev => [...prev.filter(p => p.club_id !== editClub.id), ...priceRows.map((r, i) => ({ ...r, id: `temp-${i}`, created_at: new Date().toISOString() }))] as ClubActivityPrice[]);
 
     setSaving(false);
     if (error) { toast.error("Failed to update club: " + error.message); }
