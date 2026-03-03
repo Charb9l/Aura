@@ -27,21 +27,11 @@ const DEFAULT_NAV_ORDER: NavItem[] = [
   { to: "/loyalty", label: "Loyalty" },
 ];
 
-interface AboutValue { icon: string; title: string; description: string; }
-
 interface HomeContent {
   hero_subtitle: string;
   hero_title_line1: string;
   hero_title_line2: string;
   hero_buttons: HeroButton[];
-  about_heading: string;
-  about_intro: string;
-  about_mission_title: string;
-  about_mission: string;
-  about_vision_title: string;
-  about_vision: string;
-  about_values_title: string;
-  about_values: AboutValue[];
   nav_order?: NavItem[];
   background_picture?: string;
   platform_name?: string;
@@ -442,14 +432,6 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
   const [heroLine1, setHeroLine1] = useState("");
   const [heroLine2, setHeroLine2] = useState("");
   const [heroButtons, setHeroButtons] = useState<HeroButton[]>([]);
-  const [aboutHeading, setAboutHeading] = useState("");
-  const [aboutIntro, setAboutIntro] = useState("");
-  const [aboutMissionTitle, setAboutMissionTitle] = useState("");
-  const [aboutMission, setAboutMission] = useState("");
-  const [aboutVisionTitle, setAboutVisionTitle] = useState("");
-  const [aboutVision, setAboutVision] = useState("");
-  const [aboutValuesTitle, setAboutValuesTitle] = useState("");
-  const [aboutValues, setAboutValues] = useState<AboutValue[]>([]);
   const [navOrder, setNavOrder] = useState<NavItem[]>(DEFAULT_NAV_ORDER);
   const [backgroundPicture, setBackgroundPicture] = useState("");
   const [platformName, setPlatformName] = useState("");
@@ -479,14 +461,6 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
       setHeroLine1(content.hero_title_line1 || "");
       setHeroLine2(content.hero_title_line2 || "");
       setHeroButtons([...(content.hero_buttons || [])]);
-      setAboutHeading(content.about_heading || "");
-      setAboutIntro(content.about_intro || "");
-      setAboutMissionTitle(content.about_mission_title || "");
-      setAboutMission(content.about_mission || "");
-      setAboutVisionTitle(content.about_vision_title || "");
-      setAboutVision(content.about_vision || "");
-      setAboutValuesTitle(content.about_values_title || "");
-      setAboutValues([...(content.about_values || [])]);
       setNavOrder(content.nav_order?.length ? [...content.nav_order] : [...DEFAULT_NAV_ORDER]);
       setBackgroundPicture(content.background_picture || "");
       setPlatformName(content.platform_name || "");
@@ -521,14 +495,6 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
       hero_title_line1: heroLine1,
       hero_title_line2: heroLine2,
       hero_buttons: heroButtons.filter(b => b.label.trim() && b.to.trim()),
-      about_heading: aboutHeading,
-      about_intro: aboutIntro,
-      about_mission_title: aboutMissionTitle,
-      about_mission: aboutMission,
-      about_vision_title: aboutVisionTitle,
-      about_vision: aboutVision,
-      about_values_title: aboutValuesTitle,
-      about_values: aboutValues.filter(v => v.title.trim()),
       nav_order: navOrder,
       background_picture: backgroundPicture,
       platform_name: platformName,
@@ -688,69 +654,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
               </div>
             </div>
 
-            {/* About Us Section */}
-            <div className="border-t border-border pt-6">
-              <Label className="text-sm font-medium text-muted-foreground mb-4 block">About Us Section</Label>
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-xs text-muted-foreground mb-1 block">Heading</Label>
-                  <Input value={aboutHeading} onChange={(e) => setAboutHeading(e.target.value)} placeholder="e.g. Who We Are" className="h-12 bg-secondary border-border" />
-                </div>
-                <div>
-                  <Label className="text-xs text-muted-foreground mb-1 block">Intro Paragraph</Label>
-                  <textarea value={aboutIntro} onChange={(e) => setAboutIntro(e.target.value)} placeholder="Tell your story..." rows={3} className="w-full rounded-md border border-border bg-secondary px-3 py-2 text-sm text-foreground resize-y" />
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-xs text-muted-foreground mb-1 block">Mission Title</Label>
-                    <Input value={aboutMissionTitle} onChange={(e) => setAboutMissionTitle(e.target.value)} placeholder="Our Mission" className="h-10 bg-secondary border-border" />
-                  </div>
-                  <div>
-                    <Label className="text-xs text-muted-foreground mb-1 block">Vision Title</Label>
-                    <Input value={aboutVisionTitle} onChange={(e) => setAboutVisionTitle(e.target.value)} placeholder="Our Vision" className="h-10 bg-secondary border-border" />
-                  </div>
-                </div>
-                <div>
-                  <Label className="text-xs text-muted-foreground mb-1 block">Mission Text</Label>
-                  <textarea value={aboutMission} onChange={(e) => setAboutMission(e.target.value)} placeholder="Your mission..." rows={3} className="w-full rounded-md border border-border bg-secondary px-3 py-2 text-sm text-foreground resize-y" />
-                </div>
-                <div>
-                  <Label className="text-xs text-muted-foreground mb-1 block">Vision Text</Label>
-                  <textarea value={aboutVision} onChange={(e) => setAboutVision(e.target.value)} placeholder="Your vision..." rows={3} className="w-full rounded-md border border-border bg-secondary px-3 py-2 text-sm text-foreground resize-y" />
-                </div>
-                <div>
-                  <Label className="text-xs text-muted-foreground mb-1 block">Values Section Title</Label>
-                  <Input value={aboutValuesTitle} onChange={(e) => setAboutValuesTitle(e.target.value)} placeholder="What We Stand For" className="h-10 bg-secondary border-border" />
-                </div>
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <Label className="text-xs text-muted-foreground">Values</Label>
-                    <Button type="button" variant="outline" size="sm" onClick={() => setAboutValues(prev => [...prev, { icon: "heart", title: "", description: "" }])} className="gap-1.5 text-xs"><Plus className="h-3.5 w-3.5" /> Add Value</Button>
-                  </div>
-                  <div className="space-y-3">
-                    {aboutValues.map((val, i) => (
-                      <div key={i} className="flex items-start gap-2 p-3 rounded-lg border border-border bg-secondary/50">
-                        <Select value={val.icon} onValueChange={(v) => setAboutValues(prev => prev.map((x, idx) => idx === i ? { ...x, icon: v } : x))}>
-                          <SelectTrigger className="h-9 w-24 bg-background border-border text-sm shrink-0"><SelectValue /></SelectTrigger>
-                          <SelectContent className="bg-card border-border z-50">
-                            <SelectItem value="heart">♥ Heart</SelectItem>
-                            <SelectItem value="users">👥 Users</SelectItem>
-                            <SelectItem value="sparkles">✨ Sparkles</SelectItem>
-                            <SelectItem value="target">🎯 Target</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <div className="flex-1 space-y-2">
-                          <Input value={val.title} onChange={(e) => setAboutValues(prev => prev.map((x, idx) => idx === i ? { ...x, title: e.target.value } : x))} placeholder="Value title" className="h-9 bg-background border-border text-sm" />
-                          <Input value={val.description} onChange={(e) => setAboutValues(prev => prev.map((x, idx) => idx === i ? { ...x, description: e.target.value } : x))} placeholder="Short description" className="h-9 bg-background border-border text-sm" />
-                        </div>
-                        <Button type="button" variant="ghost" size="icon" onClick={() => setAboutValues(prev => prev.filter((_, idx) => idx !== i))} className="shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"><Trash2 className="h-4 w-4" /></Button>
-                      </div>
-                    ))}
-                    {aboutValues.length === 0 && <p className="text-sm text-muted-foreground text-center py-3">No values. Default ones will be shown.</p>}
-                  </div>
-                </div>
-              </div>
-            </div>
+
 
             <div className="border-t border-border pt-6">
               <PagePicturesManager pageSlug="home" />
