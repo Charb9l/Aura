@@ -396,11 +396,22 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
       const { error: uploadError } = await supabase.storage.from("club-logos").upload(filePath, addClubLogoFile, { upsert: true, cacheControl: "0" });
       if (!uploadError) { const { data: urlData } = supabase.storage.from("club-logos").getPublicUrl(filePath); logoUrl = `${urlData.publicUrl}?t=${Date.now()}`; await supabase.from("clubs").update({ logo_url: logoUrl }).eq("id", (newClub as any).id); }
     }
-    // Insert per-activity locations
+    // Insert per-activity locations and build index-to-id map
+    const locIdMap: Record<string, string> = {}; // "activity:index" -> id
     if (allLocs.length > 0) {
       const locsToInsert = allLocs.map(l => ({ club_id: (newClub as any).id, name: l.name.trim(), location: l.location.trim(), activity: l.activity }));
       const { data: newLocs } = await supabase.from("club_locations").insert(locsToInsert).select();
-      if (newLocs) setClubLocations(prev => [...prev, ...(newLocs as unknown as ClubLocationRow[])]);
+      if (newLocs) {
+        setClubLocations(prev => [...prev, ...(newLocs as unknown as ClubLocationRow[])]);
+        // Build map: for each activity, map the index to the inserted ID
+        const activityCounters: Record<string, number> = {};
+        for (const loc of newLocs as any[]) {
+          const act = loc.activity || "";
+          const idx = activityCounters[act] || 0;
+          locIdMap[`${act}:${idx}`] = loc.id;
+          activityCounters[act] = idx + 1;
+        }
+      }
     }
     if (addClubPicFiles.length > 0) await uploadClubPictures((newClub as any).id, addClubPicFiles);
     if (addClubHasAcademy) {
@@ -410,21 +421,18 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
         await uploadAcademyPicture(clubId, addAcademyGalleryFiles[i], "carousel", i);
       }
     }
-    // Save activity prices for this new club
+    // Save activity prices — resolve temp keys to real location IDs
     const newClubId = (newClub as any).id;
-    // For add, prices use key format "slug:locationId:label" or "slug:locationId"
-    // But locations were just inserted — we need to resolve names to IDs
-    // Since addPrices keys reference temp location names, we need a different approach:
-    // Actually for add flow, locations are inserted above and we have their IDs in clubLocations state now.
-    // The addPrices keys will use "slug:locName|locCity:label" format during add
-    // Let's just save them with the location_id resolved from the newly inserted locations
     const priceRows = Object.entries(addPrices)
       .filter(([, val]) => val && Number(val) > 0)
       .map(([key, val]) => {
+        // key format: "slug:activity:index:label" or "slug:activity:index"
         const parts = key.split(":");
         const slug = parts[0];
-        const locationId = parts[1] === "none" ? null : parts[1];
-        const label = parts[2] || null;
+        const actName = parts[1];
+        const locIdx = parts[2];
+        const label = parts[3] || null;
+        const locationId = locIdMap[`${actName}:${locIdx}`] || null;
         return { club_id: newClubId, activity_slug: slug, price: Number(val), price_label: label, location_id: locationId };
       });
     if (priceRows.length > 0) {
