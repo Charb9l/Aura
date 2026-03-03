@@ -223,7 +223,7 @@ const AdminNavbar = ({ activeTab, onTabChange, assignedClubId }: AdminNavbarProp
       )}>
         <button onClick={() => handleTabChange("overview")} className="font-heading font-bold tracking-tight text-foreground cursor-pointer">
           {collapsed ? (
-            <span className="text-base font-bold">E</span>
+            <span className="text-base font-bold">{brandName.line1.charAt(0)}</span>
           ) : (
             <div className="flex flex-col leading-tight">
               <span className="text-base font-bold tracking-wide">{brandName.line1}</span>
