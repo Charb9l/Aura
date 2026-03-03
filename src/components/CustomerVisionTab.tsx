@@ -451,6 +451,8 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
   const [aboutValuesTitle, setAboutValuesTitle] = useState("");
   const [aboutValues, setAboutValues] = useState<AboutValue[]>([]);
   const [navOrder, setNavOrder] = useState<NavItem[]>(DEFAULT_NAV_ORDER);
+  const [backgroundPicture, setBackgroundPicture] = useState("");
+  const [platformName, setPlatformName] = useState("");
 
   // Generic page state
   const [pageTitle, setPageTitle] = useState("");
