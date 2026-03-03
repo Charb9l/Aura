@@ -79,15 +79,18 @@ const HeroSection = () => {
   const actions = content?.hero_buttons?.map((b, i) => ({ ...b, delay: 0.4 + i * 0.1 })) || defaultActions;
 
   const bgPicture = content?.background_picture || "";
+  // Only show panel background if a background_picture URL is explicitly set
+  // If content has loaded and no background_picture is set, show nothing
+  const showPanels = bgPicture ? false : (!content && panels.length > 0);
 
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
-      {/* Background: either single picture or dynamic panels */}
+      {/* Background: single picture if set */}
       {bgPicture ? (
         <div className="absolute inset-0">
           <img src={bgPicture} alt="Background" className="h-full w-full object-cover saturate-[0.3] contrast-[1.1]" />
         </div>
-      ) : panels.length > 0 ? (
+      ) : showPanels ? (
         <div className="absolute inset-0 grid grid-cols-2 md:grid-cols-4">
           <AnimatePresence mode="popLayout">
             {panels.map((panel, i) => (
