@@ -199,29 +199,26 @@ const MyPlayerSection = ({ externalOpen, onExternalOpenChange }: { externalOpen?
     );
   };
 
-  return (
-    <>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.08 }}
-        className="mb-8"
-      >
-        <Button
-          onClick={() => setOpen(true)}
-          variant="outline"
-          className={cn(
-            "h-14 px-6 rounded-xl font-bold text-base gap-3 border-primary/30 hover:border-primary hover:bg-primary/5 transition-all",
-            !hasSaved && "animate-pulse border-primary shadow-[0_0_15px_hsl(var(--primary)/0.4)]"
-          )}
-        >
-          <Gamepad2 className="h-5 w-5 text-primary" />
-          MyPlayer
-          {!hasSaved && (
-            <span className="ml-1 h-2.5 w-2.5 rounded-full bg-primary animate-ping" />
-          )}
-        </Button>
-      </motion.div>
+  // If externally controlled, don't render the standalone button
+  if (externalOpen !== undefined) {
+    return (
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="bg-card border-border max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-heading text-xl flex items-center gap-2">
+              <Gamepad2 className="h-5 w-5 text-primary" />
+              MyPlayer Profile
+            </DialogTitle>
+            <p className="text-sm text-muted-foreground">
+              Set up your sports profile — skill level, playstyle, availability, goals, and preferred locations.
+            </p>
+          </DialogHeader>
+          {/* Dialog body rendered below */}
+          {!loaded ? (
+            <p className="text-muted-foreground text-center py-8">Loading...</p>
+          ) : offerings.length === 0 ? (
+            <p className="text-muted-foreground text-center py-8">No sports configured yet. Check back soon!</p>
+          ) : (
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="bg-card border-border max-w-lg max-h-[85vh] overflow-y-auto">
