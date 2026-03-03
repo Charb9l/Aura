@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Building2, Pencil, Trash2, Upload, X, Image, GraduationCap, MapPin, Plus } from "lucide-react";
+import { Building2, Pencil, Trash2, Upload, X, Image, GraduationCap, MapPin, Plus, Search } from "lucide-react";
 import PageContentEditor from "./PageContentEditor";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -110,6 +110,8 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
   const { locations: locationsList } = useLocations();
   const [clubs, setClubs] = useState<ClubRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [clubSearch, setClubSearch] = useState("");
+  const [academyOnly, setAcademyOnly] = useState(false);
 
   // Edit Club state
   const [editClub, setEditClub] = useState<ClubRow | null>(null);
@@ -589,7 +591,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
   // ───── Render ─────
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="clubs">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Clubs & Partners</h1>
           <p className="text-muted-foreground">All signed clubs and partners on the platform.</p>
@@ -602,6 +604,13 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
             </Button>
           </div>
         )}
+      </div>
+      <div className="flex items-center gap-3 mb-4 flex-wrap">
+        <Input placeholder="Search clubs..." value={clubSearch} onChange={(e) => setClubSearch(e.target.value)} className="h-10 bg-secondary border-border max-w-xs" />
+        <label className="flex items-center gap-2 cursor-pointer text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <input type="checkbox" checked={academyOnly} onChange={(e) => setAcademyOnly(e.target.checked)} className="rounded border-border" />
+          Academy clubs only
+        </label>
       </div>
       <Card className="bg-card border-border">
         <CardContent className="p-0">
@@ -617,9 +626,12 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
             <TableBody>
               {loading ? (
                 <TableRow><TableCell colSpan={isMasterAdmin ? 4 : 3} className="text-center text-muted-foreground py-8">Loading...</TableCell></TableRow>
-              ) : clubs.length === 0 ? (
-                <TableRow><TableCell colSpan={isMasterAdmin ? 4 : 3} className="text-center text-muted-foreground py-8">No clubs yet.</TableCell></TableRow>
-              ) : clubs.slice().sort((a, b) => a.name.localeCompare(b.name)).map((club) => {
+              ) : (() => {
+                const q = clubSearch.toLowerCase();
+                const filtered = clubs.filter(c => (!q || c.name.toLowerCase().includes(q) || (c.description || "").toLowerCase().includes(q)) && (!academyOnly || c.has_academy)).sort((a, b) => a.name.localeCompare(b.name));
+                return filtered.length === 0 ? (
+                <TableRow><TableCell colSpan={isMasterAdmin ? 4 : 3} className="text-center text-muted-foreground py-8">{clubSearch || academyOnly ? "No clubs match your filters." : "No clubs yet."}</TableCell></TableRow>
+              ) : filtered.map((club) => {
                 const logoSrc = getLogoSrc(club);
                 return (
                   <TableRow key={club.id}>
@@ -627,6 +639,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                       <div className="flex items-center gap-3">
                         {logoSrc && <div className="h-10 w-10 rounded-lg overflow-hidden bg-secondary shrink-0"><img src={logoSrc} alt={club.name} className="h-full w-full object-contain" /></div>}
                         <span className="font-medium">{club.name}</span>
+                        {club.has_academy && <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-primary/30 text-primary">Academy</Badge>}
                       </div>
                     </TableCell>
                     <TableCell className="text-muted-foreground text-sm max-w-xs">{club.description || "—"}</TableCell>
@@ -642,7 +655,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                     )}
                   </TableRow>
                 );
-              })}
+              }); })()}
             </TableBody>
           </Table>
         </CardContent>
