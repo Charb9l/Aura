@@ -199,11 +199,12 @@ const AdminDashboard = () => {
   useEffect(() => { setRevenueFilterValue("all"); }, [revenueFilterType]);
 
   // Build a price map from activityPrices: key = "slug" or "slug:label"
+  // When multiple locations have different prices, uses the first found
   const priceMap = useMemo(() => {
     const map: Record<string, number> = {};
     activityPrices.forEach(p => {
       const key = p.price_label ? `${p.activity_slug}:${p.price_label}` : p.activity_slug;
-      map[key] = Number(p.price);
+      if (!(key in map)) map[key] = Number(p.price);
     });
     return map;
   }, [activityPrices]);

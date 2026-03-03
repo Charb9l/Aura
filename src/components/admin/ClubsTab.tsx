@@ -244,7 +244,9 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
     const clubPrices = allActivityPrices.filter(p => p.club_id === club.id);
     const priceState: Record<string, string> = {};
     clubPrices.forEach(p => {
-      const key = p.price_label ? `${p.activity_slug}:${p.price_label}` : p.activity_slug;
+      // key format: "slug:locationId:label" or "slug:locationId" for non-basketball
+      const locPart = p.location_id || "none";
+      const key = p.price_label ? `${p.activity_slug}:${locPart}:${p.price_label}` : `${p.activity_slug}:${locPart}`;
       priceState[key] = String(p.price);
     });
     setEditPrices(priceState);
@@ -289,19 +291,24 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
     const priceRows = Object.entries(editPrices)
       .filter(([, val]) => val && Number(val) > 0)
       .map(([key, val]) => {
+        // key format: "slug:locationId:label" or "slug:locationId"
         const parts = key.split(":");
+        const slug = parts[0];
+        const locationId = parts[1] === "none" ? null : parts[1];
+        const label = parts[2] || null;
         return {
           club_id: editClub.id,
-          activity_slug: parts[0],
+          activity_slug: slug,
           price: Number(val),
-          price_label: parts[1] || null,
+          price_label: label,
+          location_id: locationId,
         };
       });
     if (priceRows.length > 0) {
       await supabase.from("club_activity_prices").insert(priceRows as any);
     }
     // Update local cache
-    setAllActivityPrices(prev => [...prev.filter(p => p.club_id !== editClub.id), ...priceRows.map((r, i) => ({ ...r, id: `temp-${i}`, created_at: new Date().toISOString() }))]);
+    setAllActivityPrices(prev => [...prev.filter(p => p.club_id !== editClub.id), ...priceRows.map((r, i) => ({ ...r, id: `temp-${i}`, created_at: new Date().toISOString() }))] as ClubActivityPrice[]);
 
     setSaving(false);
     if (error) { toast.error("Failed to update club: " + error.message); }
@@ -389,11 +396,22 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
       const { error: uploadError } = await supabase.storage.from("club-logos").upload(filePath, addClubLogoFile, { upsert: true, cacheControl: "0" });
       if (!uploadError) { const { data: urlData } = supabase.storage.from("club-logos").getPublicUrl(filePath); logoUrl = `${urlData.publicUrl}?t=${Date.now()}`; await supabase.from("clubs").update({ logo_url: logoUrl }).eq("id", (newClub as any).id); }
     }
-    // Insert per-activity locations
+    // Insert per-activity locations and build index-to-id map
+    const locIdMap: Record<string, string> = {}; // "activity:index" -> id
     if (allLocs.length > 0) {
       const locsToInsert = allLocs.map(l => ({ club_id: (newClub as any).id, name: l.name.trim(), location: l.location.trim(), activity: l.activity }));
       const { data: newLocs } = await supabase.from("club_locations").insert(locsToInsert).select();
-      if (newLocs) setClubLocations(prev => [...prev, ...(newLocs as unknown as ClubLocationRow[])]);
+      if (newLocs) {
+        setClubLocations(prev => [...prev, ...(newLocs as unknown as ClubLocationRow[])]);
+        // Build map: for each activity, map the index to the inserted ID
+        const activityCounters: Record<string, number> = {};
+        for (const loc of newLocs as any[]) {
+          const act = loc.activity || "";
+          const idx = activityCounters[act] || 0;
+          locIdMap[`${act}:${idx}`] = loc.id;
+          activityCounters[act] = idx + 1;
+        }
+      }
     }
     if (addClubPicFiles.length > 0) await uploadClubPictures((newClub as any).id, addClubPicFiles);
     if (addClubHasAcademy) {
@@ -403,17 +421,23 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
         await uploadAcademyPicture(clubId, addAcademyGalleryFiles[i], "carousel", i);
       }
     }
-    // Save activity prices for this new club
+    // Save activity prices — resolve temp keys to real location IDs
     const newClubId = (newClub as any).id;
     const priceRows = Object.entries(addPrices)
       .filter(([, val]) => val && Number(val) > 0)
       .map(([key, val]) => {
+        // key format: "slug:activity:index:label" or "slug:activity:index"
         const parts = key.split(":");
-        return { club_id: newClubId, activity_slug: parts[0], price: Number(val), price_label: parts[1] || null };
+        const slug = parts[0];
+        const actName = parts[1];
+        const locIdx = parts[2];
+        const label = parts[3] || null;
+        const locationId = locIdMap[`${actName}:${locIdx}`] || null;
+        return { club_id: newClubId, activity_slug: slug, price: Number(val), price_label: label, location_id: locationId };
       });
     if (priceRows.length > 0) {
       await supabase.from("club_activity_prices").insert(priceRows as any);
-      setAllActivityPrices(prev => [...prev, ...priceRows.map((r, i) => ({ ...r, id: `temp-add-${i}`, created_at: new Date().toISOString() }))]);
+      setAllActivityPrices(prev => [...prev, ...priceRows.map((r, i) => ({ ...r, id: `temp-add-${i}`, created_at: new Date().toISOString() }))] as ClubActivityPrice[]);
     }
     setAddClubSaving(false);
     toast.success(`Club "${addClubName.trim()}" added successfully`);
@@ -810,49 +834,52 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                 </div>
               )}
 
-              {/* ── Pricing per Activity ── */}
+              {/* ── Pricing per Activity per Location ── */}
               {editOfferings.filter(o => offeringToSlug(o)).length > 0 && (
                 <div className="space-y-3">
-                  <Label className="text-sm font-medium text-muted-foreground block">Activity Pricing ($)</Label>
+                  <Label className="text-sm font-medium text-muted-foreground block">Activity Pricing ($) — per Location</Label>
                   {editOfferings.map(activity => {
                     const slug = offeringToSlug(activity);
                     if (!slug) return null;
                     const isBasketball = slug === "basketball";
-                    return (
-                      <div key={`price-${activity}`} className="rounded-lg border border-border bg-secondary/30 p-3 space-y-2">
+                    const activityLocs = (editActivityLocations[activity] || []).filter(l => l.id && l.name.trim());
+                    if (activityLocs.length === 0) return (
+                      <div key={`price-${activity}`} className="rounded-lg border border-border bg-secondary/30 p-3">
                         <Label className="text-xs font-semibold">{activity}</Label>
-                        {isBasketball ? (
-                          <div className="grid grid-cols-2 gap-3">
-                            <div>
-                              <Label className="text-[11px] text-muted-foreground">Half Court</Label>
-                              <Input
-                                type="number" min="0" step="0.01"
-                                placeholder="0.00"
-                                value={editPrices[`${slug}:half`] || ""}
-                                onChange={(e) => setEditPrices(prev => ({ ...prev, [`${slug}:half`]: e.target.value }))}
-                                className="h-9 bg-background border-border text-sm"
-                              />
-                            </div>
-                            <div>
-                              <Label className="text-[11px] text-muted-foreground">Full Court</Label>
-                              <Input
-                                type="number" min="0" step="0.01"
-                                placeholder="0.00"
-                                value={editPrices[`${slug}:full`] || ""}
-                                onChange={(e) => setEditPrices(prev => ({ ...prev, [`${slug}:full`]: e.target.value }))}
-                                className="h-9 bg-background border-border text-sm"
-                              />
-                            </div>
+                        <p className="text-xs text-muted-foreground mt-1">Add locations above to set prices.</p>
+                      </div>
+                    );
+                    return (
+                      <div key={`price-${activity}`} className="rounded-lg border border-border bg-secondary/30 p-3 space-y-3">
+                        <Label className="text-xs font-semibold">{activity}</Label>
+                        {activityLocs.map(loc => (
+                          <div key={loc.id} className="rounded-md border border-border/50 bg-background/50 p-2.5 space-y-1.5">
+                            <Label className="text-[11px] text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" />{loc.name} — {loc.location}</Label>
+                            {isBasketball ? (
+                              <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                  <Label className="text-[10px] text-muted-foreground">Half Court</Label>
+                                  <Input type="number" min="0" step="0.01" placeholder="0.00"
+                                    value={editPrices[`${slug}:${loc.id}:half`] || ""}
+                                    onChange={(e) => setEditPrices(prev => ({ ...prev, [`${slug}:${loc.id}:half`]: e.target.value }))}
+                                    className="h-8 bg-background border-border text-sm" />
+                                </div>
+                                <div>
+                                  <Label className="text-[10px] text-muted-foreground">Full Court</Label>
+                                  <Input type="number" min="0" step="0.01" placeholder="0.00"
+                                    value={editPrices[`${slug}:${loc.id}:full`] || ""}
+                                    onChange={(e) => setEditPrices(prev => ({ ...prev, [`${slug}:${loc.id}:full`]: e.target.value }))}
+                                    className="h-8 bg-background border-border text-sm" />
+                                </div>
+                              </div>
+                            ) : (
+                              <Input type="number" min="0" step="0.01" placeholder="0.00"
+                                value={editPrices[`${slug}:${loc.id}`] || ""}
+                                onChange={(e) => setEditPrices(prev => ({ ...prev, [`${slug}:${loc.id}`]: e.target.value }))}
+                                className="h-8 bg-background border-border text-sm max-w-[180px]" />
+                            )}
                           </div>
-                        ) : (
-                          <Input
-                            type="number" min="0" step="0.01"
-                            placeholder="0.00"
-                            value={editPrices[slug] || ""}
-                            onChange={(e) => setEditPrices(prev => ({ ...prev, [slug]: e.target.value }))}
-                            className="h-9 bg-background border-border text-sm max-w-[200px]"
-                          />
-                        )}
+                        ))}
                       </div>
                     );
                   })}
@@ -955,49 +982,52 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
               </div>
             )}
 
-            {/* Pricing per Activity */}
+            {/* Pricing per Activity per Location */}
             {addClubOfferings.filter(o => offeringToSlug(o)).length > 0 && (
               <div className="space-y-3">
-                <Label className="text-sm font-medium text-muted-foreground block">Activity Pricing ($)</Label>
+                <Label className="text-sm font-medium text-muted-foreground block">Activity Pricing ($) — per Location</Label>
                 {addClubOfferings.map(activity => {
                   const slug = offeringToSlug(activity);
                   if (!slug) return null;
                   const isBasketball = slug === "basketball";
-                  return (
-                    <div key={`add-price-${activity}`} className="rounded-lg border border-border bg-secondary/30 p-3 space-y-2">
+                  const activityLocs = (addActivityLocations[activity] || []).filter(l => l.name.trim());
+                  if (activityLocs.length === 0) return (
+                    <div key={`add-price-${activity}`} className="rounded-lg border border-border bg-secondary/30 p-3">
                       <Label className="text-xs font-semibold">{activity}</Label>
-                      {isBasketball ? (
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <Label className="text-[11px] text-muted-foreground">Half Court</Label>
-                            <Input
-                              type="number" min="0" step="0.01"
-                              placeholder="0.00"
-                              value={addPrices[`${slug}:half`] || ""}
-                              onChange={(e) => setAddPrices(prev => ({ ...prev, [`${slug}:half`]: e.target.value }))}
-                              className="h-9 bg-background border-border text-sm"
-                            />
-                          </div>
-                          <div>
-                            <Label className="text-[11px] text-muted-foreground">Full Court</Label>
-                            <Input
-                              type="number" min="0" step="0.01"
-                              placeholder="0.00"
-                              value={addPrices[`${slug}:full`] || ""}
-                              onChange={(e) => setAddPrices(prev => ({ ...prev, [`${slug}:full`]: e.target.value }))}
-                              className="h-9 bg-background border-border text-sm"
-                            />
-                          </div>
+                      <p className="text-xs text-muted-foreground mt-1">Add locations above to set prices.</p>
+                    </div>
+                  );
+                  return (
+                    <div key={`add-price-${activity}`} className="rounded-lg border border-border bg-secondary/30 p-3 space-y-3">
+                      <Label className="text-xs font-semibold">{activity}</Label>
+                      {activityLocs.map((loc, locIdx) => (
+                        <div key={`add-loc-price-${locIdx}`} className="rounded-md border border-border/50 bg-background/50 p-2.5 space-y-1.5">
+                          <Label className="text-[11px] text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" />{loc.name} — {loc.location}</Label>
+                          {isBasketball ? (
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <Label className="text-[10px] text-muted-foreground">Half Court</Label>
+                                <Input type="number" min="0" step="0.01" placeholder="0.00"
+                                  value={addPrices[`${slug}:${activity}:${locIdx}:half`] || ""}
+                                  onChange={(e) => setAddPrices(prev => ({ ...prev, [`${slug}:${activity}:${locIdx}:half`]: e.target.value }))}
+                                  className="h-8 bg-background border-border text-sm" />
+                              </div>
+                              <div>
+                                <Label className="text-[10px] text-muted-foreground">Full Court</Label>
+                                <Input type="number" min="0" step="0.01" placeholder="0.00"
+                                  value={addPrices[`${slug}:${activity}:${locIdx}:full`] || ""}
+                                  onChange={(e) => setAddPrices(prev => ({ ...prev, [`${slug}:${activity}:${locIdx}:full`]: e.target.value }))}
+                                  className="h-8 bg-background border-border text-sm" />
+                              </div>
+                            </div>
+                          ) : (
+                            <Input type="number" min="0" step="0.01" placeholder="0.00"
+                              value={addPrices[`${slug}:${activity}:${locIdx}`] || ""}
+                              onChange={(e) => setAddPrices(prev => ({ ...prev, [`${slug}:${activity}:${locIdx}`]: e.target.value }))}
+                              className="h-8 bg-background border-border text-sm max-w-[180px]" />
+                          )}
                         </div>
-                      ) : (
-                        <Input
-                          type="number" min="0" step="0.01"
-                          placeholder="0.00"
-                          value={addPrices[slug] || ""}
-                          onChange={(e) => setAddPrices(prev => ({ ...prev, [slug]: e.target.value }))}
-                          className="h-9 bg-background border-border text-sm max-w-[200px]"
-                        />
-                      )}
+                      ))}
                     </div>
                   );
                 })}

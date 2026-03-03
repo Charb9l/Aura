@@ -84,7 +84,7 @@ const BookPage = () => {
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
   const [clubs, setClubs] = useState<{ id: string; name: string; offerings: string[] }[]>([]);
   const [clubLocations, setClubLocations] = useState<ClubLocation[]>([]);
-  const [activityPrices, setActivityPrices] = useState<{ club_id: string; activity_slug: string; price: number; price_label: string | null }[]>([]);
+  const [activityPrices, setActivityPrices] = useState<{ club_id: string; activity_slug: string; price: number; price_label: string | null; location_id: string | null }[]>([]);
   const [selectedLocation, setSelectedLocation] = useState("");
   const [pageTitle, setPageTitle] = useState("Book a Session");
   const [pageSubtitle, setPageSubtitle] = useState("Select your activity, date and time.");
@@ -175,10 +175,15 @@ const BookPage = () => {
   const selectedOffering = offerings.find(o => o.slug === selectedActivity);
   const brand = makeBrandStyles(selectedOffering?.brand_color);
 
-  // Get price for current selection from DB
+  // Get price for current selection from DB — now location-aware
   const getActivityPrice = (slug: string, label?: string | null): number | null => {
-    if (!resolvedClubId) return null;
-    const match = activityPrices.find(p => p.club_id === resolvedClubId && p.activity_slug === slug && p.price_label === (label || null));
+    if (!resolvedClubId || !selectedLocation) return null;
+    const match = activityPrices.find(p =>
+      p.club_id === resolvedClubId &&
+      p.activity_slug === slug &&
+      p.price_label === (label || null) &&
+      p.location_id === selectedLocation
+    );
     return match ? Number(match.price) : null;
   };
   const currentPrice = selectedActivity === "basketball"
