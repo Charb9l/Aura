@@ -104,16 +104,6 @@ const SettingsTab = () => {
 
   // --- Section renders ---
 
-  if (activeSection === "colors") {
-    return (
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="settings-colors">
-        <Button variant="ghost" size="sm" className="mb-4 gap-2" onClick={() => setActiveSection(null)}>
-          ← Back to Settings
-        </Button>
-        <ActivityColorPicker />
-      </motion.div>
-    );
-  }
 
   if (activeSection === "account") {
     return (
