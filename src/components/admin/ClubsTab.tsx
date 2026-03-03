@@ -942,6 +942,55 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
               </div>
             )}
 
+            {/* Pricing per Activity */}
+            {addClubOfferings.filter(o => offeringToSlug(o)).length > 0 && (
+              <div className="space-y-3">
+                <Label className="text-sm font-medium text-muted-foreground block">Activity Pricing ($)</Label>
+                {addClubOfferings.map(activity => {
+                  const slug = offeringToSlug(activity);
+                  if (!slug) return null;
+                  const isBasketball = slug === "basketball";
+                  return (
+                    <div key={`add-price-${activity}`} className="rounded-lg border border-border bg-secondary/30 p-3 space-y-2">
+                      <Label className="text-xs font-semibold">{activity}</Label>
+                      {isBasketball ? (
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <Label className="text-[11px] text-muted-foreground">Half Court</Label>
+                            <Input
+                              type="number" min="0" step="0.01"
+                              placeholder="0.00"
+                              value={addPrices[`${slug}:half`] || ""}
+                              onChange={(e) => setAddPrices(prev => ({ ...prev, [`${slug}:half`]: e.target.value }))}
+                              className="h-9 bg-background border-border text-sm"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-[11px] text-muted-foreground">Full Court</Label>
+                            <Input
+                              type="number" min="0" step="0.01"
+                              placeholder="0.00"
+                              value={addPrices[`${slug}:full`] || ""}
+                              onChange={(e) => setAddPrices(prev => ({ ...prev, [`${slug}:full`]: e.target.value }))}
+                              className="h-9 bg-background border-border text-sm"
+                            />
+                          </div>
+                        </div>
+                      ) : (
+                        <Input
+                          type="number" min="0" step="0.01"
+                          placeholder="0.00"
+                          value={addPrices[slug] || ""}
+                          onChange={(e) => setAddPrices(prev => ({ ...prev, [slug]: e.target.value }))}
+                          className="h-9 bg-background border-border text-sm max-w-[200px]"
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
             {/* 5. Pictures section — LAST */}
             <div className="border-t border-border pt-5 space-y-5">
               <Label className="text-sm font-medium text-muted-foreground block">Pictures</Label>
