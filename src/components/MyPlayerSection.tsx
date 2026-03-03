@@ -39,9 +39,11 @@ const emptySelection = (rank: number): Selection => ({
   years_experience: null,
 });
 
-const MyPlayerSection = () => {
+const MyPlayerSection = ({ externalOpen, onExternalOpenChange }: { externalOpen?: boolean; onExternalOpenChange?: (open: boolean) => void } = {}) => {
   const { user } = useAuth();
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = externalOpen ?? internalOpen;
+  const setOpen = onExternalOpenChange ?? setInternalOpen;
   const [offerings, setOfferings] = useState<Offering[]>([]);
   const [levels, setLevels] = useState<Level[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
