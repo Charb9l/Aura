@@ -120,12 +120,36 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
     const activeFiltered = clubActivityFilter ? bookings.filter(b => clubActivityFilter.includes(b.activity)) : bookings;
     const active = activeFiltered.map(b => ({ ...b, status_label: "active" as const, deleted_at: null as string | null, deleted_by: null as string | null, created_by: b.created_by || null }));
     const deleted = filteredLogs.map(l => ({ ...l, id: l.booking_id, status: "deleted", status_label: "deleted" as const, user_id: l.user_id }));
-    return [...active, ...deleted].sort((a, b) => {
+    let combined = [...active, ...deleted].sort((a, b) => {
       const dateA = a.booking_date + a.booking_time;
       const dateB = b.booking_date + b.booking_time;
       return dateB.localeCompare(dateA);
     });
-  }, [bookings, filteredLogs, clubActivityFilter]);
+    // Apply search
+    if (logSearch) {
+      const q = logSearch.toLowerCase();
+      combined = combined.filter(e => e.full_name.toLowerCase().includes(q) || e.email.toLowerCase().includes(q) || (e.phone || "").toLowerCase().includes(q) || e.activity_name.toLowerCase().includes(q));
+    }
+    // Apply activity filter
+    if (logActivityFilter !== "all") {
+      combined = combined.filter(e => e.activity === logActivityFilter);
+    }
+    // Apply academy only filter
+    if (logAcademyOnly && clubs) {
+      const academyActivities = new Set<string>();
+      clubs.filter(c => c.has_academy).forEach(c => {
+        c.offerings.forEach(o => {
+          const lower = o.toLowerCase();
+          if (lower.includes("basketball")) academyActivities.add("basketball");
+          if (lower.includes("tennis")) academyActivities.add("tennis");
+          if (lower.includes("pilates")) academyActivities.add("pilates");
+          if (lower.includes("yoga") || lower.includes("aerial")) academyActivities.add("aerial-yoga");
+        });
+      });
+      combined = combined.filter(e => academyActivities.has(e.activity));
+    }
+    return combined;
+  }, [bookings, filteredLogs, clubActivityFilter, logSearch, logActivityFilter, logAcademyOnly, clubs]);
 
   const getAdminName = (uid: string | null) => {
     if (!uid || !allUsers) return "Unknown";
