@@ -8,7 +8,7 @@ const Index = () => {
     <div className="min-h-screen">
       <Navbar />
       <HeroSection />
-      <PagePhotoStrip pageSlug="home" className="container mx-auto px-8 mt-8" />
+      <PagePhotoStrip pageSlug="home-strip" className="container mx-auto px-8 mt-8" />
     </div>
   );
 };
