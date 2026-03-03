@@ -164,7 +164,7 @@ const ActivitiesTab = () => {
         <p className="text-center text-muted-foreground py-8 text-sm">Loading...</p>
       ) : (
         <>
-          <Input placeholder="Search activities..." value={activitySearch} onChange={(e) => setActivitySearch(e.target.value)} className="h-10 bg-secondary border-border mb-4 max-w-xs" />
+          <AdminFinderInput value={activitySearch} onChange={setActivitySearch} placeholder="Search activities..." className="mb-4 max-w-xs" suggestions={offerings.map(o => ({ label: o.name, sub: o.slug }))} />
           {(() => {
             const q = activitySearch.toLowerCase();
             const filtered = offerings.filter(o => !q || o.name.toLowerCase().includes(q) || o.slug.toLowerCase().includes(q));
