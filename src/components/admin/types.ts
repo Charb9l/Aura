@@ -80,6 +80,7 @@ export interface ClubActivityPrice {
   activity_slug: string;
   price: number;
   price_label: string | null;
+  location_id: string | null;
 }
 
 /**
