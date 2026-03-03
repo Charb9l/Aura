@@ -266,34 +266,61 @@ const SportSelectionCard = ({
             </div>
           </div>
 
-          {/* Locations */}
-          {locations.length > 0 && (
-            <div className="space-y-1.5">
-              <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                <MapPin className="h-3 w-3" /> Preferred locations <span className="text-muted-foreground/60">(optional, select multiple)</span>:
-              </p>
-              <div className="grid grid-cols-2 gap-2">
-                {locations.map((loc) => {
-                  const selected = sel.location_ids.includes(loc.id);
-                  return (
-                    <button
-                      key={loc.id}
-                      onClick={() => onToggleLocation(sel.rank, loc.id)}
-                      className={cn(
-                        "rounded-lg border px-3 py-2.5 text-sm font-medium transition-all text-left",
-                        !selected && "border-border text-muted-foreground hover:border-muted-foreground/50 hover:text-foreground"
-                      )}
-                      style={chipStyle(selected)}
+          {/* Top 3 Locations */}
+          <div className="space-y-1.5">
+            <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+              <MapPin className="h-3 w-3" /> Top 3 locations <span className="text-muted-foreground/60">(select up to 3)</span>:
+            </p>
+            <div className="space-y-2">
+              {[0, 1, 2].map((slotIdx) => {
+                const selectedId = sel.location_ids[slotIdx] || "";
+                const alreadySelected = sel.location_ids.filter(Boolean);
+                const availableLocations = locations.filter(
+                  (l) => l.id === selectedId || !alreadySelected.includes(l.id)
+                );
+                return (
+                  <div key={slotIdx} className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold text-muted-foreground w-4 shrink-0">#{slotIdx + 1}</span>
+                    <Select
+                      value={selectedId}
+                      onValueChange={(val) => {
+                        const newIds = [...sel.location_ids];
+                        // Pad array if needed
+                        while (newIds.length <= slotIdx) newIds.push("");
+                        newIds[slotIdx] = val;
+                        onUpdate(sel.rank, "location_ids", newIds.filter(Boolean));
+                      }}
                     >
-                      {selected && <Check className="h-3 w-3 inline mr-1" />}
-                      <span className="block text-xs">{loc.name}</span>
-                      <span className="block text-[10px] opacity-60">{loc.location}</span>
-                    </button>
-                  );
-                })}
-              </div>
+                      <SelectTrigger
+                        className={cn("h-9 text-sm border-border bg-secondary/50", selectedId && "border-border")}
+                        style={selectedId ? chipStyle(true) : undefined}
+                      >
+                        <SelectValue placeholder="Select a location..." />
+                      </SelectTrigger>
+                      <SelectContent className="bg-card border-border z-50 max-h-60">
+                        {availableLocations.map((loc) => (
+                          <SelectItem key={loc.id} value={loc.id}>
+                            {loc.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {selectedId && (
+                      <button
+                        onClick={() => {
+                          const newIds = sel.location_ids.filter((_, i) => i !== slotIdx);
+                          onUpdate(sel.rank, "location_ids", newIds);
+                        }}
+                        className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
             </div>
-          )}
+          </div>
 
           {/* Years of Experience */}
           <div className="space-y-1.5">
