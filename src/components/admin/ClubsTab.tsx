@@ -826,49 +826,52 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                 </div>
               )}
 
-              {/* ── Pricing per Activity ── */}
+              {/* ── Pricing per Activity per Location ── */}
               {editOfferings.filter(o => offeringToSlug(o)).length > 0 && (
                 <div className="space-y-3">
-                  <Label className="text-sm font-medium text-muted-foreground block">Activity Pricing ($)</Label>
+                  <Label className="text-sm font-medium text-muted-foreground block">Activity Pricing ($) — per Location</Label>
                   {editOfferings.map(activity => {
                     const slug = offeringToSlug(activity);
                     if (!slug) return null;
                     const isBasketball = slug === "basketball";
-                    return (
-                      <div key={`price-${activity}`} className="rounded-lg border border-border bg-secondary/30 p-3 space-y-2">
+                    const activityLocs = (editActivityLocations[activity] || []).filter(l => l.id && l.name.trim());
+                    if (activityLocs.length === 0) return (
+                      <div key={`price-${activity}`} className="rounded-lg border border-border bg-secondary/30 p-3">
                         <Label className="text-xs font-semibold">{activity}</Label>
-                        {isBasketball ? (
-                          <div className="grid grid-cols-2 gap-3">
-                            <div>
-                              <Label className="text-[11px] text-muted-foreground">Half Court</Label>
-                              <Input
-                                type="number" min="0" step="0.01"
-                                placeholder="0.00"
-                                value={editPrices[`${slug}:half`] || ""}
-                                onChange={(e) => setEditPrices(prev => ({ ...prev, [`${slug}:half`]: e.target.value }))}
-                                className="h-9 bg-background border-border text-sm"
-                              />
-                            </div>
-                            <div>
-                              <Label className="text-[11px] text-muted-foreground">Full Court</Label>
-                              <Input
-                                type="number" min="0" step="0.01"
-                                placeholder="0.00"
-                                value={editPrices[`${slug}:full`] || ""}
-                                onChange={(e) => setEditPrices(prev => ({ ...prev, [`${slug}:full`]: e.target.value }))}
-                                className="h-9 bg-background border-border text-sm"
-                              />
-                            </div>
+                        <p className="text-xs text-muted-foreground mt-1">Add locations above to set prices.</p>
+                      </div>
+                    );
+                    return (
+                      <div key={`price-${activity}`} className="rounded-lg border border-border bg-secondary/30 p-3 space-y-3">
+                        <Label className="text-xs font-semibold">{activity}</Label>
+                        {activityLocs.map(loc => (
+                          <div key={loc.id} className="rounded-md border border-border/50 bg-background/50 p-2.5 space-y-1.5">
+                            <Label className="text-[11px] text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" />{loc.name} — {loc.location}</Label>
+                            {isBasketball ? (
+                              <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                  <Label className="text-[10px] text-muted-foreground">Half Court</Label>
+                                  <Input type="number" min="0" step="0.01" placeholder="0.00"
+                                    value={editPrices[`${slug}:${loc.id}:half`] || ""}
+                                    onChange={(e) => setEditPrices(prev => ({ ...prev, [`${slug}:${loc.id}:half`]: e.target.value }))}
+                                    className="h-8 bg-background border-border text-sm" />
+                                </div>
+                                <div>
+                                  <Label className="text-[10px] text-muted-foreground">Full Court</Label>
+                                  <Input type="number" min="0" step="0.01" placeholder="0.00"
+                                    value={editPrices[`${slug}:${loc.id}:full`] || ""}
+                                    onChange={(e) => setEditPrices(prev => ({ ...prev, [`${slug}:${loc.id}:full`]: e.target.value }))}
+                                    className="h-8 bg-background border-border text-sm" />
+                                </div>
+                              </div>
+                            ) : (
+                              <Input type="number" min="0" step="0.01" placeholder="0.00"
+                                value={editPrices[`${slug}:${loc.id}`] || ""}
+                                onChange={(e) => setEditPrices(prev => ({ ...prev, [`${slug}:${loc.id}`]: e.target.value }))}
+                                className="h-8 bg-background border-border text-sm max-w-[180px]" />
+                            )}
                           </div>
-                        ) : (
-                          <Input
-                            type="number" min="0" step="0.01"
-                            placeholder="0.00"
-                            value={editPrices[slug] || ""}
-                            onChange={(e) => setEditPrices(prev => ({ ...prev, [slug]: e.target.value }))}
-                            className="h-9 bg-background border-border text-sm max-w-[200px]"
-                          />
-                        )}
+                        ))}
                       </div>
                     );
                   })}
