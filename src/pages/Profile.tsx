@@ -86,6 +86,7 @@ const ProfilePage = () => {
   const [viewNudge, setViewNudge] = useState<any | null>(null);
   const [respondingNudge, setRespondingNudge] = useState(false);
   const [showNudges, setShowNudges] = useState(false);
+  const [showMyPlayer, setShowMyPlayer] = useState(false);
   const [nudgeTab, setNudgeTab] = useState<"received" | "sent">("received");
   const [buddySportFilter, setBuddySportFilter] = useState<string>("");
 
