@@ -199,97 +199,108 @@ const MyPlayerSection = ({ externalOpen, onExternalOpenChange }: { externalOpen?
     );
   };
 
-  // If externally controlled, don't render the standalone button
-  if (externalOpen !== undefined) {
-    return (
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="bg-card border-border max-w-lg max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="font-heading text-xl flex items-center gap-2">
-              <Gamepad2 className="h-5 w-5 text-primary" />
-              MyPlayer Profile
-            </DialogTitle>
-            <p className="text-sm text-muted-foreground">
-              Set up your sports profile — skill level, playstyle, availability, goals, and preferred locations.
-            </p>
-          </DialogHeader>
-          {/* Dialog body rendered below */}
-          {!loaded ? (
-            <p className="text-muted-foreground text-center py-8">Loading...</p>
-          ) : offerings.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">No sports configured yet. Check back soon!</p>
-          ) : (
+  const dialogContent = (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent className="bg-card border-border max-w-lg max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="font-heading text-xl flex items-center gap-2">
+            <Gamepad2 className="h-5 w-5 text-primary" />
+            MyPlayer Profile
+          </DialogTitle>
+          <p className="text-sm text-muted-foreground">
+            Set up your sports profile — skill level, playstyle, availability, goals, and preferred locations.
+          </p>
+        </DialogHeader>
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="bg-card border-border max-w-lg max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="font-heading text-xl flex items-center gap-2">
-              <Gamepad2 className="h-5 w-5 text-primary" />
-              MyPlayer Profile
-            </DialogTitle>
-            <p className="text-sm text-muted-foreground">
-              Set up your sports profile — skill level, playstyle, availability, goals, and preferred locations.
-            </p>
-          </DialogHeader>
+        {!loaded ? (
+          <p className="text-muted-foreground text-center py-8">Loading...</p>
+        ) : offerings.length === 0 ? (
+          <p className="text-muted-foreground text-center py-8">No sports configured yet. Check back soon!</p>
+        ) : (
+          <div className="space-y-6 pt-2">
+            {selections.map((sel, idx) => {
+              const otherSports = selections
+                .filter((s) => s.rank !== sel.rank && s.sport_id)
+                .map((s) => s.sport_id);
 
-          {!loaded ? (
-            <p className="text-muted-foreground text-center py-8">Loading...</p>
-          ) : offerings.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">No sports configured yet. Check back soon!</p>
-          ) : (
-            <div className="space-y-6 pt-2">
-              {selections.map((sel, idx) => {
-                const otherSports = selections
-                  .filter((s) => s.rank !== sel.rank && s.sport_id)
-                  .map((s) => s.sport_id);
+              return (
+                <SportSelectionCard
+                  key={sel.rank}
+                  sel={sel}
+                  idx={idx}
+                  offerings={offerings}
+                  levels={levels}
+                  locations={locations}
+                  playstyles={playstyles}
+                  goals={goals}
+                  periods={periods}
+                  otherSports={otherSports}
+                  canRemove={selections.length > 1}
+                  onUpdate={updateSelection}
+                  onToggleLocation={toggleLocation}
+                  onToggleAvailability={toggleAvailability}
+                  onToggleGoal={toggleGoal}
+                  onRemove={removeSlot}
+                />
+              );
+            })}
 
-                return (
-                  <SportSelectionCard
-                    key={sel.rank}
-                    sel={sel}
-                    idx={idx}
-                    offerings={offerings}
-                    levels={levels}
-                    locations={locations}
-                    playstyles={playstyles}
-                    goals={goals}
-                    periods={periods}
-                    otherSports={otherSports}
-                    canRemove={selections.length > 1}
-                    onUpdate={updateSelection}
-                    onToggleLocation={toggleLocation}
-                    onToggleAvailability={toggleAvailability}
-                    onToggleGoal={toggleGoal}
-                    onRemove={removeSlot}
-                  />
-                );
-              })}
-
-              {selections.length < offerings.length && (
-                <Button variant="outline" onClick={addSlot} className="w-full gap-2 rounded-xl">
-                  <Plus className="h-4 w-4" /> Add another sport
-                </Button>
-              )}
-
-              {hasDuplicateSports && (
-                <p className="text-sm text-destructive">Each sport must be different.</p>
-              )}
-
-              <p className="text-xs text-muted-foreground text-center">
-                Complete at least one sport with level and playstyle to save.
-              </p>
-
-              <Button
-                onClick={handleSave}
-                disabled={!isValid || hasDuplicateSports || saving}
-                className="w-full h-12 font-bold rounded-xl glow"
-              >
-                {saving ? "Saving..." : "Save MyPlayer Profile"}
+            {selections.length < offerings.length && (
+              <Button variant="outline" onClick={addSlot} className="w-full gap-2 rounded-xl">
+                <Plus className="h-4 w-4" /> Add another sport
               </Button>
-            </div>
+            )}
+
+            {hasDuplicateSports && (
+              <p className="text-sm text-destructive">Each sport must be different.</p>
+            )}
+
+            <p className="text-xs text-muted-foreground text-center">
+              Complete at least one sport with level and playstyle to save.
+            </p>
+
+            <Button
+              onClick={handleSave}
+              disabled={!isValid || hasDuplicateSports || saving}
+              className="w-full h-12 font-bold rounded-xl glow"
+            >
+              {saving ? "Saving..." : "Save MyPlayer Profile"}
+            </Button>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+
+  // If externally controlled, only render the dialog (no standalone button)
+  if (externalOpen !== undefined) {
+    return dialogContent;
+  }
+
+  return (
+    <>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.08 }}
+        className="mb-8"
+      >
+        <Button
+          onClick={() => setOpen(true)}
+          variant="outline"
+          className={cn(
+            "h-14 px-6 rounded-xl font-bold text-base gap-3 border-primary/30 hover:border-primary hover:bg-primary/5 transition-all",
+            !hasSaved && "animate-pulse border-primary shadow-[0_0_15px_hsl(var(--primary)/0.4)]"
           )}
-        </DialogContent>
-      </Dialog>
+        >
+          <Gamepad2 className="h-5 w-5 text-primary" />
+          MyPlayer
+          {!hasSaved && (
+            <span className="ml-1 h-2.5 w-2.5 rounded-full bg-primary animate-ping" />
+          )}
+        </Button>
+      </motion.div>
+      {dialogContent}
     </>
   );
 };
