@@ -9,6 +9,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { supabase } from "@/integrations/supabase/client";
 
 const allMenuItems = [
   { label: "Dashboard", icon: LayoutDashboard, tab: "overview" },
