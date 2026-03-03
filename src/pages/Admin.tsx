@@ -73,6 +73,10 @@ const AdminDashboard = () => {
   const [formerUsers, setFormerUsers] = useState<any[]>([]);
   const [formerLoading, setFormerLoading] = useState(false);
 
+  // Search filters
+  const [userSearch, setUserSearch] = useState("");
+  const [adminSearch, setAdminSearch] = useState("");
+
   const [clubs, setClubs] = useState<ClubRow[]>([]);
   const [myClubId, setMyClubId] = useState<string | null>(null);
 
