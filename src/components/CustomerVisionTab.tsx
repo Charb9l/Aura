@@ -432,14 +432,6 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
   const [heroLine1, setHeroLine1] = useState("");
   const [heroLine2, setHeroLine2] = useState("");
   const [heroButtons, setHeroButtons] = useState<HeroButton[]>([]);
-  const [aboutHeading, setAboutHeading] = useState("");
-  const [aboutIntro, setAboutIntro] = useState("");
-  const [aboutMissionTitle, setAboutMissionTitle] = useState("");
-  const [aboutMission, setAboutMission] = useState("");
-  const [aboutVisionTitle, setAboutVisionTitle] = useState("");
-  const [aboutVision, setAboutVision] = useState("");
-  const [aboutValuesTitle, setAboutValuesTitle] = useState("");
-  const [aboutValues, setAboutValues] = useState<AboutValue[]>([]);
   const [navOrder, setNavOrder] = useState<NavItem[]>(DEFAULT_NAV_ORDER);
   const [backgroundPicture, setBackgroundPicture] = useState("");
   const [platformName, setPlatformName] = useState("");
