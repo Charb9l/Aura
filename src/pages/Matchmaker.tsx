@@ -463,7 +463,7 @@ const MatchmakerPage = () => {
                                           >
                                             ✓ {d}
                                           </span>
-                                        ))
+                                        ))}
                                       </div>
                                     )}
                                   </div>
