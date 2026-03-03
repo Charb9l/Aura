@@ -274,6 +274,14 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
     else { toast.success(`"${clubName}" deleted`); setClubs(prev => prev.filter(c => c.id !== clubId)); }
   };
 
+  const handleTogglePublish = async (club: ClubRow) => {
+    const newVal = !club.published;
+    const { error } = await supabase.from("clubs").update({ published: newVal }).eq("id", club.id);
+    if (error) { toast.error("Failed to update: " + error.message); return; }
+    setClubs(prev => prev.map(c => c.id === club.id ? { ...c, published: newVal } : c));
+    toast.success(`"${club.name}" ${newVal ? "published" : "unpublished"}`);
+  };
+
   // ───── Add Club ─────
   const handleAddClubFileSelect = (file: File) => {
     if (!file.type.startsWith("image/")) { toast.error("Please upload an image file"); return; }
