@@ -12,7 +12,6 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 const allMenuItems = [
   { label: "Dashboard", icon: LayoutDashboard, tab: "overview" },
-  { label: "Academies", icon: GraduationCap, tab: "academies" },
   { label: "Activities", icon: Package, tab: "activities" },
   { label: "AI Matchmaker", icon: Gamepad2, tab: "matchmaker" },
   { label: "Bookings", icon: CalendarCheck, tab: "bookings" },

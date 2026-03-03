@@ -378,7 +378,6 @@ const AdminDashboard = () => {
         )}
 
         {activeTab === "clubs" && <ClubsTab isMasterAdmin={!myClubId} />}
-        {activeTab === "academies" && <AcademiesTab />}
         {activeTab === "customer-vision" && <CustomerVisionTab onNavigateTab={setActiveTab} />}
         {activeTab === "matchmaker" && <MatchmakerTab />}
         {activeTab === "settings" && <SettingsTab />}
