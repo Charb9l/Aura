@@ -158,10 +158,8 @@ const ProfilePage = () => {
 
   // Pending bookings = future bookings that are confirmed
   const pendingBookings = useMemo(() => {
-    const now = new Date();
     return bookings.filter(b => {
-      const bookingDt = getBookingDateTime(b);
-      return b.status === "confirmed" && bookingDt > now;
+      return b.status === "confirmed" && !b.attendance_status;
     }).sort((a, b) => {
       const dtA = getBookingDateTime(a);
       const dtB = getBookingDateTime(b);
