@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { motion } from "framer-motion";
 import { format, subDays, startOfDay, startOfWeek, startOfMonth, endOfDay, isWithinInterval, parseISO } from "date-fns";
-import { CalendarCheck, TrendingUp, ShieldCheck, LogIn, UserPlus, Pencil, DollarSign, Building2, User, History, Trash2, Search } from "lucide-react";
+import { CalendarCheck, TrendingUp, ShieldCheck, LogIn, UserPlus, Pencil, DollarSign, Building2, User, History, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -34,6 +34,7 @@ import ClubsTab from "@/components/admin/ClubsTab";
 import ReportsTab from "@/components/admin/ReportsTab";
 import HabitsTab from "@/components/admin/HabitsTab";
 import ActivitiesTab from "@/components/admin/ActivitiesTab";
+import AdminFinderInput, { type FinderSuggestion } from "@/components/admin/AdminFinderInput";
 
 // ─── Main Admin Dashboard ──────────────────────────────────────
 const AdminDashboard = () => {
@@ -320,7 +321,7 @@ const AdminDashboard = () => {
               <h1 className="font-heading text-2xl md:text-4xl font-bold text-foreground">Registered Customers</h1>
               <Button variant="outline" size="sm" className="gap-2 self-start" onClick={() => openFormerDialog("customer")}><History className="h-4 w-4" /> Current & Former</Button>
             </div>
-            <Input placeholder="Search by name, email, or phone..." value={userSearch} onChange={(e) => setUserSearch(e.target.value)} className="h-10 bg-secondary border-border mb-4 max-w-sm" />
+            <AdminFinderInput value={userSearch} onChange={setUserSearch} placeholder="Search by name, email, or phone..." className="mb-4 max-w-sm" suggestions={allUsers.filter(u => !adminUsers.some(a => a.user_id === u.user_id && a.club_id)).map(u => ({ label: u.full_name || u.email, sub: u.email }))} />
             <Card className="bg-card border-border mb-10"><CardContent className="p-0 overflow-x-auto"><Table><TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Email</TableHead><TableHead className="hidden sm:table-cell">Phone</TableHead><TableHead className="w-[80px]">Edit</TableHead></TableRow></TableHeader><TableBody>{(() => { const q = userSearch.toLowerCase(); const filtered = allUsers.filter(u => !adminUsers.some(a => a.user_id === u.user_id && a.club_id)).filter(u => !q || (u.full_name || "").toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || (u.phone || "").toLowerCase().includes(q)).sort((a, b) => (a.full_name || a.email || "").localeCompare(b.full_name || b.email || "")); return filtered.length === 0 ? (<TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">{userSearch ? "No customers match your search." : "No customers yet."}</TableCell></TableRow>) : filtered.map(u => (<TableRow key={u.user_id}><TableCell className="font-medium">{u.full_name || "—"}</TableCell><TableCell className="text-xs sm:text-sm">{u.email}</TableCell><TableCell className="hidden sm:table-cell">{u.phone || "—"}</TableCell><TableCell><Button variant="ghost" size="icon" onClick={() => openEditDialog(u)}><Pencil className="h-4 w-4" /></Button></TableCell></TableRow>)); })()}</TableBody></Table></CardContent></Card>
 
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6"><div><h2 className="font-heading text-xl md:text-2xl font-bold text-foreground mb-2">Club Admins</h2><p className="text-muted-foreground text-sm">Administrators assigned to clubs.</p></div><Button variant="outline" size="sm" className="gap-2 self-start" onClick={() => openFormerDialog("admin")}><History className="h-4 w-4" /> Current & Former</Button></div>
@@ -358,7 +359,7 @@ const AdminDashboard = () => {
         {activeTab === "admins" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="admins">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4"><div><h1 className="font-heading text-2xl md:text-4xl font-bold text-foreground mb-2">Admins</h1><p className="text-muted-foreground text-sm">Manage admin accounts.</p></div><Button onClick={() => setShowCreateAdmin(true)} className="h-11 px-5 font-semibold glow self-start"><UserPlus className="h-4 w-4 mr-2" /> Add Admin</Button></div>
-            <Input placeholder="Search by name, email, or phone..." value={adminSearch} onChange={(e) => setAdminSearch(e.target.value)} className="h-10 bg-secondary border-border mb-4 max-w-sm" />
+            <AdminFinderInput value={adminSearch} onChange={setAdminSearch} placeholder="Search by name, email, or phone..." className="mb-4 max-w-sm" suggestions={adminUsers.map(u => ({ label: u.full_name || u.email, sub: u.email }))} />
             <Card className="bg-card border-border"><CardContent className="p-0 overflow-x-auto"><Table><TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Email</TableHead><TableHead className="hidden sm:table-cell">Phone</TableHead><TableHead className="hidden md:table-cell">Assigned Club</TableHead><TableHead className="w-[80px]">Edit</TableHead></TableRow></TableHeader><TableBody>{(() => { const q = adminSearch.toLowerCase(); const filtered = adminUsers.slice().filter(u => !q || (u.full_name || "").toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || (u.phone || "").toLowerCase().includes(q)).sort((a, b) => (a.full_name || a.email || "").localeCompare(b.full_name || b.email || "")); return filtered.length === 0 ? (<TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">{adminSearch ? "No admins match your search." : "No admins yet."}</TableCell></TableRow>) : filtered.map(u => (<TableRow key={u.user_id}><TableCell className="font-medium">{u.full_name || "—"}</TableCell><TableCell className="text-xs sm:text-sm">{u.email}</TableCell><TableCell className="hidden sm:table-cell">{u.phone || "—"}</TableCell><TableCell className="hidden md:table-cell">{u.club_id ? <Badge variant="secondary" className="text-xs">{clubs.find(c => c.id === u.club_id)?.name || "Unknown"}</Badge> : <span className="text-xs text-muted-foreground">All Clubs (Master)</span>}</TableCell><TableCell><Button variant="ghost" size="icon" onClick={() => openEditAdmin(u)}><Pencil className="h-4 w-4" /></Button></TableCell></TableRow>)); })()}</TableBody></Table></CardContent></Card>
             <Dialog open={showCreateAdmin} onOpenChange={setShowCreateAdmin}>
               <DialogContent className="bg-card border-border"><DialogHeader><DialogTitle className="font-heading">Add Admin</DialogTitle></DialogHeader>

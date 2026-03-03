@@ -16,6 +16,7 @@ import { toast } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import PhoneInput from "@/components/PhoneInput";
 import { BookingRow, ClubRow, UserWithEmail, AuditLogRow, OPEN_HOUR, CLOSE_HOUR, ACTIVITY_OPTIONS } from "./types";
+import AdminFinderInput from "./AdminFinderInput";
 
 const timeSlots = Array.from({ length: CLOSE_HOUR - OPEN_HOUR }, (_, i) => {
   const h = OPEN_HOUR + i;
@@ -235,7 +236,7 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-3 mb-4 flex-wrap">
-              <Input placeholder="Search by name, email, phone..." value={logSearch} onChange={(e) => setLogSearch(e.target.value)} className="h-10 bg-secondary border-border max-w-xs" />
+              <AdminFinderInput value={logSearch} onChange={setLogSearch} placeholder="Search by name, email, phone..." className="max-w-xs" suggestions={Array.from(new Set(bookings.map(b => b.full_name))).map(n => ({ label: n, sub: bookings.find(b => b.full_name === n)?.email }))} />
               <Select value={logActivityFilter} onValueChange={setLogActivityFilter}>
                 <SelectTrigger className="w-[160px] h-10 bg-secondary border-border text-sm"><SelectValue placeholder="All Activities" /></SelectTrigger>
                 <SelectContent className="bg-card border-border z-50">

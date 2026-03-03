@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { ClubRow, OfferingRow } from "./types";
 import { useLocations } from "@/hooks/useLocations";
+import AdminFinderInput from "./AdminFinderInput";
 
 interface ClubLocationRow { id: string; club_id: string; name: string; location: string; activity: string | null; }
 interface ClubPictureRow { id: string; club_id: string; image_url: string; display_order: number; }
@@ -606,7 +607,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
         )}
       </div>
       <div className="flex items-center gap-3 mb-4 flex-wrap">
-        <Input placeholder="Search clubs..." value={clubSearch} onChange={(e) => setClubSearch(e.target.value)} className="h-10 bg-secondary border-border max-w-xs" />
+        <AdminFinderInput value={clubSearch} onChange={setClubSearch} placeholder="Search clubs..." className="max-w-xs" suggestions={clubs.map(c => ({ label: c.name, sub: c.has_academy ? "Academy" : undefined }))} />
         <label className="flex items-center gap-2 cursor-pointer text-sm text-muted-foreground hover:text-foreground transition-colors">
           <input type="checkbox" checked={academyOnly} onChange={(e) => setAcademyOnly(e.target.checked)} className="rounded border-border" />
           Academy clubs only
