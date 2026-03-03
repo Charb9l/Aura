@@ -244,7 +244,9 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
     const clubPrices = allActivityPrices.filter(p => p.club_id === club.id);
     const priceState: Record<string, string> = {};
     clubPrices.forEach(p => {
-      const key = p.price_label ? `${p.activity_slug}:${p.price_label}` : p.activity_slug;
+      // key format: "slug:locationId:label" or "slug:locationId" for non-basketball
+      const locPart = p.location_id || "none";
+      const key = p.price_label ? `${p.activity_slug}:${locPart}:${p.price_label}` : `${p.activity_slug}:${locPart}`;
       priceState[key] = String(p.price);
     });
     setEditPrices(priceState);
