@@ -223,6 +223,10 @@ const MyPlayerSection = ({ externalOpen, onExternalOpenChange }: { externalOpen?
               const otherSports = selections
                 .filter((s) => s.rank !== sel.rank && s.sport_id)
                 .map((s) => s.sport_id);
+              const sportSlug = offerings.find(o => o.id === sel.sport_id)?.slug;
+              const filteredLocations = sportSlug
+                ? locations.filter(l => !l.activity || l.activity === sportSlug)
+                : locations;
 
               return (
                 <SportSelectionCard
@@ -231,7 +235,7 @@ const MyPlayerSection = ({ externalOpen, onExternalOpenChange }: { externalOpen?
                   idx={idx}
                   offerings={offerings}
                   levels={levels}
-                  locations={locations}
+                  locations={filteredLocations}
                   playstyles={playstyles}
                   goals={goals}
                   periods={periods}
