@@ -20,8 +20,6 @@ interface Level {
 interface Location {
   id: string;
   name: string;
-  location: string;
-  activity?: string | null;
 }
 
 export interface Selection {
