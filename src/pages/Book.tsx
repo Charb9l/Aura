@@ -96,15 +96,17 @@ const BookPage = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [offRes, clubRes, locRes, contentRes] = await Promise.all([
+      const [offRes, clubRes, locRes, contentRes, pricesRes] = await Promise.all([
         supabase.from("offerings").select("*").order("name"),
         supabase.from("clubs").select("id, name, offerings, published").order("name"),
         supabase.from("club_locations").select("*").order("name"),
         supabase.from("page_content").select("content").eq("page_slug", "book").single(),
+        supabase.from("club_activity_prices").select("*"),
       ]);
       if (offRes.data) setOfferings(offRes.data as unknown as OfferingData[]);
       if (clubRes.data) setClubs((clubRes.data as any[]).filter(c => c.published !== false));
       if (locRes.data) setClubLocations(locRes.data as unknown as ClubLocation[]);
+      if (pricesRes.data) setActivityPrices(pricesRes.data as any[]);
       if (contentRes.data) {
         const c = contentRes.data.content as any;
         if (c?.title) setPageTitle(c.title);
