@@ -650,6 +650,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                         {logoSrc && <div className="h-10 w-10 rounded-lg overflow-hidden bg-secondary shrink-0"><img src={logoSrc} alt={club.name} className="h-full w-full object-contain" /></div>}
                         <span className="font-medium">{club.name}</span>
                         {club.has_academy && <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-primary/30 text-primary">Academy</Badge>}
+                        {!club.published && <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-destructive/30 text-destructive">Unpublished</Badge>}
                       </div>
                     </TableCell>
                     <TableCell className="text-muted-foreground text-sm max-w-xs">{club.description || "—"}</TableCell>
