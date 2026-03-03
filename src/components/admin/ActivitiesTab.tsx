@@ -61,7 +61,7 @@ const ActivitiesTab = () => {
 
   const fetchOfferings = async () => {
     setLoading(true);
-    const { data } = await supabase.from("offerings").select("*").order("name");
+    const { data } = await supabase.from("offerings").select("id, name, slug, logo_url, brand_color, created_at").order("name");
     if (data) setOfferings(data as unknown as OfferingRow[]);
     setLoading(false);
   };
