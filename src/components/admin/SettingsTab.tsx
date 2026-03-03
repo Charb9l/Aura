@@ -298,8 +298,20 @@ const SettingsTab = () => {
     );
   }
 
+  if (activeSection === "customer-vision") {
+    return (
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="settings-cv">
+        <Button variant="ghost" size="sm" className="mb-4 gap-2" onClick={() => setActiveSection(null)}>
+          ← Back to Settings
+        </Button>
+        <CustomerVisionTab />
+      </motion.div>
+    );
+  }
+
   // --- Main settings list ---
   const settingsItems = [
+    { id: "customer-vision", icon: Eye, label: "Customer Vision", description: "Manage landing page content, branding, and page settings" },
     { id: "account", icon: User, label: "My Account", description: "Edit your name, email, phone, and password" },
     { id: "locations", icon: MapPin, label: "Locations", description: "Manage the master list of cities and areas for club venues" },
     { id: "colors", icon: Palette, label: "Activity Brand Colors", description: "Set brand colors for each activity across the customer experience" },
