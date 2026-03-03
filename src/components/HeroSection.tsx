@@ -29,16 +29,27 @@ interface HeroContent {
   hero_title_line1: string;
   hero_title_line2: string;
   hero_buttons: { to: string; label: string; glow?: boolean }[];
-  background_picture?: string;
 }
 
-const PANEL_COUNT = 4;
-const CYCLE_INTERVAL = 5000;
+const CYCLE_INTERVAL = 4000;
+
+/** Returns a grid layout config based on picture count */
+const getGridLayout = (count: number) => {
+  if (count === 1) return { cols: "grid-cols-1", rows: "" };
+  if (count === 2) return { cols: "grid-cols-2", rows: "" };
+  if (count === 3) return { cols: "grid-cols-3", rows: "" };
+  if (count === 4) return { cols: "grid-cols-2 md:grid-cols-4", rows: "" };
+  if (count <= 6) return { cols: "grid-cols-3", rows: "grid-rows-2" };
+  if (count <= 9) return { cols: "grid-cols-3", rows: "grid-rows-3" };
+  // For large counts, show a rotating window of 6
+  return { cols: "grid-cols-3 md:grid-cols-6", rows: "", windowed: true, windowSize: 6 };
+};
 
 const HeroSection = () => {
   const [allPictures, setAllPictures] = useState<{ image: string; alt: string }[]>([]);
   const [content, setContent] = useState<HeroContent | null>(null);
   const [cycleIndex, setCycleIndex] = useState(0);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -52,66 +63,68 @@ const HeroSection = () => {
       if (contentRes.data) {
         setContent(contentRes.data.content as unknown as HeroContent);
       }
+      setLoaded(true);
     };
     fetchData();
   }, []);
 
+  // Cycle for large collections (>9 pictures)
   useEffect(() => {
-    if (allPictures.length <= PANEL_COUNT) return;
+    if (allPictures.length <= 9) return;
     const timer = setInterval(() => {
       setCycleIndex(prev => (prev + 1) % allPictures.length);
     }, CYCLE_INTERVAL);
     return () => clearInterval(timer);
   }, [allPictures.length]);
 
-  const panels = useMemo(() => {
-    const pics = allPictures.length > 0 ? allPictures : fallbackPanels;
-    if (pics.length <= PANEL_COUNT) return pics;
-    return Array.from({ length: PANEL_COUNT }, (_, i) => {
+  const pictures = useMemo(() => {
+    const pics = allPictures.length > 0 ? allPictures : (loaded ? [] : fallbackPanels);
+    if (pics.length === 0) return [];
+    if (pics.length <= 9) return pics;
+    // Windowed: show 6 at a time cycling through
+    const windowSize = 6;
+    return Array.from({ length: windowSize }, (_, i) => {
       const idx = (cycleIndex + i) % pics.length;
       return pics[idx];
     });
-  }, [allPictures, cycleIndex]);
+  }, [allPictures, cycleIndex, loaded]);
 
   const subtitle = content?.hero_subtitle || "Movement & Mindfulness";
   const titleLine1 = content?.hero_title_line1 || "Your Journey.";
   const titleLine2 = content?.hero_title_line2 || "Your Space.";
   const actions = content?.hero_buttons?.map((b, i) => ({ ...b, delay: 0.4 + i * 0.1 })) || defaultActions;
 
-  const bgPicture = content?.background_picture || "";
-  // Only show panel background if a background_picture URL is explicitly set
-  // If content has loaded and no background_picture is set, show nothing
-  const showPanels = bgPicture ? false : (!content && panels.length > 0);
+  const totalCount = allPictures.length > 0 ? allPictures.length : (loaded ? 0 : fallbackPanels.length);
+  const layout = getGridLayout(pictures.length);
 
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
-      {/* Background: single picture if set */}
-      {bgPicture ? (
-        <div className="absolute inset-0">
-          <img src={bgPicture} alt="Background" className="h-full w-full object-cover saturate-[0.3] contrast-[1.1]" />
-        </div>
-      ) : showPanels ? (
-        <div className="absolute inset-0 grid grid-cols-2 md:grid-cols-4">
+      {/* Background: dynamic photo grid */}
+      {pictures.length > 0 && (
+        <div className={cn("absolute inset-0 grid", layout.cols, layout.rows)}>
           <AnimatePresence mode="popLayout">
-            {panels.map((panel, i) => (
+            {pictures.map((panel, i) => (
               <motion.div
-                key={`${panel.image}-${i}`}
+                key={`${panel.image}-${i}-${cycleIndex}`}
                 className="relative overflow-hidden"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 1.2, delay: i * 0.1 }}
+                initial={{ opacity: 0, scale: 1.1 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 1.2, delay: i * 0.08 }}
               >
                 <img
                   src={panel.image}
                   alt={panel.alt}
-                  className="h-full w-full object-cover saturate-[0.3] contrast-[1.1]"
+                  className={cn(
+                    "h-full w-full object-cover saturate-[0.3] contrast-[1.1]",
+                    pictures.length === 1 && "saturate-[0.4]"
+                  )}
                 />
               </motion.div>
             ))}
           </AnimatePresence>
         </div>
-      ) : null}
+      )}
 
       {/* Overlay — deep obsidian fade */}
       <div className="absolute inset-0 bg-background/80" />

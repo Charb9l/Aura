@@ -433,7 +433,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
   const [heroLine2, setHeroLine2] = useState("");
   const [heroButtons, setHeroButtons] = useState<HeroButton[]>([]);
   const [navOrder, setNavOrder] = useState<NavItem[]>(DEFAULT_NAV_ORDER);
-  const [backgroundPicture, setBackgroundPicture] = useState("");
+  const [backgroundPicture, setBackgroundPicture] = useState(""); // kept for backward compat in save
   const [platformName, setPlatformName] = useState("");
 
   // Generic page state
@@ -576,14 +576,9 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
               <p className="text-xs text-muted-foreground mt-1">This is the brand name shown in the top-left of the navbar. Leave empty for default.</p>
             </div>
             <div>
-              <Label className="text-sm font-medium text-muted-foreground mb-2 block">Background Picture URL</Label>
-              <Input value={backgroundPicture} onChange={(e) => setBackgroundPicture(e.target.value)} placeholder="Paste an image URL or leave empty for no background" className="h-12 bg-secondary border-border" />
-              <p className="text-xs text-muted-foreground mt-1">Background image for the landing page. Leave empty for a clean background.</p>
-              {backgroundPicture && (
-                <div className="mt-2 rounded-lg overflow-hidden border border-border aspect-video max-w-xs">
-                  <img src={backgroundPicture} alt="Background preview" className="w-full h-full object-cover" />
-                </div>
-              )}
+              <Label className="text-sm font-medium text-muted-foreground mb-2 block">Hero Background Pictures</Label>
+              <p className="text-xs text-muted-foreground mb-3">Drag & drop images for the landing page hero background. They'll be displayed in a dynamic layout based on how many you upload.</p>
+              <PagePicturesManager pageSlug="home" />
             </div>
             <div className="border-t border-border pt-6" />
             <div>
