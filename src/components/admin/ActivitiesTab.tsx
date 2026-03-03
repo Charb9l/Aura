@@ -162,11 +162,17 @@ const ActivitiesTab = () => {
         </Card>
       ) : loading ? (
         <p className="text-center text-muted-foreground py-8 text-sm">Loading...</p>
-      ) : offerings.length === 0 ? (
-        <p className="text-center text-muted-foreground py-8 text-sm">No activities yet. Click "Add Activity" to create one.</p>
       ) : (
+        <>
+          <Input placeholder="Search activities..." value={activitySearch} onChange={(e) => setActivitySearch(e.target.value)} className="h-10 bg-secondary border-border mb-4 max-w-xs" />
+          {(() => {
+            const q = activitySearch.toLowerCase();
+            const filtered = offerings.filter(o => !q || o.name.toLowerCase().includes(q) || o.slug.toLowerCase().includes(q));
+            return filtered.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8 text-sm">{activitySearch ? "No activities match your search." : "No activities yet. Click \"Add Activity\" to create one."}</p>
+            ) : (
         <div className="space-y-2 max-w-2xl">
-          {offerings.map((o) => (
+          {filtered.map((o) => (
             <div key={o.id} className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 hover:border-primary/30 transition-all">
               <div className="h-12 w-12 rounded-lg overflow-hidden bg-secondary shrink-0">
                 {o.logo_url ? (
