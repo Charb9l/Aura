@@ -9,7 +9,7 @@ import { useBadgeLevels } from "@/hooks/useBadgeLevels";
 import { useBadgePoints } from "@/hooks/useBadgePoints";
 import { useNudges } from "@/hooks/useNudges";
 import Navbar from "@/components/Navbar";
-import { Trophy, Clock, ArrowRight, Gift, Zap, CalendarCheck, Pencil, Trash2, CalendarIcon, Camera, Send, Check, X as XIcon, Users, Phone } from "lucide-react";
+import { Trophy, Clock, ArrowRight, Gift, Zap, CalendarCheck, Pencil, Trash2, CalendarIcon, Camera, Send, Check, X as XIcon, Users, Phone, Gamepad2 } from "lucide-react";
 import MyPlayerSection from "@/components/MyPlayerSection";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -86,6 +86,7 @@ const ProfilePage = () => {
   const [viewNudge, setViewNudge] = useState<any | null>(null);
   const [respondingNudge, setRespondingNudge] = useState(false);
   const [showNudges, setShowNudges] = useState(false);
+  const [showMyPlayer, setShowMyPlayer] = useState(false);
   const [nudgeTab, setNudgeTab] = useState<"received" | "sent">("received");
   const [buddySportFilter, setBuddySportFilter] = useState<string>("");
 
@@ -335,48 +336,70 @@ const ProfilePage = () => {
           </div>
         </motion.div>
 
-        {/* Pending Bookings Button */}
+        {/* Quick Action Cards */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="mb-8"
+          className="mb-8 grid grid-cols-3 gap-3"
         >
-          <Button
+          {/* Pending Bookings */}
+          <button
             onClick={() => setShowPending(true)}
-            variant="outline"
-            className="h-14 px-6 rounded-xl font-bold text-base gap-3 border-primary/30 hover:border-primary hover:bg-primary/5 transition-all"
+            className="group relative rounded-2xl border border-border bg-card p-4 sm:p-5 text-left transition-all hover:border-primary/40 hover:shadow-[0_0_20px_hsl(var(--primary)/0.1)]"
           >
-            <CalendarCheck className="h-5 w-5 text-primary" />
-            Pending Bookings
-            {pendingBookings.length > 0 && (
-              <Badge className="ml-1 bg-primary text-primary-foreground text-xs px-2 py-0.5">
-                {pendingBookings.length}
-              </Badge>
-            )}
-          </Button>
-          <Button
+            <div className="flex items-center justify-between mb-3">
+              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                <CalendarCheck className="h-5 w-5 text-primary" />
+              </div>
+              {pendingBookings.length > 0 && (
+                <Badge className="bg-primary text-primary-foreground text-xs px-2 py-0.5">
+                  {pendingBookings.length}
+                </Badge>
+              )}
+            </div>
+            <p className="font-heading font-bold text-sm text-foreground">Bookings</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Upcoming sessions</p>
+          </button>
+
+          {/* Pending Nudges */}
+          <button
             onClick={() => setShowNudges(true)}
-            variant="outline"
-            className="h-14 px-6 rounded-xl font-bold text-base gap-3 border-accent/30 hover:border-accent hover:bg-accent/5 transition-all"
+            className="group relative rounded-2xl border border-border bg-card p-4 sm:p-5 text-left transition-all hover:border-accent/40 hover:shadow-[0_0_20px_hsl(var(--accent)/0.1)]"
           >
-            <Send className="h-5 w-5 text-accent" />
-            Pending Nudges
-            {pendingReceivedCount > 0 && (
-              <Badge className="ml-1 bg-accent text-accent-foreground text-xs px-2 py-0.5 animate-pulse">
-                {pendingReceivedCount}
-              </Badge>
-            )}
-            {sentNudges.length > 0 && (
-              <Badge variant="outline" className="ml-1 text-xs px-2 py-0.5">
-                {sentNudges.length} sent
-              </Badge>
-            )}
-          </Button>
+            <div className="flex items-center justify-between mb-3">
+              <div className="h-10 w-10 rounded-xl bg-accent/10 flex items-center justify-center group-hover:bg-accent/20 transition-colors">
+                <Send className="h-5 w-5 text-accent" />
+              </div>
+              {pendingReceivedCount > 0 && (
+                <Badge className="bg-accent text-accent-foreground text-xs px-2 py-0.5 animate-pulse">
+                  {pendingReceivedCount}
+                </Badge>
+              )}
+            </div>
+            <p className="font-heading font-bold text-sm text-foreground">Nudges</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {sentNudges.length > 0 ? `${sentNudges.length} sent` : "Match requests"}
+            </p>
+          </button>
+
+          {/* MyPlayer */}
+          <button
+            onClick={() => setShowMyPlayer(true)}
+            className="group relative rounded-2xl border border-border bg-card p-4 sm:p-5 text-left transition-all hover:border-primary/40 hover:shadow-[0_0_20px_hsl(var(--primary)/0.1)]"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                <Gamepad2 className="h-5 w-5 text-primary" />
+              </div>
+            </div>
+            <p className="font-heading font-bold text-sm text-foreground">MyPlayer</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Sport profile</p>
+          </button>
         </motion.div>
 
-        {/* MyPlayer Section */}
-        <MyPlayerSection />
+        {/* MyPlayer Dialog (externally controlled) */}
+        <MyPlayerSection externalOpen={showMyPlayer} onExternalOpenChange={setShowMyPlayer} />
 
         {/* Workout Buddies */}
         {buddies.length > 0 && (
