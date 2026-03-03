@@ -1,5 +1,6 @@
-import { useMemo } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { startOfWeek, subWeeks, format, parseISO, differenceInDays } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
 
 interface BookingLike {
   attendance_status?: string | null;
@@ -8,7 +9,29 @@ interface BookingLike {
   booking_date: string;
 }
 
+interface CmsBadgeConfig {
+  metric: string;
+  target: number;
+}
+
+interface CmsBadgeLevel {
+  badges: CmsBadgeConfig[];
+}
+
 export const useBadgeLevels = (bookings: BookingLike[]) => {
+  const [cmsLevels, setCmsLevels] = useState<CmsBadgeLevel[] | null>(null);
+
+  useEffect(() => {
+    supabase.from("page_content").select("content").eq("page_slug", "habits").single().then(({ data }) => {
+      if (data?.content && typeof data.content === "object") {
+        const c = data.content as Record<string, unknown>;
+        if (Array.isArray(c.badge_levels) && c.badge_levels.length > 0) {
+          setCmsLevels(c.badge_levels as CmsBadgeLevel[]);
+        }
+      }
+    });
+  }, []);
+
   const completedBookings = useMemo(() =>
     bookings.filter(b => b.attendance_status === "show"), [bookings]);
 
@@ -55,7 +78,24 @@ export const useBadgeLevels = (bookings: BookingLike[]) => {
     return Math.min(c + v + f, 100);
   }, [streakData.currentStreak, uniqueActivities, completedBookings]);
 
+  const metricsMap = useMemo(() => ({
+    sessions: completedBookings.length,
+    unique_activities: uniqueActivities,
+    morning_sessions: morningCount,
+    evening_sessions: eveningCount,
+    afternoon_sessions: afternoonCount,
+    streak: streakData.longestStreak,
+    wellness_score: wellness,
+  }), [completedBookings, uniqueActivities, morningCount, eveningCount, afternoonCount, streakData, wellness]);
+
   const completedLevelCount = useMemo(() => {
+    if (cmsLevels && cmsLevels.length > 0) {
+      return cmsLevels.filter(level =>
+        level.badges.every(b => (metricsMap[b.metric as keyof typeof metricsMap] || 0) >= b.target)
+      ).length;
+    }
+
+    // Fallback to hardcoded
     const n = completedBookings.length;
     const u = uniqueActivities;
     const ls = streakData.longestStreak;
@@ -67,7 +107,7 @@ export const useBadgeLevels = (bookings: BookingLike[]) => {
     const l2 = [n>=10, u>=3, ls>=4, m>=5, e>=5, n>=20, a>=5, ws>=60].every(Boolean);
     const l3 = [n>=50, u>=5, ls>=8, m>=10, e>=10, n>=100, ls>=12, ws>=100].every(Boolean);
     return (l1 ? 1 : 0) + (l2 ? 1 : 0) + (l3 ? 1 : 0);
-  }, [completedBookings, uniqueActivities, streakData, morningCount, eveningCount, afternoonCount, wellness]);
+  }, [cmsLevels, metricsMap, completedBookings, uniqueActivities, streakData, morningCount, eveningCount, afternoonCount, wellness]);
 
   return { completedLevelCount };
 };
