@@ -329,7 +329,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
     }
 
     setAddClubSaving(true);
-    const { data: newClub, error: insertError } = await supabase.from("clubs").insert({ name: addClubName.trim(), description: addClubDescription.trim() || null, offerings: addClubOfferings, has_academy: addClubHasAcademy }).select().single();
+    const { data: newClub, error: insertError } = await supabase.from("clubs").insert({ name: addClubName.trim(), description: addClubDescription.trim() || null, offerings: addClubOfferings, has_academy: addClubHasAcademy, published: addClubPublished }).select().single();
     if (insertError || !newClub) { toast.error("Failed to add club: " + (insertError?.message || "Unknown error")); setAddClubSaving(false); return; }
     let logoUrl: string | null = null;
     if (addClubLogoFile) {
