@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react"; // admin clubs
 import { motion } from "framer-motion";
-import { Building2, Pencil, Trash2, Upload, X, Image, GraduationCap, MapPin, Plus, Search } from "lucide-react";
+import { Building2, Pencil, Trash2, Upload, X, Image, GraduationCap, MapPin, Plus, Search, Eye, EyeOff } from "lucide-react";
 import PageContentEditor from "./PageContentEditor";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -141,6 +141,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
   const [showAcademySportPicker, setShowAcademySportPicker] = useState(false);
   // Per-activity locations for add
   const [addActivityLocations, setAddActivityLocations] = useState<Record<string, { name: string; location: string }[]>>({});
+  const [addClubPublished, setAddClubPublished] = useState(true);
   const [addClubPicFiles, setAddClubPicFiles] = useState<File[]>([]);
   const [addClubPicPreviews, setAddClubPicPreviews] = useState<string[]>([]);
 
@@ -273,6 +274,14 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
     else { toast.success(`"${clubName}" deleted`); setClubs(prev => prev.filter(c => c.id !== clubId)); }
   };
 
+  const handleTogglePublish = async (club: ClubRow) => {
+    const newVal = !club.published;
+    const { error } = await supabase.from("clubs").update({ published: newVal }).eq("id", club.id);
+    if (error) { toast.error("Failed to update: " + error.message); return; }
+    setClubs(prev => prev.map(c => c.id === club.id ? { ...c, published: newVal } : c));
+    toast.success(`"${club.name}" ${newVal ? "published" : "unpublished"}`);
+  };
+
   // ───── Add Club ─────
   const handleAddClubFileSelect = (file: File) => {
     if (!file.type.startsWith("image/")) { toast.error("Please upload an image file"); return; }
@@ -328,7 +337,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
     }
 
     setAddClubSaving(true);
-    const { data: newClub, error: insertError } = await supabase.from("clubs").insert({ name: addClubName.trim(), description: addClubDescription.trim() || null, offerings: addClubOfferings, has_academy: addClubHasAcademy }).select().single();
+    const { data: newClub, error: insertError } = await supabase.from("clubs").insert({ name: addClubName.trim(), description: addClubDescription.trim() || null, offerings: addClubOfferings, has_academy: addClubHasAcademy, published: addClubPublished }).select().single();
     if (insertError || !newClub) { toast.error("Failed to add club: " + (insertError?.message || "Unknown error")); setAddClubSaving(false); return; }
     let logoUrl: string | null = null;
     if (addClubLogoFile) {
@@ -354,7 +363,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
     setAddClubSaving(false);
     toast.success(`Club "${addClubName.trim()}" added successfully`);
     setClubs(prev => [...prev, { ...newClub as unknown as ClubRow, logo_url: logoUrl }].sort((a, b) => a.name.localeCompare(b.name)));
-    setShowAddClub(false); setAddClubName(""); setAddClubDescription(""); setAddClubOfferings([]); setAddClubHasAcademy(false);
+    setShowAddClub(false); setAddClubName(""); setAddClubDescription(""); setAddClubOfferings([]); setAddClubHasAcademy(false); setAddClubPublished(true);
     setAddClubLogoFile(null); setAddClubLogoPreview(null); setAddActivityLocations({}); setShowAcademySportPicker(false);
     setAddClubPicFiles([]); setAddClubPicPreviews([]);
     setAddAcademyBubbleFile(null); setAddAcademyBubblePreview(null);
@@ -641,6 +650,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                         {logoSrc && <div className="h-10 w-10 rounded-lg overflow-hidden bg-secondary shrink-0"><img src={logoSrc} alt={club.name} className="h-full w-full object-contain" /></div>}
                         <span className="font-medium">{club.name}</span>
                         {club.has_academy && <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-primary/30 text-primary">Academy</Badge>}
+                        {!club.published && <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-destructive/30 text-destructive">Unpublished</Badge>}
                       </div>
                     </TableCell>
                     <TableCell className="text-muted-foreground text-sm max-w-xs">{club.description || "—"}</TableCell>
@@ -648,6 +658,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                     {isMasterAdmin && (
                       <TableCell>
                         <div className="flex items-center gap-1">
+                          <Button variant="ghost" size="icon" onClick={() => handleTogglePublish(club)} title={club.published ? "Unpublish" : "Publish"} className={cn(!club.published && "text-destructive hover:text-destructive")}>{club.published ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}</Button>
                           <Button variant="ghost" size="icon" onClick={() => openEdit(club)} title="Edit"><Pencil className="h-4 w-4" /></Button>
                           <Button variant="ghost" size="icon" onClick={() => openPictures(club)} title="Pictures"><Image className="h-4 w-4" /></Button>
                           <Button variant="ghost" size="icon" onClick={() => handleDeleteClub(club.id, club.name)} className="text-destructive hover:text-destructive hover:bg-destructive/10" title="Delete"><Trash2 className="h-4 w-4" /></Button>
@@ -754,6 +765,12 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
         <DialogContent className="bg-card border-border max-w-2xl w-[66vw] max-h-[80vh] overflow-y-auto">
           <DialogHeader><DialogTitle className="font-heading text-xl flex items-center gap-2"><Building2 className="h-5 w-5 text-primary" /> Add Club / Partner</DialogTitle></DialogHeader>
           <div className="space-y-5 pt-2">
+            {/* Published checkbox */}
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" checked={addClubPublished} onChange={(e) => setAddClubPublished(e.target.checked)} className="rounded border-border h-4 w-4" />
+              <span className="text-sm font-medium text-foreground">Published</span>
+              <span className="text-xs text-muted-foreground">(visible to customers)</span>
+            </label>
             {/* 1. Name */}
             <div><Label className="text-sm font-medium text-muted-foreground mb-2 block">Club Name</Label><Input value={addClubName} onChange={(e) => setAddClubName(e.target.value)} placeholder="Enter club name" className="h-12 bg-secondary border-border" /></div>
 

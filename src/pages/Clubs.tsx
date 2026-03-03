@@ -48,7 +48,7 @@ const ClubsPage = () => {
         supabase.from("clubs").select("*").order("name"),
         supabase.from("page_content").select("content").eq("page_slug", "clubs").single(),
       ]);
-      if (clubsRes.data) setClubs(clubsRes.data as unknown as Club[]);
+      if (clubsRes.data) setClubs((clubsRes.data as unknown as Club[]).filter(c => (c as any).published !== false));
       if (contentRes.data) {
         const c = contentRes.data.content as any;
         if (c?.title) setPageTitle(c.title);

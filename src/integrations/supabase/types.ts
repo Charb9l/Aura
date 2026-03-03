@@ -292,6 +292,7 @@ export type Database = {
           logo_url: string | null
           name: string
           offerings: string[]
+          published: boolean
         }
         Insert: {
           created_at?: string
@@ -301,6 +302,7 @@ export type Database = {
           logo_url?: string | null
           name: string
           offerings?: string[]
+          published?: boolean
         }
         Update: {
           created_at?: string
@@ -310,6 +312,7 @@ export type Database = {
           logo_url?: string | null
           name?: string
           offerings?: string[]
+          published?: boolean
         }
         Relationships: []
       }

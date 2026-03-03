@@ -126,7 +126,7 @@ const AcademyPage = () => {
         supabase.from("club_locations").select("*").order("name"),
         supabase.from("page_content").select("content").eq("page_slug", "academy").single(),
       ]);
-      if (clubsRes.data) setClubs(clubsRes.data as unknown as AcademyClub[]);
+      if (clubsRes.data) setClubs((clubsRes.data as unknown as AcademyClub[]).filter(c => (c as any).published !== false));
       if (offRes.data) setOfferings(offRes.data as unknown as OfferingData[]);
       if (picsRes.data) setPictures(picsRes.data as unknown as AcademyPicture[]);
       if (locsRes.data) setAllLocations(locsRes.data as unknown as ClubLocation[]);

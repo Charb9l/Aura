@@ -39,6 +39,7 @@ export interface ClubRow {
   logo_url: string | null;
   offerings: string[];
   has_academy: boolean;
+  published: boolean;
   created_at: string;
 }
 

@@ -1,0 +1,1 @@
+ALTER TABLE public.clubs ADD COLUMN published boolean NOT NULL DEFAULT true;

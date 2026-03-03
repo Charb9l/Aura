@@ -134,13 +134,13 @@ const ProfilePage = () => {
           .maybeSingle(),
         supabase
           .from("clubs")
-          .select("id, name, logo_url, offerings")
+          .select("id, name, logo_url, offerings, published")
           .order("name"),
       ]);
 
       if (bookingsRes.data) setBookings(bookingsRes.data);
       if (profileRes.data) setProfile(profileRes.data);
-      if (clubsRes.data) setClubs(clubsRes.data);
+      if (clubsRes.data) setClubs((clubsRes.data as any[]).filter(c => c.published !== false));
       setLoadingData(false);
     };
 
