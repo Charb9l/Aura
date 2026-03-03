@@ -43,6 +43,8 @@ interface HomeContent {
   about_values_title: string;
   about_values: AboutValue[];
   nav_order?: NavItem[];
+  background_picture?: string;
+  platform_name?: string;
 }
 
 interface PageContent {
