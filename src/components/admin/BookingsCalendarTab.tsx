@@ -46,6 +46,9 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
   const [showLogs, setShowLogs] = useState(false);
   const [auditLogs, setAuditLogs] = useState<AuditLogRow[]>([]);
   const [logsLoading, setLogsLoading] = useState(false);
+  const [logSearch, setLogSearch] = useState("");
+  const [logActivityFilter, setLogActivityFilter] = useState<string>("all");
+  const [logAcademyOnly, setLogAcademyOnly] = useState(false);
 
   const [showAddBooking, setShowAddBooking] = useState(false);
   const [addActivity, setAddActivity] = useState("");
