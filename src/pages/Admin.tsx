@@ -106,13 +106,14 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [bRes, pRes, uRes, aRes, cRes, mcRes] = await Promise.all([
+      const [bRes, pRes, uRes, aRes, cRes, mcRes, pricesRes] = await Promise.all([
         supabase.from("bookings").select("*").order("created_at", { ascending: false }),
         supabase.from("profiles").select("*").order("created_at", { ascending: false }),
         supabase.functions.invoke("admin-users", { body: { action: "list" } }),
         supabase.functions.invoke("admin-users", { body: { action: "list-admins" } }),
         supabase.from("clubs").select("*").order("name"),
         supabase.functions.invoke("admin-users", { body: { action: "my-club" } }),
+        supabase.from("club_activity_prices").select("*"),
       ]);
       if (bRes.data) setBookings(bRes.data);
       if (pRes.data) setProfiles(pRes.data);
@@ -120,6 +121,7 @@ const AdminDashboard = () => {
       if (aRes.data?.users) setAdminUsers(aRes.data.users);
       if (cRes.data) setClubs(cRes.data as unknown as ClubRow[]);
       if (mcRes.data?.club_id) setMyClubId(mcRes.data.club_id);
+      if (pricesRes.data) setActivityPrices(pricesRes.data as unknown as ClubActivityPrice[]);
       setLoadingData(false);
     };
     fetchData();
