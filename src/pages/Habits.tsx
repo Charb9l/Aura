@@ -429,11 +429,7 @@ const HabitsPage = () => {
           </div>
 
           {!user ? (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-center py-20"
-            >
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20">
               <Sparkles className="h-16 w-16 text-muted-foreground/30 mx-auto mb-4" />
               <h2 className="font-heading text-2xl font-bold text-foreground mb-2">Sign in to track your habits</h2>
               <p className="text-muted-foreground mb-6">Create an account and start booking sessions to unlock your personalized wellness dashboard.</p>
@@ -443,40 +439,38 @@ const HabitsPage = () => {
             </motion.div>
           ) : (
           <>
-          {/* Top Stats Row */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 items-stretch">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="h-full">
-              <Card className="bg-card border-border text-center h-full">
-                <CardContent className="pt-6 pb-4 flex flex-col items-center justify-center h-full">
-                  <Flame className="h-8 w-8 text-orange-400 mb-2" />
-                  <p className="text-3xl font-bold text-foreground">{currentStreak}</p>
-                  <p className="text-xs text-muted-foreground mt-1">Week Streak</p>
-                </CardContent>
-              </Card>
-            </motion.div>
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="h-full">
-              <Card className="bg-card border-border text-center h-full">
-                <CardContent className="pt-6 pb-4 flex flex-col items-center justify-center h-full">
-                  <div className={`text-3xl font-bold ${getScoreColor(wellnessScore)}`}>{wellnessScore}</div>
-                  <p className="text-xs text-muted-foreground mt-1">Wellness Score</p>
-                  <Progress value={wellnessScore} className="mt-2 h-1.5 w-full" />
-                </CardContent>
-              </Card>
-            </motion.div>
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="h-full relative">
-              <Card
-                className="bg-card border-border text-center h-full cursor-pointer hover:border-primary/40 transition-colors"
-                onClick={() => setShowLevelInfo(prev => !prev)}
-              >
-                <CardContent className="pt-6 pb-4 flex flex-col items-center justify-center h-full">
-                  {completedLevels === 0 && <Shield className="h-8 w-8 text-primary mb-2" />}
-                  {completedLevels === 1 && <Award className="h-8 w-8 text-accent mb-2" />}
-                  {completedLevels === 2 && <Crown className="h-8 w-8 text-amber-400 mb-2" />}
-                  {completedLevels === 3 && <Crown className="h-8 w-8 text-amber-400 mb-2" />}
-                  <p className="text-3xl font-bold text-foreground">{completedLevels}/3</p>
-                  <p className="text-xs text-muted-foreground mt-1">Level Reached</p>
-                </CardContent>
-              </Card>
+          {/* Quick stats strip */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+            className="flex flex-wrap items-center justify-center gap-6 sm:gap-10 mb-10 py-4 px-6 rounded-xl border border-border bg-card/50"
+          >
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-1.5 mb-0.5">
+                <Flame className="h-4 w-4 text-orange-400" />
+                <span className="text-2xl font-bold text-foreground">{currentStreak}</span>
+              </div>
+              <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Week Streak</p>
+            </div>
+            <div className="h-8 w-px bg-border hidden sm:block" />
+            <div className="text-center">
+              <div className={`text-2xl font-bold ${getScoreColor(wellnessScore)}`}>{wellnessScore}</div>
+              <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Wellness Score</p>
+            </div>
+            <div className="h-8 w-px bg-border hidden sm:block" />
+            <div className="text-center">
+              <span className="text-2xl font-bold text-foreground">{completedBookings.length}</span>
+              <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Sessions</p>
+            </div>
+            <div className="h-8 w-px bg-border hidden sm:block" />
+            <div className="text-center relative">
+              <button onClick={() => setShowLevelInfo(prev => !prev)} className="hover:opacity-80 transition-opacity">
+                <div className="flex items-center justify-center gap-1.5 mb-0.5">
+                  {completedLevels === 0 && <Shield className="h-4 w-4 text-primary" />}
+                  {completedLevels === 1 && <Award className="h-4 w-4 text-accent" />}
+                  {completedLevels >= 2 && <Crown className="h-4 w-4 text-amber-400" />}
+                  <span className="text-2xl font-bold text-foreground">{completedLevels}/3</span>
+                </div>
+                <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Levels</p>
+              </button>
               <AnimatePresence>
                 {showLevelInfo && (
                   <motion.div
@@ -492,7 +486,7 @@ const HabitsPage = () => {
                       <p className="text-sm font-semibold text-foreground">Level Rewards</p>
                     </div>
                     <p className="text-xs text-muted-foreground leading-relaxed">
-                      There are <span className="font-semibold text-foreground">3 levels</span> with 8 badges each. Every time you complete all 8 badges in a level, you earn a <span className="font-semibold text-primary">free loyalty point</span> that you can assign to any club of your choice in your profile!
+                      There are <span className="font-semibold text-foreground">3 levels</span> with 8 badges each. Complete all 8 badges in a level to earn a <span className="font-semibold text-primary">free loyalty point</span>!
                     </p>
                     <div className="mt-3 space-y-1.5">
                       {badgeLevels.map((lvl, i) => {
@@ -510,132 +504,123 @@ const HabitsPage = () => {
                   </motion.div>
                 )}
               </AnimatePresence>
+            </div>
+          </motion.div>
+
+          {/* === BADGE LEVELS — Hero Section === */}
+          <div className="space-y-4 mb-10">
+            <div className="flex items-center gap-2 mb-2">
+              <Trophy className="h-5 w-5 text-primary" />
+              <h2 className="font-heading text-xl font-bold text-foreground">Your Badges</h2>
+            </div>
+            {badgeLevels.map((level, li) => (
+              <BadgeLevelSection key={level.name} level={level} li={li} defaultOpen={li === 0} />
+            ))}
+          </div>
+
+          {/* === Supporting sections in 2-column grid === */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Heatmap */}
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+              <Card className="bg-card border-border h-full">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-primary" />
+                    Activity Heatmap
+                  </CardTitle>
+                  <p className="text-xs text-muted-foreground">Last 12 weeks</p>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <div className="inline-grid gap-[3px]" style={{ gridTemplateRows: "repeat(7, 1fr)", gridAutoFlow: "column", gridAutoColumns: "min-content" }}>
+                      {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
+                        <div key={`label-${i}`} className="w-3 h-3 flex items-center justify-end pr-1 text-[8px] text-muted-foreground leading-none">{i % 2 === 0 ? d : ""}</div>
+                      ))}
+                      {heatmapData.map((week, wi) =>
+                        week.map((day, di) => (
+                          <div
+                            key={`${wi}-${di}`}
+                            className={`w-3 h-3 rounded-[2px] ${getHeatmapColor(day.count)} transition-all hover:ring-1 hover:ring-primary/50`}
+                            title={`${format(day.date, "MMM dd")}: ${day.count} booking${day.count !== 1 ? "s" : ""}`}
+                          />
+                        ))
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-end gap-1.5 mt-3">
+                    <span className="text-[10px] text-muted-foreground">Less</span>
+                    <div className="h-3 w-3 rounded-sm bg-secondary" />
+                    <div className="h-3 w-3 rounded-sm bg-primary/30" />
+                    <div className="h-3 w-3 rounded-sm bg-primary/60" />
+                    <div className="h-3 w-3 rounded-sm bg-primary" />
+                    <span className="text-[10px] text-muted-foreground">More</span>
+                  </div>
+                </CardContent>
+              </Card>
             </motion.div>
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="h-full">
-              <Card className="bg-card border-border text-center h-full">
-                <CardContent className="pt-6 pb-4 flex flex-col items-center justify-center h-full">
-                  <TrendingUp className="h-8 w-8 text-primary mb-2" />
-                  <p className="text-3xl font-bold text-foreground">{completedBookings.length}</p>
-                  <p className="text-xs text-muted-foreground mt-1">Sessions Done</p>
+
+            {/* Session Times */}
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }}>
+              <Card className="bg-card border-border h-full">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-primary" />
+                    Session Times
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <div className="flex items-center justify-between text-sm mb-1">
+                      <span className="flex items-center gap-1.5 text-muted-foreground"><Sun className="h-3.5 w-3.5 text-amber-400" /> Morning</span>
+                      <span className="font-medium text-foreground">{timeDistribution.morning}</span>
+                    </div>
+                    <Progress value={(timeDistribution.morning / timeDistribution.total) * 100} className="h-2" />
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between text-sm mb-1">
+                      <span className="flex items-center gap-1.5 text-muted-foreground"><TrendingUp className="h-3.5 w-3.5 text-orange-400" /> Afternoon</span>
+                      <span className="font-medium text-foreground">{timeDistribution.afternoon}</span>
+                    </div>
+                    <Progress value={(timeDistribution.afternoon / timeDistribution.total) * 100} className="h-2" />
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between text-sm mb-1">
+                      <span className="flex items-center gap-1.5 text-muted-foreground"><Moon className="h-3.5 w-3.5 text-indigo-400" /> Evening</span>
+                      <span className="font-medium text-foreground">{timeDistribution.evening}</span>
+                    </div>
+                    <Progress value={(timeDistribution.evening / timeDistribution.total) * 100} className="h-2" />
+                  </div>
                 </CardContent>
               </Card>
             </motion.div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left column */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Heatmap */}
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
-                <Card className="bg-card border-border">
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Calendar className="h-5 w-5 text-primary" />
-                      Activity Heatmap
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground">Last 12 weeks of booking activity</p>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="overflow-x-auto">
-                      <div className="inline-grid gap-[3px]" style={{ gridTemplateRows: "repeat(7, 1fr)", gridAutoFlow: "column", gridAutoColumns: "min-content" }}>
-                        {/* Day labels */}
-                        {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
-                          <div key={`label-${i}`} className="w-3 h-3 flex items-center justify-end pr-1 text-[8px] text-muted-foreground leading-none">{i % 2 === 0 ? d : ""}</div>
-                        ))}
-                        {/* Week columns */}
-                        {heatmapData.map((week, wi) =>
-                          week.map((day, di) => (
-                            <div
-                              key={`${wi}-${di}`}
-                              className={`w-3 h-3 rounded-[2px] ${getHeatmapColor(day.count)} transition-all hover:ring-1 hover:ring-primary/50`}
-                              title={`${format(day.date, "MMM dd")}: ${day.count} booking${day.count !== 1 ? "s" : ""}`}
-                            />
-                          ))
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-end gap-1.5 mt-3">
-                      <span className="text-[10px] text-muted-foreground">Less</span>
-                      <div className="h-3 w-3 rounded-sm bg-secondary" />
-                      <div className="h-3 w-3 rounded-sm bg-primary/30" />
-                      <div className="h-3 w-3 rounded-sm bg-primary/60" />
-                      <div className="h-3 w-3 rounded-sm bg-primary" />
-                      <span className="text-[10px] text-muted-foreground">More</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-
-              {/* AI Insights */}
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-                <Card className="bg-card border-border">
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Sparkles className="h-5 w-5 text-primary" />
-                      AI Insights
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground">Personalized tips based on your habits</p>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {insights.map((tip, i) => (
-                        <motion.div
-                          key={i}
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.5 + i * 0.1 }}
-                          className="p-3 rounded-lg bg-secondary/50 border border-border text-sm text-foreground"
-                        >
-                          {tip}
-                        </motion.div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            </div>
-
-            {/* Right column */}
-            <div className="space-y-6">
-              {/* Time Distribution */}
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
-                <Card className="bg-card border-border">
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Clock className="h-5 w-5 text-primary" />
-                      Session Times
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <div className="flex items-center justify-between text-sm mb-1">
-                        <span className="flex items-center gap-1.5 text-muted-foreground"><Sun className="h-3.5 w-3.5 text-amber-400" /> Morning</span>
-                        <span className="font-medium text-foreground">{timeDistribution.morning}</span>
-                      </div>
-                      <Progress value={(timeDistribution.morning / timeDistribution.total) * 100} className="h-2" />
-                    </div>
-                    <div>
-                      <div className="flex items-center justify-between text-sm mb-1">
-                        <span className="flex items-center gap-1.5 text-muted-foreground"><TrendingUp className="h-3.5 w-3.5 text-orange-400" /> Afternoon</span>
-                        <span className="font-medium text-foreground">{timeDistribution.afternoon}</span>
-                      </div>
-                      <Progress value={(timeDistribution.afternoon / timeDistribution.total) * 100} className="h-2" />
-                    </div>
-                    <div>
-                      <div className="flex items-center justify-between text-sm mb-1">
-                        <span className="flex items-center gap-1.5 text-muted-foreground"><Moon className="h-3.5 w-3.5 text-indigo-400" /> Evening</span>
-                        <span className="font-medium text-foreground">{timeDistribution.evening}</span>
-                      </div>
-                      <Progress value={(timeDistribution.evening / timeDistribution.total) * 100} className="h-2" />
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-
-              {/* Badges — 3 Levels (Collapsible) */}
-              <BadgeLevelsAccordion badgeLevels={badgeLevels} />
-            </div>
-          </div>
+          {/* AI Insights — full width */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="mt-6">
+            <Card className="bg-card border-border">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  AI Insights
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {insights.map((tip, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.7 + i * 0.08 }}
+                      className="p-3 rounded-lg bg-secondary/50 border border-border text-sm text-foreground"
+                    >
+                      {tip}
+                    </motion.div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
           </>
           )}
         </motion.div>
