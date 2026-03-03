@@ -285,13 +285,17 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
                         {entry.created_at ? format(new Date(entry.created_at), "PPp") : "—"}
                       </TableCell>
                       <TableCell>
-                        {entry.status_label === "active" ? (
-                          <Badge variant="default" className="text-xs">Active</Badge>
-                        ) : (
-                          <Badge variant="destructive" className="text-xs flex items-center gap-1 w-fit">
+                        {entry.status_label === "show" ? (
+                          <Badge className="text-xs bg-emerald-500/20 text-emerald-500 border-emerald-500/30">Show</Badge>
+                        ) : entry.status_label === "no_show" ? (
+                          <Badge variant="destructive" className="text-xs">No Show</Badge>
+                        ) : entry.status_label === "deleted" ? (
+                          <Badge variant="destructive" className="text-xs flex items-center gap-1 w-fit opacity-60">
                             <Trash2 className="h-3 w-3" />
                             Deleted
                           </Badge>
+                        ) : (
+                          <Badge variant="secondary" className="text-xs">Pending</Badge>
                         )}
                       </TableCell>
                       <TableCell className="text-sm text-foreground">
