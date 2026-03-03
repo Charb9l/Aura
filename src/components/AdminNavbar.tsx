@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import {
-  LogOut, LayoutDashboard, Users, Settings, Tag, CalendarCheck, Eye,
+  LogOut, LayoutDashboard, Users, Settings, Tag, CalendarCheck,
   Building2, GraduationCap, Gamepad2, TrendingUp, PanelLeftClose, PanelLeft, FileBarChart, Package, Menu, X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -16,7 +16,6 @@ const allMenuItems = [
   { label: "AI Matchmaker", icon: Gamepad2, tab: "matchmaker" },
   { label: "Bookings", icon: CalendarCheck, tab: "bookings" },
   { label: "Clubs & Partners", icon: Building2, tab: "clubs" },
-  { label: "Customer Vision", icon: Eye, tab: "customer-vision" },
   { label: "Habit Tracker", icon: TrendingUp, tab: "habits" },
   { label: "Promotions", icon: Tag, tab: "promotions" },
   { label: "Reports", icon: FileBarChart, tab: "reports" },
