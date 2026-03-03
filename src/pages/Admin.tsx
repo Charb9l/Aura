@@ -80,6 +80,7 @@ const AdminDashboard = () => {
 
   const [clubs, setClubs] = useState<ClubRow[]>([]);
   const [myClubId, setMyClubId] = useState<string | null>(null);
+  const [activityPrices, setActivityPrices] = useState<ClubActivityPrice[]>([]);
 
   const clubActivityMap = useMemo(() => {
     const map: Record<string, string[]> = {};
