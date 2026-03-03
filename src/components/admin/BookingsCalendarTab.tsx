@@ -16,6 +16,7 @@ import { toast } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import PhoneInput from "@/components/PhoneInput";
 import { BookingRow, ClubRow, UserWithEmail, AuditLogRow, OPEN_HOUR, CLOSE_HOUR, ACTIVITY_OPTIONS } from "./types";
+import AdminFinderInput from "./AdminFinderInput";
 
 const timeSlots = Array.from({ length: CLOSE_HOUR - OPEN_HOUR }, (_, i) => {
   const h = OPEN_HOUR + i;

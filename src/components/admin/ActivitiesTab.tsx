@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Plus, Pencil, Trash2, Upload, Package, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import AdminFinderInput from "./AdminFinderInput";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/components/ui/sonner";
