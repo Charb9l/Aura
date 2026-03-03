@@ -26,6 +26,7 @@ interface Location {
   id: string;
   name: string;
   location: string;
+  activity: string | null;
 }
 
 const emptySelection = (rank: number): Selection => ({
@@ -64,7 +65,7 @@ const MyPlayerSection = ({ externalOpen, onExternalOpenChange }: { externalOpen?
       const [offeringsRes, levelsRes, locationsRes, playstylesRes, goalsRes, periodsRes, selectionsRes] = await Promise.all([
         supabase.from("offerings").select("id, name, slug, brand_color").order("name"),
         supabase.from("player_levels").select("*").order("display_order"),
-        supabase.from("club_locations").select("*").order("name"),
+        supabase.from("club_locations").select("*, clubs!inner(published, offerings)").order("name"),
         supabase.from("playstyles").select("label, value").order("display_order"),
         supabase.from("goals").select("label, value").order("display_order"),
         supabase.from("availability_periods").select("label, value").order("display_order"),
@@ -75,7 +76,7 @@ const MyPlayerSection = ({ externalOpen, onExternalOpenChange }: { externalOpen?
 
       setOfferings((offeringsRes.data as Offering[]) || []);
       setLevels((levelsRes.data as Level[]) || []);
-      setLocations((locationsRes.data as Location[]) || []);
+      setLocations((locationsRes.data as any[])?.filter((l: any) => l.clubs?.published !== false) || []);
       setPlaystyles((playstylesRes.data as PlaystyleOption[]) || []);
       setGoals((goalsRes.data as GoalOption[]) || []);
       setPeriods((periodsRes.data as PeriodOption[]) || []);
@@ -222,6 +223,10 @@ const MyPlayerSection = ({ externalOpen, onExternalOpenChange }: { externalOpen?
               const otherSports = selections
                 .filter((s) => s.rank !== sel.rank && s.sport_id)
                 .map((s) => s.sport_id);
+              const sportSlug = offerings.find(o => o.id === sel.sport_id)?.slug;
+              const filteredLocations = sportSlug
+                ? locations.filter(l => !l.activity || l.activity === sportSlug)
+                : locations;
 
               return (
                 <SportSelectionCard
@@ -230,7 +235,7 @@ const MyPlayerSection = ({ externalOpen, onExternalOpenChange }: { externalOpen?
                   idx={idx}
                   offerings={offerings}
                   levels={levels}
-                  locations={locations}
+                  locations={filteredLocations}
                   playstyles={playstyles}
                   goals={goals}
                   periods={periods}
