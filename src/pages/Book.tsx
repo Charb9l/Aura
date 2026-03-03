@@ -84,6 +84,7 @@ const BookPage = () => {
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
   const [clubs, setClubs] = useState<{ id: string; name: string; offerings: string[] }[]>([]);
   const [clubLocations, setClubLocations] = useState<ClubLocation[]>([]);
+  const [activityPrices, setActivityPrices] = useState<{ club_id: string; activity_slug: string; price: number; price_label: string | null }[]>([]);
   const [selectedLocation, setSelectedLocation] = useState("");
   const [pageTitle, setPageTitle] = useState("Book a Session");
   const [pageSubtitle, setPageSubtitle] = useState("Select your activity, date and time.");
@@ -95,15 +96,17 @@ const BookPage = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [offRes, clubRes, locRes, contentRes] = await Promise.all([
+      const [offRes, clubRes, locRes, contentRes, pricesRes] = await Promise.all([
         supabase.from("offerings").select("*").order("name"),
         supabase.from("clubs").select("id, name, offerings, published").order("name"),
         supabase.from("club_locations").select("*").order("name"),
         supabase.from("page_content").select("content").eq("page_slug", "book").single(),
+        supabase.from("club_activity_prices").select("*"),
       ]);
       if (offRes.data) setOfferings(offRes.data as unknown as OfferingData[]);
       if (clubRes.data) setClubs((clubRes.data as any[]).filter(c => c.published !== false));
       if (locRes.data) setClubLocations(locRes.data as unknown as ClubLocation[]);
+      if (pricesRes.data) setActivityPrices(pricesRes.data as any[]);
       if (contentRes.data) {
         const c = contentRes.data.content as any;
         if (c?.title) setPageTitle(c.title);
@@ -171,6 +174,16 @@ const BookPage = () => {
   // Dynamic brand color from the selected offering
   const selectedOffering = offerings.find(o => o.slug === selectedActivity);
   const brand = makeBrandStyles(selectedOffering?.brand_color);
+
+  // Get price for current selection from DB
+  const getActivityPrice = (slug: string, label?: string | null): number | null => {
+    if (!resolvedClubId) return null;
+    const match = activityPrices.find(p => p.club_id === resolvedClubId && p.activity_slug === slug && p.price_label === (label || null));
+    return match ? Number(match.price) : null;
+  };
+  const currentPrice = selectedActivity === "basketball"
+    ? (courtType ? getActivityPrice("basketball", courtType) : null)
+    : getActivityPrice(selectedActivity);
 
   useEffect(() => {
     const fetchBookedSlots = async () => {
@@ -403,6 +416,7 @@ const BookPage = () => {
                     style={courtType === ct.value ? { ...brand.glow, backgroundColor: `hsl(${selectedOffering?.brand_color || "30 80% 55%"} / 0.1)` } : undefined}
                   >
                     <span className="font-heading text-sm font-semibold text-foreground block">{ct.label}</span>
+                    {(() => { const p = getActivityPrice("basketball", ct.value); return p !== null ? <span className="text-xs text-muted-foreground">${p}</span> : null; })()}
                   </button>
                 ))}
               </div>
@@ -506,10 +520,13 @@ const BookPage = () => {
             </div>
           </motion.div>
 
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="flex items-center gap-4">
             <Button type="submit" disabled={!selectedActivity || !date || !selectedTime || !name || !email || !isValidEmail(email) || !phone || (selectedActivity === "basketball" && !courtType) || (matchingClubs.length > 1 && !selectedClub) || !selectedLocation || submitting} className="h-14 px-10 text-lg font-bold rounded-xl glow">
               {submitting ? "Booking..." : "Confirm Booking"}
             </Button>
+            {currentPrice !== null && selectedActivity !== "basketball" && (
+              <span className="text-lg font-semibold text-foreground">${currentPrice}</span>
+            )}
           </motion.div>
           </>
           )}

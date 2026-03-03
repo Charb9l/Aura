@@ -74,18 +74,30 @@ export interface ActivityRow {
 /** @deprecated Use ActivityRow instead */
 export type OfferingRow = ActivityRow;
 
-export const ACTIVITY_PRICES: Record<string, number> = {
-  tennis: 15,
-  "aerial-yoga": 20,
-  pilates: 20,
-};
+export interface ClubActivityPrice {
+  id: string;
+  club_id: string;
+  activity_slug: string;
+  price: number;
+  price_label: string | null;
+}
 
-export const getBookingRevenue = (b: BookingRow): number => {
+/**
+ * Get booking revenue using DB prices.
+ * priceMap keys: "activity_slug" or "activity_slug:label" for basketball.
+ * IMPORTANT: Only bookings with attendance_status === "show" should be
+ * passed to this function for revenue calculations.
+ */
+export const getBookingRevenue = (
+  b: BookingRow,
+  priceMap?: Record<string, number>,
+): number => {
+  if (!priceMap) return 0;
   let base = 0;
-  if (b.activity === "basketball") {
-    base = b.court_type === "full" ? 90 : 45;
+  if (b.activity === "basketball" && b.court_type) {
+    base = priceMap[`${b.activity}:${b.court_type}`] ?? 0;
   } else {
-    base = ACTIVITY_PRICES[b.activity] || 0;
+    base = priceMap[b.activity] ?? 0;
   }
   if (b.discount_type === "free") return 0;
   if (b.discount_type === "50%") return base * 0.5;

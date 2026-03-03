@@ -27,7 +27,7 @@ import Navbar from "@/components/Navbar";
 import PhoneInput from "@/components/PhoneInput";
 
 // Extracted admin modules
-import { BookingRow, ProfileRow, UserWithEmail, ClubRow, getBookingRevenue, ALL_CATEGORIES, CHART_COLORS } from "@/components/admin/types";
+import { BookingRow, ProfileRow, UserWithEmail, ClubRow, ClubActivityPrice, getBookingRevenue, ALL_CATEGORIES, CHART_COLORS } from "@/components/admin/types";
 import BookingsCalendarTab from "@/components/admin/BookingsCalendarTab";
 import SettingsTab from "@/components/admin/SettingsTab";
 import ClubsTab from "@/components/admin/ClubsTab";
@@ -80,6 +80,7 @@ const AdminDashboard = () => {
 
   const [clubs, setClubs] = useState<ClubRow[]>([]);
   const [myClubId, setMyClubId] = useState<string | null>(null);
+  const [activityPrices, setActivityPrices] = useState<ClubActivityPrice[]>([]);
 
   const clubActivityMap = useMemo(() => {
     const map: Record<string, string[]> = {};
@@ -105,13 +106,14 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [bRes, pRes, uRes, aRes, cRes, mcRes] = await Promise.all([
+      const [bRes, pRes, uRes, aRes, cRes, mcRes, pricesRes] = await Promise.all([
         supabase.from("bookings").select("*").order("created_at", { ascending: false }),
         supabase.from("profiles").select("*").order("created_at", { ascending: false }),
         supabase.functions.invoke("admin-users", { body: { action: "list" } }),
         supabase.functions.invoke("admin-users", { body: { action: "list-admins" } }),
         supabase.from("clubs").select("*").order("name"),
         supabase.functions.invoke("admin-users", { body: { action: "my-club" } }),
+        supabase.from("club_activity_prices").select("*"),
       ]);
       if (bRes.data) setBookings(bRes.data);
       if (pRes.data) setProfiles(pRes.data);
@@ -119,6 +121,7 @@ const AdminDashboard = () => {
       if (aRes.data?.users) setAdminUsers(aRes.data.users);
       if (cRes.data) setClubs(cRes.data as unknown as ClubRow[]);
       if (mcRes.data?.club_id) setMyClubId(mcRes.data.club_id);
+      if (pricesRes.data) setActivityPrices(pricesRes.data as unknown as ClubActivityPrice[]);
       setLoadingData(false);
     };
     fetchData();
@@ -195,9 +198,22 @@ const AdminDashboard = () => {
   useEffect(() => { setBookingFilterValue("all"); }, [bookingFilterType]);
   useEffect(() => { setRevenueFilterValue("all"); }, [revenueFilterType]);
 
+  // Build a price map from activityPrices: key = "slug" or "slug:label"
+  const priceMap = useMemo(() => {
+    const map: Record<string, number> = {};
+    activityPrices.forEach(p => {
+      const key = p.price_label ? `${p.activity_slug}:${p.price_label}` : p.activity_slug;
+      map[key] = Number(p.price);
+    });
+    return map;
+  }, [activityPrices]);
+
+  // IMPORTANT: Revenue only counts bookings marked as "show"
+  const showBookings = useMemo(() => filteredBookings.filter(b => b.attendance_status === "show"), [filteredBookings]);
+
   const todayStr = format(new Date(), "yyyy-MM-dd");
-  const dailyRevenue = filteredBookings.filter(b => b.booking_date === todayStr).reduce((sum, b) => sum + getBookingRevenue(b), 0);
-  const totalRevenue = filteredBookings.reduce((sum, b) => sum + getBookingRevenue(b), 0);
+  const dailyRevenue = showBookings.filter(b => b.booking_date === todayStr).reduce((sum, b) => sum + getBookingRevenue(b, priceMap), 0);
+  const totalRevenue = showBookings.reduce((sum, b) => sum + getBookingRevenue(b, priceMap), 0);
 
   const applyDashboardFilter = (list: BookingRow[], filterType: string, filterValue: string) => {
     if (filterType === "all" || filterValue === "all") return list;
@@ -228,11 +244,12 @@ const AdminDashboard = () => {
     else if (revenueRange === "custom" && bookingCustomDate) { start = startOfDay(bookingCustomDate); end = endOfDay(bookingCustomDate); }
     else if (revenueRange === "custom-range" && revenueCustomRange.from && revenueCustomRange.to) { start = startOfDay(revenueCustomRange.from); end = endOfDay(revenueCustomRange.to); }
     else { start = startOfDay(now); end = endOfDay(now); }
-    let filtered = filteredBookings.filter(b => { const d = parseISO(b.booking_date); return isWithinInterval(d, { start, end }); });
+    // Revenue only counts "show" bookings
+    let filtered = showBookings.filter(b => { const d = parseISO(b.booking_date); return isWithinInterval(d, { start, end }); });
     filtered = applyDashboardFilter(filtered, revenueFilterType, revenueFilterValue);
-    const total = filtered.reduce((sum, b) => sum + getBookingRevenue(b), 0);
+    const total = filtered.reduce((sum, b) => sum + getBookingRevenue(b, priceMap), 0);
     return [{ name: "Revenue", value: total }];
-  }, [filteredBookings, revenueRange, bookingCustomDate, revenueCustomRange, revenueFilterType, revenueFilterValue, clubActivityMap]);
+  }, [showBookings, revenueRange, bookingCustomDate, revenueCustomRange, revenueFilterType, revenueFilterValue, clubActivityMap, priceMap]);
 
   if (loadingData) {
     return (

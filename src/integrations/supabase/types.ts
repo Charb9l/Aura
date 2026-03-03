@@ -216,6 +216,41 @@ export type Database = {
         }
         Relationships: []
       }
+      club_activity_prices: {
+        Row: {
+          activity_slug: string
+          club_id: string
+          created_at: string
+          id: string
+          price: number
+          price_label: string | null
+        }
+        Insert: {
+          activity_slug: string
+          club_id: string
+          created_at?: string
+          id?: string
+          price?: number
+          price_label?: string | null
+        }
+        Update: {
+          activity_slug?: string
+          club_id?: string
+          created_at?: string
+          id?: string
+          price?: number
+          price_label?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_activity_prices_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       club_locations: {
         Row: {
           activity: string | null

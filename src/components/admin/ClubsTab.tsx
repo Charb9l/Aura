@@ -14,9 +14,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
-import { ClubRow, OfferingRow } from "./types";
+import { ClubRow, OfferingRow, ClubActivityPrice } from "./types";
 import { useLocations } from "@/hooks/useLocations";
 import AdminFinderInput from "./AdminFinderInput";
+
+/** Map offering name to booking activity slug */
+const offeringToSlug = (name: string): string | null => {
+  const lower = name.toLowerCase();
+  if (lower.includes("academy")) return null;
+  if (lower.includes("basketball")) return "basketball";
+  if (lower.includes("tennis")) return "tennis";
+  if (lower.includes("pilates")) return "pilates";
+  if (lower.includes("yoga") || lower.includes("aerial")) return "aerial-yoga";
+  return lower.replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+};
 
 interface ClubLocationRow { id: string; club_id: string; name: string; location: string; activity: string | null; }
 interface ClubPictureRow { id: string; club_id: string; image_url: string; display_order: number; }
@@ -127,8 +138,10 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
   const [editShowAcademySportPicker, setEditShowAcademySportPicker] = useState(false);
   // Per-activity locations for edit
   const [editActivityLocations, setEditActivityLocations] = useState<Record<string, { id?: string; name: string; location: string }[]>>({});
+  // Per-activity prices for edit: key = "slug" or "slug:half"/"slug:full"
+  const [editPrices, setEditPrices] = useState<Record<string, string>>({});
+  const [allActivityPrices, setAllActivityPrices] = useState<ClubActivityPrice[]>([]);
 
-  // Add Club state
   const [showAddClub, setShowAddClub] = useState(false);
   const [addClubName, setAddClubName] = useState("");
   const [addClubDescription, setAddClubDescription] = useState("");
@@ -142,6 +155,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
   // Per-activity locations for add
   const [addActivityLocations, setAddActivityLocations] = useState<Record<string, { name: string; location: string }[]>>({});
   const [addClubPublished, setAddClubPublished] = useState(true);
+  const [addPrices, setAddPrices] = useState<Record<string, string>>({});
   const [addClubPicFiles, setAddClubPicFiles] = useState<File[]>([]);
   const [addClubPicPreviews, setAddClubPicPreviews] = useState<string[]>([]);
 
@@ -191,14 +205,16 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [clubsRes, offeringsRes, locRes] = await Promise.all([
+      const [clubsRes, offeringsRes, locRes, pricesRes] = await Promise.all([
         supabase.from("clubs").select("*").order("name"),
         supabase.from("offerings").select("*").order("name"),
         supabase.from("club_locations").select("*").order("name"),
+        supabase.from("club_activity_prices").select("*"),
       ]);
       if (clubsRes.data) setClubs(clubsRes.data as unknown as ClubRow[]);
       if (offeringsRes.data) setOfferings(offeringsRes.data as unknown as OfferingRow[]);
       if (locRes.data) setClubLocations(locRes.data as unknown as ClubLocationRow[]);
+      if (pricesRes.data) setAllActivityPrices(pricesRes.data as unknown as ClubActivityPrice[]);
       setLoading(false);
     };
     fetchData();
@@ -224,6 +240,14 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
       map[firstOffering] = [...(map[firstOffering] || []), ...legacyLocs.map(l => ({ id: l.id, name: l.name, location: l.location }))];
     }
     setEditActivityLocations(map);
+    // Load prices for this club
+    const clubPrices = allActivityPrices.filter(p => p.club_id === club.id);
+    const priceState: Record<string, string> = {};
+    clubPrices.forEach(p => {
+      const key = p.price_label ? `${p.activity_slug}:${p.price_label}` : p.activity_slug;
+      priceState[key] = String(p.price);
+    });
+    setEditPrices(priceState);
   };
 
   const handleFileSelect = (file: File) => {
@@ -259,6 +283,25 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
       const { data: insertedLocs } = await supabase.from("club_locations").insert(locsToInsert).select();
       if (insertedLocs) setClubLocations(prev => [...prev, ...(insertedLocs as unknown as ClubLocationRow[])]);
     }
+
+    // Save prices — delete old prices and re-insert
+    await supabase.from("club_activity_prices").delete().eq("club_id", editClub.id);
+    const priceRows = Object.entries(editPrices)
+      .filter(([, val]) => val && Number(val) > 0)
+      .map(([key, val]) => {
+        const parts = key.split(":");
+        return {
+          club_id: editClub.id,
+          activity_slug: parts[0],
+          price: Number(val),
+          price_label: parts[1] || null,
+        };
+      });
+    if (priceRows.length > 0) {
+      await supabase.from("club_activity_prices").insert(priceRows as any);
+    }
+    // Update local cache
+    setAllActivityPrices(prev => [...prev.filter(p => p.club_id !== editClub.id), ...priceRows.map((r, i) => ({ ...r, id: `temp-${i}`, created_at: new Date().toISOString() }))]);
 
     setSaving(false);
     if (error) { toast.error("Failed to update club: " + error.message); }
@@ -360,6 +403,18 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
         await uploadAcademyPicture(clubId, addAcademyGalleryFiles[i], "carousel", i);
       }
     }
+    // Save activity prices for this new club
+    const newClubId = (newClub as any).id;
+    const priceRows = Object.entries(addPrices)
+      .filter(([, val]) => val && Number(val) > 0)
+      .map(([key, val]) => {
+        const parts = key.split(":");
+        return { club_id: newClubId, activity_slug: parts[0], price: Number(val), price_label: parts[1] || null };
+      });
+    if (priceRows.length > 0) {
+      await supabase.from("club_activity_prices").insert(priceRows as any);
+      setAllActivityPrices(prev => [...prev, ...priceRows.map((r, i) => ({ ...r, id: `temp-add-${i}`, created_at: new Date().toISOString() }))]);
+    }
     setAddClubSaving(false);
     toast.success(`Club "${addClubName.trim()}" added successfully`);
     setClubs(prev => [...prev, { ...newClub as unknown as ClubRow, logo_url: logoUrl }].sort((a, b) => a.name.localeCompare(b.name)));
@@ -368,6 +423,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
     setAddClubPicFiles([]); setAddClubPicPreviews([]);
     setAddAcademyBubbleFile(null); setAddAcademyBubblePreview(null);
     setAddAcademyGalleryFiles([]); setAddAcademyGalleryPreviews([]);
+    setAddPrices({});
   };
 
   const handleAddClubPicSelect = (files: FileList | File[]) => {
@@ -754,6 +810,55 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                 </div>
               )}
 
+              {/* ── Pricing per Activity ── */}
+              {editOfferings.filter(o => offeringToSlug(o)).length > 0 && (
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium text-muted-foreground block">Activity Pricing ($)</Label>
+                  {editOfferings.map(activity => {
+                    const slug = offeringToSlug(activity);
+                    if (!slug) return null;
+                    const isBasketball = slug === "basketball";
+                    return (
+                      <div key={`price-${activity}`} className="rounded-lg border border-border bg-secondary/30 p-3 space-y-2">
+                        <Label className="text-xs font-semibold">{activity}</Label>
+                        {isBasketball ? (
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <Label className="text-[11px] text-muted-foreground">Half Court</Label>
+                              <Input
+                                type="number" min="0" step="0.01"
+                                placeholder="0.00"
+                                value={editPrices[`${slug}:half`] || ""}
+                                onChange={(e) => setEditPrices(prev => ({ ...prev, [`${slug}:half`]: e.target.value }))}
+                                className="h-9 bg-background border-border text-sm"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-[11px] text-muted-foreground">Full Court</Label>
+                              <Input
+                                type="number" min="0" step="0.01"
+                                placeholder="0.00"
+                                value={editPrices[`${slug}:full`] || ""}
+                                onChange={(e) => setEditPrices(prev => ({ ...prev, [`${slug}:full`]: e.target.value }))}
+                                className="h-9 bg-background border-border text-sm"
+                              />
+                            </div>
+                          </div>
+                        ) : (
+                          <Input
+                            type="number" min="0" step="0.01"
+                            placeholder="0.00"
+                            value={editPrices[slug] || ""}
+                            onChange={(e) => setEditPrices(prev => ({ ...prev, [slug]: e.target.value }))}
+                            className="h-9 bg-background border-border text-sm max-w-[200px]"
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
               <Button onClick={handleSave} disabled={saving || !editName} className="w-full h-12 text-base font-semibold glow">{saving ? "Saving..." : "Save Changes"}</Button>
             </div>
           )}
@@ -844,6 +949,55 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                           </Button>
                         </div>
                       ))}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Pricing per Activity */}
+            {addClubOfferings.filter(o => offeringToSlug(o)).length > 0 && (
+              <div className="space-y-3">
+                <Label className="text-sm font-medium text-muted-foreground block">Activity Pricing ($)</Label>
+                {addClubOfferings.map(activity => {
+                  const slug = offeringToSlug(activity);
+                  if (!slug) return null;
+                  const isBasketball = slug === "basketball";
+                  return (
+                    <div key={`add-price-${activity}`} className="rounded-lg border border-border bg-secondary/30 p-3 space-y-2">
+                      <Label className="text-xs font-semibold">{activity}</Label>
+                      {isBasketball ? (
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <Label className="text-[11px] text-muted-foreground">Half Court</Label>
+                            <Input
+                              type="number" min="0" step="0.01"
+                              placeholder="0.00"
+                              value={addPrices[`${slug}:half`] || ""}
+                              onChange={(e) => setAddPrices(prev => ({ ...prev, [`${slug}:half`]: e.target.value }))}
+                              className="h-9 bg-background border-border text-sm"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-[11px] text-muted-foreground">Full Court</Label>
+                            <Input
+                              type="number" min="0" step="0.01"
+                              placeholder="0.00"
+                              value={addPrices[`${slug}:full`] || ""}
+                              onChange={(e) => setAddPrices(prev => ({ ...prev, [`${slug}:full`]: e.target.value }))}
+                              className="h-9 bg-background border-border text-sm"
+                            />
+                          </div>
+                        </div>
+                      ) : (
+                        <Input
+                          type="number" min="0" step="0.01"
+                          placeholder="0.00"
+                          value={addPrices[slug] || ""}
+                          onChange={(e) => setAddPrices(prev => ({ ...prev, [slug]: e.target.value }))}
+                          className="h-9 bg-background border-border text-sm max-w-[200px]"
+                        />
+                      )}
                     </div>
                   );
                 })}
