@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { User, Palette, Clock, Bell, Info, Pencil, Shield, MapPin, Plus, Trash2, Check, X } from "lucide-react";
+import { User, Palette, Pencil, MapPin, Plus, Trash2, Check, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -170,87 +170,12 @@ const SettingsTab = () => {
     );
   }
 
-  if (activeSection === "hours") {
-    return (
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="settings-hours">
-        <Button variant="ghost" size="sm" className="mb-4 gap-2" onClick={() => setActiveSection(null)}>
-          ← Back to Settings
-        </Button>
-        <Card className="bg-card border-border max-w-lg">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Clock className="h-5 w-5 text-primary" />
-              Operating Hours
-            </CardTitle>
-            <p className="text-sm text-muted-foreground">The booking calendar operates on the following schedule.</p>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 rounded-lg bg-secondary/50 border border-border">
-                <div>
-                  <p className="text-sm font-medium text-foreground">Opening Time</p>
-                  <p className="text-xs text-muted-foreground">First available booking slot</p>
-                </div>
-                <span className="text-lg font-bold font-heading text-primary">7:00 AM</span>
-              </div>
-              <div className="flex items-center justify-between p-4 rounded-lg bg-secondary/50 border border-border">
-                <div>
-                  <p className="text-sm font-medium text-foreground">Closing Time</p>
-                  <p className="text-xs text-muted-foreground">Last available booking slot</p>
-                </div>
-                <span className="text-lg font-bold font-heading text-primary">10:00 PM</span>
-              </div>
-              <p className="text-xs text-muted-foreground">Operating hours determine the time range shown in the booking calendar. Contact support to modify.</p>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-    );
-  }
 
 
-  if (activeSection === "about") {
-    return (
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="settings-about">
-        <Button variant="ghost" size="sm" className="mb-4 gap-2" onClick={() => setActiveSection(null)}>
-          ← Back to Settings
-        </Button>
-        <Card className="bg-card border-border max-w-lg">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Info className="h-5 w-5 text-primary" />
-              About
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Platform</span>
-                <span className="text-sm font-medium text-foreground">Elevate Wellness Hub</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Admin Panel</span>
-                <span className="text-sm font-medium text-foreground">v2.0</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Logged in as</span>
-                <span className="text-sm font-medium text-foreground">{user?.email}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Role</span>
-                <span className="text-sm font-medium text-primary">Super Admin</span>
-              </div>
-              <div className="border-t border-border pt-4">
-                <p className="text-xs text-muted-foreground">
-                  Elevate Wellness Hub is a multi-sport booking and wellness platform managing courts, studios, academies, and customer engagement across Lebanon.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-    );
-  }
+
+
+
+
 
   if (activeSection === "locations") {
     const handleAddLocation = async () => {
@@ -377,9 +302,6 @@ const SettingsTab = () => {
     { id: "account", icon: User, label: "My Account", description: "Edit your name, email, phone, and password" },
     { id: "locations", icon: MapPin, label: "Locations", description: "Manage the master list of cities and areas for club venues" },
     { id: "colors", icon: Palette, label: "Activity Brand Colors", description: "Set brand colors for each activity across the customer experience" },
-    { id: "hours", icon: Clock, label: "Operating Hours", description: "View booking calendar hours of operation" },
-    { id: "about", icon: Info, label: "About", description: "Platform information and version details" },
-    { id: "about", icon: Info, label: "About", description: "Platform information and version details" },
   ];
 
   return (

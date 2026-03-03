@@ -43,6 +43,8 @@ interface HomeContent {
   about_values_title: string;
   about_values: AboutValue[];
   nav_order?: NavItem[];
+  background_picture?: string;
+  platform_name?: string;
 }
 
 interface PageContent {
@@ -449,6 +451,8 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
   const [aboutValuesTitle, setAboutValuesTitle] = useState("");
   const [aboutValues, setAboutValues] = useState<AboutValue[]>([]);
   const [navOrder, setNavOrder] = useState<NavItem[]>(DEFAULT_NAV_ORDER);
+  const [backgroundPicture, setBackgroundPicture] = useState("");
+  const [platformName, setPlatformName] = useState("");
 
   // Generic page state
   const [pageTitle, setPageTitle] = useState("");
@@ -484,6 +488,8 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
       setAboutValuesTitle(content.about_values_title || "");
       setAboutValues([...(content.about_values || [])]);
       setNavOrder(content.nav_order?.length ? [...content.nav_order] : [...DEFAULT_NAV_ORDER]);
+      setBackgroundPicture(content.background_picture || "");
+      setPlatformName(content.platform_name || "");
     } else {
       setPageTitle(content.title || "");
       setPageSubtitle(content.subtitle || "");
@@ -524,6 +530,8 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
       about_values_title: aboutValuesTitle,
       about_values: aboutValues.filter(v => v.title.trim()),
       nav_order: navOrder,
+      background_picture: backgroundPicture,
+      platform_name: platformName,
     });
   };
 
@@ -596,6 +604,22 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-6 pt-2">
+            <div>
+              <Label className="text-sm font-medium text-muted-foreground mb-2 block">Platform Name (logo text in navbar)</Label>
+              <Input value={platformName} onChange={(e) => setPlatformName(e.target.value)} placeholder="e.g. ELEVATE WELLNESS HUB" className="h-12 bg-secondary border-border" />
+              <p className="text-xs text-muted-foreground mt-1">This is the brand name shown in the top-left of the navbar. Leave empty for default.</p>
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-muted-foreground mb-2 block">Background Picture URL</Label>
+              <Input value={backgroundPicture} onChange={(e) => setBackgroundPicture(e.target.value)} placeholder="Paste an image URL or leave empty for no background" className="h-12 bg-secondary border-border" />
+              <p className="text-xs text-muted-foreground mt-1">Background image for the landing page. Leave empty for a clean background.</p>
+              {backgroundPicture && (
+                <div className="mt-2 rounded-lg overflow-hidden border border-border aspect-video max-w-xs">
+                  <img src={backgroundPicture} alt="Background preview" className="w-full h-full object-cover" />
+                </div>
+              )}
+            </div>
+            <div className="border-t border-border pt-6" />
             <div>
               <Label className="text-sm font-medium text-muted-foreground mb-2 block">Hero Subtitle (small text above title)</Label>
               <Input value={heroSubtitle} onChange={(e) => setHeroSubtitle(e.target.value)} placeholder="e.g. Movement & Mindfulness" className="h-12 bg-secondary border-border" />
