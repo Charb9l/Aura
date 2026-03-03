@@ -62,99 +62,114 @@ interface BadgeLevelData {
   color: string;
 }
 
-const BadgeLevelsAccordion = ({ badgeLevels }: { badgeLevels: BadgeLevelData[] }) => {
-  const [openLevels, setOpenLevels] = useState<Set<number>>(new Set([0]));
-
-  const toggle = (i: number) => {
-    setOpenLevels(prev => {
-      const next = new Set(prev);
-      if (next.has(i)) next.delete(i); else next.add(i);
-      return next;
-    });
-  };
+const BadgeLevelSection = ({ level, li, defaultOpen }: { level: BadgeLevelData; li: number; defaultOpen: boolean }) => {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+  const levelEarned = level.badges.filter(b => b.earned).length;
+  const levelComplete = levelEarned === level.badges.length;
+  const colors = LEVEL_COLORS[li];
+  const progressPct = (levelEarned / level.badges.length) * 100;
 
   return (
-    <>
-      {badgeLevels.map((level, li) => {
-        const levelEarned = level.badges.filter(b => b.earned).length;
-        const levelComplete = levelEarned === level.badges.length;
-        const colors = LEVEL_COLORS[li];
-        const isOpen = openLevels.has(li);
-
-        return (
-          <motion.div key={level.name} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 + li * 0.1 }}>
-            <Card className="bg-card border-border overflow-hidden">
-              <button
-                onClick={() => toggle(li)}
-                className="w-full text-left"
-              >
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className={cn("text-base flex items-center gap-2", colors.text)}>
-                      {LEVEL_ICONS[li]}
-                      {level.name}
-                    </CardTitle>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground">{levelEarned}/8</span>
-                      <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform duration-200", isOpen && "rotate-180")} />
-                    </div>
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.2 + li * 0.15, duration: 0.5 }}
+    >
+      <div className={cn(
+        "rounded-2xl border overflow-hidden transition-all duration-300",
+        levelComplete ? colors.border : "border-border bg-card"
+      )}>
+        <button onClick={() => setIsOpen(o => !o)} className="w-full text-left">
+          <div className="p-5 sm:p-6">
+            <div className="flex items-center gap-4">
+              <div className={cn(
+                "flex-shrink-0 h-14 w-14 rounded-xl flex items-center justify-center border",
+                levelComplete ? `${colors.border} ${colors.text}` : "border-border bg-secondary/50 text-muted-foreground"
+              )}>
+                {LEVEL_ICONS_LG[li]}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between mb-1">
+                  <h3 className={cn("font-heading text-lg font-bold", levelComplete ? colors.text : "text-foreground")}>
+                    {level.name}
+                  </h3>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-muted-foreground">{levelEarned}/{level.badges.length}</span>
+                    <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform duration-300", isOpen && "rotate-180")} />
                   </div>
-                  <Progress value={(levelEarned / 8) * 100} className="h-1.5 mt-2" />
-                  {levelComplete && (
-                    <p className="text-xs font-semibold text-emerald-400 mt-2 flex items-center gap-1">
-                      <Gift className="h-3.5 w-3.5" />
-                      Level complete! +1 free loyalty point earned
-                    </p>
-                  )}
-                </CardHeader>
-              </button>
-              <AnimatePresence initial={false}>
-                {isOpen && (
+                </div>
+                <div className="h-2 rounded-full bg-secondary overflow-hidden">
                   <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.25 }}
-                    className="overflow-hidden"
-                  >
-                    <CardContent className="pt-0">
-                      <div className="grid grid-cols-2 gap-3">
-                        {level.badges.map((badge) => (
-                          <div
-                            key={badge.id}
-                            className={cn(
-                              "relative p-3 rounded-xl border text-center transition-all",
-                              badge.earned ? colors.border : "border-border bg-secondary/30 opacity-60"
-                            )}
-                          >
-                            <div className={cn("mx-auto mb-1.5", badge.earned ? colors.text : "text-muted-foreground")}>
-                              {badge.icon}
-                            </div>
-                            <p className="text-xs font-semibold text-foreground">{badge.title}</p>
-                            <p className="text-[10px] text-muted-foreground mt-0.5">{badge.description}</p>
-                            {!badge.earned && (
-                              <div className="mt-2">
-                                <Progress value={(badge.progress / badge.target) * 100} className="h-1" />
-                                <p className="text-[10px] text-muted-foreground mt-0.5">{badge.progress}/{badge.target}</p>
-                              </div>
-                            )}
-                            {badge.earned && (
-                              <div className={cn("absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full flex items-center justify-center", colors.bg)}>
-                                <span className="text-[10px] text-primary-foreground">✓</span>
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </motion.div>
+                    className={cn("h-full rounded-full", colors.bg)}
+                    initial={{ width: 0 }}
+                    animate={{ width: `${progressPct}%` }}
+                    transition={{ duration: 1, delay: 0.4 + li * 0.2, ease: "easeOut" }}
+                  />
+                </div>
+                {levelComplete && (
+                  <p className="text-xs font-semibold text-emerald-400 mt-2 flex items-center gap-1">
+                    <Gift className="h-3.5 w-3.5" />
+                    Level complete — +1 free loyalty point earned!
+                  </p>
                 )}
-              </AnimatePresence>
-            </Card>
-          </motion.div>
-        );
-      })}
-    </>
+              </div>
+            </div>
+          </div>
+        </button>
+        <AnimatePresence initial={false}>
+          {isOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="overflow-hidden"
+            >
+              <div className="px-5 pb-5 sm:px-6 sm:pb-6">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {level.badges.map((badge, bi) => (
+                    <motion.div
+                      key={badge.id}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: bi * 0.04 }}
+                      className={cn(
+                        "relative p-3 rounded-xl border text-center transition-all",
+                        badge.earned
+                          ? `${colors.border} shadow-sm`
+                          : "border-border bg-secondary/20 opacity-50"
+                      )}
+                    >
+                      <div className={cn(
+                        "mx-auto mb-2 h-8 w-8 rounded-lg flex items-center justify-center",
+                        badge.earned ? `${colors.text}` : "text-muted-foreground"
+                      )}>
+                        {badge.icon}
+                      </div>
+                      <p className="text-xs font-semibold text-foreground leading-tight">{badge.title}</p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5 leading-tight">{badge.description}</p>
+                      {!badge.earned && (
+                        <div className="mt-2">
+                          <div className="h-1 rounded-full bg-secondary overflow-hidden">
+                            <div className={cn("h-full rounded-full", colors.bg)} style={{ width: `${(badge.progress / badge.target) * 100}%` }} />
+                          </div>
+                          <p className="text-[10px] text-muted-foreground mt-0.5">{badge.progress}/{badge.target}</p>
+                        </div>
+                      )}
+                      {badge.earned && (
+                        <div className={cn("absolute -top-1 -right-1 h-5 w-5 rounded-full flex items-center justify-center shadow-sm", colors.bg)}>
+                          <span className="text-[10px] text-primary-foreground font-bold">✓</span>
+                        </div>
+                      )}
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </motion.div>
   );
 };
 
