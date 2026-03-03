@@ -38,6 +38,24 @@ const AdminNavbar = ({ activeTab, onTabChange, assignedClubId }: AdminNavbarProp
   const isMobile = useIsMobile();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [brandName, setBrandName] = useState({ line1: "ELEVATE", line2: "Wellness Hub" });
+
+  useEffect(() => {
+    supabase.from("page_content").select("content").eq("page_slug", "home").single().then(({ data }) => {
+      if (data) {
+        const content = data.content as any;
+        if (content?.platform_name_line1) {
+          setBrandName({
+            line1: content.platform_name_line1 || "ELEVATE",
+            line2: content.platform_name_line2 || "",
+          });
+        } else if (content?.platform_name) {
+          const parts = content.platform_name.trim().split(/\s+/);
+          setBrandName({ line1: parts[0], line2: parts.slice(1).join(" ") });
+        }
+      }
+    });
+  }, []);
 
   // Close mobile menu on tab change
   const handleTabChange = (tab: string) => {
