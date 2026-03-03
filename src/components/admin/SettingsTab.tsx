@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { User, Palette, Pencil, MapPin, Plus, Trash2, Check, X, Eye } from "lucide-react";
+import { User, Pencil, MapPin, Plus, Trash2, Check, X, Eye } from "lucide-react";
 import CustomerVisionTab from "@/components/CustomerVisionTab";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
