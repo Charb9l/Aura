@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { ClubRow, OfferingRow } from "./types";
 import { useLocations } from "@/hooks/useLocations";
+import AdminFinderInput from "./AdminFinderInput";
 
 interface ClubLocationRow { id: string; club_id: string; name: string; location: string; activity: string | null; }
 interface ClubPictureRow { id: string; club_id: string; image_url: string; display_order: number; }
