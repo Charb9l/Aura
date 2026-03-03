@@ -141,6 +141,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
   const [showAcademySportPicker, setShowAcademySportPicker] = useState(false);
   // Per-activity locations for add
   const [addActivityLocations, setAddActivityLocations] = useState<Record<string, { name: string; location: string }[]>>({});
+  const [addClubPublished, setAddClubPublished] = useState(true);
   const [addClubPicFiles, setAddClubPicFiles] = useState<File[]>([]);
   const [addClubPicPreviews, setAddClubPicPreviews] = useState<string[]>([]);
 
