@@ -170,8 +170,8 @@ const AdminNavbar = ({ activeTab, onTabChange, assignedClubId }: AdminNavbarProp
                 <div className="flex items-center justify-between h-14 px-5 border-b border-border/60 shrink-0">
                   <button onClick={() => handleTabChange("overview")} className="font-heading font-bold tracking-tight text-foreground cursor-pointer">
                     <div className="flex flex-col leading-tight">
-                      <span className="text-base font-bold tracking-wide">ELEVATE</span>
-                      <span className="text-[8px] font-medium tracking-[0.25em] text-muted-foreground uppercase">Wellness Hub</span>
+                     <span className="text-base font-bold tracking-wide">{brandName.line1}</span>
+                      {brandName.line2 && <span className="text-[8px] font-medium tracking-[0.25em] text-muted-foreground uppercase">{brandName.line2}</span>}
                     </div>
                   </button>
                   <button onClick={() => setMobileOpen(false)} className="flex items-center justify-center rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
