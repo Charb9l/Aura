@@ -262,8 +262,8 @@ const ProfilePage = () => {
   // Loyalty per club: count bookings whose activity slug is in the club's activities
   const clubPoints: Record<string, number> = {};
   clubs.forEach(club => {
-    const showCount = bookings.filter(b => club.offerings.includes(b.activity) && b.attendance_status === "show").length;
-    const noShowCount = bookings.filter(b => club.offerings.includes(b.activity) && b.attendance_status === "no_show").length;
+    const showCount = bookings.filter(b => club.offerings.includes(b.activity_name) && b.attendance_status === "show").length;
+    const noShowCount = bookings.filter(b => club.offerings.includes(b.activity_name) && b.attendance_status === "no_show").length;
     clubPoints[club.id] = Math.max(0, showCount - noShowCount);
   });
 
