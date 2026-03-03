@@ -433,7 +433,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
   const [heroLine2, setHeroLine2] = useState("");
   const [heroButtons, setHeroButtons] = useState<HeroButton[]>([]);
   const [navOrder, setNavOrder] = useState<NavItem[]>(DEFAULT_NAV_ORDER);
-  const [backgroundPicture, setBackgroundPicture] = useState("");
+  const [backgroundPicture, setBackgroundPicture] = useState(""); // kept for backward compat in save
   const [platformName, setPlatformName] = useState("");
 
   // Generic page state
