@@ -658,6 +658,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                     {isMasterAdmin && (
                       <TableCell>
                         <div className="flex items-center gap-1">
+                          <Button variant="ghost" size="icon" onClick={() => handleTogglePublish(club)} title={club.published ? "Unpublish" : "Publish"} className={cn(!club.published && "text-destructive hover:text-destructive")}>{club.published ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}</Button>
                           <Button variant="ghost" size="icon" onClick={() => openEdit(club)} title="Edit"><Pencil className="h-4 w-4" /></Button>
                           <Button variant="ghost" size="icon" onClick={() => openPictures(club)} title="Pictures"><Image className="h-4 w-4" /></Button>
                           <Button variant="ghost" size="icon" onClick={() => handleDeleteClub(club.id, club.name)} className="text-destructive hover:text-destructive hover:bg-destructive/10" title="Delete"><Trash2 className="h-4 w-4" /></Button>
