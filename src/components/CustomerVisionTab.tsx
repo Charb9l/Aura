@@ -499,7 +499,8 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
       hero_buttons: heroButtons.filter(b => b.label.trim() && b.to.trim()),
       nav_order: navOrder,
       background_picture: backgroundPicture,
-      platform_name: platformName,
+      platform_name_line1: platformNameLine1,
+      platform_name_line2: platformNameLine2,
     });
   };
 
