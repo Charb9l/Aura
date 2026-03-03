@@ -530,6 +530,8 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
       about_values_title: aboutValuesTitle,
       about_values: aboutValues.filter(v => v.title.trim()),
       nav_order: navOrder,
+      background_picture: backgroundPicture,
+      platform_name: platformName,
     });
   };
 
