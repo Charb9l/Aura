@@ -97,12 +97,12 @@ const BookPage = () => {
     const fetchData = async () => {
       const [offRes, clubRes, locRes, contentRes] = await Promise.all([
         supabase.from("offerings").select("*").order("name"),
-        supabase.from("clubs").select("id, name, offerings").order("name"),
+        supabase.from("clubs").select("id, name, offerings, published").order("name"),
         supabase.from("club_locations").select("*").order("name"),
         supabase.from("page_content").select("content").eq("page_slug", "book").single(),
       ]);
       if (offRes.data) setOfferings(offRes.data as unknown as OfferingData[]);
-      if (clubRes.data) setClubs(clubRes.data as any[]);
+      if (clubRes.data) setClubs((clubRes.data as any[]).filter(c => c.published !== false));
       if (locRes.data) setClubLocations(locRes.data as unknown as ClubLocation[]);
       if (contentRes.data) {
         const c = contentRes.data.content as any;
