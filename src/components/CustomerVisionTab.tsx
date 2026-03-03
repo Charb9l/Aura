@@ -575,12 +575,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
               <Input value={platformName} onChange={(e) => setPlatformName(e.target.value)} placeholder="e.g. ELEVATE WELLNESS HUB" className="h-12 bg-secondary border-border" />
               <p className="text-xs text-muted-foreground mt-1">This is the brand name shown in the top-left of the navbar. Leave empty for default.</p>
             </div>
-            <div>
-              <Label className="text-sm font-medium text-muted-foreground mb-2 block">Hero Background Pictures</Label>
-              <p className="text-xs text-muted-foreground mb-3">Drag & drop images for the landing page hero background. They'll be displayed in a dynamic layout based on how many you upload.</p>
-              <PagePicturesManager pageSlug="home" />
-            </div>
-            <div className="border-t border-border pt-6" />
+            
             <div>
               <Label className="text-sm font-medium text-muted-foreground mb-2 block">Hero Subtitle (small text above title)</Label>
               <Input value={heroSubtitle} onChange={(e) => setHeroSubtitle(e.target.value)} placeholder="e.g. Movement & Mindfulness" className="h-12 bg-secondary border-border" />
