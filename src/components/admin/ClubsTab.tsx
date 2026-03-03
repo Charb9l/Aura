@@ -205,14 +205,16 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [clubsRes, offeringsRes, locRes] = await Promise.all([
+      const [clubsRes, offeringsRes, locRes, pricesRes] = await Promise.all([
         supabase.from("clubs").select("*").order("name"),
         supabase.from("offerings").select("*").order("name"),
         supabase.from("club_locations").select("*").order("name"),
+        supabase.from("club_activity_prices").select("*"),
       ]);
       if (clubsRes.data) setClubs(clubsRes.data as unknown as ClubRow[]);
       if (offeringsRes.data) setOfferings(offeringsRes.data as unknown as OfferingRow[]);
       if (locRes.data) setClubLocations(locRes.data as unknown as ClubLocationRow[]);
+      if (pricesRes.data) setAllActivityPrices(pricesRes.data as unknown as ClubActivityPrice[]);
       setLoading(false);
     };
     fetchData();
