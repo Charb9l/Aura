@@ -16,7 +16,6 @@ const allMenuItems = [
   { label: "AI Matchmaker", icon: Gamepad2, tab: "matchmaker" },
   { label: "Bookings", icon: CalendarCheck, tab: "bookings" },
   { label: "Clubs & Partners", icon: Building2, tab: "clubs" },
-  { label: "Customer Vision", icon: Eye, tab: "customer-vision" },
   { label: "Habit Tracker", icon: TrendingUp, tab: "habits" },
   { label: "Promotions", icon: Tag, tab: "promotions" },
   { label: "Reports", icon: FileBarChart, tab: "reports" },
