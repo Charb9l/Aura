@@ -119,7 +119,7 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
 
   const allLogsEntries = useMemo(() => {
     const activeFiltered = clubActivityFilter ? bookings.filter(b => clubActivityFilter.includes(b.activity)) : bookings;
-    const active = activeFiltered.map(b => ({ ...b, status_label: "active" as const, deleted_at: null as string | null, deleted_by: null as string | null, created_by: b.created_by || null }));
+    const active = activeFiltered.map(b => ({ ...b, status_label: (b.attendance_status === "show" ? "show" : b.attendance_status === "no_show" ? "no_show" : "pending") as "show" | "no_show" | "pending", deleted_at: null as string | null, deleted_by: null as string | null, created_by: b.created_by || null }));
     const deleted = filteredLogs.map(l => ({ ...l, id: l.booking_id, status: "deleted", status_label: "deleted" as const, user_id: l.user_id }));
     let combined = [...active, ...deleted].sort((a, b) => {
       const dateA = a.booking_date + a.booking_time;
@@ -285,13 +285,17 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
                         {entry.created_at ? format(new Date(entry.created_at), "PPp") : "—"}
                       </TableCell>
                       <TableCell>
-                        {entry.status_label === "active" ? (
-                          <Badge variant="default" className="text-xs">Active</Badge>
-                        ) : (
-                          <Badge variant="destructive" className="text-xs flex items-center gap-1 w-fit">
+                        {entry.status_label === "show" ? (
+                          <Badge className="text-xs bg-emerald-500/20 text-emerald-500 border-emerald-500/30">Show</Badge>
+                        ) : entry.status_label === "no_show" ? (
+                          <Badge variant="destructive" className="text-xs">No Show</Badge>
+                        ) : entry.status_label === "deleted" ? (
+                          <Badge variant="destructive" className="text-xs flex items-center gap-1 w-fit opacity-60">
                             <Trash2 className="h-3 w-3" />
                             Deleted
                           </Badge>
+                        ) : (
+                          <Badge variant="secondary" className="text-xs">Pending</Badge>
                         )}
                       </TableCell>
                       <TableCell className="text-sm text-foreground">
