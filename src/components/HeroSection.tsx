@@ -29,6 +29,7 @@ interface HeroContent {
   hero_title_line1: string;
   hero_title_line2: string;
   hero_buttons: { to: string; label: string; glow?: boolean }[];
+  background_picture?: string;
 }
 
 const PANEL_COUNT = 4;
