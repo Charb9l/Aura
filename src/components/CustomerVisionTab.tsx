@@ -488,6 +488,8 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
       setAboutValuesTitle(content.about_values_title || "");
       setAboutValues([...(content.about_values || [])]);
       setNavOrder(content.nav_order?.length ? [...content.nav_order] : [...DEFAULT_NAV_ORDER]);
+      setBackgroundPicture(content.background_picture || "");
+      setPlatformName(content.platform_name || "");
     } else {
       setPageTitle(content.title || "");
       setPageSubtitle(content.subtitle || "");
