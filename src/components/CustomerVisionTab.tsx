@@ -27,21 +27,11 @@ const DEFAULT_NAV_ORDER: NavItem[] = [
   { to: "/loyalty", label: "Loyalty" },
 ];
 
-interface AboutValue { icon: string; title: string; description: string; }
-
 interface HomeContent {
   hero_subtitle: string;
   hero_title_line1: string;
   hero_title_line2: string;
   hero_buttons: HeroButton[];
-  about_heading: string;
-  about_intro: string;
-  about_mission_title: string;
-  about_mission: string;
-  about_vision_title: string;
-  about_vision: string;
-  about_values_title: string;
-  about_values: AboutValue[];
   nav_order?: NavItem[];
   background_picture?: string;
   platform_name?: string;
