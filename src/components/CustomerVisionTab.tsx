@@ -645,9 +645,24 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
             </div>
 
 
-
+            {/* === Pictures Section (always at bottom) === */}
             <div className="border-t border-border pt-6">
+              <h3 className="text-base font-heading font-semibold text-foreground mb-1">📷 Pictures</h3>
+              <p className="text-xs text-muted-foreground mb-6">All image uploads for the main page are managed here.</p>
+
+              <div className="space-y-2 mb-4">
+                <Label className="text-sm font-medium text-foreground block">Hero Background</Label>
+                <p className="text-xs text-muted-foreground">These pictures are displayed behind the hero text in a dynamic grid layout.</p>
+              </div>
               <PagePicturesManager pageSlug="home" />
+
+              <div className="border-t border-border my-6" />
+
+              <div className="space-y-2 mb-4">
+                <Label className="text-sm font-medium text-foreground block">Photo Carousel Belt</Label>
+                <p className="text-xs text-muted-foreground">These pictures scroll horizontally in the infinite photo strip below the hero section.</p>
+              </div>
+              <PagePicturesManager pageSlug="home-strip" />
             </div>
 
             <Button onClick={handleSaveHome} disabled={saving} className="w-full h-12 text-base font-semibold glow">
