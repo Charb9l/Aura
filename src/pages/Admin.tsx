@@ -27,7 +27,7 @@ import Navbar from "@/components/Navbar";
 import PhoneInput from "@/components/PhoneInput";
 
 // Extracted admin modules
-import { BookingRow, ProfileRow, UserWithEmail, ClubRow, getBookingRevenue, ALL_CATEGORIES, CHART_COLORS } from "@/components/admin/types";
+import { BookingRow, ProfileRow, UserWithEmail, ClubRow, ClubActivityPrice, getBookingRevenue, ALL_CATEGORIES, CHART_COLORS } from "@/components/admin/types";
 import BookingsCalendarTab from "@/components/admin/BookingsCalendarTab";
 import SettingsTab from "@/components/admin/SettingsTab";
 import ClubsTab from "@/components/admin/ClubsTab";
