@@ -605,6 +605,22 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
           </DialogHeader>
           <div className="space-y-6 pt-2">
             <div>
+              <Label className="text-sm font-medium text-muted-foreground mb-2 block">Platform Name (logo text in navbar)</Label>
+              <Input value={platformName} onChange={(e) => setPlatformName(e.target.value)} placeholder="e.g. ELEVATE WELLNESS HUB" className="h-12 bg-secondary border-border" />
+              <p className="text-xs text-muted-foreground mt-1">This is the brand name shown in the top-left of the navbar. Leave empty for default.</p>
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-muted-foreground mb-2 block">Background Picture URL</Label>
+              <Input value={backgroundPicture} onChange={(e) => setBackgroundPicture(e.target.value)} placeholder="Paste an image URL or leave empty for no background" className="h-12 bg-secondary border-border" />
+              <p className="text-xs text-muted-foreground mt-1">Background image for the landing page. Leave empty for a clean background.</p>
+              {backgroundPicture && (
+                <div className="mt-2 rounded-lg overflow-hidden border border-border aspect-video max-w-xs">
+                  <img src={backgroundPicture} alt="Background preview" className="w-full h-full object-cover" />
+                </div>
+              )}
+            </div>
+            <div className="border-t border-border pt-6" />
+            <div>
               <Label className="text-sm font-medium text-muted-foreground mb-2 block">Hero Subtitle (small text above title)</Label>
               <Input value={heroSubtitle} onChange={(e) => setHeroSubtitle(e.target.value)} placeholder="e.g. Movement & Mindfulness" className="h-12 bg-secondary border-border" />
             </div>
