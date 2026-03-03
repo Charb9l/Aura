@@ -218,6 +218,7 @@ export type Database = {
       }
       club_locations: {
         Row: {
+          activity: string | null
           club_id: string
           created_at: string
           id: string
@@ -225,6 +226,7 @@ export type Database = {
           name: string
         }
         Insert: {
+          activity?: string | null
           club_id: string
           created_at?: string
           id?: string
@@ -232,6 +234,7 @@ export type Database = {
           name: string
         }
         Update: {
+          activity?: string | null
           club_id?: string
           created_at?: string
           id?: string

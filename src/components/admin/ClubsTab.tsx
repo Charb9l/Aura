@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Building2, Pencil, Trash2, Upload, X, Image, GraduationCap, MapPin } from "lucide-react";
+import { Building2, Pencil, Trash2, Upload, X, Image, GraduationCap, MapPin, Plus } from "lucide-react";
 import PageContentEditor from "./PageContentEditor";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -17,7 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ClubRow, OfferingRow } from "./types";
 import { useLocations } from "@/hooks/useLocations";
 
-interface ClubLocationRow { id: string; club_id: string; name: string; location: string; }
+interface ClubLocationRow { id: string; club_id: string; name: string; location: string; activity: string | null; }
 interface ClubPictureRow { id: string; club_id: string; image_url: string; display_order: number; }
 interface AcademyPictureRow { id: string; club_id: string; image_url: string; picture_type: string; display_order: number; }
 
@@ -40,6 +40,72 @@ const DropZone = ({ id, dragging, setDragging, onFiles, uploading, hint, multipl
   </div>
 );
 
+// Per-activity location editor
+const ActivityLocationsEditor = ({
+  activity,
+  locations,
+  onAdd,
+  onRemove,
+  locationsList,
+  isAcademy,
+}: {
+  activity: string;
+  locations: { id?: string; name: string; location: string }[];
+  onAdd: () => void;
+  onRemove: (index: number) => void;
+  locationsList: { id: string; name: string }[];
+  isAcademy?: boolean;
+}) => (
+  <div className={cn("rounded-lg border p-3 space-y-2", isAcademy ? "border-primary/20 bg-primary/5" : "border-border bg-secondary/30")}>
+    <div className="flex items-center justify-between">
+      <Label className="text-xs font-semibold flex items-center gap-1.5">
+        {isAcademy && <GraduationCap className="h-3.5 w-3.5 text-primary" />}
+        <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+        {activity} — Locations
+      </Label>
+      <Button type="button" variant="outline" size="sm" onClick={onAdd} className="gap-1 text-xs h-7">
+        <Plus className="h-3 w-3" /> Add
+      </Button>
+    </div>
+    {locations.length === 0 && (
+      <p className="text-xs text-muted-foreground text-center py-2">No locations yet. Click "Add" to create one.</p>
+    )}
+    {locations.map((loc, i) => (
+      <div key={loc.id || `new-${i}`} className="flex gap-2">
+        <Input
+          placeholder="Court / Location name"
+          value={loc.name}
+          onChange={(e) => {
+            // Handled by parent via callback
+            const el = e.target as HTMLInputElement;
+            el.dataset.locIndex = String(i);
+            el.dataset.locField = "name";
+          }}
+          onInput={(e) => {
+            // Use a custom event approach — parent handles state
+          }}
+          className="h-9 bg-background border-border text-sm flex-1"
+          readOnly={!!loc.id}
+          disabled={!!loc.id}
+        />
+        <Select value={loc.location} onValueChange={() => {}}>
+          <SelectTrigger className="h-9 bg-background border-border text-sm w-[160px]" disabled={!!loc.id}>
+            <SelectValue placeholder="Select city" />
+          </SelectTrigger>
+          <SelectContent className="bg-card border-border z-50 max-h-60">
+            {locationsList.map(l => (
+              <SelectItem key={l.id} value={l.name}>{l.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Button type="button" variant="ghost" size="icon" onClick={() => onRemove(i)} className="shrink-0 text-destructive hover:text-destructive h-9 w-9">
+          <X className="h-3.5 w-3.5" />
+        </Button>
+      </div>
+    ))}
+  </div>
+);
+
 const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
   const { locations: locationsList } = useLocations();
   const [clubs, setClubs] = useState<ClubRow[]>([]);
@@ -56,8 +122,8 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
   const [dragging, setDragging] = useState(false);
   const [editHasAcademy, setEditHasAcademy] = useState(false);
   const [editShowAcademySportPicker, setEditShowAcademySportPicker] = useState(false);
-  const [editClubLocations, setEditClubLocations] = useState<ClubLocationRow[]>([]);
-  const [editNewLocations, setEditNewLocations] = useState<{ name: string; location: string }[]>([]);
+  // Per-activity locations for edit
+  const [editActivityLocations, setEditActivityLocations] = useState<Record<string, { id?: string; name: string; location: string }[]>>({});
 
   // Add Club state
   const [showAddClub, setShowAddClub] = useState(false);
@@ -70,11 +136,12 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
   const [addClubDragging, setAddClubDragging] = useState(false);
   const [addClubHasAcademy, setAddClubHasAcademy] = useState(false);
   const [showAcademySportPicker, setShowAcademySportPicker] = useState(false);
-  const [addClubLocations, setAddClubLocations] = useState<{ name: string; location: string }[]>([]);
+  // Per-activity locations for add
+  const [addActivityLocations, setAddActivityLocations] = useState<Record<string, { name: string; location: string }[]>>({});
   const [addClubPicFiles, setAddClubPicFiles] = useState<File[]>([]);
   const [addClubPicPreviews, setAddClubPicPreviews] = useState<string[]>([]);
 
-  // Add Club — academy pictures (deferred upload, club doesn't exist yet)
+  // Add Club — academy pictures
   const [addAcademyBubbleFile, setAddAcademyBubbleFile] = useState<File | null>(null);
   const [addAcademyBubblePreview, setAddAcademyBubblePreview] = useState<string | null>(null);
   const [addAcademyGalleryFiles, setAddAcademyGalleryFiles] = useState<File[]>([]);
@@ -86,7 +153,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
   const [clubLocations, setClubLocations] = useState<ClubLocationRow[]>([]);
   const [offerings, setOfferings] = useState<OfferingRow[]>([]);
 
-  // Pictures Dialog state (logo + club + academy pictures, immediate upload)
+  // Pictures Dialog state
   const [picturesClub, setPicturesClub] = useState<ClubRow | null>(null);
   const [clubPictures, setClubPictures] = useState<ClubPictureRow[]>([]);
   const [picAcademyBubble, setPicAcademyBubble] = useState<AcademyPictureRow | null>(null);
@@ -138,9 +205,21 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
     setEditClub(club); setEditName(club.name); setEditDescription(club.description || "");
     setEditOfferings(club.offerings || []); setEditHasAcademy(club.has_academy || false);
     setEditShowAcademySportPicker(false);
-    setEditClubLocations(clubLocations.filter(l => l.club_id === club.id));
-    setEditNewLocations([]); setEditLogoFile(null);
+    setEditLogoFile(null);
     setEditLogoPreview(club.logo_url?.startsWith("http") ? club.logo_url : null);
+    // Build per-activity locations map from existing club_locations
+    const locs = clubLocations.filter(l => l.club_id === club.id);
+    const map: Record<string, { id?: string; name: string; location: string }[]> = {};
+    for (const o of (club.offerings || [])) {
+      map[o] = locs.filter(l => l.activity === o).map(l => ({ id: l.id, name: l.name, location: l.location }));
+    }
+    // Also include legacy locations (no activity) under first offering or as unassigned
+    const legacyLocs = locs.filter(l => !l.activity);
+    if (legacyLocs.length > 0 && (club.offerings || []).length > 0) {
+      const firstOffering = (club.offerings || [])[0];
+      map[firstOffering] = [...(map[firstOffering] || []), ...legacyLocs.map(l => ({ id: l.id, name: l.name, location: l.location }))];
+    }
+    setEditActivityLocations(map);
   };
 
   const handleFileSelect = (file: File) => {
@@ -149,20 +228,34 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
     setEditLogoFile(file); setEditLogoPreview(URL.createObjectURL(file));
   };
 
-  const handleDrop = (e: React.DragEvent) => { e.preventDefault(); setDragging(false); const file = e.dataTransfer.files[0]; if (file) handleFileSelect(file); };
-
   const handleSave = async () => {
     if (!editClub) return;
+    // Check that each activity has at least one location
+    const allLocs = Object.entries(editActivityLocations).flatMap(([activity, locs]) =>
+      locs.filter(l => l.name.trim() && l.location.trim()).map(l => ({ ...l, activity }))
+    );
+    if (allLocs.length === 0) { toast.error("Each activity needs at least one location"); return; }
+
     setSaving(true);
     const { error } = await supabase.from("clubs").update({ name: editName, description: editDescription || null, logo_url: editClub.logo_url, offerings: editOfferings, has_academy: editHasAcademy }).eq("id", editClub.id);
-    if (editNewLocations.length > 0) {
-      const locsToInsert = editNewLocations.filter(l => l.name.trim() && l.location.trim()).map(l => ({ club_id: editClub.id, name: l.name.trim(), location: l.location.trim() }));
-      if (locsToInsert.length > 0) { const { data: newLocs } = await supabase.from("club_locations").insert(locsToInsert).select(); if (newLocs) setClubLocations(prev => [...prev, ...(newLocs as unknown as ClubLocationRow[])]); }
-    }
-    const existingIds = editClubLocations.map(l => l.id);
+
+    // Delete removed locations
+    const existingIds = allLocs.filter(l => l.id).map(l => l.id!);
     const originalIds = clubLocations.filter(l => l.club_id === editClub.id).map(l => l.id);
     const deletedIds = originalIds.filter(id => !existingIds.includes(id));
-    if (deletedIds.length > 0) { await supabase.from("club_locations").delete().in("id", deletedIds); setClubLocations(prev => prev.filter(l => !deletedIds.includes(l.id))); }
+    if (deletedIds.length > 0) {
+      await supabase.from("club_locations").delete().in("id", deletedIds);
+      setClubLocations(prev => prev.filter(l => !deletedIds.includes(l.id)));
+    }
+
+    // Insert new locations
+    const newLocs = allLocs.filter(l => !l.id && l.name.trim() && l.location.trim());
+    if (newLocs.length > 0) {
+      const locsToInsert = newLocs.map(l => ({ club_id: editClub.id, name: l.name.trim(), location: l.location.trim(), activity: l.activity }));
+      const { data: insertedLocs } = await supabase.from("club_locations").insert(locsToInsert).select();
+      if (insertedLocs) setClubLocations(prev => [...prev, ...(insertedLocs as unknown as ClubLocationRow[])]);
+    }
+
     setSaving(false);
     if (error) { toast.error("Failed to update club: " + error.message); }
     else { toast.success("Club updated successfully"); setClubs(prev => prev.map(c => c.id === editClub.id ? { ...c, name: editName, description: editDescription || null, logo_url: editClub.logo_url, offerings: editOfferings, has_academy: editHasAcademy } : c)); setEditClub(null); }
@@ -222,6 +315,15 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
 
   const handleAddClub = async () => {
     if (!addClubName.trim()) { toast.error("Please enter a club name"); return; }
+    // Validate that each activity has at least one location
+    const allLocs = Object.entries(addActivityLocations).flatMap(([activity, locs]) =>
+      locs.filter(l => l.name.trim() && l.location.trim()).map(l => ({ ...l, activity }))
+    );
+    if (addClubOfferings.length > 0 && allLocs.length === 0) {
+      toast.error("Please add at least one location for your activities");
+      return;
+    }
+
     setAddClubSaving(true);
     const { data: newClub, error: insertError } = await supabase.from("clubs").insert({ name: addClubName.trim(), description: addClubDescription.trim() || null, offerings: addClubOfferings, has_academy: addClubHasAcademy }).select().single();
     if (insertError || !newClub) { toast.error("Failed to add club: " + (insertError?.message || "Unknown error")); setAddClubSaving(false); return; }
@@ -232,9 +334,11 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
       const { error: uploadError } = await supabase.storage.from("club-logos").upload(filePath, addClubLogoFile, { upsert: true, cacheControl: "0" });
       if (!uploadError) { const { data: urlData } = supabase.storage.from("club-logos").getPublicUrl(filePath); logoUrl = `${urlData.publicUrl}?t=${Date.now()}`; await supabase.from("clubs").update({ logo_url: logoUrl }).eq("id", (newClub as any).id); }
     }
-    if (addClubLocations.length > 0) {
-      const locsToInsert = addClubLocations.filter(l => l.name.trim() && l.location.trim()).map(l => ({ club_id: (newClub as any).id, name: l.name.trim(), location: l.location.trim() }));
-      if (locsToInsert.length > 0) { const { data: newLocs } = await supabase.from("club_locations").insert(locsToInsert).select(); if (newLocs) setClubLocations(prev => [...prev, ...(newLocs as unknown as ClubLocationRow[])]); }
+    // Insert per-activity locations
+    if (allLocs.length > 0) {
+      const locsToInsert = allLocs.map(l => ({ club_id: (newClub as any).id, name: l.name.trim(), location: l.location.trim(), activity: l.activity }));
+      const { data: newLocs } = await supabase.from("club_locations").insert(locsToInsert).select();
+      if (newLocs) setClubLocations(prev => [...prev, ...(newLocs as unknown as ClubLocationRow[])]);
     }
     if (addClubPicFiles.length > 0) await uploadClubPictures((newClub as any).id, addClubPicFiles);
     if (addClubHasAcademy) {
@@ -248,7 +352,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
     toast.success(`Club "${addClubName.trim()}" added successfully`);
     setClubs(prev => [...prev, { ...newClub as unknown as ClubRow, logo_url: logoUrl }].sort((a, b) => a.name.localeCompare(b.name)));
     setShowAddClub(false); setAddClubName(""); setAddClubDescription(""); setAddClubOfferings([]); setAddClubHasAcademy(false);
-    setAddClubLogoFile(null); setAddClubLogoPreview(null); setAddClubLocations([]); setShowAcademySportPicker(false);
+    setAddClubLogoFile(null); setAddClubLogoPreview(null); setAddActivityLocations({}); setShowAcademySportPicker(false);
     setAddClubPicFiles([]); setAddClubPicPreviews([]);
     setAddAcademyBubbleFile(null); setAddAcademyBubblePreview(null);
     setAddAcademyGalleryFiles([]); setAddAcademyGalleryPreviews([]);
@@ -260,7 +364,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
     setAddClubPicPreviews(prev => [...prev, ...fileArr.map(f => URL.createObjectURL(f))]);
   };
 
-  // ───── Pictures Dialog (club + academy) ─────
+  // ───── Pictures Dialog ─────
   const openPictures = async (club: ClubRow) => {
     setPicturesClub(club); setPicturesLoading(true);
     setPicAcademyBubble(null); setPicAcademyGallery([]);
@@ -301,7 +405,6 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
 
   const handleDeleteLogo = async () => {
     if (!picturesClub || !confirm("Remove the club logo?")) return;
-    // Remove from storage
     const logoUrl = picturesClub.logo_url;
     if (logoUrl) {
       const urlParts = logoUrl.split("/club-logos/");
@@ -344,7 +447,6 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
     setClubPictures(prev => prev.filter(p => p.id !== pic.id)); toast.success("Picture removed");
   };
 
-  // Academy picture actions in Pictures dialog (immediate upload)
   const handlePicAcademyBubbleUpload = async (files: FileList | File[]) => {
     if (!picturesClub) return;
     const file = Array.from(files).find(f => f.type.startsWith("image/"));
@@ -481,6 +583,9 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
     </div>
   );
 
+  // Helper: count total locations for add dialog
+  const addTotalLocations = Object.values(addActivityLocations).reduce((sum, locs) => sum + locs.filter(l => l.name.trim() && l.location.trim()).length, 0);
+
   // ───── Render ─────
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="clubs">
@@ -545,7 +650,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
 
       {/* ═══ Edit Club Dialog ═══ */}
       <Dialog open={!!editClub} onOpenChange={(o) => !o && setEditClub(null)}>
-        <DialogContent className="bg-card border-border max-w-lg max-h-[67vh] overflow-y-auto">
+        <DialogContent className="bg-card border-border max-w-2xl w-[66vw] max-h-[80vh] overflow-y-auto">
           <DialogHeader><DialogTitle className="font-heading flex items-center gap-2"><Building2 className="h-5 w-5 text-primary" /> Edit Club</DialogTitle></DialogHeader>
           {editClub && (
             <div className="space-y-5 pt-2">
@@ -553,65 +658,195 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
               <div><Label className="text-sm font-medium text-muted-foreground mb-2 block">Description</Label><Textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} className="bg-secondary border-border min-h-[100px]" placeholder="Brief description..." /></div>
               <div>
                 <Label className="text-sm font-medium text-muted-foreground mb-2 block">Activities</Label>
-                <div className="flex flex-wrap gap-2 mb-3">{editOfferings.map((o) => (<Badge key={o} variant="secondary" className="text-xs flex items-center gap-1 pr-1">{o}<button type="button" onClick={() => { setEditOfferings(prev => prev.filter(x => x !== o)); if (o.toLowerCase().includes("academy")) { if (!editOfferings.filter(x => x !== o).some(x => x.toLowerCase().includes("academy"))) setEditHasAcademy(false); } }} className="ml-1 rounded-full hover:bg-destructive/20 p-0.5"><X className="h-3 w-3" /></button></Badge>))}</div>
-                <Select value="" onValueChange={(v) => { if (v === "__academy__") { setEditShowAcademySportPicker(true); return; } if (v && !editOfferings.includes(v)) setEditOfferings(prev => [...prev, v]); }}>
+                <div className="flex flex-wrap gap-2 mb-3">{editOfferings.map((o) => (<Badge key={o} variant="secondary" className="text-xs flex items-center gap-1 pr-1">{o}<button type="button" onClick={() => { setEditOfferings(prev => prev.filter(x => x !== o)); if (o.toLowerCase().includes("academy")) { if (!editOfferings.filter(x => x !== o).some(x => x.toLowerCase().includes("academy"))) setEditHasAcademy(false); } const newMap = { ...editActivityLocations }; delete newMap[o]; setEditActivityLocations(newMap); }} className="ml-1 rounded-full hover:bg-destructive/20 p-0.5"><X className="h-3 w-3" /></button></Badge>))}</div>
+                <Select value="" onValueChange={(v) => { if (v === "__academy__") { setEditShowAcademySportPicker(true); return; } if (v && !editOfferings.includes(v)) { setEditOfferings(prev => [...prev, v]); setEditActivityLocations(prev => ({ ...prev, [v]: [] })); } }}>
                   <SelectTrigger className="h-10 bg-secondary border-border"><SelectValue placeholder="Select an activity..." /></SelectTrigger>
                   <SelectContent className="bg-card border-border z-50">{offeringNames.filter(o => !editOfferings.includes(o)).map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}<SelectItem value="__academy__" className="font-semibold text-primary"><span className="flex items-center gap-1.5"><GraduationCap className="h-3.5 w-3.5" /> Academy</span></SelectItem></SelectContent>
                 </Select>
-                {editShowAcademySportPicker && (<div className="mt-3 p-3 rounded-lg border border-primary/30 bg-primary/5 space-y-2"><Label className="text-xs font-medium text-primary block">Choose Academy Sport</Label><div className="flex flex-wrap gap-2">{offeringNames.map(name => { const sportName = name.replace(/\s*(Court|Studio|Classes|Rental|\(Kids\))/gi, "").trim(); const academyLabel = `${sportName} Academy`; if (editOfferings.includes(academyLabel)) return null; return (<Button key={name} type="button" variant="outline" size="sm" onClick={() => { setEditOfferings(prev => [...prev, academyLabel]); setEditHasAcademy(true); setEditShowAcademySportPicker(false); }}>{sportName}</Button>); })}</div><Button type="button" variant="ghost" size="sm" onClick={() => setEditShowAcademySportPicker(false)} className="text-xs text-muted-foreground">Cancel</Button></div>)}
+                {editShowAcademySportPicker && (<div className="mt-3 p-3 rounded-lg border border-primary/30 bg-primary/5 space-y-2"><Label className="text-xs font-medium text-primary block">Choose Academy Sport</Label><div className="flex flex-wrap gap-2">{offeringNames.map(name => { const sportName = name.replace(/\s*(Court|Studio|Classes|Rental|\(Kids\))/gi, "").trim(); const academyLabel = `${sportName} Academy`; if (editOfferings.includes(academyLabel)) return null; return (<Button key={name} type="button" variant="outline" size="sm" onClick={() => { setEditOfferings(prev => [...prev, academyLabel]); setEditHasAcademy(true); setEditShowAcademySportPicker(false); setEditActivityLocations(prev => ({ ...prev, [academyLabel]: [] })); }}>{sportName}</Button>); })}</div><Button type="button" variant="ghost" size="sm" onClick={() => setEditShowAcademySportPicker(false)} className="text-xs text-muted-foreground">Cancel</Button></div>)}
               </div>
-              <div>
-                <Label className="text-sm font-medium text-muted-foreground mb-2 block">Locations</Label>
-                {editClubLocations.map((loc) => (<div key={loc.id} className="flex gap-2 mb-2"><Input value={loc.name} disabled className="h-10 bg-secondary border-border opacity-70" /><Input value={loc.location} disabled className="h-10 bg-secondary border-border opacity-70" /><Button type="button" variant="ghost" size="icon" onClick={() => setEditClubLocations(prev => prev.filter(l => l.id !== loc.id))} className="shrink-0 text-destructive hover:text-destructive"><X className="h-4 w-4" /></Button></div>))}
-                {editNewLocations.map((loc, i) => (<div key={`new-${i}`} className="flex gap-2 mb-2"><Input placeholder="Court/Location Name" value={loc.name} onChange={(e) => { const updated = [...editNewLocations]; updated[i].name = e.target.value; setEditNewLocations(updated); }} className="h-10 bg-secondary border-border" /><Select value={loc.location} onValueChange={(val) => { const updated = [...editNewLocations]; updated[i].location = val; setEditNewLocations(updated); }}><SelectTrigger className="h-10 bg-secondary border-border"><SelectValue placeholder="Select city" /></SelectTrigger><SelectContent className="bg-card border-border z-50 max-h-60">{locationsList.map(loc => (<SelectItem key={loc.id} value={loc.name}>{loc.name}</SelectItem>))}</SelectContent></Select><Button type="button" variant="ghost" size="icon" onClick={() => setEditNewLocations(prev => prev.filter((_, j) => j !== i))} className="shrink-0 text-destructive hover:text-destructive"><X className="h-4 w-4" /></Button></div>))}
-                <Button type="button" variant="outline" size="sm" onClick={() => setEditNewLocations(prev => [...prev, { name: "", location: "" }])} className="gap-1.5 text-xs"><MapPin className="h-3.5 w-3.5" /> Add Location</Button>
-              </div>
-              <Button onClick={handleSave} disabled={saving || !editName || (editClubLocations.length === 0 && editNewLocations.filter(l => l.name.trim() && l.location.trim()).length === 0)} className="w-full h-12 text-base font-semibold glow">{saving ? "Saving..." : "Save Changes"}</Button>
+
+              {/* Per-activity locations */}
+              {editOfferings.length > 0 && (
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium text-muted-foreground block">Locations per Activity</Label>
+                  {editOfferings.map(activity => {
+                    const locs = editActivityLocations[activity] || [];
+                    const isAcademy = activity.toLowerCase().includes("academy");
+                    return (
+                      <div key={activity} className={cn("rounded-lg border p-3 space-y-2", isAcademy ? "border-primary/20 bg-primary/5" : "border-border bg-secondary/30")}>
+                        <div className="flex items-center justify-between">
+                          <Label className="text-xs font-semibold flex items-center gap-1.5">
+                            {isAcademy && <GraduationCap className="h-3.5 w-3.5 text-primary" />}
+                            <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+                            {activity}
+                          </Label>
+                          <Button type="button" variant="outline" size="sm" onClick={() => setEditActivityLocations(prev => ({ ...prev, [activity]: [...(prev[activity] || []), { name: "", location: "" }] }))} className="gap-1 text-xs h-7">
+                            <Plus className="h-3 w-3" /> Add
+                          </Button>
+                        </div>
+                        {locs.length === 0 && <p className="text-xs text-muted-foreground text-center py-2">No locations. Click "Add" to create one.</p>}
+                        {locs.map((loc, i) => (
+                          <div key={loc.id || `new-${i}`} className="flex gap-2">
+                            <Input
+                              placeholder="Court / Location name"
+                              value={loc.name}
+                              onChange={(e) => setEditActivityLocations(prev => {
+                                const updated = [...(prev[activity] || [])];
+                                updated[i] = { ...updated[i], name: e.target.value };
+                                return { ...prev, [activity]: updated };
+                              })}
+                              className="h-9 bg-background border-border text-sm flex-1"
+                              disabled={!!loc.id}
+                            />
+                            <Select
+                              value={loc.location}
+                              onValueChange={(val) => setEditActivityLocations(prev => {
+                                const updated = [...(prev[activity] || [])];
+                                updated[i] = { ...updated[i], location: val };
+                                return { ...prev, [activity]: updated };
+                              })}
+                            >
+                              <SelectTrigger className="h-9 bg-background border-border text-sm w-[160px]" disabled={!!loc.id}>
+                                <SelectValue placeholder="Select city" />
+                              </SelectTrigger>
+                              <SelectContent className="bg-card border-border z-50 max-h-60">
+                                {locationsList.map(l => <SelectItem key={l.id} value={l.name}>{l.name}</SelectItem>)}
+                              </SelectContent>
+                            </Select>
+                            <Button type="button" variant="ghost" size="icon" onClick={() => setEditActivityLocations(prev => {
+                              const updated = [...(prev[activity] || [])];
+                              updated.splice(i, 1);
+                              return { ...prev, [activity]: updated };
+                            })} className="shrink-0 text-destructive hover:text-destructive h-9 w-9">
+                              <X className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              <Button onClick={handleSave} disabled={saving || !editName} className="w-full h-12 text-base font-semibold glow">{saving ? "Saving..." : "Save Changes"}</Button>
             </div>
           )}
         </DialogContent>
       </Dialog>
 
-      {/* ═══ Add Club Dialog ═══ */}
+      {/* ═══ Add Club Dialog — Order: Name, Description, Activities + Locations, THEN Pictures ═══ */}
       <Dialog open={showAddClub} onOpenChange={setShowAddClub}>
         <DialogContent className="bg-card border-border max-w-2xl w-[66vw] max-h-[80vh] overflow-y-auto">
           <DialogHeader><DialogTitle className="font-heading text-xl flex items-center gap-2"><Building2 className="h-5 w-5 text-primary" /> Add Club / Partner</DialogTitle></DialogHeader>
           <div className="space-y-5 pt-2">
+            {/* 1. Name */}
             <div><Label className="text-sm font-medium text-muted-foreground mb-2 block">Club Name</Label><Input value={addClubName} onChange={(e) => setAddClubName(e.target.value)} placeholder="Enter club name" className="h-12 bg-secondary border-border" /></div>
-            <div>
-              <Label className="text-sm font-medium text-muted-foreground mb-2 block">Club Logo</Label>
-              <div onDragOver={(e) => { e.preventDefault(); setAddClubDragging(true); }} onDragLeave={() => setAddClubDragging(false)} onDrop={(e) => { e.preventDefault(); setAddClubDragging(false); const file = e.dataTransfer.files[0]; if (file) handleAddClubFileSelect(file); }} className={cn("relative border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer", addClubDragging ? "border-primary bg-primary/5" : "border-border hover:border-muted-foreground/50")} onClick={() => document.getElementById("add-club-logo-input")?.click()}>
-                <input id="add-club-logo-input" type="file" accept="image/*" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) handleAddClubFileSelect(file); }} />
-                {addClubLogoPreview ? (<div className="flex flex-col items-center gap-3"><div className="h-24 w-24 rounded-xl overflow-hidden bg-secondary"><img src={addClubLogoPreview} alt="Logo preview" className="h-full w-full object-contain" /></div><p className="text-xs text-muted-foreground">Click or drag to replace</p></div>) : (<div className="flex flex-col items-center gap-2 py-4"><Upload className="h-8 w-8 text-muted-foreground" /><p className="text-sm text-muted-foreground">Drag & drop or click to upload</p></div>)}
-              </div>
-            </div>
-            <div>
-              <Label className="text-sm font-medium text-muted-foreground mb-2 block">Club Pictures</Label>
-              <div className="relative border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer border-border hover:border-muted-foreground/50" onClick={() => document.getElementById("add-club-pics-input")?.click()}>
-                <input id="add-club-pics-input" type="file" accept="image/*" multiple className="hidden" onChange={(e) => { if (e.target.files) handleAddClubPicSelect(e.target.files); e.target.value = ""; }} />
-                <div className="flex flex-col items-center gap-2"><Upload className="h-6 w-6 text-muted-foreground" /><p className="text-sm text-muted-foreground">Add pictures</p></div>
-              </div>
-              {addClubPicPreviews.length > 0 && (<div className="grid grid-cols-4 gap-2 mt-3">{addClubPicPreviews.map((preview, i) => (<div key={i} className="relative rounded-lg overflow-hidden border border-border aspect-video"><img src={preview} alt="Preview" className="w-full h-full object-cover" /><button type="button" onClick={() => { setAddClubPicFiles(prev => prev.filter((_, j) => j !== i)); setAddClubPicPreviews(prev => prev.filter((_, j) => j !== i)); }} className="absolute top-1 right-1 rounded-full bg-destructive p-1 text-destructive-foreground"><X className="h-3 w-3" /></button></div>))}</div>)}
-            </div>
+
+            {/* 2. Description */}
             <div><Label className="text-sm font-medium text-muted-foreground mb-2 block">Description</Label><Textarea value={addClubDescription} onChange={(e) => setAddClubDescription(e.target.value)} className="bg-secondary border-border min-h-[100px]" placeholder="Brief description..." /></div>
+
+            {/* 3. Activities */}
             <div>
               <Label className="text-sm font-medium text-muted-foreground mb-2 block">Activities</Label>
-              <div className="flex flex-wrap gap-2 mb-3">{addClubOfferings.map((o) => (<Badge key={o} variant="secondary" className="text-xs flex items-center gap-1 pr-1">{o}<button type="button" onClick={() => { setAddClubOfferings(prev => prev.filter(x => x !== o)); if (o.toLowerCase().includes("academy")) { if (!addClubOfferings.filter(x => x !== o).some(x => x.toLowerCase().includes("academy"))) { setAddClubHasAcademy(false); } } }} className="ml-1 rounded-full hover:bg-destructive/20 p-0.5"><X className="h-3 w-3" /></button></Badge>))}</div>
-              <Select value="" onValueChange={(v) => { if (v === "__academy__") { setShowAcademySportPicker(true); return; } if (v && !addClubOfferings.includes(v)) setAddClubOfferings(prev => [...prev, v]); }}>
+              <div className="flex flex-wrap gap-2 mb-3">{addClubOfferings.map((o) => (<Badge key={o} variant="secondary" className="text-xs flex items-center gap-1 pr-1">{o}<button type="button" onClick={() => { setAddClubOfferings(prev => prev.filter(x => x !== o)); if (o.toLowerCase().includes("academy")) { if (!addClubOfferings.filter(x => x !== o).some(x => x.toLowerCase().includes("academy"))) { setAddClubHasAcademy(false); } } const newMap = { ...addActivityLocations }; delete newMap[o]; setAddActivityLocations(newMap); }} className="ml-1 rounded-full hover:bg-destructive/20 p-0.5"><X className="h-3 w-3" /></button></Badge>))}</div>
+              <Select value="" onValueChange={(v) => { if (v === "__academy__") { setShowAcademySportPicker(true); return; } if (v && !addClubOfferings.includes(v)) { setAddClubOfferings(prev => [...prev, v]); setAddActivityLocations(prev => ({ ...prev, [v]: [] })); } }}>
                 <SelectTrigger className="h-10 bg-secondary border-border"><SelectValue placeholder="Select an activity..." /></SelectTrigger>
                 <SelectContent className="bg-card border-border z-50">{offeringNames.filter(o => !addClubOfferings.includes(o)).map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}<SelectItem value="__academy__" className="font-semibold text-primary"><span className="flex items-center gap-1.5"><GraduationCap className="h-3.5 w-3.5" /> Academy</span></SelectItem></SelectContent>
               </Select>
-              {showAcademySportPicker && (<div className="mt-3 p-3 rounded-lg border border-primary/30 bg-primary/5 space-y-2"><Label className="text-xs font-medium text-primary block">Choose Academy Sport</Label><div className="flex flex-wrap gap-2">{offeringNames.map(name => { const sportName = name.replace(/\s*(Court|Studio|Classes|Rental|\(Kids\))/gi, "").trim(); const academyLabel = `${sportName} Academy`; if (addClubOfferings.includes(academyLabel)) return null; return (<Button key={name} type="button" variant="outline" size="sm" onClick={() => { setAddClubOfferings(prev => [...prev, academyLabel]); setAddClubHasAcademy(true); setShowAcademySportPicker(false); }}>{sportName}</Button>); })}</div><Button type="button" variant="ghost" size="sm" onClick={() => setShowAcademySportPicker(false)} className="text-xs text-muted-foreground">Cancel</Button></div>)}
+              {showAcademySportPicker && (<div className="mt-3 p-3 rounded-lg border border-primary/30 bg-primary/5 space-y-2"><Label className="text-xs font-medium text-primary block">Choose Academy Sport</Label><div className="flex flex-wrap gap-2">{offeringNames.map(name => { const sportName = name.replace(/\s*(Court|Studio|Classes|Rental|\(Kids\))/gi, "").trim(); const academyLabel = `${sportName} Academy`; if (addClubOfferings.includes(academyLabel)) return null; return (<Button key={name} type="button" variant="outline" size="sm" onClick={() => { setAddClubOfferings(prev => [...prev, academyLabel]); setAddClubHasAcademy(true); setShowAcademySportPicker(false); setAddActivityLocations(prev => ({ ...prev, [academyLabel]: [] })); }}>{sportName}</Button>); })}</div><Button type="button" variant="ghost" size="sm" onClick={() => setShowAcademySportPicker(false)} className="text-xs text-muted-foreground">Cancel</Button></div>)}
             </div>
 
-            {addClubHasAcademy && renderAddAcademyPicturesSection()}
+            {/* 4. Per-activity locations */}
+            {addClubOfferings.length > 0 && (
+              <div className="space-y-3">
+                <Label className="text-sm font-medium text-muted-foreground block">Locations per Activity</Label>
+                {addClubOfferings.map(activity => {
+                  const locs = addActivityLocations[activity] || [];
+                  const isAcademy = activity.toLowerCase().includes("academy");
+                  return (
+                    <div key={activity} className={cn("rounded-lg border p-3 space-y-2", isAcademy ? "border-primary/20 bg-primary/5" : "border-border bg-secondary/30")}>
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs font-semibold flex items-center gap-1.5">
+                          {isAcademy && <GraduationCap className="h-3.5 w-3.5 text-primary" />}
+                          <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+                          {activity}
+                        </Label>
+                        <Button type="button" variant="outline" size="sm" onClick={() => setAddActivityLocations(prev => ({ ...prev, [activity]: [...(prev[activity] || []), { name: "", location: "" }] }))} className="gap-1 text-xs h-7">
+                          <Plus className="h-3 w-3" /> Add
+                        </Button>
+                      </div>
+                      {locs.length === 0 && <p className="text-xs text-muted-foreground text-center py-2">No locations. Click "Add" to create one.</p>}
+                      {locs.map((loc, i) => (
+                        <div key={`add-${activity}-${i}`} className="flex gap-2">
+                          <Input
+                            placeholder="Court / Location name"
+                            value={loc.name}
+                            onChange={(e) => setAddActivityLocations(prev => {
+                              const updated = [...(prev[activity] || [])];
+                              updated[i] = { ...updated[i], name: e.target.value };
+                              return { ...prev, [activity]: updated };
+                            })}
+                            className="h-9 bg-background border-border text-sm flex-1"
+                          />
+                          <Select
+                            value={loc.location}
+                            onValueChange={(val) => setAddActivityLocations(prev => {
+                              const updated = [...(prev[activity] || [])];
+                              updated[i] = { ...updated[i], location: val };
+                              return { ...prev, [activity]: updated };
+                            })}
+                          >
+                            <SelectTrigger className="h-9 bg-background border-border text-sm w-[160px]">
+                              <SelectValue placeholder="Select city" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-card border-border z-50 max-h-60">
+                              {locationsList.map(l => <SelectItem key={l.id} value={l.name}>{l.name}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                          <Button type="button" variant="ghost" size="icon" onClick={() => setAddActivityLocations(prev => {
+                            const updated = [...(prev[activity] || [])];
+                            updated.splice(i, 1);
+                            return { ...prev, [activity]: updated };
+                          })} className="shrink-0 text-destructive hover:text-destructive h-9 w-9">
+                            <X className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
-            <div>
-              <Label className="text-sm font-medium text-muted-foreground mb-2 block">Locations</Label>
-              {addClubLocations.map((loc, i) => (<div key={i} className="flex gap-2 mb-2"><Input placeholder="Court/Location Name" value={loc.name} onChange={(e) => { const updated = [...addClubLocations]; updated[i].name = e.target.value; setAddClubLocations(updated); }} className="h-10 bg-secondary border-border" /><Select value={loc.location} onValueChange={(val) => { const updated = [...addClubLocations]; updated[i].location = val; setAddClubLocations(updated); }}><SelectTrigger className="h-10 bg-secondary border-border"><SelectValue placeholder="Select city" /></SelectTrigger><SelectContent className="bg-card border-border z-50 max-h-60">{locationsList.map(loc => (<SelectItem key={loc.id} value={loc.name}>{loc.name}</SelectItem>))}</SelectContent></Select><Button type="button" variant="ghost" size="icon" onClick={() => setAddClubLocations(prev => prev.filter((_, j) => j !== i))} className="shrink-0 text-destructive hover:text-destructive"><X className="h-4 w-4" /></Button></div>))}
-              <Button type="button" variant="outline" size="sm" onClick={() => setAddClubLocations(prev => [...prev, { name: "", location: "" }])} className="gap-1.5 text-xs"><MapPin className="h-3.5 w-3.5" /> Add Location</Button>
+            {/* 5. Pictures section — LAST */}
+            <div className="border-t border-border pt-5 space-y-5">
+              <Label className="text-sm font-medium text-muted-foreground block">Pictures</Label>
+
+              {/* Club Logo */}
+              <div>
+                <Label className="text-xs font-medium text-muted-foreground mb-2 block">Club Logo</Label>
+                <div onDragOver={(e) => { e.preventDefault(); setAddClubDragging(true); }} onDragLeave={() => setAddClubDragging(false)} onDrop={(e) => { e.preventDefault(); setAddClubDragging(false); const file = e.dataTransfer.files[0]; if (file) handleAddClubFileSelect(file); }} className={cn("relative border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer", addClubDragging ? "border-primary bg-primary/5" : "border-border hover:border-muted-foreground/50")} onClick={() => document.getElementById("add-club-logo-input")?.click()}>
+                  <input id="add-club-logo-input" type="file" accept="image/*" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) handleAddClubFileSelect(file); }} />
+                  {addClubLogoPreview ? (<div className="flex flex-col items-center gap-3"><div className="h-24 w-24 rounded-xl overflow-hidden bg-secondary"><img src={addClubLogoPreview} alt="Logo preview" className="h-full w-full object-contain" /></div><p className="text-xs text-muted-foreground">Click or drag to replace</p></div>) : (<div className="flex flex-col items-center gap-2 py-4"><Upload className="h-8 w-8 text-muted-foreground" /><p className="text-sm text-muted-foreground">Drag & drop or click to upload</p></div>)}
+                </div>
+              </div>
+
+              {/* Club Pictures */}
+              <div>
+                <Label className="text-xs font-medium text-muted-foreground mb-2 block">Club Pictures</Label>
+                <div className="relative border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer border-border hover:border-muted-foreground/50" onClick={() => document.getElementById("add-club-pics-input")?.click()}>
+                  <input id="add-club-pics-input" type="file" accept="image/*" multiple className="hidden" onChange={(e) => { if (e.target.files) handleAddClubPicSelect(e.target.files); e.target.value = ""; }} />
+                  <div className="flex flex-col items-center gap-2"><Upload className="h-6 w-6 text-muted-foreground" /><p className="text-sm text-muted-foreground">Add pictures</p></div>
+                </div>
+                {addClubPicPreviews.length > 0 && (<div className="grid grid-cols-4 gap-2 mt-3">{addClubPicPreviews.map((preview, i) => (<div key={i} className="relative rounded-lg overflow-hidden border border-border aspect-video"><img src={preview} alt="Preview" className="w-full h-full object-cover" /><button type="button" onClick={() => { setAddClubPicFiles(prev => prev.filter((_, j) => j !== i)); setAddClubPicPreviews(prev => prev.filter((_, j) => j !== i)); }} className="absolute top-1 right-1 rounded-full bg-destructive p-1 text-destructive-foreground"><X className="h-3 w-3" /></button></div>))}</div>)}
+              </div>
+
+              {/* Academy Pictures (if academy activity selected) */}
+              {addClubHasAcademy && renderAddAcademyPicturesSection()}
             </div>
-            <Button onClick={handleAddClub} disabled={addClubSaving || !addClubName.trim() || addClubLocations.filter(l => l.name.trim() && l.location.trim()).length === 0} className="w-full h-12 text-base font-semibold glow"><Building2 className="h-4 w-4 mr-2" />{addClubSaving ? "Adding..." : "Add Club"}</Button>
+
+            <Button onClick={handleAddClub} disabled={addClubSaving || !addClubName.trim()} className="w-full h-12 text-base font-semibold glow"><Building2 className="h-4 w-4 mr-2" />{addClubSaving ? "Adding..." : "Add Club"}</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -625,11 +860,10 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
             <p className="text-center text-muted-foreground py-8 text-sm">Loading...</p>
           ) : (
             <div className="space-y-8 pt-2">
-              {/* ── Club Logo ── */}
+              {/* Club Logo */}
               <div>
                 <Label className="text-sm font-semibold text-foreground mb-3 block flex items-center gap-2">
-                  <Building2 className="h-4 w-4 text-primary" />
-                  Club Logo
+                  <Building2 className="h-4 w-4 text-primary" /> Club Logo
                 </Label>
                 {picLogoPreview ? (
                   <div className="group relative rounded-xl overflow-hidden border border-border bg-card w-28 h-28">
@@ -646,11 +880,10 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                 )}
               </div>
 
-              {/* ── Club Images ── */}
+              {/* Club Images */}
               <div>
                 <Label className="text-sm font-semibold text-foreground mb-3 block flex items-center gap-2">
-                  <Building2 className="h-4 w-4 text-primary" />
-                  Club Images
+                  <Building2 className="h-4 w-4 text-primary" /> Club Images
                   <span className="text-xs font-normal text-muted-foreground ml-1">(shown when customers click on this club)</span>
                 </Label>
                 <div onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); handlePictureUpload(e.dataTransfer.files); }} onClick={() => document.getElementById("club-pics-input")?.click()} className="relative border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer border-border hover:border-muted-foreground/50">
@@ -673,15 +906,13 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                 )}
               </div>
 
-              {/* ── Academy Images (only if academy is selected) ── */}
+              {/* Academy Images */}
               {picturesClub?.has_academy && (
                 <div className="border border-primary/20 bg-primary/5 rounded-xl p-4 space-y-5">
                   <div className="flex items-center gap-2">
                     <GraduationCap className="h-4 w-4 text-primary" />
                     <Label className="text-sm font-semibold text-primary">Academy Pictures</Label>
                   </div>
-
-                  {/* Bubble Image */}
                   <div>
                     <Label className="text-xs font-medium text-muted-foreground mb-2 block">
                       Bubble Image <span className="text-xs opacity-70">(shown on the academy card — 1 image)</span>
@@ -698,8 +929,6 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                         onFiles={handlePicAcademyBubbleUpload} uploading={academyPicUploading} hint="Drop 1 image for the academy card" />
                     )}
                   </div>
-
-                  {/* Gallery Images */}
                   <div>
                     <Label className="text-xs font-medium text-muted-foreground mb-2 block">
                       Gallery Images <span className="text-xs opacity-70">(shown when customer clicks the academy + carousel strip)</span>
