@@ -233,7 +233,21 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
             </CardTitle>
             <p className="text-sm text-muted-foreground">{allLogsEntries.length} total entries (active + deleted)</p>
           </CardHeader>
-          <CardContent className="p-0">
+          <CardContent>
+            <div className="flex items-center gap-3 mb-4 flex-wrap">
+              <Input placeholder="Search by name, email, phone..." value={logSearch} onChange={(e) => setLogSearch(e.target.value)} className="h-10 bg-secondary border-border max-w-xs" />
+              <Select value={logActivityFilter} onValueChange={setLogActivityFilter}>
+                <SelectTrigger className="w-[160px] h-10 bg-secondary border-border text-sm"><SelectValue placeholder="All Activities" /></SelectTrigger>
+                <SelectContent className="bg-card border-border z-50">
+                  <SelectItem value="all">All Activities</SelectItem>
+                  {ACTIVITY_OPTIONS.map(a => <SelectItem key={a.key} value={a.key}>{a.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <label className="flex items-center gap-2 cursor-pointer text-sm text-muted-foreground hover:text-foreground transition-colors">
+                <input type="checkbox" checked={logAcademyOnly} onChange={(e) => setLogAcademyOnly(e.target.checked)} className="rounded border-border" />
+                Academy clubs only
+              </label>
+            </div>
             {logsLoading ? (
               <p className="text-muted-foreground text-center py-10">Loading logs...</p>
             ) : (

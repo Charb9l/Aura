@@ -631,7 +631,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                 const filtered = clubs.filter(c => (!q || c.name.toLowerCase().includes(q) || (c.description || "").toLowerCase().includes(q)) && (!academyOnly || c.has_academy)).sort((a, b) => a.name.localeCompare(b.name));
                 return filtered.length === 0 ? (
                 <TableRow><TableCell colSpan={isMasterAdmin ? 4 : 3} className="text-center text-muted-foreground py-8">{clubSearch || academyOnly ? "No clubs match your filters." : "No clubs yet."}</TableCell></TableRow>
-              ) : clubs.slice().sort((a, b) => a.name.localeCompare(b.name)).map((club) => {
+              ) : filtered.map((club) => {
                 const logoSrc = getLogoSrc(club);
                 return (
                   <TableRow key={club.id}>
@@ -639,6 +639,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                       <div className="flex items-center gap-3">
                         {logoSrc && <div className="h-10 w-10 rounded-lg overflow-hidden bg-secondary shrink-0"><img src={logoSrc} alt={club.name} className="h-full w-full object-contain" /></div>}
                         <span className="font-medium">{club.name}</span>
+                        {club.has_academy && <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-primary/30 text-primary">Academy</Badge>}
                       </div>
                     </TableCell>
                     <TableCell className="text-muted-foreground text-sm max-w-xs">{club.description || "—"}</TableCell>
@@ -654,7 +655,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                     )}
                   </TableRow>
                 );
-              })}
+              }); })()}
             </TableBody>
           </Table>
         </CardContent>
