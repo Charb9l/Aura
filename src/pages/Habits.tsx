@@ -219,8 +219,8 @@ const HabitsPage = () => {
   const completedBookings = useMemo(() =>
     bookings.filter(b => b.attendance_status === "show"), [bookings]);
 
-  const allConfirmed = useMemo(() =>
-    bookings.filter(b => b.status === "confirmed" || b.attendance_status === "show"), [bookings]);
+  // Heatmap and all metrics should only count bookings marked as "show"
+  const allConfirmed = completedBookings;
 
   // Streak: consecutive weeks with at least 1 completed booking
   const { currentStreak, longestStreak } = useMemo(() => {
