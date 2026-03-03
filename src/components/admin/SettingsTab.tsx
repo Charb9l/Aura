@@ -174,48 +174,8 @@ const SettingsTab = () => {
 
 
 
-  if (activeSection === "about") {
-    return (
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="settings-about">
-        <Button variant="ghost" size="sm" className="mb-4 gap-2" onClick={() => setActiveSection(null)}>
-          ← Back to Settings
-        </Button>
-        <Card className="bg-card border-border max-w-lg">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Info className="h-5 w-5 text-primary" />
-              About
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Platform</span>
-                <span className="text-sm font-medium text-foreground">Elevate Wellness Hub</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Admin Panel</span>
-                <span className="text-sm font-medium text-foreground">v2.0</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Logged in as</span>
-                <span className="text-sm font-medium text-foreground">{user?.email}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Role</span>
-                <span className="text-sm font-medium text-primary">Super Admin</span>
-              </div>
-              <div className="border-t border-border pt-4">
-                <p className="text-xs text-muted-foreground">
-                  Elevate Wellness Hub is a multi-sport booking and wellness platform managing courts, studios, academies, and customer engagement across Lebanon.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-    );
-  }
+
+
 
   if (activeSection === "locations") {
     const handleAddLocation = async () => {
