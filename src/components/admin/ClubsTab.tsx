@@ -110,6 +110,8 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
   const { locations: locationsList } = useLocations();
   const [clubs, setClubs] = useState<ClubRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [clubSearch, setClubSearch] = useState("");
+  const [academyOnly, setAcademyOnly] = useState(false);
 
   // Edit Club state
   const [editClub, setEditClub] = useState<ClubRow | null>(null);
