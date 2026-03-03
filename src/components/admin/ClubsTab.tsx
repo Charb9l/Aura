@@ -403,6 +403,18 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
         await uploadAcademyPicture(clubId, addAcademyGalleryFiles[i], "carousel", i);
       }
     }
+    // Save activity prices for this new club
+    const newClubId = (newClub as any).id;
+    const priceRows = Object.entries(addPrices)
+      .filter(([, val]) => val && Number(val) > 0)
+      .map(([key, val]) => {
+        const parts = key.split(":");
+        return { club_id: newClubId, activity_slug: parts[0], price: Number(val), price_label: parts[1] || null };
+      });
+    if (priceRows.length > 0) {
+      await supabase.from("club_activity_prices").insert(priceRows as any);
+      setAllActivityPrices(prev => [...prev, ...priceRows.map((r, i) => ({ ...r, id: `temp-add-${i}`, created_at: new Date().toISOString() }))]);
+    }
     setAddClubSaving(false);
     toast.success(`Club "${addClubName.trim()}" added successfully`);
     setClubs(prev => [...prev, { ...newClub as unknown as ClubRow, logo_url: logoUrl }].sort((a, b) => a.name.localeCompare(b.name)));
@@ -411,6 +423,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
     setAddClubPicFiles([]); setAddClubPicPreviews([]);
     setAddAcademyBubbleFile(null); setAddAcademyBubblePreview(null);
     setAddAcademyGalleryFiles([]); setAddAcademyGalleryPreviews([]);
+    setAddPrices({});
   };
 
   const handleAddClubPicSelect = (files: FileList | File[]) => {
