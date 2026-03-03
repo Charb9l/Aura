@@ -21,6 +21,7 @@ const ActivitiesTab = () => {
   const [offerings, setOfferings] = useState<OfferingRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState<"list" | "add" | "edit">("list");
+  const [activitySearch, setActivitySearch] = useState("");
 
   const [formName, setFormName] = useState("");
   const [formSlug, setFormSlug] = useState("");
