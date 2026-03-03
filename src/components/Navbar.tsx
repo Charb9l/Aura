@@ -55,6 +55,7 @@ const Navbar = () => {
 
   const [glowRoutes, setGlowRoutes] = useState<Set<string>>(new Set());
   const [NAV_LINKS, setNavLinks] = useState(DEFAULT_NAV_LINKS);
+  const [platformName, setPlatformName] = useState({ line1: "ELEVATE", line2: "Wellness Hub" });
   useEffect(() => {
     supabase.from("page_content").select("content").eq("page_slug", "home").single().then(({ data }) => {
       if (data) {
@@ -62,6 +63,14 @@ const Navbar = () => {
         const routes = new Set<string>((content?.hero_buttons || []).filter((b: any) => b.glow).map((b: any) => b.to));
         setGlowRoutes(routes);
         if (content?.nav_order?.length) setNavLinks(content.nav_order);
+        if (content?.platform_name) {
+          const parts = content.platform_name.trim().split(/\s+/);
+          if (parts.length >= 2) {
+            setPlatformName({ line1: parts[0], line2: parts.slice(1).join(" ") });
+          } else {
+            setPlatformName({ line1: parts[0], line2: "" });
+          }
+        }
       }
     });
   }, []);
