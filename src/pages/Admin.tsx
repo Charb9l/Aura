@@ -21,7 +21,7 @@ import { toast } from "@/components/ui/sonner";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 import AdminNavbar from "@/components/AdminNavbar";
-import CustomerVisionTab from "@/components/CustomerVisionTab";
+
 import MatchmakerTab from "@/components/admin/MatchmakerTab";
 import Navbar from "@/components/Navbar";
 import PhoneInput from "@/components/PhoneInput";
