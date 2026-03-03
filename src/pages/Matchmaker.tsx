@@ -291,7 +291,7 @@ const MatchmakerPage = () => {
                 return (
                   <button
                     key={o.id}
-                    onClick={() => setSportFilter(active ? "" : o.id)}
+                    onClick={() => { setSportFilter(active ? "" : o.id); setLocationFilter(""); }}
                     className={cn(
                       "rounded-full px-4 py-2 text-sm font-medium border transition-all",
                       !active && "border-border text-muted-foreground hover:border-muted-foreground/50"

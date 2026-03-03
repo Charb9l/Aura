@@ -51,19 +51,39 @@ Deno.serve(async (req) => {
     if (selError) throw selError;
 
     if (!selections || selections.length === 0) {
-      return new Response(JSON.stringify({ matches: [] }), {
+      // Still return offerings and filtered locations even with no matches
+      const [offeringsRes, clubsRes, clubLocsRes] = await Promise.all([
+        supabase.from("offerings").select("id, name, slug, brand_color"),
+        supabase.from("clubs").select("id, offerings, published").eq("published", true),
+        supabase.from("club_locations").select("id, name, location, activity, club_id"),
+      ]);
+
+      // Filter locations by sport if sport filter is applied
+      let filteredLocations = clubLocsRes.data || [];
+      if (sportFilter) {
+        const offering = (offeringsRes.data || []).find((o: any) => o.id === sportFilter);
+        if (offering) {
+          const publishedClubIds = new Set((clubsRes.data || [])
+            .filter((c: any) => c.offerings.some((o: string) => o.toLowerCase().includes(offering.slug.toLowerCase())))
+            .map((c: any) => c.id));
+          filteredLocations = filteredLocations.filter((loc: any) => publishedClubIds.has(loc.club_id));
+        }
+      }
+
+      return new Response(JSON.stringify({ matches: [], offerings: offeringsRes.data, locations: filteredLocations }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const userIds = [...new Set(selections.map((s: any) => s.user_id))];
 
-    const [profilesRes, offeringsRes, levelsRes, locationsRes, mySelectionsRes] = await Promise.all([
+    const [profilesRes, offeringsRes, levelsRes, locationsRes, mySelectionsRes, clubsRes] = await Promise.all([
       supabase.from("profiles").select("user_id, full_name").in("user_id", userIds),
       supabase.from("offerings").select("id, name, slug, brand_color"),
       supabase.from("player_levels").select("id, label, display_order"),
-      supabase.from("club_locations").select("id, name, location"),
+      supabase.from("club_locations").select("id, name, location, activity, club_id"),
       supabase.from("player_selections").select("sport_id, level_id, location_ids, playstyle, availability, goals").eq("user_id", user.id),
+      supabase.from("clubs").select("id, offerings, published").eq("published", true),
     ]);
 
     const profileMap = Object.fromEntries((profilesRes.data || []).map((p: any) => [p.user_id, p]));
@@ -71,6 +91,18 @@ Deno.serve(async (req) => {
     const levelMap = Object.fromEntries((levelsRes.data || []).map((l: any) => [l.id, l]));
     const locationMap = Object.fromEntries((locationsRes.data || []).map((l: any) => [l.id, l]));
     const mySelections = mySelectionsRes.data || [];
+
+    // Filter locations: only show locations from published clubs that have the selected activity
+    let filteredLocations = locationsRes.data || [];
+    if (sportFilter) {
+      const offering = offeringMap[sportFilter];
+      if (offering) {
+        const publishedClubIds = new Set((clubsRes.data || [])
+          .filter((c: any) => c.offerings.some((o: string) => o.toLowerCase().includes(offering.slug.toLowerCase())))
+          .map((c: any) => c.id));
+        filteredLocations = filteredLocations.filter((loc: any) => publishedClubIds.has(loc.club_id));
+      }
+    }
 
     const userSelectionsMap: Record<string, any[]> = {};
     for (const sel of selections) {
@@ -83,48 +115,22 @@ Deno.serve(async (req) => {
       let score = 0;
       const details: string[] = [];
 
-      // Level match: +3
-      if (mine.level_id === theirs.level_id) {
-        score += 3;
-        details.push("level");
-      }
+      if (mine.level_id === theirs.level_id) { score += 3; details.push("level"); }
+      if (mine.playstyle && theirs.playstyle && mine.playstyle === theirs.playstyle) { score += 2; details.push("playstyle"); }
 
-      // Playstyle match: +2
-      if (mine.playstyle && theirs.playstyle && mine.playstyle === theirs.playstyle) {
-        score += 2;
-        details.push("playstyle");
-      }
-
-      // Location overlap: +2
       const myLocs: string[] = mine.location_ids || [];
       const theirLocs: string[] = theirs.location_ids || [];
-      if (myLocs.length > 0 && theirLocs.length > 0 && myLocs.some((id: string) => theirLocs.includes(id))) {
-        score += 2;
-        details.push("location");
-      }
+      if (myLocs.length > 0 && theirLocs.length > 0 && myLocs.some((id: string) => theirLocs.includes(id))) { score += 2; details.push("location"); }
 
-      // Availability overlap: +2
       const myAvail: any[] = mine.availability || [];
       const theirAvail: any[] = theirs.availability || [];
-      const hasAvailOverlap = myAvail.some((ma: any) =>
-        theirAvail.some((ta: any) => ma.day === ta.day && ma.period === ta.period)
-      );
-      if (myAvail.length > 0 && theirAvail.length > 0 && hasAvailOverlap) {
-        score += 2;
-        details.push("availability");
-      }
+      const hasAvailOverlap = myAvail.some((ma: any) => theirAvail.some((ta: any) => ma.day === ta.day && ma.period === ta.period));
+      if (myAvail.length > 0 && theirAvail.length > 0 && hasAvailOverlap) { score += 2; details.push("availability"); }
 
-      // Goals overlap: +1
       const myGoals: string[] = mine.goals || [];
       const theirGoals: string[] = theirs.goals || [];
-      const goalOverlap = myGoals.filter((g: string) => theirGoals.includes(g));
-      if (goalOverlap.length > 0) {
-        score += 1;
-        details.push("goals");
-      }
+      if (myGoals.filter((g: string) => theirGoals.includes(g)).length > 0) { score += 1; details.push("goals"); }
 
-      // Max score = 10 (sport itself counts as base)
-      // Determine quality tier
       let matchQuality: "perfect" | "good" | "sport-only" = "sport-only";
       if (score >= 7) matchQuality = "perfect";
       else if (score >= 3) matchQuality = "good";
@@ -137,9 +143,7 @@ Deno.serve(async (req) => {
       const userSels = userSelectionsMap[uid] || [];
       const fullName = profile?.full_name || "Anonymous";
       const nameParts = fullName.trim().split(" ");
-      const displayName = nameParts.length > 1
-        ? `${nameParts[0]} ${nameParts[nameParts.length - 1][0]}.`
-        : nameParts[0];
+      const displayName = nameParts.length > 1 ? `${nameParts[0]} ${nameParts[nameParts.length - 1][0]}.` : nameParts[0];
 
       let bestScore = 0;
 
@@ -189,10 +193,9 @@ Deno.serve(async (req) => {
       };
     });
 
-    // Sort by score descending
     matches.sort((a: any, b: any) => b.match_score - a.match_score);
 
-    return new Response(JSON.stringify({ matches, offerings: offeringsRes.data, locations: locationsRes.data }), {
+    return new Response(JSON.stringify({ matches, offerings: offeringsRes.data, locations: filteredLocations }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
