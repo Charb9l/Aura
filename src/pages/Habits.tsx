@@ -44,6 +44,12 @@ const LEVEL_ICONS = [
   <Crown className="h-5 w-5" />,
 ];
 
+const LEVEL_ICONS_LG = [
+  <Shield className="h-10 w-10" />,
+  <Award className="h-10 w-10" />,
+  <Crown className="h-10 w-10" />,
+];
+
 const LEVEL_COLORS = [
   { text: "text-primary", border: "border-primary/40 bg-primary/5", bg: "bg-primary", ring: "ring-primary/20" },
   { text: "text-accent", border: "border-accent/40 bg-accent/5", bg: "bg-accent", ring: "ring-accent/20" },
