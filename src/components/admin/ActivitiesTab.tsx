@@ -211,6 +211,42 @@ const ActivitiesTab = () => {
                 <p className="font-medium text-foreground truncate">{o.name}</p>
                 <p className="text-xs text-muted-foreground font-mono">{o.slug}</p>
               </div>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    className="h-8 w-8 rounded-lg border border-border shrink-0 hover:scale-110 transition-transform"
+                    style={{ backgroundColor: o.brand_color ? `hsl(${o.brand_color})` : "hsl(var(--muted))" }}
+                    title="Set brand color"
+                  />
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-3" align="end">
+                  <p className="text-xs text-muted-foreground mb-2 font-medium">Brand Color</p>
+                  <div className="grid grid-cols-5 gap-1.5">
+                    {COLOR_PALETTE.map((color) => {
+                      const isSelected = o.brand_color === color.hsl;
+                      return (
+                        <button
+                          key={color.hsl}
+                          onClick={async () => {
+                            const { error } = await supabase.from("offerings").update({ brand_color: color.hsl }).eq("id", o.id);
+                            if (error) { toast.error("Failed to save color"); return; }
+                            setOfferings(prev => prev.map(x => x.id === o.id ? { ...x, brand_color: color.hsl } : x));
+                            toast.success("Color updated");
+                          }}
+                          title={color.label}
+                          className={cn(
+                            "h-7 w-7 rounded-md border-2 transition-all relative hover:scale-110",
+                            isSelected ? "border-foreground ring-2 ring-foreground/20 scale-110" : "border-transparent hover:border-muted-foreground/40"
+                          )}
+                          style={{ backgroundColor: `hsl(${color.hsl})` }}
+                        >
+                          {isSelected && <Check className="h-3 w-3 text-white absolute inset-0 m-auto drop-shadow-md" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </PopoverContent>
+              </Popover>
               <Button variant="ghost" size="icon" onClick={() => openEdit(o)}><Pencil className="h-4 w-4" /></Button>
               <Button variant="ghost" size="icon" onClick={() => handleDelete(o)} className="text-destructive hover:text-destructive hover:bg-destructive/10"><Trash2 className="h-4 w-4" /></Button>
             </div>
