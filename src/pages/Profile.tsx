@@ -7,8 +7,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAvatar, getInitials } from "@/hooks/useAvatar";
 import { useBadgeLevels } from "@/hooks/useBadgeLevels";
 import { useBadgePoints } from "@/hooks/useBadgePoints";
+import { useNudges } from "@/hooks/useNudges";
 import Navbar from "@/components/Navbar";
-import { Trophy, Clock, ArrowRight, Gift, Zap, CalendarCheck, Pencil, Trash2, CalendarIcon, Camera } from "lucide-react";
+import { Trophy, Clock, ArrowRight, Gift, Zap, CalendarCheck, Pencil, Trash2, CalendarIcon, Camera, Send, Check, X as XIcon, Users, Phone } from "lucide-react";
 import MyPlayerSection from "@/components/MyPlayerSection";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -82,6 +83,14 @@ const ProfilePage = () => {
   const [showBadgeReward, setShowBadgeReward] = useState(false);
   const [selectedClubForPoint, setSelectedClubForPoint] = useState<string>("");
   const [assigningPoint, setAssigningPoint] = useState(false);
+  const [viewNudge, setViewNudge] = useState<any | null>(null);
+  const [respondingNudge, setRespondingNudge] = useState(false);
+  const [showNudges, setShowNudges] = useState(false);
+  const [nudgeTab, setNudgeTab] = useState<"received" | "sent">("received");
+  const [buddySportFilter, setBuddySportFilter] = useState<string>("");
+
+  // Nudges
+  const { sentNudges, receivedNudges, buddies, respondToNudge, pendingReceivedCount } = useNudges();
   
   // Use persistent badge points
   const { assignments: badgeAssignments, assignedLevels, assignPoint: persistAssignPoint, refetch: refetchBadgePoints } = useBadgePoints();
@@ -348,10 +357,190 @@ const ProfilePage = () => {
               </Badge>
             )}
           </Button>
+          <Button
+            onClick={() => setShowNudges(true)}
+            variant="outline"
+            className="h-14 px-6 rounded-xl font-bold text-base gap-3 border-accent/30 hover:border-accent hover:bg-accent/5 transition-all"
+          >
+            <Send className="h-5 w-5 text-accent" />
+            Pending Nudges
+            {pendingReceivedCount > 0 && (
+              <Badge className="ml-1 bg-accent text-accent-foreground text-xs px-2 py-0.5 animate-pulse">
+                {pendingReceivedCount}
+              </Badge>
+            )}
+            {sentNudges.length > 0 && (
+              <Badge variant="outline" className="ml-1 text-xs px-2 py-0.5">
+                {sentNudges.length} sent
+              </Badge>
+            )}
+          </Button>
         </motion.div>
 
         {/* MyPlayer Section */}
         <MyPlayerSection />
+
+        {/* Workout Buddies */}
+        {buddies.length > 0 && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }} className="mb-8">
+            <div className="flex items-center gap-3 mb-4">
+              <Users className="h-5 w-5 text-primary" />
+              <h2 className="font-heading text-xl font-bold text-foreground">Workout Buddies</h2>
+            </div>
+            {/* Sport filter chips */}
+            {(() => {
+              const sportIds = [...new Set(buddies.map(b => b.sport_id))];
+              const sports = sportIds.map(id => ({ id, name: buddies.find(b => b.sport_id === id)?.sport_name || "", color: buddies.find(b => b.sport_id === id)?.sport_brand_color }));
+              return sports.length > 1 ? (
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <button onClick={() => setBuddySportFilter("")} className={cn("rounded-full px-3 py-1.5 text-xs font-medium border transition-all", !buddySportFilter ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground")}>All</button>
+                  {sports.map(s => (
+                    <button key={s.id} onClick={() => setBuddySportFilter(buddySportFilter === s.id ? "" : s.id)} className={cn("rounded-full px-3 py-1.5 text-xs font-medium border transition-all", buddySportFilter === s.id ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground")}>{s.name}</button>
+                  ))}
+                </div>
+              ) : null;
+            })()}
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {buddies.filter(b => !buddySportFilter || b.sport_id === buddySportFilter).map(buddy => (
+                <div key={buddy.id} className="rounded-xl border border-border bg-card p-4">
+                  <div className="flex items-center gap-3 mb-2">
+                    {buddy.buddy_avatar ? (
+                      <img src={buddy.buddy_avatar} alt="" className="h-9 w-9 rounded-full object-cover border border-border" />
+                    ) : (
+                      <div className="h-9 w-9 rounded-full bg-primary/10 text-primary font-bold text-sm flex items-center justify-center">{(buddy.buddy_name || "?")[0]}</div>
+                    )}
+                    <div>
+                      <p className="font-medium text-foreground text-sm">{buddy.buddy_name}</p>
+                      <p className="text-xs text-muted-foreground">{buddy.sport_name}</p>
+                    </div>
+                  </div>
+                  {buddy.buddy_phone && (
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
+                      <Phone className="h-3 w-3" /> {buddy.buddy_phone}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Nudges Dialog */}
+        <Dialog open={showNudges} onOpenChange={setShowNudges}>
+          <DialogContent className="bg-card border-border max-w-2xl w-[95vw] md:w-auto max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="font-heading text-xl flex items-center gap-2">
+                <Send className="h-5 w-5 text-primary" /> Pending Nudges
+              </DialogTitle>
+            </DialogHeader>
+            <div className="flex gap-2 mb-4">
+              <button onClick={() => setNudgeTab("received")} className={cn("rounded-full px-4 py-2 text-sm font-medium border transition-all", nudgeTab === "received" ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground")}>
+                Received {receivedNudges.length > 0 && `(${receivedNudges.length})`}
+              </button>
+              <button onClick={() => setNudgeTab("sent")} className={cn("rounded-full px-4 py-2 text-sm font-medium border transition-all", nudgeTab === "sent" ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground")}>
+                Sent {sentNudges.length > 0 && `(${sentNudges.length})`}
+              </button>
+            </div>
+
+            {nudgeTab === "received" ? (
+              receivedNudges.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">No pending nudges received.</p>
+              ) : (
+                <div className="space-y-3">
+                  {receivedNudges.map(nudge => (
+                    <div key={nudge.id} className="rounded-xl border border-border bg-secondary/30 p-4 cursor-pointer hover:border-primary/30 transition-all" onClick={() => setViewNudge(nudge)}>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          {nudge.sender_avatar ? (
+                            <img src={nudge.sender_avatar} alt="" className="h-10 w-10 rounded-full object-cover border border-border" />
+                          ) : (
+                            <div className="h-10 w-10 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center">{(nudge.sender_name || "?")[0]}</div>
+                          )}
+                          <div>
+                            <p className="font-medium text-foreground">{nudge.sender_name}</p>
+                            <p className="text-xs text-muted-foreground">{nudge.sport_name} · {nudge.sender_level}{nudge.sender_playstyle ? ` · ${nudge.sender_playstyle}` : ""}</p>
+                          </div>
+                        </div>
+                        <Badge className="bg-accent/15 text-accent border-accent/30">New</Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )
+            ) : (
+              sentNudges.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">No pending sent nudges.</p>
+              ) : (
+                <div className="space-y-3">
+                  {sentNudges.map(nudge => (
+                    <div key={nudge.id} className="rounded-xl border border-border bg-secondary/30 p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground font-bold">{(nudge.receiver_name || "?")[0]}</div>
+                        <div>
+                          <p className="font-medium text-foreground">{nudge.receiver_name}</p>
+                          <p className="text-xs text-muted-foreground">{nudge.sport_name} · Waiting for response</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* View Nudge Detail Dialog */}
+        <Dialog open={!!viewNudge} onOpenChange={(o) => !o && setViewNudge(null)}>
+          <DialogContent className="bg-card border-border max-w-md">
+            {viewNudge && (
+              <div className="space-y-5 pt-2">
+                <div className="text-center">
+                  {viewNudge.sender_avatar ? (
+                    <img src={viewNudge.sender_avatar} alt="" className="h-16 w-16 rounded-full object-cover border-2 border-border mx-auto mb-3" />
+                  ) : (
+                    <div className="h-16 w-16 rounded-full bg-primary/10 text-primary font-bold text-2xl flex items-center justify-center mx-auto mb-3">{(viewNudge.sender_name || "?")[0]}</div>
+                  )}
+                  <h3 className="font-heading text-xl font-bold text-foreground">{viewNudge.sender_name}</h3>
+                  <p className="text-sm text-muted-foreground mt-1">{viewNudge.sport_name} · {viewNudge.sender_level}{viewNudge.sender_playstyle ? ` · ${viewNudge.sender_playstyle}` : ""}</p>
+                </div>
+                <div className="rounded-xl bg-secondary/50 border border-border p-4 text-center">
+                  <p className="text-muted-foreground text-sm">
+                    Do you wish to accept your new workout buddy's nudge? If yes, <span className="font-semibold text-foreground">your phone number will be visible to them</span>.
+                  </p>
+                </div>
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={async () => {
+                      setRespondingNudge(true);
+                      await respondToNudge(viewNudge.id, false);
+                      setRespondingNudge(false);
+                      toast.success("Nudge declined");
+                      setViewNudge(null);
+                    }}
+                    disabled={respondingNudge}
+                    className="flex-1 gap-2"
+                  >
+                    <XIcon className="h-4 w-4" /> Decline
+                  </Button>
+                  <Button
+                    onClick={async () => {
+                      setRespondingNudge(true);
+                      await respondToNudge(viewNudge.id, true);
+                      setRespondingNudge(false);
+                      toast.success("Nudge accepted! You're now workout buddies 🎉");
+                      setViewNudge(null);
+                    }}
+                    disabled={respondingNudge}
+                    className="flex-1 glow gap-2"
+                  >
+                    <Check className="h-4 w-4" /> {respondingNudge ? "..." : "Accept"}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
 
         {/* Pending Bookings Dialog */}
         <Dialog open={showPending} onOpenChange={setShowPending}>

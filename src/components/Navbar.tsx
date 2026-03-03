@@ -7,6 +7,7 @@ import { useAvatar, getInitials } from "@/hooks/useAvatar";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { useBadgeLevels } from "@/hooks/useBadgeLevels";
 import { useBadgePoints } from "@/hooks/useBadgePoints";
+import { usePendingNudgeCount } from "@/hooks/useNudges";
 import { LogOut, ShieldCheck, Menu, X, LogIn } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -47,7 +48,8 @@ const Navbar = () => {
   const { completedLevelCount } = useBadgeLevels(navBookings);
   const { assignedLevels, loading: badgeLoading } = useBadgePoints();
   const hasUnassignedBadgePoints = !badgeLoading && completedLevelCount > assignedLevels.size;
-  const showGlow = user && (playerComplete === false || !avatarUrl || hasPendingBookings || hasUnassignedBadgePoints);
+  const pendingNudgeCount = usePendingNudgeCount();
+  const showGlow = user && (playerComplete === false || !avatarUrl || hasPendingBookings || hasUnassignedBadgePoints || pendingNudgeCount > 0);
   const { isAdmin } = useAdminRole();
   const initials = getInitials(user?.user_metadata?.full_name, user?.email);
 
