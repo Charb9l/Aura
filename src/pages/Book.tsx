@@ -304,8 +304,9 @@ const BookPage = () => {
                 <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={() => setFilterLocation("")}>Clear location</Button>
               )}
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
+            <div className="flex flex-wrap gap-2.5">
               {filteredOfferings.map((a) => {
+                const isSelected = selectedActivity === a.slug;
                 const aBrand = makeBrandStyles(a.brand_color);
                 return (
                   <button
@@ -313,16 +314,21 @@ const BookPage = () => {
                     key={a.slug}
                     onClick={() => { setSelectedActivity(a.slug); setSelectedClub(""); setSelectedLocation(""); setCourtType(""); setDate(undefined); setSelectedTime(""); }}
                     className={cn(
-                      "relative overflow-hidden rounded-xl border-2 transition-all aspect-[3/4]",
-                      selectedActivity !== a.slug && "border-border hover:border-muted-foreground/50"
+                      "flex items-center gap-2.5 rounded-full border px-4 py-2 transition-all text-sm font-medium",
+                      isSelected
+                        ? "shadow-md"
+                        : "border-border text-muted-foreground hover:border-muted-foreground/50 hover:text-foreground bg-secondary/30"
                     )}
-                    style={selectedActivity === a.slug ? aBrand.glow : undefined}
+                    style={isSelected ? aBrand.bg10 : undefined}
                   >
-                    {a.logo_url && <img src={a.logo_url} alt={a.name} className="h-full w-full object-cover" />}
-                    <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
-                    <span className="absolute bottom-3 left-3 right-3 font-heading text-sm font-semibold text-foreground">
-                      {a.name}
-                    </span>
+                    {a.logo_url && (
+                      <img
+                        src={a.logo_url}
+                        alt=""
+                        className="h-6 w-6 rounded-full object-cover flex-shrink-0"
+                      />
+                    )}
+                    <span className="whitespace-nowrap">{a.name}</span>
                   </button>
                 );
               })}
