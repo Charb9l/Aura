@@ -461,14 +461,6 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
       setHeroLine1(content.hero_title_line1 || "");
       setHeroLine2(content.hero_title_line2 || "");
       setHeroButtons([...(content.hero_buttons || [])]);
-      setAboutHeading(content.about_heading || "");
-      setAboutIntro(content.about_intro || "");
-      setAboutMissionTitle(content.about_mission_title || "");
-      setAboutMission(content.about_mission || "");
-      setAboutVisionTitle(content.about_vision_title || "");
-      setAboutVision(content.about_vision || "");
-      setAboutValuesTitle(content.about_values_title || "");
-      setAboutValues([...(content.about_values || [])]);
       setNavOrder(content.nav_order?.length ? [...content.nav_order] : [...DEFAULT_NAV_ORDER]);
       setBackgroundPicture(content.background_picture || "");
       setPlatformName(content.platform_name || "");
