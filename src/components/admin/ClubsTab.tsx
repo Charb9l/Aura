@@ -284,6 +284,25 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
       if (insertedLocs) setClubLocations(prev => [...prev, ...(insertedLocs as unknown as ClubLocationRow[])]);
     }
 
+    // Save prices — delete old prices and re-insert
+    await supabase.from("club_activity_prices").delete().eq("club_id", editClub.id);
+    const priceRows = Object.entries(editPrices)
+      .filter(([, val]) => val && Number(val) > 0)
+      .map(([key, val]) => {
+        const parts = key.split(":");
+        return {
+          club_id: editClub.id,
+          activity_slug: parts[0],
+          price: Number(val),
+          price_label: parts[1] || null,
+        };
+      });
+    if (priceRows.length > 0) {
+      await supabase.from("club_activity_prices").insert(priceRows as any);
+    }
+    // Update local cache
+    setAllActivityPrices(prev => [...prev.filter(p => p.club_id !== editClub.id), ...priceRows.map((r, i) => ({ ...r, id: `temp-${i}`, created_at: new Date().toISOString() }))]);
+
     setSaving(false);
     if (error) { toast.error("Failed to update club: " + error.message); }
     else { toast.success("Club updated successfully"); setClubs(prev => prev.map(c => c.id === editClub.id ? { ...c, name: editName, description: editDescription || null, logo_url: editClub.logo_url, offerings: editOfferings, has_academy: editHasAcademy } : c)); setEditClub(null); }
