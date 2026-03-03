@@ -198,9 +198,22 @@ const AdminDashboard = () => {
   useEffect(() => { setBookingFilterValue("all"); }, [bookingFilterType]);
   useEffect(() => { setRevenueFilterValue("all"); }, [revenueFilterType]);
 
+  // Build a price map from activityPrices: key = "slug" or "slug:label"
+  const priceMap = useMemo(() => {
+    const map: Record<string, number> = {};
+    activityPrices.forEach(p => {
+      const key = p.price_label ? `${p.activity_slug}:${p.price_label}` : p.activity_slug;
+      map[key] = Number(p.price);
+    });
+    return map;
+  }, [activityPrices]);
+
+  // IMPORTANT: Revenue only counts bookings marked as "show"
+  const showBookings = useMemo(() => filteredBookings.filter(b => b.attendance_status === "show"), [filteredBookings]);
+
   const todayStr = format(new Date(), "yyyy-MM-dd");
-  const dailyRevenue = filteredBookings.filter(b => b.booking_date === todayStr).reduce((sum, b) => sum + getBookingRevenue(b), 0);
-  const totalRevenue = filteredBookings.reduce((sum, b) => sum + getBookingRevenue(b), 0);
+  const dailyRevenue = showBookings.filter(b => b.booking_date === todayStr).reduce((sum, b) => sum + getBookingRevenue(b, priceMap), 0);
+  const totalRevenue = showBookings.reduce((sum, b) => sum + getBookingRevenue(b, priceMap), 0);
 
   const applyDashboardFilter = (list: BookingRow[], filterType: string, filterValue: string) => {
     if (filterType === "all" || filterValue === "all") return list;
@@ -231,11 +244,12 @@ const AdminDashboard = () => {
     else if (revenueRange === "custom" && bookingCustomDate) { start = startOfDay(bookingCustomDate); end = endOfDay(bookingCustomDate); }
     else if (revenueRange === "custom-range" && revenueCustomRange.from && revenueCustomRange.to) { start = startOfDay(revenueCustomRange.from); end = endOfDay(revenueCustomRange.to); }
     else { start = startOfDay(now); end = endOfDay(now); }
-    let filtered = filteredBookings.filter(b => { const d = parseISO(b.booking_date); return isWithinInterval(d, { start, end }); });
+    // Revenue only counts "show" bookings
+    let filtered = showBookings.filter(b => { const d = parseISO(b.booking_date); return isWithinInterval(d, { start, end }); });
     filtered = applyDashboardFilter(filtered, revenueFilterType, revenueFilterValue);
-    const total = filtered.reduce((sum, b) => sum + getBookingRevenue(b), 0);
+    const total = filtered.reduce((sum, b) => sum + getBookingRevenue(b, priceMap), 0);
     return [{ name: "Revenue", value: total }];
-  }, [filteredBookings, revenueRange, bookingCustomDate, revenueCustomRange, revenueFilterType, revenueFilterValue, clubActivityMap]);
+  }, [showBookings, revenueRange, bookingCustomDate, revenueCustomRange, revenueFilterType, revenueFilterValue, clubActivityMap, priceMap]);
 
   if (loadingData) {
     return (
