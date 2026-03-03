@@ -591,7 +591,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
   // ───── Render ─────
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="clubs">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Clubs & Partners</h1>
           <p className="text-muted-foreground">All signed clubs and partners on the platform.</p>
@@ -604,6 +604,13 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
             </Button>
           </div>
         )}
+      </div>
+      <div className="flex items-center gap-3 mb-4 flex-wrap">
+        <Input placeholder="Search clubs..." value={clubSearch} onChange={(e) => setClubSearch(e.target.value)} className="h-10 bg-secondary border-border max-w-xs" />
+        <label className="flex items-center gap-2 cursor-pointer text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <input type="checkbox" checked={academyOnly} onChange={(e) => setAcademyOnly(e.target.checked)} className="rounded border-border" />
+          Academy clubs only
+        </label>
       </div>
       <Card className="bg-card border-border">
         <CardContent className="p-0">
@@ -619,8 +626,11 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
             <TableBody>
               {loading ? (
                 <TableRow><TableCell colSpan={isMasterAdmin ? 4 : 3} className="text-center text-muted-foreground py-8">Loading...</TableCell></TableRow>
-              ) : clubs.length === 0 ? (
-                <TableRow><TableCell colSpan={isMasterAdmin ? 4 : 3} className="text-center text-muted-foreground py-8">No clubs yet.</TableCell></TableRow>
+              ) : (() => {
+                const q = clubSearch.toLowerCase();
+                const filtered = clubs.filter(c => (!q || c.name.toLowerCase().includes(q) || (c.description || "").toLowerCase().includes(q)) && (!academyOnly || c.has_academy)).sort((a, b) => a.name.localeCompare(b.name));
+                return filtered.length === 0 ? (
+                <TableRow><TableCell colSpan={isMasterAdmin ? 4 : 3} className="text-center text-muted-foreground py-8">{clubSearch || academyOnly ? "No clubs match your filters." : "No clubs yet."}</TableCell></TableRow>
               ) : clubs.slice().sort((a, b) => a.name.localeCompare(b.name)).map((club) => {
                 const logoSrc = getLogoSrc(club);
                 return (
