@@ -464,7 +464,8 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
       setHeroButtons([...(content.hero_buttons || [])]);
       setNavOrder(content.nav_order?.length ? [...content.nav_order] : [...DEFAULT_NAV_ORDER]);
       setBackgroundPicture(content.background_picture || "");
-      setPlatformName(content.platform_name || "");
+      setPlatformNameLine1(content.platform_name_line1 || (content.platform_name ? content.platform_name.trim().split(/\s+/)[0] : ""));
+      setPlatformNameLine2(content.platform_name_line2 || (content.platform_name ? content.platform_name.trim().split(/\s+/).slice(1).join(" ") : ""));
     } else {
       setPageTitle(content.title || "");
       setPageSubtitle(content.subtitle || "");
