@@ -192,8 +192,6 @@ const ActivitiesTab = () => {
         </div>
             );
           })()}
-        </>
-      )}
       )}
     </motion.div>
   );
