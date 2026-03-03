@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { Plus, Pencil, Trash2, Upload, Package, Image as ImageIcon } from "lucide-react";
+import { Plus, Pencil, Trash2, Upload, Package, Image as ImageIcon, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import AdminFinderInput from "./AdminFinderInput";
@@ -9,12 +9,37 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+
+const COLOR_PALETTE = [
+  { label: "Orange", hsl: "30 80% 55%" },
+  { label: "Amber", hsl: "38 92% 50%" },
+  { label: "Red", hsl: "0 72% 51%" },
+  { label: "Rose", hsl: "350 65% 55%" },
+  { label: "Pink", hsl: "330 65% 60%" },
+  { label: "Fuchsia", hsl: "292 60% 55%" },
+  { label: "Purple", hsl: "262 50% 55%" },
+  { label: "Violet", hsl: "270 60% 60%" },
+  { label: "Indigo", hsl: "234 60% 55%" },
+  { label: "Blue", hsl: "212 70% 55%" },
+  { label: "Sky", hsl: "199 80% 55%" },
+  { label: "Cyan", hsl: "186 70% 50%" },
+  { label: "Teal", hsl: "172 60% 42%" },
+  { label: "Emerald", hsl: "155 60% 42%" },
+  { label: "Dark Green", hsl: "142 50% 35%" },
+  { label: "Green", hsl: "142 60% 45%" },
+  { label: "Lime", hsl: "84 60% 50%" },
+  { label: "Sage", hsl: "100 22% 60%" },
+  { label: "Yellow", hsl: "48 90% 50%" },
+  { label: "Slate", hsl: "215 20% 50%" },
+];
 
 interface OfferingRow {
   id: string;
   name: string;
   slug: string;
   logo_url: string | null;
+  brand_color: string | null;
   created_at: string;
 }
 
