@@ -4,9 +4,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
-import { Users, Sparkles, MapPin, Trophy, Filter, Zap, Star, ArrowRight, Gauge, Swords, CalendarClock, Target, type LucideIcon } from "lucide-react";
+import { Users, Sparkles, MapPin, Trophy, Filter, Zap, Star, ArrowRight, Gauge, Swords, CalendarClock, Target, Send, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { toast } from "@/components/ui/sonner";
+import { useNudges } from "@/hooks/useNudges";
 
 interface MatchSport {
   sport_id: string;
@@ -62,6 +65,11 @@ const MatchmakerPage = () => {
   const [pageSubtitle, setPageSubtitle] = useState("Get matched with players who share your sports, skill level, and preferred location. Your next opponent or partner is just a click away.");
   const [criteria, setCriteria] = useState<{ emoji: string; label: string }[]>([]);
 
+  // Nudge state
+  const { sendNudge, sentNudges } = useNudges();
+  const [nudgeDialog, setNudgeDialog] = useState<{ match: MatchProfile; sport: MatchSport } | null>(null);
+  const [sending, setSending] = useState(false);
+
   useEffect(() => {
     const fetchContent = async () => {
       const { data } = await supabase
@@ -84,7 +92,6 @@ const MatchmakerPage = () => {
       setLoading(false);
       return;
     }
-
     const checkProfile = async () => {
       const { count } = await supabase
         .from("player_selections")
@@ -123,6 +130,23 @@ const MatchmakerPage = () => {
     if (result.offerings) setOfferings(result.offerings);
     if (result.locations) setLocations(result.locations);
     setLoading(false);
+  };
+
+  const isAlreadyNudged = (userId: string, sportId: string) => {
+    return sentNudges.some(n => n.receiver_id === userId && n.sport_id === sportId);
+  };
+
+  const handleSendNudge = async () => {
+    if (!nudgeDialog) return;
+    setSending(true);
+    const success = await sendNudge(nudgeDialog.match.user_id, nudgeDialog.sport.sport_id);
+    setSending(false);
+    if (success) {
+      toast.success(`Nudge sent to ${nudgeDialog.match.display_name}!`);
+      setNudgeDialog(null);
+    } else {
+      toast.error("Failed to send nudge. You may have already nudged this person for this sport.");
+    }
   };
 
   return (
@@ -244,7 +268,6 @@ const MatchmakerPage = () => {
                 Filter:
               </div>
 
-              {/* Sport filter chips */}
               <button
                 onClick={() => setSportFilter("")}
                 className={cn(
@@ -280,7 +303,6 @@ const MatchmakerPage = () => {
                 );
               })}
 
-              {/* Location filter */}
               {locations.length > 0 && (
                 <>
                   <div className="h-5 w-px bg-border mx-1" />
@@ -358,7 +380,7 @@ const MatchmakerPage = () => {
                           borderColor: primaryColor ? `hsl(${primaryColor} / 0.2)` : undefined,
                         }}
                       >
-                        {/* Header */}
+                        {/* Header — name + avatar only, no contact info */}
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex items-center gap-3">
                             <div
@@ -391,65 +413,74 @@ const MatchmakerPage = () => {
                           </div>
                         </div>
 
-                        {/* Sports */}
+                        {/* Sports — with nudge button per sport */}
                         <div className="space-y-2">
-                          {match.sports.map((sport) => (
-                            <div
-                              key={sport.sport_id}
-                              className="flex items-center justify-between rounded-lg p-2.5 transition-all"
-                              style={{
-                                backgroundColor: sport.brand_color
-                                  ? `hsl(${sport.brand_color} / 0.08)`
-                                  : "hsl(var(--secondary))",
-                                borderLeft: sport.brand_color
-                                  ? `3px solid hsl(${sport.brand_color})`
-                                  : "3px solid hsl(var(--border))",
-                              }}
-                            >
-                              <div>
-                                <p
-                                  className="text-sm font-medium"
-                                  style={{
-                                    color: sport.brand_color
-                                      ? `hsl(${sport.brand_color})`
-                                      : "hsl(var(--foreground))",
-                                  }}
-                                >
-                                  {sport.sport_name}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  {sport.level_label}
-                                  {sport.playstyle && ` · ${sport.playstyle.replace("_", " ")}`}
-                                </p>
-                                {sport.match_details && sport.match_details.length > 0 && (
-                                  <div className="flex flex-wrap gap-1 mt-1">
-                                    {sport.match_details.map((d) => (
-                                      <span
-                                        key={d}
-                                        className="text-[10px] rounded-full px-1.5 py-0.5 font-medium"
-                                        style={{
-                                          backgroundColor: sport.brand_color
-                                            ? `hsl(${sport.brand_color} / 0.15)`
-                                            : "hsl(var(--accent))",
-                                          color: sport.brand_color
-                                            ? `hsl(${sport.brand_color})`
-                                            : "hsl(var(--accent-foreground))",
-                                        }}
-                                      >
-                                        ✓ {d}
-                                      </span>
-                                    ))}
+                          {match.sports.map((sport) => {
+                            const alreadySent = isAlreadyNudged(match.user_id, sport.sport_id);
+                            return (
+                              <div
+                                key={sport.sport_id}
+                                className="rounded-lg p-2.5 transition-all"
+                                style={{
+                                  backgroundColor: sport.brand_color
+                                    ? `hsl(${sport.brand_color} / 0.08)`
+                                    : "hsl(var(--secondary))",
+                                  borderLeft: sport.brand_color
+                                    ? `3px solid hsl(${sport.brand_color})`
+                                    : "3px solid hsl(var(--border))",
+                                }}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <div className="flex-1">
+                                    <p
+                                      className="text-sm font-medium"
+                                      style={{
+                                        color: sport.brand_color
+                                          ? `hsl(${sport.brand_color})`
+                                          : "hsl(var(--foreground))",
+                                      }}
+                                    >
+                                      {sport.sport_name}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                      {sport.level_label}
+                                      {sport.playstyle && ` · ${sport.playstyle.replace("_", " ")}`}
+                                    </p>
+                                    {sport.match_details && sport.match_details.length > 0 && (
+                                      <div className="flex flex-wrap gap-1 mt-1">
+                                        {sport.match_details.map((d) => (
+                                          <span
+                                            key={d}
+                                            className="text-[10px] rounded-full px-1.5 py-0.5 font-medium"
+                                            style={{
+                                              backgroundColor: sport.brand_color
+                                                ? `hsl(${sport.brand_color} / 0.15)`
+                                                : "hsl(var(--accent))",
+                                              color: sport.brand_color
+                                                ? `hsl(${sport.brand_color})`
+                                                : "hsl(var(--accent-foreground))",
+                                            }}
+                                          >
+                                            ✓ {d}
+                                          </span>
+                                        ))
+                                      </div>
+                                    )}
                                   </div>
-                                )}
-                              </div>
-                              {sport.location_name && (
-                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                  <MapPin className="h-3 w-3" />
-                                  {sport.location_name}
+                                  <Button
+                                    size="sm"
+                                    variant={alreadySent ? "secondary" : "default"}
+                                    disabled={alreadySent}
+                                    onClick={() => setNudgeDialog({ match, sport })}
+                                    className="gap-1.5 shrink-0 ml-2"
+                                  >
+                                    <Send className="h-3 w-3" />
+                                    {alreadySent ? "Nudged" : "Nudge"}
+                                  </Button>
                                 </div>
-                              )}
-                            </div>
-                          ))}
+                              </div>
+                            );
+                          })}
                         </div>
                       </motion.div>
                     );
@@ -459,6 +490,37 @@ const MatchmakerPage = () => {
             )}
           </>
         )}
+
+        {/* Nudge confirmation dialog */}
+        <Dialog open={!!nudgeDialog} onOpenChange={(o) => !o && setNudgeDialog(null)}>
+          <DialogContent className="bg-card border-border max-w-md">
+            <DialogHeader>
+              <DialogTitle className="font-heading text-xl flex items-center gap-2">
+                <Send className="h-5 w-5 text-primary" /> Send a Nudge
+              </DialogTitle>
+            </DialogHeader>
+            {nudgeDialog && (
+              <div className="space-y-4 pt-2">
+                <p className="text-muted-foreground">
+                  Send a nudge to <span className="font-semibold text-foreground">{nudgeDialog.match.display_name}</span> for{" "}
+                  <span className="font-semibold" style={{ color: nudgeDialog.sport.brand_color ? `hsl(${nudgeDialog.sport.brand_color})` : "hsl(var(--primary))" }}>
+                    {nudgeDialog.sport.sport_name}
+                  </span>?
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  They'll receive an email and a notification. If they accept, you'll become workout buddies and can see each other's contact info.
+                </p>
+                <div className="flex gap-3">
+                  <Button variant="outline" onClick={() => setNudgeDialog(null)} className="flex-1">Cancel</Button>
+                  <Button onClick={handleSendNudge} disabled={sending} className="flex-1 glow gap-2">
+                    <Send className="h-4 w-4" />
+                    {sending ? "Sending..." : "Send Nudge"}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
