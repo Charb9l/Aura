@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,9 +18,11 @@ interface PagePhotoStripProps {
 const PagePhotoStrip = ({ pageSlug, className }: PagePhotoStripProps) => {
   const [images, setImages] = useState<HeroPicture[]>([]);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const stripRef = useRef<HTMLDivElement>(null);
+  const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
-    const fetchImages = async () => {
+    const fetch = async () => {
       const { data } = await supabase
         .from("hero_pictures")
         .select("id, image_url, display_order")
@@ -28,7 +30,7 @@ const PagePhotoStrip = ({ pageSlug, className }: PagePhotoStripProps) => {
         .order("display_order");
       if (data) setImages(data);
     };
-    fetchImages();
+    fetch();
   }, [pageSlug]);
 
   if (images.length === 0) return null;
@@ -37,50 +39,59 @@ const PagePhotoStrip = ({ pageSlug, className }: PagePhotoStripProps) => {
   const next = () => setLightboxIndex(prev => prev !== null ? (prev + 1) % images.length : 0);
   const prev = () => setLightboxIndex(prev => prev !== null ? (prev - 1 + images.length) % images.length : 0);
 
-  // Build masonry columns (3 cols on desktop, 2 on tablet)
-  const getSpanClass = (index: number) => {
-    const pattern = index % 6;
-    // Alternate tall and wide items for visual interest
-    if (pattern === 0) return "row-span-2"; // tall
-    if (pattern === 3) return "col-span-2"; // wide (on md+)
-    return "";
-  };
+  // Repeat images enough times so one "set" is wider than the viewport
+  const itemWidth = 160 + 12; // width + gap
+  const setsNeeded = Math.max(2, Math.ceil(2000 / (images.length * itemWidth)) + 1);
+  const repeated = Array.from({ length: setsNeeded }, () => images).flat();
+  const oneSetWidth = images.length * itemWidth;
 
   return (
     <>
-      <div className={cn("", className)}>
-        <div className="grid grid-cols-2 md:grid-cols-3 auto-rows-[180px] md:auto-rows-[200px] gap-3">
-          {images.map((img, i) => (
-            <motion.button
-              key={img.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: i * 0.06 }}
-              onClick={() => setLightboxIndex(i)}
-              className={cn(
-                "relative rounded-xl overflow-hidden group cursor-pointer",
-                getSpanClass(i),
-                // Wide items only span 2 cols on md+
-                i % 6 === 3 && "md:col-span-2 col-span-1"
-              )}
+      <div
+        className={cn(
+          "relative overflow-hidden rounded-xl",
+          className
+        )}
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+      >
+        {/* Fade edges */}
+        <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+
+        {/* Scrolling strip */}
+        <div
+          ref={stripRef}
+          className="flex gap-3 py-2"
+          style={{
+            animation: `photo-scroll-${pageSlug} ${images.length * 5}s linear infinite`,
+            animationPlayState: isPaused ? "paused" : "running",
+          }}
+        >
+          {repeated.map((img, i) => (
+            <button
+              key={`${img.id}-${i}`}
+              onClick={() => setLightboxIndex(i % images.length)}
+              className="relative shrink-0 rounded-lg overflow-hidden group/thumb cursor-pointer"
+              style={{ width: 160, height: 100 }}
             >
               <img
                 src={img.image_url}
                 alt=""
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                className="w-full h-full object-cover transition-transform duration-500 group-hover/thumb:scale-110"
                 loading="lazy"
               />
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                <div className="w-10 h-10 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-foreground">
-                    <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
-                  </svg>
-                </div>
-              </div>
-            </motion.button>
+              <div className="absolute inset-0 bg-background/0 group-hover/thumb:bg-background/20 transition-colors duration-300" />
+            </button>
           ))}
         </div>
+
+        <style>{`
+          @keyframes photo-scroll-${pageSlug} {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-${oneSetWidth}px); }
+          }
+        `}</style>
       </div>
 
       {/* Lightbox */}
