@@ -170,43 +170,8 @@ const SettingsTab = () => {
     );
   }
 
-  if (activeSection === "hours") {
-    return (
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="settings-hours">
-        <Button variant="ghost" size="sm" className="mb-4 gap-2" onClick={() => setActiveSection(null)}>
-          ← Back to Settings
-        </Button>
-        <Card className="bg-card border-border max-w-lg">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Clock className="h-5 w-5 text-primary" />
-              Operating Hours
-            </CardTitle>
-            <p className="text-sm text-muted-foreground">The booking calendar operates on the following schedule.</p>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 rounded-lg bg-secondary/50 border border-border">
-                <div>
-                  <p className="text-sm font-medium text-foreground">Opening Time</p>
-                  <p className="text-xs text-muted-foreground">First available booking slot</p>
-                </div>
-                <span className="text-lg font-bold font-heading text-primary">7:00 AM</span>
-              </div>
-              <div className="flex items-center justify-between p-4 rounded-lg bg-secondary/50 border border-border">
-                <div>
-                  <p className="text-sm font-medium text-foreground">Closing Time</p>
-                  <p className="text-xs text-muted-foreground">Last available booking slot</p>
-                </div>
-                <span className="text-lg font-bold font-heading text-primary">10:00 PM</span>
-              </div>
-              <p className="text-xs text-muted-foreground">Operating hours determine the time range shown in the booking calendar. Contact support to modify.</p>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-    );
-  }
+
+
 
 
   if (activeSection === "about") {
