@@ -9,6 +9,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { supabase } from "@/integrations/supabase/client";
 
 const allMenuItems = [
   { label: "Dashboard", icon: LayoutDashboard, tab: "overview" },
@@ -37,6 +38,24 @@ const AdminNavbar = ({ activeTab, onTabChange, assignedClubId }: AdminNavbarProp
   const isMobile = useIsMobile();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [brandName, setBrandName] = useState({ line1: "ELEVATE", line2: "Wellness Hub" });
+
+  useEffect(() => {
+    supabase.from("page_content").select("content").eq("page_slug", "home").single().then(({ data }) => {
+      if (data) {
+        const content = data.content as any;
+        if (content?.platform_name_line1) {
+          setBrandName({
+            line1: content.platform_name_line1 || "ELEVATE",
+            line2: content.platform_name_line2 || "",
+          });
+        } else if (content?.platform_name) {
+          const parts = content.platform_name.trim().split(/\s+/);
+          setBrandName({ line1: parts[0], line2: parts.slice(1).join(" ") });
+        }
+      }
+    });
+  }, []);
 
   // Close mobile menu on tab change
   const handleTabChange = (tab: string) => {
@@ -151,8 +170,8 @@ const AdminNavbar = ({ activeTab, onTabChange, assignedClubId }: AdminNavbarProp
                 <div className="flex items-center justify-between h-14 px-5 border-b border-border/60 shrink-0">
                   <button onClick={() => handleTabChange("overview")} className="font-heading font-bold tracking-tight text-foreground cursor-pointer">
                     <div className="flex flex-col leading-tight">
-                      <span className="text-base font-bold tracking-wide">ELEVATE</span>
-                      <span className="text-[8px] font-medium tracking-[0.25em] text-muted-foreground uppercase">Wellness Hub</span>
+                     <span className="text-base font-bold tracking-wide">{brandName.line1}</span>
+                      {brandName.line2 && <span className="text-[8px] font-medium tracking-[0.25em] text-muted-foreground uppercase">{brandName.line2}</span>}
                     </div>
                   </button>
                   <button onClick={() => setMobileOpen(false)} className="flex items-center justify-center rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
@@ -204,11 +223,11 @@ const AdminNavbar = ({ activeTab, onTabChange, assignedClubId }: AdminNavbarProp
       )}>
         <button onClick={() => handleTabChange("overview")} className="font-heading font-bold tracking-tight text-foreground cursor-pointer">
           {collapsed ? (
-            <span className="text-base font-bold">E</span>
+            <span className="text-base font-bold">{brandName.line1.charAt(0)}</span>
           ) : (
             <div className="flex flex-col leading-tight">
-              <span className="text-base font-bold tracking-wide">ELEVATE</span>
-              <span className="text-[8px] font-medium tracking-[0.25em] text-muted-foreground uppercase">Wellness Hub</span>
+              <span className="text-base font-bold tracking-wide">{brandName.line1}</span>
+              {brandName.line2 && <span className="text-[8px] font-medium tracking-[0.25em] text-muted-foreground uppercase">{brandName.line2}</span>}
             </div>
           )}
         </button>

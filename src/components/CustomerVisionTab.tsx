@@ -434,7 +434,8 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
   const [heroButtons, setHeroButtons] = useState<HeroButton[]>([]);
   const [navOrder, setNavOrder] = useState<NavItem[]>(DEFAULT_NAV_ORDER);
   const [backgroundPicture, setBackgroundPicture] = useState(""); // kept for backward compat in save
-  const [platformName, setPlatformName] = useState("");
+  const [platformNameLine1, setPlatformNameLine1] = useState("");
+  const [platformNameLine2, setPlatformNameLine2] = useState("");
 
   // Generic page state
   const [pageTitle, setPageTitle] = useState("");
@@ -463,7 +464,8 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
       setHeroButtons([...(content.hero_buttons || [])]);
       setNavOrder(content.nav_order?.length ? [...content.nav_order] : [...DEFAULT_NAV_ORDER]);
       setBackgroundPicture(content.background_picture || "");
-      setPlatformName(content.platform_name || "");
+      setPlatformNameLine1(content.platform_name_line1 || (content.platform_name ? content.platform_name.trim().split(/\s+/)[0] : ""));
+      setPlatformNameLine2(content.platform_name_line2 || (content.platform_name ? content.platform_name.trim().split(/\s+/).slice(1).join(" ") : ""));
     } else {
       setPageTitle(content.title || "");
       setPageSubtitle(content.subtitle || "");
@@ -497,7 +499,8 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
       hero_buttons: heroButtons.filter(b => b.label.trim() && b.to.trim()),
       nav_order: navOrder,
       background_picture: backgroundPicture,
-      platform_name: platformName,
+      platform_name_line1: platformNameLine1,
+      platform_name_line2: platformNameLine2,
     });
   };
 
@@ -571,9 +574,13 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
           </DialogHeader>
           <div className="space-y-6 pt-2">
             <div>
-              <Label className="text-sm font-medium text-muted-foreground mb-2 block">Platform Name (logo text in navbar)</Label>
-              <Input value={platformName} onChange={(e) => setPlatformName(e.target.value)} placeholder="e.g. ELEVATE WELLNESS HUB" className="h-12 bg-secondary border-border" />
-              <p className="text-xs text-muted-foreground mt-1">This is the brand name shown in the top-left of the navbar. Leave empty for default.</p>
+              <Label className="text-sm font-medium text-muted-foreground mb-2 block">Platform Name (main line in navbar)</Label>
+              <Input value={platformNameLine1} onChange={(e) => setPlatformNameLine1(e.target.value)} placeholder="e.g. ELEVATE" className="h-12 bg-secondary border-border" />
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-muted-foreground mb-2 block">Platform Subname (smaller text under the name)</Label>
+              <Input value={platformNameLine2} onChange={(e) => setPlatformNameLine2(e.target.value)} placeholder="e.g. Wellness Hub" className="h-12 bg-secondary border-border" />
+              <p className="text-xs text-muted-foreground mt-1">These appear as the brand in the top-left of the navbar, on both the customer and admin sides.</p>
             </div>
             
             <div>

@@ -63,7 +63,9 @@ const Navbar = () => {
         const routes = new Set<string>((content?.hero_buttons || []).filter((b: any) => b.glow).map((b: any) => b.to));
         setGlowRoutes(routes);
         if (content?.nav_order?.length) setNavLinks(content.nav_order);
-        if (content?.platform_name) {
+        if (content?.platform_name_line1) {
+          setPlatformName({ line1: content.platform_name_line1, line2: content.platform_name_line2 || "" });
+        } else if (content?.platform_name) {
           const parts = content.platform_name.trim().split(/\s+/);
           if (parts.length >= 2) {
             setPlatformName({ line1: parts[0], line2: parts.slice(1).join(" ") });
