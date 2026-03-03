@@ -334,65 +334,17 @@ const AdminDashboard = () => {
           </motion.div>
         )}
 
-        {activeTab === "users" && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="users">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-              <h1 className="font-heading text-2xl md:text-4xl font-bold text-foreground">Registered Customers</h1>
-              <Button variant="outline" size="sm" className="gap-2 self-start" onClick={() => openFormerDialog("customer")}><History className="h-4 w-4" /> Current & Former</Button>
-            </div>
-            <AdminFinderInput value={userSearch} onChange={setUserSearch} placeholder="Search by name, email, or phone..." className="mb-4 max-w-sm" suggestions={allUsers.filter(u => !adminUsers.some(a => a.user_id === u.user_id && a.club_id)).map(u => ({ label: u.full_name || u.email, sub: u.email }))} />
-            <Card className="bg-card border-border mb-10"><CardContent className="p-0 overflow-x-auto"><Table><TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Email</TableHead><TableHead className="hidden sm:table-cell">Phone</TableHead><TableHead className="w-[80px]">Edit</TableHead></TableRow></TableHeader><TableBody>{(() => { const q = userSearch.toLowerCase(); const filtered = allUsers.filter(u => !adminUsers.some(a => a.user_id === u.user_id && a.club_id)).filter(u => !q || (u.full_name || "").toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || (u.phone || "").toLowerCase().includes(q)).sort((a, b) => (a.full_name || a.email || "").localeCompare(b.full_name || b.email || "")); return filtered.length === 0 ? (<TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">{userSearch ? "No customers match your search." : "No customers yet."}</TableCell></TableRow>) : filtered.map(u => (<TableRow key={u.user_id}><TableCell className="font-medium">{u.full_name || "—"}</TableCell><TableCell className="text-xs sm:text-sm">{u.email}</TableCell><TableCell className="hidden sm:table-cell">{u.phone || "—"}</TableCell><TableCell><Button variant="ghost" size="icon" onClick={() => openEditDialog(u)}><Pencil className="h-4 w-4" /></Button></TableCell></TableRow>)); })()}</TableBody></Table></CardContent></Card>
-
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6"><div><h2 className="font-heading text-xl md:text-2xl font-bold text-foreground mb-2">Club Admins</h2><p className="text-muted-foreground text-sm">Administrators assigned to clubs.</p></div><Button variant="outline" size="sm" className="gap-2 self-start" onClick={() => openFormerDialog("admin")}><History className="h-4 w-4" /> Current & Former</Button></div>
-            <Card className="bg-card border-border"><CardContent className="p-0 overflow-x-auto"><Table><TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Email</TableHead><TableHead className="hidden sm:table-cell">Phone</TableHead><TableHead className="hidden md:table-cell">Assigned Club</TableHead><TableHead className="w-[80px]">Edit</TableHead></TableRow></TableHeader><TableBody>{adminUsers.length === 0 ? (<TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">No club admins yet.</TableCell></TableRow>) : adminUsers.slice().sort((a, b) => (a.full_name || a.email || "").localeCompare(b.full_name || b.email || "")).map(u => (<TableRow key={u.user_id}><TableCell className="font-medium">{u.full_name || "—"}</TableCell><TableCell className="text-xs sm:text-sm">{u.email}</TableCell><TableCell className="hidden sm:table-cell">{u.phone || "—"}</TableCell><TableCell className="hidden md:table-cell">{u.club_id ? clubs.find(c => c.id === u.club_id)?.name || "—" : <Badge className="bg-primary/10 text-primary">Super Admin</Badge>}</TableCell><TableCell><Button variant="ghost" size="icon" onClick={() => openEditAdmin(u)}><Pencil className="h-4 w-4" /></Button></TableCell></TableRow>))}</TableBody></Table></CardContent></Card>
-
-            {/* Edit User Dialog */}
-            <Dialog open={!!editUser} onOpenChange={(open) => !open && setEditUser(null)}>
-              <DialogContent className="bg-card border-border"><DialogHeader><DialogTitle className="font-heading">Edit User — {editUser?.full_name || editUser?.email}</DialogTitle></DialogHeader>
-                <div className="space-y-4 pt-2">
-                  <div><Label htmlFor="edit-name">Full Name</Label><Input id="edit-name" value={editName} onChange={(e) => setEditName(e.target.value)} className="h-12 bg-secondary border-border mt-1" /></div>
-                  <div><Label htmlFor="edit-email">Email</Label><Input id="edit-email" type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} className="h-12 bg-secondary border-border mt-1" /></div>
-                  <div><Label htmlFor="edit-phone">Phone</Label><PhoneInput id="edit-phone" value={editPhone} onChange={setEditPhone} className="mt-1" /></div>
-                  <div><Label htmlFor="edit-password">New Password <span className="text-muted-foreground text-xs">(leave empty to keep current)</span></Label><Input id="edit-password" type="password" placeholder="••••••••" value={editPassword} onChange={(e) => setEditPassword(e.target.value)} className="h-12 bg-secondary border-border mt-1" /></div>
-                  <Button onClick={handleSaveUser} disabled={editSaving} className="w-full h-12 text-base font-semibold glow">{editSaving ? "Saving..." : "Save Changes"}</Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-
-            {/* Edit Admin Dialog */}
-            <Dialog open={!!editAdmin} onOpenChange={(open) => !open && setEditAdmin(null)}>
-              <DialogContent className="bg-card border-border max-w-2xl w-[66vw] min-h-[50vh]"><DialogHeader><DialogTitle className="font-heading text-xl">Edit Admin — {editAdmin?.full_name || editAdmin?.email}</DialogTitle></DialogHeader>
-                <div className="space-y-5 pt-4">
-                  <div><Label htmlFor="edit-admin-name">Full Name</Label><Input id="edit-admin-name" value={editAdminName} onChange={(e) => setEditAdminName(e.target.value)} className="h-12 bg-secondary border-border mt-1" /></div>
-                  <div className="grid md:grid-cols-2 gap-4"><div><Label htmlFor="edit-admin-email">Email</Label><Input id="edit-admin-email" type="email" value={editAdminEmail} onChange={(e) => setEditAdminEmail(e.target.value)} className="h-12 bg-secondary border-border mt-1" /></div><div><Label htmlFor="edit-admin-phone">Phone</Label><PhoneInput id="edit-admin-phone" value={editAdminPhone} onChange={setEditAdminPhone} className="mt-1" /></div></div>
-                  <div><Label htmlFor="edit-admin-password">New Password <span className="text-muted-foreground text-xs">(leave empty to keep current)</span></Label><Input id="edit-admin-password" type="password" placeholder="••••••••" value={editAdminPassword} onChange={(e) => setEditAdminPassword(e.target.value)} className="h-12 bg-secondary border-border mt-1" /></div>
-                  <div><Label>Assigned Club</Label><Select value={editAdminClubId} onValueChange={setEditAdminClubId}><SelectTrigger className="h-12 bg-secondary border-border mt-1"><SelectValue placeholder="All Clubs (Master Admin)" /></SelectTrigger><SelectContent className="bg-card border-border z-50"><SelectItem value="none">All Clubs (Master Admin)</SelectItem>{clubs.slice().sort((a, b) => a.name.localeCompare(b.name)).map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent></Select><p className="text-xs text-muted-foreground mt-1.5">Assigning a club restricts this admin's dashboard to that club's data only.</p></div>
-                  <Button onClick={handleSaveAdmin} disabled={editAdminSaving} className="w-full h-12 text-base font-semibold glow mt-4">{editAdminSaving ? "Saving..." : "Save Changes"}</Button>
-                  <Button variant="destructive" onClick={handleDeleteAdmin} disabled={editAdminSaving} className="w-full h-12 text-base font-semibold mt-2"><Trash2 className="h-4 w-4 mr-2" /> Delete Admin</Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </motion.div>
-        )}
-
-        {activeTab === "admins" && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="admins">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4"><div><h1 className="font-heading text-2xl md:text-4xl font-bold text-foreground mb-2">Admins</h1><p className="text-muted-foreground text-sm">Manage admin accounts.</p></div><Button onClick={() => setShowCreateAdmin(true)} className="h-11 px-5 font-semibold glow self-start"><UserPlus className="h-4 w-4 mr-2" /> Add Admin</Button></div>
-            <AdminFinderInput value={adminSearch} onChange={setAdminSearch} placeholder="Search by name, email, or phone..." className="mb-4 max-w-sm" suggestions={adminUsers.map(u => ({ label: u.full_name || u.email, sub: u.email }))} />
-            <Card className="bg-card border-border"><CardContent className="p-0 overflow-x-auto"><Table><TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Email</TableHead><TableHead className="hidden sm:table-cell">Phone</TableHead><TableHead className="hidden md:table-cell">Assigned Club</TableHead><TableHead className="w-[80px]">Edit</TableHead></TableRow></TableHeader><TableBody>{(() => { const q = adminSearch.toLowerCase(); const filtered = adminUsers.slice().filter(u => !q || (u.full_name || "").toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || (u.phone || "").toLowerCase().includes(q)).sort((a, b) => (a.full_name || a.email || "").localeCompare(b.full_name || b.email || "")); return filtered.length === 0 ? (<TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">{adminSearch ? "No admins match your search." : "No admins yet."}</TableCell></TableRow>) : filtered.map(u => (<TableRow key={u.user_id}><TableCell className="font-medium">{u.full_name || "—"}</TableCell><TableCell className="text-xs sm:text-sm">{u.email}</TableCell><TableCell className="hidden sm:table-cell">{u.phone || "—"}</TableCell><TableCell className="hidden md:table-cell">{u.club_id ? <Badge variant="secondary" className="text-xs">{clubs.find(c => c.id === u.club_id)?.name || "Unknown"}</Badge> : <span className="text-xs text-muted-foreground">All Clubs (Master)</span>}</TableCell><TableCell><Button variant="ghost" size="icon" onClick={() => openEditAdmin(u)}><Pencil className="h-4 w-4" /></Button></TableCell></TableRow>)); })()}</TableBody></Table></CardContent></Card>
-            <Dialog open={showCreateAdmin} onOpenChange={setShowCreateAdmin}>
-              <DialogContent className="bg-card border-border"><DialogHeader><DialogTitle className="font-heading">Add Admin</DialogTitle></DialogHeader>
-                <form onSubmit={handleCreateAdmin} className="space-y-4 pt-2">
-                  <div><Label htmlFor="new-name">Full Name</Label><Input id="new-name" placeholder="John Doe" value={newAdminName} onChange={(e) => setNewAdminName(e.target.value)} required className="h-12 bg-secondary border-border mt-1" /></div>
-                  <div><Label htmlFor="new-email">Email</Label><Input id="new-email" type="email" placeholder="admin@example.com" value={newAdminEmail} onChange={(e) => setNewAdminEmail(e.target.value)} required className="h-12 bg-secondary border-border mt-1" /></div>
-                  <div><Label htmlFor="new-password">Password</Label><Input id="new-password" type="password" placeholder="••••••••" value={newAdminPassword} onChange={(e) => setNewAdminPassword(e.target.value)} required minLength={6} className="h-12 bg-secondary border-border mt-1" /></div>
-                  <div><Label htmlFor="new-phone">Phone Number</Label><PhoneInput id="new-phone" value={newAdminPhone} onChange={setNewAdminPhone} className="mt-1" /></div>
-                  <div><Label>Assign Club</Label><Select value={newAdminClubId} onValueChange={setNewAdminClubId}><SelectTrigger className="h-12 bg-secondary border-border mt-1"><SelectValue placeholder="All Clubs (Master Admin)" /></SelectTrigger><SelectContent className="bg-card border-border z-50"><SelectItem value="none">All Clubs (Master Admin)</SelectItem>{clubs.slice().sort((a, b) => a.name.localeCompare(b.name)).map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent></Select><p className="text-xs text-muted-foreground mt-1.5">Leave as "All Clubs" for a master admin.</p></div>
-                  <Button type="submit" disabled={creatingAdmin} className="w-full h-12 text-base font-semibold glow"><UserPlus className="h-4 w-4 mr-2" />{creatingAdmin ? "Creating..." : "Create Admin"}</Button>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </motion.div>
+        {(activeTab === "users" || activeTab === "admins") && (
+          <UsersTab
+            allUsers={allUsers}
+            adminUsers={adminUsers}
+            clubs={clubs}
+            isMasterAdmin={!myClubId}
+            onUpdateUser={(userId, updates) => setAllUsers(prev => prev.map(u => u.user_id === userId ? { ...u, ...updates } as UserWithEmail : u))}
+            onUpdateAdmin={(userId, updates) => setAdminUsers(prev => prev.map(u => u.user_id === userId ? { ...u, ...updates } as UserWithEmail : u))}
+            onDeleteAdmin={(userId) => { setAdminUsers(prev => prev.filter(u => u.user_id !== userId)); setAllUsers(prev => prev.filter(u => u.user_id !== userId)); }}
+            onAdminCreated={async () => { const { data } = await supabase.functions.invoke("admin-users", { body: { action: "list-admins" } }); if (data?.users) setAdminUsers(data.users); }}
+          />
         )}
 
         {activeTab === "bookings" && (
