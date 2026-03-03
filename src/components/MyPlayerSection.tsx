@@ -74,7 +74,7 @@ const MyPlayerSection = ({ externalOpen, onExternalOpenChange }: { externalOpen?
 
       setOfferings((offeringsRes.data as Offering[]) || []);
       setLevels((levelsRes.data as Level[]) || []);
-      setLocations((locationsRes.data as any[])?.filter((l: any) => l.clubs?.published !== false) || []);
+      setLocations((locationsRes.data as Location[]) || []);
       setPlaystyles((playstylesRes.data as PlaystyleOption[]) || []);
       setGoals((goalsRes.data as GoalOption[]) || []);
       setPeriods((periodsRes.data as PeriodOption[]) || []);
