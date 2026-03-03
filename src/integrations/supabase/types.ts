@@ -435,6 +435,44 @@ export type Database = {
         }
         Relationships: []
       }
+      nudges: {
+        Row: {
+          created_at: string
+          id: string
+          receiver_id: string
+          responded_at: string | null
+          sender_id: string
+          sport_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          receiver_id: string
+          responded_at?: string | null
+          sender_id: string
+          sport_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          receiver_id?: string
+          responded_at?: string | null
+          sender_id?: string
+          sport_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nudges_sport_id_fkey"
+            columns: ["sport_id"]
+            isOneToOne: false
+            referencedRelation: "offerings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       offerings: {
         Row: {
           brand_color: string | null
@@ -643,6 +681,48 @@ export type Database = {
             columns: ["club_id"]
             isOneToOne: false
             referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workout_buddies: {
+        Row: {
+          created_at: string
+          id: string
+          nudge_id: string | null
+          sport_id: string
+          user_id_1: string
+          user_id_2: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nudge_id?: string | null
+          sport_id: string
+          user_id_1: string
+          user_id_2: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nudge_id?: string | null
+          sport_id?: string
+          user_id_1?: string
+          user_id_2?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_buddies_nudge_id_fkey"
+            columns: ["nudge_id"]
+            isOneToOne: false
+            referencedRelation: "nudges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_buddies_sport_id_fkey"
+            columns: ["sport_id"]
+            isOneToOne: false
+            referencedRelation: "offerings"
             referencedColumns: ["id"]
           },
         ]
