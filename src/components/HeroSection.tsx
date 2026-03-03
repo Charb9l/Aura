@@ -31,8 +31,8 @@ interface HeroContent {
   hero_buttons: { to: string; label: string; glow?: boolean }[];
 }
 
-const PANEL_COUNT = 4; // Always show 4 background panels
-const CYCLE_INTERVAL = 5000; // Rotate images every 5 seconds
+const PANEL_COUNT = 4;
+const CYCLE_INTERVAL = 5000;
 
 const HeroSection = () => {
   const [allPictures, setAllPictures] = useState<{ image: string; alt: string }[]>([]);
@@ -55,7 +55,6 @@ const HeroSection = () => {
     fetchData();
   }, []);
 
-  // Cycle through images when we have more than PANEL_COUNT
   useEffect(() => {
     if (allPictures.length <= PANEL_COUNT) return;
     const timer = setInterval(() => {
@@ -64,11 +63,9 @@ const HeroSection = () => {
     return () => clearInterval(timer);
   }, [allPictures.length]);
 
-  // Pick which images to show in the 4 panels — rotates through all uploaded images
   const panels = useMemo(() => {
     const pics = allPictures.length > 0 ? allPictures : fallbackPanels;
     if (pics.length <= PANEL_COUNT) return pics;
-    // Distribute across panels, cycling through the full set
     return Array.from({ length: PANEL_COUNT }, (_, i) => {
       const idx = (cycleIndex + i) % pics.length;
       return pics[idx];
@@ -82,7 +79,7 @@ const HeroSection = () => {
 
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
-      {/* Dynamic panel background — always 4 panels, cycling through all uploaded images */}
+      {/* Dynamic panel background */}
       <div className="absolute inset-0 grid grid-cols-2 md:grid-cols-4">
         <AnimatePresence mode="popLayout">
           {panels.map((panel, i) => (
@@ -97,36 +94,36 @@ const HeroSection = () => {
               <img
                 src={panel.image}
                 alt={panel.alt}
-                className="h-full w-full object-cover"
+                className="h-full w-full object-cover saturate-[0.3] contrast-[1.1]"
               />
             </motion.div>
           ))}
         </AnimatePresence>
       </div>
 
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-background/70" />
-      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+      {/* Overlay — deep obsidian fade */}
+      <div className="absolute inset-0 bg-background/80" />
+      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-background/30" />
 
       {/* Content */}
-      <div className="relative z-10 container mx-auto px-6 flex flex-col items-center text-center gap-10">
+      <div className="relative z-10 container mx-auto px-6 flex flex-col items-center text-center gap-16">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.2 }}
-          className="max-w-xl"
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="max-w-2xl"
         >
-          <p className="text-xs md:text-sm uppercase tracking-[0.3em] text-muted-foreground mb-4 font-medium">
+          <p className="text-xs uppercase tracking-[0.4em] text-primary mb-8 font-medium">
             {subtitle}
           </p>
-          <h1 className="font-heading text-3xl md:text-5xl font-bold tracking-tight text-foreground leading-[1.15]">
+          <h1 className="font-heading text-5xl md:text-7xl lg:text-8xl font-light tracking-tight text-foreground leading-[1.05]">
             {titleLine1}
             <br />
-            <span className="text-gradient">{titleLine2}</span>
+            <span className="italic text-primary">{titleLine2}</span>
           </h1>
         </motion.div>
 
-        <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center justify-center gap-3 w-full max-w-5xl">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center justify-center gap-4 w-full max-w-4xl">
           {actions.map((action) => {
             const hasGlow = (action as any).glow;
             return (
@@ -135,19 +132,19 @@ const HeroSection = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: action.delay }}
-                className="w-full sm:w-[calc(33.333%-0.5rem)]"
+                className="w-full sm:w-[calc(50%-0.5rem)]"
               >
                 <Link
                   to={action.to}
                   className={cn(
-                    "group flex items-center justify-between rounded-2xl border backdrop-blur-md px-6 py-5 text-base font-semibold transition-all",
+                    "group flex items-center justify-between glass-card rounded-sm px-8 py-6 text-xs font-medium uppercase tracking-[0.15em] transition-all duration-300",
                     hasGlow
-                      ? "border-amber-400/40 bg-amber-400/10 text-amber-100 glow-gold hover:bg-amber-400/20 hover:border-amber-400/60"
-                      : "border-border bg-card/50 text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary hover:glow"
+                      ? "border-primary/30 text-primary hover:bg-primary/5"
+                      : "text-foreground/80 hover:text-foreground hover:bg-muted/30"
                   )}
                 >
                   <span>{action.label}</span>
-                  <ArrowRight className="h-4 w-4 opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                  <ArrowRight className="h-3.5 w-3.5 opacity-30 group-hover:opacity-80 group-hover:translate-x-1 transition-all" />
                 </Link>
               </motion.div>
             );
@@ -160,13 +157,13 @@ const HeroSection = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.2, duration: 1 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2"
+        className="absolute bottom-12 left-1/2 -translate-x-1/2"
       >
-        <div className="h-14 w-8 rounded-full border-2 border-muted-foreground/30 flex items-start justify-center p-2">
+        <div className="h-16 w-[1px] bg-gradient-to-b from-transparent via-primary/40 to-transparent relative">
           <motion.div
-            animate={{ y: [0, 12, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-            className="h-2 w-2 rounded-full bg-primary"
+            animate={{ y: [0, 40, 0] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute top-0 left-1/2 -translate-x-1/2 h-2 w-[1px] bg-primary"
           />
         </div>
       </motion.div>

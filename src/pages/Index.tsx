@@ -4,7 +4,6 @@ import HeroSection from "@/components/HeroSection";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import PagePhotoStrip from "@/components/PagePhotoStrip";
-import { Heart, Users, Sparkles, Target, Trophy, Gamepad2, Zap } from "lucide-react";
 
 interface AboutContent {
   about_heading?: string;
@@ -16,16 +15,6 @@ interface AboutContent {
   about_values_title?: string;
   about_values?: { icon: string; title: string; description: string }[];
 }
-
-const iconMap: Record<string, React.ReactNode> = {
-  heart: <Heart className="h-6 w-6" />,
-  users: <Users className="h-6 w-6" />,
-  sparkles: <Sparkles className="h-6 w-6" />,
-  target: <Target className="h-6 w-6" />,
-  trophy: <Trophy className="h-6 w-6" />,
-  gamepad: <Gamepad2 className="h-6 w-6" />,
-  zap: <Zap className="h-6 w-6" />,
-};
 
 const defaultValues = [
   { icon: "users", title: "Play Without Limits", description: "No partner? No problem. Our AI matchmaker connects you with players at your exact level, so you never miss a game." },
@@ -65,81 +54,48 @@ const Index = () => {
       <Navbar />
       <HeroSection />
 
-      <PagePhotoStrip pageSlug="home" className="container mx-auto px-6 mt-6" />
+      <PagePhotoStrip pageSlug="home" className="container mx-auto px-8 mt-8" />
 
       {/* About Us Section */}
-      <section className="container mx-auto px-6 py-16 md:py-24 relative overflow-hidden">
-        {/* Decorative background elements */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-20 -left-40 w-80 h-80 rounded-full bg-primary/5 blur-3xl" />
-          <div className="absolute bottom-20 -right-40 w-96 h-96 rounded-full bg-accent/5 blur-3xl" />
-        </div>
-
+      <section className="container mx-auto px-8 py-24 md:py-36 relative overflow-hidden">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="max-w-3xl mx-auto text-center mb-16 relative"
+          transition={{ duration: 0.7 }}
+          className="max-w-2xl mx-auto text-center mb-24 relative"
         >
-          <motion.div
-            initial={{ scale: 0, opacity: 0 }}
-            whileInView={{ scale: 1, opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.4, delay: 0.1 }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-6"
-          >
-            <Sparkles className="h-3.5 w-3.5" />
-            More Than a Sports Facility
-          </motion.div>
-          <h2 className="font-heading text-3xl md:text-5xl font-bold text-foreground mb-6">
-            {heading.includes("We Are") ? (
-              <>Who <span className="text-gradient">We Are</span></>
-            ) : heading}
+          <div className="w-12 h-[1px] bg-primary mx-auto mb-10" />
+          <h2 className="font-heading text-4xl md:text-6xl font-light text-foreground mb-8 leading-[1.1]">
+            {heading}
           </h2>
-          <p className="text-muted-foreground text-lg md:text-xl leading-relaxed">
+          <p className="text-muted-foreground text-sm leading-relaxed max-w-xl mx-auto">
             {intro}
           </p>
         </motion.div>
 
         {/* Mission & Vision */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-4xl mx-auto mb-16 relative">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 max-w-4xl mx-auto mb-24 relative">
           <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="rounded-2xl border border-border bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-sm p-8 relative group hover:border-primary/30 transition-colors"
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="glass-card rounded-sm p-10 group"
           >
-            <div className="absolute inset-0 rounded-2xl bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-            <div className="relative">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                  <Target className="h-5 w-5" />
-                </div>
-                <h3 className="font-heading text-xl font-bold text-foreground">{missionTitle}</h3>
-              </div>
-              <p className="text-muted-foreground leading-relaxed">{mission}</p>
-            </div>
+            <p className="text-[9px] uppercase tracking-[0.3em] text-primary mb-6 font-medium">{missionTitle}</p>
+            <p className="text-muted-foreground text-sm leading-relaxed">{mission}</p>
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="rounded-2xl border border-border bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-sm p-8 relative group hover:border-accent/30 transition-colors"
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="glass-card rounded-sm p-10 group"
           >
-            <div className="absolute inset-0 rounded-2xl bg-accent/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-            <div className="relative">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="h-10 w-10 rounded-xl bg-accent/10 flex items-center justify-center text-accent">
-                  <Sparkles className="h-5 w-5" />
-                </div>
-                <h3 className="font-heading text-xl font-bold text-foreground">{visionTitle}</h3>
-              </div>
-              <p className="text-muted-foreground leading-relaxed">{vision}</p>
-            </div>
+            <p className="text-[9px] uppercase tracking-[0.3em] text-primary mb-6 font-medium">{visionTitle}</p>
+            <p className="text-muted-foreground text-sm leading-relaxed">{vision}</p>
           </motion.div>
         </div>
 
@@ -148,29 +104,27 @@ const Index = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.3 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
           className="max-w-4xl mx-auto relative"
         >
-          <h3 className="font-heading text-2xl md:text-3xl font-bold text-foreground text-center mb-10">
-            {valuesTitle}
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div className="text-center mb-16">
+            <div className="w-8 h-[1px] bg-primary mx-auto mb-8" />
+            <h3 className="font-heading text-3xl md:text-5xl font-light text-foreground">
+              {valuesTitle}
+            </h3>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
             {values.map((value, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 15 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: 0.1 * i }}
-                className="group flex gap-4 p-6 rounded-xl border border-border bg-card/40 hover:bg-card/70 hover:border-primary/20 transition-all hover:shadow-[0_0_30px_hsl(var(--primary)/0.08)]"
+                transition={{ duration: 0.5, delay: 0.1 * i }}
+                className="group glass-card rounded-sm p-8 transition-all duration-300 hover:bg-muted/20"
               >
-                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary/15 to-accent/10 flex items-center justify-center text-primary shrink-0 group-hover:scale-110 transition-transform">
-                  {iconMap[value.icon] || <Heart className="h-6 w-6" />}
-                </div>
-                <div>
-                  <h4 className="font-heading font-bold text-foreground mb-1">{value.title}</h4>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{value.description}</p>
-                </div>
+                <h4 className="font-heading text-xl font-light text-foreground mb-3">{value.title}</h4>
+                <p className="text-xs text-muted-foreground leading-relaxed">{value.description}</p>
               </motion.div>
             ))}
           </div>

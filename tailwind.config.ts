@@ -9,13 +9,17 @@ export default {
       center: true,
       padding: "2rem",
       screens: {
-        "2xl": "1800px",
+        "2xl": "1400px",
       },
     },
     extend: {
       fontFamily: {
-        heading: ['Space Grotesk', 'sans-serif'],
+        heading: ['Cormorant Garamond', 'serif'],
         body: ['Inter', 'sans-serif'],
+      },
+      fontSize: {
+        'xs': ['0.7rem', { lineHeight: '1rem' }],
+        'sm': ['0.775rem', { lineHeight: '1.15rem' }],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -51,10 +55,9 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        brand: {
-          basketball: "hsl(var(--brand-basketball))",
-          tennis: "hsl(var(--brand-tennis))",
-          wellness: "hsl(var(--brand-wellness))",
+        gold: {
+          DEFAULT: "hsl(var(--gold))",
+          light: "hsl(var(--gold-light))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
