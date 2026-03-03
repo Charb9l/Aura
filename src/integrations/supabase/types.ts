@@ -222,6 +222,7 @@ export type Database = {
           club_id: string
           created_at: string
           id: string
+          location_id: string | null
           price: number
           price_label: string | null
         }
@@ -230,6 +231,7 @@ export type Database = {
           club_id: string
           created_at?: string
           id?: string
+          location_id?: string | null
           price?: number
           price_label?: string | null
         }
@@ -238,6 +240,7 @@ export type Database = {
           club_id?: string
           created_at?: string
           id?: string
+          location_id?: string | null
           price?: number
           price_label?: string | null
         }
@@ -247,6 +250,13 @@ export type Database = {
             columns: ["club_id"]
             isOneToOne: false
             referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "club_activity_prices_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "club_locations"
             referencedColumns: ["id"]
           },
         ]
