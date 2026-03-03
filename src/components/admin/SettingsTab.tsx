@@ -12,7 +12,7 @@ import { toast } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import PhoneInput from "@/components/PhoneInput";
-import ActivityColorPicker from "@/components/ActivityColorPicker";
+
 import { useLocations, LocationRow } from "@/hooks/useLocations";
 
 const SettingsTab = () => {
