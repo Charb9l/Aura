@@ -63,7 +63,7 @@ const MyPlayerSection = ({ externalOpen, onExternalOpenChange }: { externalOpen?
       const [offeringsRes, levelsRes, locationsRes, playstylesRes, goalsRes, periodsRes, selectionsRes] = await Promise.all([
         supabase.from("offerings").select("id, name, slug, brand_color").order("name"),
         supabase.from("player_levels").select("*").order("display_order"),
-        supabase.from("club_locations").select("*, clubs!inner(published, offerings)").order("name"),
+        supabase.from("locations").select("id, name").order("name"),
         supabase.from("playstyles").select("label, value").order("display_order"),
         supabase.from("goals").select("label, value").order("display_order"),
         supabase.from("availability_periods").select("label, value").order("display_order"),
