@@ -240,6 +240,14 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
       map[firstOffering] = [...(map[firstOffering] || []), ...legacyLocs.map(l => ({ id: l.id, name: l.name, location: l.location }))];
     }
     setEditActivityLocations(map);
+    // Load prices for this club
+    const clubPrices = allActivityPrices.filter(p => p.club_id === club.id);
+    const priceState: Record<string, string> = {};
+    clubPrices.forEach(p => {
+      const key = p.price_label ? `${p.activity_slug}:${p.price_label}` : p.activity_slug;
+      priceState[key] = String(p.price);
+    });
+    setEditPrices(priceState);
   };
 
   const handleFileSelect = (file: File) => {
