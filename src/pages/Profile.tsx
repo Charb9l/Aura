@@ -9,7 +9,7 @@ import { useBadgeLevels } from "@/hooks/useBadgeLevels";
 import { useBadgePoints } from "@/hooks/useBadgePoints";
 import { useNudges } from "@/hooks/useNudges";
 import Navbar from "@/components/Navbar";
-import { Trophy, Clock, ArrowRight, Gift, Zap, CalendarCheck, Pencil, Trash2, CalendarIcon, Camera, Send, Check, X as XIcon, Users, Phone } from "lucide-react";
+import { Trophy, Clock, ArrowRight, Gift, Zap, CalendarCheck, Pencil, Trash2, CalendarIcon, Camera, Send, Check, X as XIcon, Users, Phone, Gamepad2 } from "lucide-react";
 import MyPlayerSection from "@/components/MyPlayerSection";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
