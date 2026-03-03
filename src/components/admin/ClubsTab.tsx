@@ -797,6 +797,55 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                 </div>
               )}
 
+              {/* ── Pricing per Activity ── */}
+              {editOfferings.filter(o => offeringToSlug(o)).length > 0 && (
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium text-muted-foreground block">Activity Pricing ($)</Label>
+                  {editOfferings.map(activity => {
+                    const slug = offeringToSlug(activity);
+                    if (!slug) return null;
+                    const isBasketball = slug === "basketball";
+                    return (
+                      <div key={`price-${activity}`} className="rounded-lg border border-border bg-secondary/30 p-3 space-y-2">
+                        <Label className="text-xs font-semibold">{activity}</Label>
+                        {isBasketball ? (
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <Label className="text-[11px] text-muted-foreground">Half Court</Label>
+                              <Input
+                                type="number" min="0" step="0.01"
+                                placeholder="0.00"
+                                value={editPrices[`${slug}:half`] || ""}
+                                onChange={(e) => setEditPrices(prev => ({ ...prev, [`${slug}:half`]: e.target.value }))}
+                                className="h-9 bg-background border-border text-sm"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-[11px] text-muted-foreground">Full Court</Label>
+                              <Input
+                                type="number" min="0" step="0.01"
+                                placeholder="0.00"
+                                value={editPrices[`${slug}:full`] || ""}
+                                onChange={(e) => setEditPrices(prev => ({ ...prev, [`${slug}:full`]: e.target.value }))}
+                                className="h-9 bg-background border-border text-sm"
+                              />
+                            </div>
+                          </div>
+                        ) : (
+                          <Input
+                            type="number" min="0" step="0.01"
+                            placeholder="0.00"
+                            value={editPrices[slug] || ""}
+                            onChange={(e) => setEditPrices(prev => ({ ...prev, [slug]: e.target.value }))}
+                            className="h-9 bg-background border-border text-sm max-w-[200px]"
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
               <Button onClick={handleSave} disabled={saving || !editName} className="w-full h-12 text-base font-semibold glow">{saving ? "Saving..." : "Save Changes"}</Button>
             </div>
           )}
