@@ -416,6 +416,7 @@ const BookPage = () => {
                     style={courtType === ct.value ? { ...brand.glow, backgroundColor: `hsl(${selectedOffering?.brand_color || "30 80% 55%"} / 0.1)` } : undefined}
                   >
                     <span className="font-heading text-sm font-semibold text-foreground block">{ct.label}</span>
+                    {(() => { const p = getActivityPrice("basketball", ct.value); return p !== null ? <span className="text-xs text-muted-foreground">${p}</span> : null; })()}
                   </button>
                 ))}
               </div>
