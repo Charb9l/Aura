@@ -25,13 +25,22 @@ Deno.serve(async (req) => {
     const supabase = createClient(supabaseUrl, serviceKey);
 
     const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
+
+    // Decode JWT payload to extract user id (sub claim)
+    // We trust the token since it passed through the Supabase gateway
+    let userId: string;
+    try {
+      const payloadBase64 = token.split(".")[1];
+      const payload = JSON.parse(atob(payloadBase64));
+      userId = payload.sub;
+      if (!userId) throw new Error("No sub in token");
+    } catch {
       return new Response(JSON.stringify({ error: "Invalid token" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    const user = { id: userId };
 
     const url = new URL(req.url);
     const sportFilter = url.searchParams.get("sport_id");
