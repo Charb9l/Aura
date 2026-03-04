@@ -260,38 +260,16 @@ const ProfilePage = () => {
 
   const totalBookings = bookings.filter(b => b.attendance_status === "show").length;
 
-  // Loyalty per club: each booking is attributed to exactly one club
-  const normalize = (v: string) => (v || "").toLowerCase().replace(/[-_]+/g, " ").trim();
-  const resolveClubForBooking = (b: Booking) => {
-    const activitySlug = normalize(b.activity);
-    const activityName = normalize(b.activity_name);
-
-    const candidates = clubs.filter((club) =>
-      club.offerings.some((off) => {
-        const o = normalize(off);
-        return o.includes(activitySlug) || o.includes(activityName) || activityName.includes(o);
-      })
-    );
-
-    if (candidates.length <= 1) return candidates[0] || null;
-
-    const eligibleByTime = candidates.filter((club) => new Date(club.created_at) <= new Date(b.created_at));
-    if (eligibleByTime.length === 1) return eligibleByTime[0];
-    if (eligibleByTime.length > 1) {
-      return eligibleByTime.sort((a, z) => new Date(z.created_at).getTime() - new Date(a.created_at).getTime())[0];
-    }
-
-    return candidates.sort((a, z) => a.name.localeCompare(z.name))[0];
-  };
-
+  // Loyalty per club: each booking attributed to exactly ONE club (first alphabetically if multiple match)
   const clubPoints: Record<string, number> = {};
-  clubs.forEach(club => {
-    clubPoints[club.id] = 0;
-  });
+  clubs.forEach(club => { clubPoints[club.id] = 0; });
 
   bookings.forEach((b) => {
     if (b.attendance_status !== "show" && b.attendance_status !== "no_show") return;
-    const club = resolveClubForBooking(b);
+    const matchingClubs = clubs
+      .filter(club => club.offerings.some(off => off.toLowerCase() === b.activity_name.toLowerCase()))
+      .sort((a, z) => a.name.localeCompare(z.name));
+    const club = matchingClubs[0];
     if (!club) return;
     if (b.attendance_status === "show") clubPoints[club.id] += 1;
     if (b.attendance_status === "no_show") clubPoints[club.id] -= 1;
