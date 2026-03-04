@@ -191,14 +191,37 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
   const openProfileViewer = async (u: UserWithEmail) => {
     setViewUser(u);
     setViewLoading(true);
-    const [profileRes, selectionsRes, badgesRes] = await Promise.all([
+    const [profileRes, selectionsRes, badgesRes, bookingsRes] = await Promise.all([
       supabase.from("profiles").select("*").eq("user_id", u.user_id).maybeSingle(),
       supabase.from("player_selections").select("*").eq("user_id", u.user_id).order("rank"),
       supabase.from("badge_point_assignments").select("*").eq("user_id", u.user_id).order("created_at", { ascending: false }),
+      supabase.from("bookings").select("activity, attendance_status").eq("user_id", u.user_id).in("attendance_status", ["show", "no_show"]),
     ]);
     setViewProfile(profileRes.data);
     setViewSelections((selectionsRes.data || []) as unknown as PlayerSelection[]);
     setViewBadges((badgesRes.data || []) as unknown as BadgeAssignment[]);
+
+    // Calculate loyalty points per club from bookings
+    const bookings = (bookingsRes.data || []) as { activity: string; attendance_status: string }[];
+    const pointsByClub = new Map<string, { shows: number; noShows: number }>();
+    for (const b of bookings) {
+      for (const club of clubs) {
+        if (club.offerings.includes(b.activity)) {
+          const existing = pointsByClub.get(club.id) || { shows: 0, noShows: 0 };
+          if (b.attendance_status === "show") existing.shows++;
+          else if (b.attendance_status === "no_show") existing.noShows++;
+          pointsByClub.set(club.id, existing);
+        }
+      }
+    }
+    const loyaltyArr = Array.from(pointsByClub.entries()).map(([clubId, pts]) => ({
+      clubId,
+      clubName: clubs.find(c => c.id === clubId)?.name || "Unknown",
+      shows: pts.shows,
+      noShows: pts.noShows,
+      total: pts.shows - pts.noShows,
+    })).sort((a, b) => b.total - a.total);
+    setViewLoyalty(loyaltyArr);
     setViewLoading(false);
   };
 
