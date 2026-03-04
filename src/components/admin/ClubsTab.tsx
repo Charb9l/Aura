@@ -300,12 +300,9 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
 
   const handleAddClub = async () => {
     if (!addClubName.trim()) { toast.error("Please enter a club name"); return; }
-    // Validate that each activity has at least one location
-    const allLocs = Object.entries(addActivityLocations).flatMap(([activity, locs]) =>
-      locs.filter(l => l.name.trim() && l.location.trim()).map(l => ({ ...l, activity }))
-    );
-    if (addClubOfferings.length > 0 && allLocs.length === 0) {
-      toast.error("Please add at least one location for your activities");
+    const validLocs = addClubLocs.filter(l => l.name.trim() && l.location.trim());
+    if (addClubOfferings.length > 0 && validLocs.length === 0) {
+      toast.error("Please add at least one location");
       return;
     }
 
@@ -319,22 +316,11 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
       const { error: uploadError } = await supabase.storage.from("club-logos").upload(filePath, addClubLogoFile, { upsert: true, cacheControl: "0" });
       if (!uploadError) { const { data: urlData } = supabase.storage.from("club-logos").getPublicUrl(filePath); logoUrl = `${urlData.publicUrl}?t=${Date.now()}`; await supabase.from("clubs").update({ logo_url: logoUrl }).eq("id", (newClub as any).id); }
     }
-    // Insert per-activity locations and build index-to-id map
-    const locIdMap: Record<string, string> = {}; // "activity:index" -> id
-    if (allLocs.length > 0) {
-      const locsToInsert = allLocs.map(l => ({ club_id: (newClub as any).id, name: l.name.trim(), location: l.location.trim(), activity: l.activity }));
+    // Insert club locations (no activity field)
+    if (validLocs.length > 0) {
+      const locsToInsert = validLocs.map(l => ({ club_id: (newClub as any).id, name: l.name.trim(), location: l.location.trim() }));
       const { data: newLocs } = await supabase.from("club_locations").insert(locsToInsert).select();
-      if (newLocs) {
-        setClubLocations(prev => [...prev, ...(newLocs as unknown as ClubLocationRow[])]);
-        // Build map: for each activity, map the index to the inserted ID
-        const activityCounters: Record<string, number> = {};
-        for (const loc of newLocs as any[]) {
-          const act = loc.activity || "";
-          const idx = activityCounters[act] || 0;
-          locIdMap[`${act}:${idx}`] = loc.id;
-          activityCounters[act] = idx + 1;
-        }
-      }
+      if (newLocs) setClubLocations(prev => [...prev, ...(newLocs as unknown as ClubLocationRow[])]);
     }
     if (addClubPicFiles.length > 0) await uploadClubPictures((newClub as any).id, addClubPicFiles);
     if (addClubHasAcademy) {
@@ -344,19 +330,15 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
         await uploadAcademyPicture(clubId, addAcademyGalleryFiles[i], "carousel", i);
       }
     }
-    // Save activity prices — resolve temp keys to real location IDs
+    // Save activity prices (per activity, no location_id)
     const newClubId = (newClub as any).id;
     const priceRows = Object.entries(addPrices)
       .filter(([, val]) => val && Number(val) > 0)
       .map(([key, val]) => {
-        // key format: "slug:activity:index:label" or "slug:activity:index"
         const parts = key.split(":");
         const slug = parts[0];
-        const actName = parts[1];
-        const locIdx = parts[2];
-        const label = parts[3] || null;
-        const locationId = locIdMap[`${actName}:${locIdx}`] || null;
-        return { club_id: newClubId, activity_slug: slug, price: Number(val), price_label: label, location_id: locationId };
+        const label = parts[1] || null;
+        return { club_id: newClubId, activity_slug: slug, price: Number(val), price_label: label, location_id: null };
       });
     if (priceRows.length > 0) {
       await supabase.from("club_activity_prices").insert(priceRows as any);
@@ -366,7 +348,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
     toast.success(`Club "${addClubName.trim()}" added successfully`);
     setClubs(prev => [...prev, { ...newClub as unknown as ClubRow, logo_url: logoUrl }].sort((a, b) => a.name.localeCompare(b.name)));
     setShowAddClub(false); setAddClubName(""); setAddClubDescription(""); setAddClubOfferings([]); setAddClubHasAcademy(false); setAddClubPublished(true);
-    setAddClubLogoFile(null); setAddClubLogoPreview(null); setAddActivityLocations({}); setShowAcademySportPicker(false);
+    setAddClubLogoFile(null); setAddClubLogoPreview(null); setAddClubLocs([]); setShowAcademySportPicker(false);
     setAddClubPicFiles([]); setAddClubPicPreviews([]);
     setAddAcademyBubbleFile(null); setAddAcademyBubblePreview(null);
     setAddAcademyGalleryFiles([]); setAddAcademyGalleryPreviews([]);
