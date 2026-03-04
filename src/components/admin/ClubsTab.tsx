@@ -581,7 +581,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
   );
 
   // Helper: count total locations for add dialog
-  const addTotalLocations = Object.values(addActivityLocations).reduce((sum, locs) => sum + locs.filter(l => l.name.trim() && l.location.trim()).length, 0);
+  const addTotalLocations = addClubLocs.filter(l => l.name.trim() && l.location.trim()).length;
 
   // ───── Render ─────
   return (
