@@ -212,10 +212,10 @@ const BookPage = () => {
     fetchBookedSlots();
   }, [selectedActivity, date]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleConfirmBooking = async () => {
     if (!user || !date) return;
     setSubmitting(true);
+    setShowConfirmDialog(false);
 
     const offering = offerings.find(o => o.slug === selectedActivity);
     const activityName = offering?.name || selectedActivity;
@@ -250,9 +250,9 @@ const BookPage = () => {
       activity_name: activityName,
       booking_date: format(date, "yyyy-MM-dd"),
       booking_time: selectedTime,
-      full_name: name,
-      email,
-      phone,
+      full_name: profileName,
+      email: profileEmail,
+      phone: profilePhone,
       court_type: selectedActivity === "basketball" ? courtType : null,
       discount_type: discountType,
     });
@@ -261,12 +261,10 @@ const BookPage = () => {
     if (error) {
       toast.error("Booking failed: " + error.message);
     } else {
-      await supabase.from("profiles").update({ phone, full_name: name }).eq("user_id", user.id);
-
       supabase.functions.invoke("booking-confirmation-email", {
         body: {
-          full_name: name,
-          email,
+          full_name: profileName,
+          email: profileEmail,
           activity_name: activityName,
           booking_date: format(date, "PPP"),
           booking_time: selectedTime,
@@ -276,6 +274,11 @@ const BookPage = () => {
 
       setSubmitted(true);
     }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setShowConfirmDialog(true);
   };
 
   if (submitted) {
