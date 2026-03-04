@@ -204,6 +204,16 @@ const AdminDashboard = () => {
   const [revenueFilterType, setRevenueFilterType] = useState<string>("all");
   const [revenueFilterValue, setRevenueFilterValue] = useState<string>("all");
 
+  // For club admins, restrict available activities and hide club filter
+  const myClubActivities = useMemo(() => {
+    if (!myClubId) return ALL_CATEGORIES;
+    const allowed = clubActivityMap[myClubId] || [];
+    return ALL_CATEGORIES.filter(c => allowed.includes(c.key));
+  }, [myClubId, clubActivityMap]);
+
+  const showActivityFilter = myClubActivities.length > 1;
+  const showClubFilter = !myClubId; // only super admins can filter by club
+
   useEffect(() => { setBookingFilterValue("all"); }, [bookingFilterType]);
   useEffect(() => { setRevenueFilterValue("all"); }, [revenueFilterType]);
 
@@ -405,9 +415,11 @@ const AdminDashboard = () => {
               <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <CardTitle className="text-lg">Bookings</CardTitle>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <Select value={bookingFilterType} onValueChange={setBookingFilterType}><SelectTrigger className="w-[120px] h-9 bg-secondary border-border text-sm"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">All</SelectItem><SelectItem value="activity">Activity</SelectItem><SelectItem value="club">Club</SelectItem></SelectContent></Select>
-                  {bookingFilterType === "activity" && <Select value={bookingFilterValue} onValueChange={setBookingFilterValue}><SelectTrigger className="w-[150px] h-9 bg-secondary border-border text-sm"><SelectValue placeholder="All Activities" /></SelectTrigger><SelectContent><SelectItem value="all">All Activities</SelectItem>{ALL_CATEGORIES.map(c => <SelectItem key={c.key} value={c.key}>{c.label}</SelectItem>)}</SelectContent></Select>}
-                  {bookingFilterType === "club" && <Select value={bookingFilterValue} onValueChange={setBookingFilterValue}><SelectTrigger className="w-[180px] h-9 bg-secondary border-border text-sm"><SelectValue placeholder="All Clubs" /></SelectTrigger><SelectContent><SelectItem value="all">All Clubs</SelectItem>{clubs.sort((a, b) => a.name.localeCompare(b.name)).map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent></Select>}
+                  {(showActivityFilter || showClubFilter) && (
+                    <Select value={bookingFilterType} onValueChange={setBookingFilterType}><SelectTrigger className="w-[120px] h-9 bg-secondary border-border text-sm"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">All</SelectItem>{showActivityFilter && <SelectItem value="activity">Activity</SelectItem>}{showClubFilter && <SelectItem value="club">Club</SelectItem>}</SelectContent></Select>
+                  )}
+                  {bookingFilterType === "activity" && <Select value={bookingFilterValue} onValueChange={setBookingFilterValue}><SelectTrigger className="w-[150px] h-9 bg-secondary border-border text-sm"><SelectValue placeholder="All Activities" /></SelectTrigger><SelectContent><SelectItem value="all">All Activities</SelectItem>{myClubActivities.map(c => <SelectItem key={c.key} value={c.key}>{c.label}</SelectItem>)}</SelectContent></Select>}
+                  {bookingFilterType === "club" && showClubFilter && <Select value={bookingFilterValue} onValueChange={setBookingFilterValue}><SelectTrigger className="w-[180px] h-9 bg-secondary border-border text-sm"><SelectValue placeholder="All Clubs" /></SelectTrigger><SelectContent><SelectItem value="all">All Clubs</SelectItem>{clubs.sort((a, b) => a.name.localeCompare(b.name)).map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent></Select>}
                   <DateRangeFilter value={bookingRange} onChange={setBookingRange} showCustomDate customDate={bookingCustomDate} onCustomDateChange={setBookingCustomDate} />
                 </div>
               </CardHeader>
@@ -417,9 +429,11 @@ const AdminDashboard = () => {
               <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <CardTitle className="text-lg">Revenue</CardTitle>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <Select value={revenueFilterType} onValueChange={setRevenueFilterType}><SelectTrigger className="w-[120px] h-9 bg-secondary border-border text-sm"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">All</SelectItem><SelectItem value="activity">Activity</SelectItem><SelectItem value="club">Club</SelectItem></SelectContent></Select>
-                  {revenueFilterType === "activity" && <Select value={revenueFilterValue} onValueChange={setRevenueFilterValue}><SelectTrigger className="w-[150px] h-9 bg-secondary border-border text-sm"><SelectValue placeholder="All Activities" /></SelectTrigger><SelectContent><SelectItem value="all">All Activities</SelectItem>{ALL_CATEGORIES.map(c => <SelectItem key={c.key} value={c.key}>{c.label}</SelectItem>)}</SelectContent></Select>}
-                  {revenueFilterType === "club" && <Select value={revenueFilterValue} onValueChange={setRevenueFilterValue}><SelectTrigger className="w-[180px] h-9 bg-secondary border-border text-sm"><SelectValue placeholder="All Clubs" /></SelectTrigger><SelectContent><SelectItem value="all">All Clubs</SelectItem>{clubs.slice().sort((a, b) => a.name.localeCompare(b.name)).map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent></Select>}
+                  {(showActivityFilter || showClubFilter) && (
+                    <Select value={revenueFilterType} onValueChange={setRevenueFilterType}><SelectTrigger className="w-[120px] h-9 bg-secondary border-border text-sm"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">All</SelectItem>{showActivityFilter && <SelectItem value="activity">Activity</SelectItem>}{showClubFilter && <SelectItem value="club">Club</SelectItem>}</SelectContent></Select>
+                  )}
+                  {revenueFilterType === "activity" && <Select value={revenueFilterValue} onValueChange={setRevenueFilterValue}><SelectTrigger className="w-[150px] h-9 bg-secondary border-border text-sm"><SelectValue placeholder="All Activities" /></SelectTrigger><SelectContent><SelectItem value="all">All Activities</SelectItem>{myClubActivities.map(c => <SelectItem key={c.key} value={c.key}>{c.label}</SelectItem>)}</SelectContent></Select>}
+                  {revenueFilterType === "club" && showClubFilter && <Select value={revenueFilterValue} onValueChange={setRevenueFilterValue}><SelectTrigger className="w-[180px] h-9 bg-secondary border-border text-sm"><SelectValue placeholder="All Clubs" /></SelectTrigger><SelectContent><SelectItem value="all">All Clubs</SelectItem>{clubs.slice().sort((a, b) => a.name.localeCompare(b.name)).map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent></Select>}
                   <DateRangeFilter value={revenueRange} onChange={setRevenueRange} showCustomDate customDate={bookingCustomDate} onCustomDateChange={setBookingCustomDate} showCustomRange customRange={revenueCustomRange} onCustomRangeChange={(r) => setRevenueCustomRange({ from: r.from, to: r.to })} />
                 </div>
               </CardHeader>
