@@ -40,6 +40,7 @@ interface AdminNavbarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
   assignedClubId?: string | null;
+  notificationCount?: number;
 }
 
 const AdminNavbar = ({ activeTab, onTabChange, assignedClubId }: AdminNavbarProps) => {
