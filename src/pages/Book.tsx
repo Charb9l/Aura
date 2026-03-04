@@ -157,37 +157,39 @@ const BookPage = () => {
     ).sort((a, b) => a.name.localeCompare(b.name));
   }, [selectedActivity, clubs]);
 
-  // Build club+location combos for selection
-  const clubLocationOptions = useMemo(() => {
-    return matchingClubs.flatMap(club => {
+  // Build club+location combos for selection — one card per CLUB, not per location
+  const clubLocationsForSelected = useMemo(() => {
+    return matchingClubs.map(club => {
       const locs = clubLocations.filter(l => l.club_id === club.id).sort((a, b) => a.name.localeCompare(b.name));
-      if (locs.length === 0) return [{ club, location: null }];
-      return locs.map(loc => ({ club, location: loc }));
+      return { club, locations: locs };
     });
   }, [matchingClubs, clubLocations]);
 
-  // Combined selection key: "clubId::locationId"
-  const selectedComboKey = selectedClub && selectedLocation ? `${selectedClub}::${selectedLocation}` : "";
+  const selectedClubLocations = useMemo(() => {
+    return clubLocationsForSelected.find(c => c.club.id === selectedClub)?.locations || [];
+  }, [clubLocationsForSelected, selectedClub]);
 
-  const handleSelectCombo = (clubId: string, locationId: string | null) => {
+  const handleSelectClub = (clubId: string) => {
     setSelectedClub(clubId);
-    setSelectedLocation(locationId || "");
+    // Auto-select location if club has exactly one
+    const locs = clubLocations.filter(l => l.club_id === clubId);
+    setSelectedLocation(locs.length === 1 ? locs[0].id : "");
     setCourtType("");
     setDate(undefined);
     setSelectedTime("");
   };
 
-  // Auto-select if only one option
+  // Auto-select if only one club
   useEffect(() => {
-    if (clubLocationOptions.length === 1) {
-      const opt = clubLocationOptions[0];
+    if (clubLocationsForSelected.length === 1) {
+      const opt = clubLocationsForSelected[0];
       setSelectedClub(opt.club.id);
-      setSelectedLocation(opt.location?.id || "");
-    } else if (clubLocationOptions.length === 0) {
+      setSelectedLocation(opt.locations.length === 1 ? opt.locations[0].id : "");
+    } else if (clubLocationsForSelected.length === 0) {
       setSelectedClub("");
       setSelectedLocation("");
     }
-  }, [clubLocationOptions]);
+  }, [clubLocationsForSelected]);
 
   const resolvedClubId = selectedClub || (matchingClubs.length === 1 ? matchingClubs[0].id : "");
 
@@ -429,19 +431,18 @@ const BookPage = () => {
             </div>
           </motion.div>
 
-          {selectedActivity && clubLocationOptions.length > 1 && (
+          {selectedActivity && clubLocationsForSelected.length > 1 && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}>
               <Label className="text-sm font-medium text-muted-foreground mb-4 block">Choose Club</Label>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 max-w-2xl">
-                {clubLocationOptions.map((opt) => {
-                  const comboKey = `${opt.club.id}::${opt.location?.id || ""}`;
-                  const isSelected = selectedComboKey === comboKey;
+                {clubLocationsForSelected.map((opt) => {
+                  const isSelected = selectedClub === opt.club.id;
                   const c = selectedOffering?.brand_color || "220 14% 60%";
                   return (
                     <button
                       type="button"
-                      key={comboKey}
-                      onClick={() => handleSelectCombo(opt.club.id, opt.location?.id || null)}
+                      key={opt.club.id}
+                      onClick={() => handleSelectClub(opt.club.id)}
                       className={cn(
                         "flex items-center gap-3 rounded-xl border-2 px-4 py-3 text-left transition-all",
                         isSelected ? "shadow-md" : "border-border hover:border-muted-foreground/50"
@@ -457,8 +458,11 @@ const BookPage = () => {
                       )}
                       <div className="min-w-0">
                         <p className="font-heading font-semibold text-sm text-foreground truncate">{opt.club.name}</p>
-                        {opt.location && (
-                          <p className="text-xs text-muted-foreground truncate">{opt.location.name}, {opt.location.location}</p>
+                        {opt.locations.length === 1 && (
+                          <p className="text-xs text-muted-foreground truncate">{opt.locations[0].name}, {opt.locations[0].location}</p>
+                        )}
+                        {opt.locations.length > 1 && (
+                          <p className="text-xs text-muted-foreground truncate">{opt.locations.length} locations</p>
                         )}
                       </div>
                     </button>
@@ -467,23 +471,51 @@ const BookPage = () => {
               </div>
             </motion.div>
           )}
-          {selectedActivity && clubLocationOptions.length === 1 && (
+          {selectedActivity && clubLocationsForSelected.length === 1 && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}>
               <Label className="text-sm font-medium text-muted-foreground mb-4 block">Club</Label>
               <div className="flex items-center gap-3 rounded-xl border-2 px-4 py-3 max-w-sm" style={brand.glowSm}>
-                {clubLocationOptions[0].club.logo_url ? (
-                  <img src={clubLocationOptions[0].club.logo_url} alt="" className="h-10 w-10 rounded-lg object-cover shrink-0 border border-border" />
+                {clubLocationsForSelected[0].club.logo_url ? (
+                  <img src={clubLocationsForSelected[0].club.logo_url} alt="" className="h-10 w-10 rounded-lg object-cover shrink-0 border border-border" />
                 ) : (
                   <div className="h-10 w-10 rounded-lg bg-secondary flex items-center justify-center shrink-0 border border-border text-muted-foreground font-heading font-bold text-sm">
-                    {clubLocationOptions[0].club.name[0]}
+                    {clubLocationsForSelected[0].club.name[0]}
                   </div>
                 )}
                 <div>
-                  <p className="font-heading font-semibold text-sm text-foreground">{clubLocationOptions[0].club.name}</p>
-                  {clubLocationOptions[0].location && (
-                    <p className="text-xs text-muted-foreground">{clubLocationOptions[0].location.name}, {clubLocationOptions[0].location.location}</p>
+                  <p className="font-heading font-semibold text-sm text-foreground">{clubLocationsForSelected[0].club.name}</p>
+                  {clubLocationsForSelected[0].locations.length === 1 && (
+                    <p className="text-xs text-muted-foreground">{clubLocationsForSelected[0].locations[0].name}, {clubLocationsForSelected[0].locations[0].location}</p>
                   )}
                 </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Location picker — only if selected club has multiple locations */}
+          {selectedClub && selectedClubLocations.length > 1 && (
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.16 }}>
+              <Label className="text-sm font-medium text-muted-foreground mb-4 block">Choose Location</Label>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 max-w-2xl">
+                {selectedClubLocations.map((loc) => {
+                  const isSelected = selectedLocation === loc.id;
+                  const c = selectedOffering?.brand_color || "220 14% 60%";
+                  return (
+                    <button
+                      type="button"
+                      key={loc.id}
+                      onClick={() => { setSelectedLocation(loc.id); setCourtType(""); setDate(undefined); setSelectedTime(""); }}
+                      className={cn(
+                        "rounded-xl border-2 px-4 py-3 text-left transition-all",
+                        isSelected ? "shadow-md" : "border-border hover:border-muted-foreground/50"
+                      )}
+                      style={isSelected ? { borderColor: `hsl(${c})`, backgroundColor: `hsl(${c} / 0.08)`, boxShadow: `0 0 18px hsl(${c} / 0.25)` } : undefined}
+                    >
+                      <p className="font-heading font-semibold text-sm text-foreground">{loc.name}</p>
+                      <p className="text-xs text-muted-foreground">{loc.location}</p>
+                    </button>
+                  );
+                })}
               </div>
             </motion.div>
           )}
