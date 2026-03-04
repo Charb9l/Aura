@@ -196,6 +196,7 @@ const AdminDashboard = () => {
   const [bookingRange, setBookingRange] = useState<string>("today");
   const [revenueRange, setRevenueRange] = useState<string>("today");
   const [showTodayRevenue, setShowTodayRevenue] = useState(false);
+  const [todayRevenueClubFilter, setTodayRevenueClubFilter] = useState<string>("all");
   const [bookingCustomDate, setBookingCustomDate] = useState<Date | undefined>(new Date());
   const [revenueCustomRange, setRevenueCustomRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: subDays(new Date(), 6), to: new Date() });
   const [bookingFilterType, setBookingFilterType] = useState<string>("all");
@@ -317,60 +318,87 @@ const AdminDashboard = () => {
             </div>
 
             {/* Today's Revenue Breakdown Dialog */}
-            <Dialog open={showTodayRevenue} onOpenChange={setShowTodayRevenue}>
-              <DialogContent className="bg-card border-border max-w-2xl max-h-[80vh] overflow-y-auto">
+            <Dialog open={showTodayRevenue} onOpenChange={(o) => { setShowTodayRevenue(o); if (!o) setTodayRevenueClubFilter("all"); }}>
+              <DialogContent className="bg-card border-border max-w-3xl max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle className="font-heading text-xl flex items-center gap-2">
                     <DollarSign className="h-5 w-5 text-primary" />
                     Today's Revenue — {format(new Date(), "MMMM d, yyyy")}
                   </DialogTitle>
                 </DialogHeader>
-                {todayShowBookings.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-8">No confirmed bookings with attendance today.</p>
-                ) : (
-                  <>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Customer</TableHead>
-                          <TableHead>Activity</TableHead>
-                          <TableHead>Time</TableHead>
-                          <TableHead className="text-right">Revenue</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {todayShowBookings.map(b => {
-                          const rev = getBookingRevenue(b, priceMap);
-                          return (
-                            <TableRow key={b.id}>
-                              <TableCell>
-                                <p className="font-medium text-foreground">{b.full_name}</p>
-                                <p className="text-xs text-muted-foreground">{b.email}</p>
-                              </TableCell>
-                              <TableCell>
-                                <Badge variant="secondary" className="text-xs">{b.activity_name}</Badge>
-                                {b.court_type && <span className="text-xs text-muted-foreground ml-1">({b.court_type})</span>}
-                              </TableCell>
-                              <TableCell className="text-sm">{b.booking_time}</TableCell>
-                              <TableCell className="text-right font-semibold">
-                                {b.discount_type === "free" ? (
-                                  <span className="text-muted-foreground">FREE</span>
-                                ) : b.discount_type === "50%" ? (
-                                  <span className="text-foreground">${rev} <span className="text-xs text-muted-foreground">(50% off)</span></span>
-                                ) : (
-                                  <span className="text-foreground">${rev}</span>
-                                )}
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
-                    <div className="flex justify-end pt-3 border-t border-border">
-                      <p className="font-heading font-bold text-lg text-foreground">Total: ${dailyRevenue.toLocaleString()}</p>
-                    </div>
-                  </>
-                )}
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-sm text-muted-foreground">Club:</span>
+                  <Select value={todayRevenueClubFilter} onValueChange={setTodayRevenueClubFilter}>
+                    <SelectTrigger className="w-[180px] h-9 bg-secondary border-border text-sm"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Clubs</SelectItem>
+                      {clubs.slice().sort((a, b) => a.name.localeCompare(b.name)).map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {(() => {
+                  let filtered = todayShowBookings;
+                  if (todayRevenueClubFilter !== "all") {
+                    const allowed = clubActivityMap[todayRevenueClubFilter] || [];
+                    filtered = filtered.filter(b => allowed.includes(b.activity));
+                  }
+                  const filteredTotal = filtered.reduce((sum, b) => sum + getBookingRevenue(b, priceMap), 0);
+                  const getClubForBooking = (b: BookingRow) => {
+                    for (const club of clubs) {
+                      const acts = clubActivityMap[club.id] || [];
+                      if (acts.includes(b.activity)) return club.name;
+                    }
+                    return "—";
+                  };
+                  return filtered.length === 0 ? (
+                    <p className="text-muted-foreground text-center py-8">No confirmed bookings with attendance today.</p>
+                  ) : (
+                    <>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Customer</TableHead>
+                            <TableHead>Activity</TableHead>
+                            <TableHead>Club</TableHead>
+                            <TableHead>Time</TableHead>
+                            <TableHead className="text-right">Revenue</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {filtered.map(b => {
+                            const rev = getBookingRevenue(b, priceMap);
+                            return (
+                              <TableRow key={b.id}>
+                                <TableCell>
+                                  <p className="font-medium text-foreground">{b.full_name}</p>
+                                  <p className="text-xs text-muted-foreground">{b.email}</p>
+                                </TableCell>
+                                <TableCell>
+                                  <Badge variant="secondary" className="text-xs">{b.activity_name}</Badge>
+                                  {b.court_type && <span className="text-xs text-muted-foreground ml-1">({b.court_type})</span>}
+                                </TableCell>
+                                <TableCell className="text-sm text-foreground">{getClubForBooking(b)}</TableCell>
+                                <TableCell className="text-sm">{b.booking_time}</TableCell>
+                                <TableCell className="text-right font-semibold">
+                                  {b.discount_type === "free" ? (
+                                    <span className="text-muted-foreground">FREE</span>
+                                  ) : b.discount_type === "50%" ? (
+                                    <span className="text-foreground">${rev} <span className="text-xs text-muted-foreground">(50% off)</span></span>
+                                  ) : (
+                                    <span className="text-foreground">${rev}</span>
+                                  )}
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                      <div className="flex justify-end pt-3 border-t border-border">
+                        <p className="font-heading font-bold text-lg text-foreground">Total: ${filteredTotal.toLocaleString()}</p>
+                      </div>
+                    </>
+                  );
+                })()}
               </DialogContent>
             </Dialog>
             <Card className="bg-card border-border mb-6">
