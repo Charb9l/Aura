@@ -222,6 +222,16 @@ const MatchmakerPage = () => {
               })}
             </motion.div>
           )}
+
+          <Link to="/profile" className="inline-block mt-6">
+            <Button
+              variant="outline"
+              className="h-10 px-6 text-[10px] uppercase tracking-[0.2em] font-medium border-primary/40 text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-500"
+            >
+              View My Player
+              <ChevronRight className="ml-2 h-3 w-3" />
+            </Button>
+          </Link>
         </motion.div>
 
         {!user ? (
