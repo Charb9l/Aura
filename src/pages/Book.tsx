@@ -107,7 +107,7 @@ const BookPage = () => {
     const fetchData = async () => {
       const [offRes, clubRes, locRes, contentRes, pricesRes] = await Promise.all([
         supabase.from("offerings").select("*").order("name"),
-        supabase.from("clubs").select("id, name, offerings, published").order("name"),
+        supabase.from("clubs").select("id, name, offerings, published, logo_url").order("name"),
         supabase.from("club_locations").select("*").order("name"),
         supabase.from("page_content").select("content").eq("page_slug", "book").single(),
         supabase.from("club_activity_prices").select("*"),
