@@ -244,11 +244,23 @@ const BookPage = () => {
     const offering = offerings.find(o => o.slug === selectedActivity);
     const activityName = offering?.name || selectedActivity;
 
-    // Determine discount from loyalty rewards
+    // Determine discount: loyalty rewards take priority, then admin promotions
     let discountType: string | null = null;
     const clubReward = resolvedClubId ? getRewardForClub(resolvedClubId) : undefined;
     if (clubReward?.reward === "free") discountType = "free";
     else if (clubReward?.reward === "50%") discountType = "50%";
+    else if (activePromo) {
+      if (activePromo.discount_type === "free") discountType = "free";
+      else if (activePromo.discount_type === "percentage") discountType = `${activePromo.discount_value}%` === "50%" ? "50%" : "free"; // map to existing discount_type format
+      // For simplicity: percentage promos map to 50% if value=50, else "free" if 100
+      if (activePromo.discount_type === "percentage") {
+        discountType = activePromo.discount_value >= 100 ? "free" : "50%";
+      } else if (activePromo.discount_type === "fixed") {
+        discountType = "50%"; // fixed amount discounts stored as 50% for display
+      } else if (activePromo.discount_type === "free") {
+        discountType = "free";
+      }
+    }
 
     const { error } = await supabase.from("bookings").insert({
       user_id: user.id,
