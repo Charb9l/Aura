@@ -73,9 +73,6 @@ const BookPage = () => {
   const [courtType, setCourtType] = useState<"half" | "full" | "">("");
   const [date, setDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState("");
-  const [name, setName] = useState(user?.user_metadata?.full_name || "");
-  const [email, setEmail] = useState(user?.email || "");
-  const [phone, setPhone] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
@@ -85,11 +82,25 @@ const BookPage = () => {
   const [selectedLocation, setSelectedLocation] = useState("");
   const [pageTitle, setPageTitle] = useState("Book a Session");
   const [pageSubtitle, setPageSubtitle] = useState("Select your activity, date and time.");
-  const [detailFields, setDetailFields] = useState<FormField[]>([
-    { key: "name", label: "Full Name", type: "text", required: true },
-    { key: "email", label: "Email", type: "email", required: true },
-    { key: "phone", label: "Phone Number", type: "phone", required: true },
-  ]);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+
+  // Profile data fetched from DB
+  const [profileName, setProfileName] = useState("");
+  const [profileEmail, setProfileEmail] = useState("");
+  const [profilePhone, setProfilePhone] = useState("");
+
+  useEffect(() => {
+    if (!user) return;
+    setProfileEmail(user.email || "");
+    const fetchProfile = async () => {
+      const { data } = await supabase.from("profiles").select("full_name, phone").eq("user_id", user.id).single();
+      if (data) {
+        setProfileName(data.full_name || user.user_metadata?.full_name || "");
+        setProfilePhone(data.phone || "");
+      }
+    };
+    fetchProfile();
+  }, [user]);
 
   useEffect(() => {
     const fetchData = async () => {
