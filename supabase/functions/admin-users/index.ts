@@ -316,6 +316,31 @@ Deno.serve(async (req) => {
       });
     }
 
+    // TOGGLE suspend
+    if (action === "toggle-suspend") {
+      const { user_id, suspended } = body as Record<string, any>;
+      if (!user_id) {
+        return new Response(JSON.stringify({ error: "user_id required" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const { error } = await adminClient
+        .from("profiles")
+        .update({ suspended: !!suspended })
+        .eq("user_id", user_id);
+      if (error) {
+        return new Response(JSON.stringify({ error: error.message }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      return new Response(JSON.stringify({ success: true }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     return new Response(JSON.stringify({ error: "Invalid action" }), {
       status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
