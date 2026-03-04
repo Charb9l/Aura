@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   LogOut, LayoutDashboard, Users, Settings, Tag, CalendarCheck,
-  Building2, GraduationCap, Gamepad2, TrendingUp, PanelLeftClose, PanelLeft, FileBarChart, Package, Menu, X, Bell,
+  Building2, GraduationCap, Gamepad2, TrendingUp, PanelLeftClose, PanelLeft, FileBarChart, Package, Menu, X, Bell, Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
