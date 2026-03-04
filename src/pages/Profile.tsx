@@ -134,7 +134,7 @@ const ProfilePage = () => {
     if (!user) return;
 
     const fetchData = async () => {
-      const [bookingsRes, profileRes, clubsRes] = await Promise.all([
+      const [bookingsRes, profileRes, clubsRes, adjustmentsRes] = await Promise.all([
         supabase
           .from("bookings")
           .select("*")
@@ -149,11 +149,23 @@ const ProfilePage = () => {
           .from("clubs")
           .select("id, name, logo_url, offerings, published")
           .order("name"),
+        supabase
+          .from("loyalty_point_adjustments")
+          .select("club_id, points")
+          .eq("user_id", user.id),
       ]);
 
       if (bookingsRes.data) setBookings(bookingsRes.data);
       if (profileRes.data) setProfile(profileRes.data);
       if (clubsRes.data) setClubs((clubsRes.data as any[]).filter(c => c.published !== false));
+      
+      // Sum manual adjustments per club
+      const adjMap: Record<string, number> = {};
+      ((adjustmentsRes.data || []) as { club_id: string; points: number }[]).forEach(a => {
+        adjMap[a.club_id] = (adjMap[a.club_id] || 0) + a.points;
+      });
+      setLoyaltyAdjustments(adjMap);
+      
       setLoadingData(false);
     };
 
