@@ -30,6 +30,7 @@ const BASE_MENU_ITEMS = [
   { label: "Habit Tracker", icon: TrendingUp, tab: "habits" },
   { label: "Promotions", icon: Tag, tab: "promotions" },
   { label: "Reports", icon: FileBarChart, tab: "reports" },
+  { label: "Nudges", icon: Zap, tab: "nudges" },
   { label: "Notifications", icon: Bell, tab: "notifications" },
   { label: "Users", icon: Users, tab: "users" },
   { label: "Settings", icon: Settings, tab: "settings" },
