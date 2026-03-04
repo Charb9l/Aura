@@ -34,7 +34,6 @@ const BASE_MENU_ITEMS = [
   { label: "Settings", icon: Settings, tab: "settings" },
 ];
 
-const assignedAdminTabs = new Set(["overview", "promotions", "bookings"]);
 
 interface AdminNavbarProps {
   activeTab: string;
