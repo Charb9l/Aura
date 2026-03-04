@@ -498,15 +498,19 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
                 <h3 className="font-heading text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
                   <Trophy className="h-5 w-5 text-primary" /> Loyalty Program
                 </h3>
-                {viewLoyalty.length === 0 && viewBadges.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No loyalty records yet.</p>
-                ) : (
-                  <div className="space-y-3">
-                    {/* Booking-based loyalty points */}
-                    {viewLoyalty.length > 0 && (
+                {(() => {
+                  // Show ALL clubs, not just ones with bookings
+                  const allClubLoyalty = clubs.map(club => {
+                    const existing = viewLoyalty.find(l => l.clubId === club.id);
+                    return existing || { clubId: club.id, clubName: club.name, shows: 0, noShows: 0, total: 0 };
+                  });
+
+                  return (
+                    <div className="space-y-3">
+                      {/* Booking-based loyalty points */}
                       <div className="space-y-2">
                         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Points from Attendance</p>
-                        {viewLoyalty.map(lp => (
+                        {allClubLoyalty.map(lp => (
                           <div key={lp.clubId} className="flex items-center gap-3 rounded-lg border border-border bg-secondary/30 p-3">
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium text-foreground">{lp.clubName}</p>
@@ -518,7 +522,7 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
                               {Array.from({ length: 10 }, (_, i) => (
                                 <div key={i} className={cn(
                                   "h-3 w-3 rounded-full",
-                                  i < Math.max(0, lp.total) ? (i < 5 ? "bg-primary" : "bg-primary") : "bg-border",
+                                  i < Math.max(0, lp.total) ? "bg-primary" : "bg-border",
                                   i === 4 && "ring-1 ring-primary/40",
                                   i === 9 && "ring-1 ring-primary/40"
                                 )} />
@@ -533,49 +537,49 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
                           </div>
                         ))}
                       </div>
-                    )}
 
-                    {/* Badge reward assignments */}
-                    {viewBadges.length > 0 && (
-                      <div className="space-y-2">
-                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Badge Reward Points</p>
-                        {viewBadges.map(badge => {
-                          const club = clubs.find(c => c.id === badge.club_id);
-                          const isEditing = editingBadge?.id === badge.id;
-                          return (
-                            <div key={badge.id} className="flex items-center gap-3 rounded-lg border border-border bg-secondary/30 p-3">
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-foreground">{club?.name || "Unknown Club"}</p>
-                                <p className="text-xs text-muted-foreground">Badge Points: {badge.badge_level} / 10</p>
-                              </div>
-                              <div className="flex gap-0.5">
-                                {Array.from({ length: 10 }, (_, i) => (
-                                  <div key={i} className={cn("h-3 w-3 rounded-full", i < badge.badge_level ? "bg-primary" : "bg-border")} />
-                                ))}
-                              </div>
-                              {isEditing ? (
-                                <div className="flex items-center gap-2">
-                                  <Input
-                                    type="number"
-                                    min={0}
-                                    max={10}
-                                    value={editingBadge.level}
-                                    onChange={(e) => setEditingBadge({ ...editingBadge, level: parseInt(e.target.value) || 0 })}
-                                    className="h-8 w-16 bg-secondary border-border text-sm text-center"
-                                  />
-                                  <Button size="sm" variant="default" disabled={savingBadge} onClick={() => handleSaveBadge(badge.id, editingBadge.level)} className="h-8 px-3">Save</Button>
-                                  <Button size="sm" variant="ghost" onClick={() => setEditingBadge(null)} className="h-8 px-2">✕</Button>
+                      {/* Badge reward assignments */}
+                      {viewBadges.length > 0 && (
+                        <div className="space-y-2">
+                          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Badge Reward Points</p>
+                          {viewBadges.map(badge => {
+                            const club = clubs.find(c => c.id === badge.club_id);
+                            const isEditing = editingBadge?.id === badge.id;
+                            return (
+                              <div key={badge.id} className="flex items-center gap-3 rounded-lg border border-border bg-secondary/30 p-3">
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-foreground">{club?.name || "Unknown Club"}</p>
+                                  <p className="text-xs text-muted-foreground">Badge Points: {badge.badge_level} / 10</p>
                                 </div>
-                              ) : (
-                                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => setEditingBadge({ id: badge.id, level: badge.badge_level })}><Pencil className="h-3.5 w-3.5" /></Button>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                )}
+                                <div className="flex gap-0.5">
+                                  {Array.from({ length: 10 }, (_, i) => (
+                                    <div key={i} className={cn("h-3 w-3 rounded-full", i < badge.badge_level ? "bg-primary" : "bg-border")} />
+                                  ))}
+                                </div>
+                                {isEditing ? (
+                                  <div className="flex items-center gap-2">
+                                    <Input
+                                      type="number"
+                                      min={0}
+                                      max={10}
+                                      value={editingBadge.level}
+                                      onChange={(e) => setEditingBadge({ ...editingBadge, level: parseInt(e.target.value) || 0 })}
+                                      className="h-8 w-16 bg-secondary border-border text-sm text-center"
+                                    />
+                                    <Button size="sm" variant="default" disabled={savingBadge} onClick={() => handleSaveBadge(badge.id, editingBadge.level)} className="h-8 px-3">Save</Button>
+                                    <Button size="sm" variant="ghost" onClick={() => setEditingBadge(null)} className="h-8 px-2">✕</Button>
+                                  </div>
+                                ) : (
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => setEditingBadge({ id: badge.id, level: badge.badge_level })}><Pencil className="h-3.5 w-3.5" /></Button>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* MyPlayer Builds */}
