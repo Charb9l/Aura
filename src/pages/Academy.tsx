@@ -149,12 +149,13 @@ const AcademyPage = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [clubsRes, offRes, picsRes, locsRes, contentRes] = await Promise.all([
+      const [clubsRes, offRes, picsRes, locsRes, contentRes, heroRes] = await Promise.all([
         supabase.from("clubs").select("*").order("name"),
         supabase.from("offerings").select("*").order("name"),
         supabase.from("academy_pictures").select("*").order("display_order"),
         supabase.from("club_locations").select("*").order("name"),
         supabase.from("page_content").select("content").eq("page_slug", "academy").single(),
+        supabase.from("hero_pictures").select("id, image_url, display_order").eq("page_slug", "academy").order("display_order"),
       ]);
       if (clubsRes.data) setClubs((clubsRes.data as unknown as AcademyClub[]).filter(c => (c as any).published !== false));
       if (offRes.data) setOfferings(offRes.data as unknown as OfferingData[]);
@@ -165,6 +166,9 @@ const AcademyPage = () => {
         if (c?.title) setPageTitle(c.title);
         if (c?.subtitle) setPageSubtitle(c.subtitle);
         if (c?.fields) setPersonalFields(c.fields);
+      }
+      if (heroRes.data && heroRes.data.length > 0) {
+        setHeroPictures(heroRes.data.map((p: any) => ({ image: p.image_url, alt: "Academy" })));
       }
     };
     fetchData();
