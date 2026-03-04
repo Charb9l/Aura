@@ -45,10 +45,12 @@ interface AdminNavbarProps {
 const AdminNavbar = ({ activeTab, onTabChange, assignedClubId }: AdminNavbarProps) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
+  const assignedAdminTabs = new Set(["overview", "promotions", "bookings"]);
+
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [brandName, setBrandName] = useState({ line1: "ELEVATE", line2: "Wellness Hub" });
+  const [allMenuItems, setAllMenuItems] = useState(BASE_MENU_ITEMS);
 
   useEffect(() => {
     supabase.from("page_content").select("content").eq("page_slug", "home").single().then(({ data }) => {
@@ -62,6 +64,17 @@ const AdminNavbar = ({ activeTab, onTabChange, assignedClubId }: AdminNavbarProp
         } else if (content?.platform_name) {
           const parts = content.platform_name.trim().split(/\s+/);
           setBrandName({ line1: parts[0], line2: parts.slice(1).join(" ") });
+        }
+        // Override menu labels from nav_order
+        if (content?.nav_order?.length) {
+          const labelMap: Record<string, string> = {};
+          (content.nav_order as { to: string; label: string }[]).forEach(nav => {
+            const tab = ROUTE_TO_TAB[nav.to];
+            if (tab) labelMap[tab] = nav.label;
+          });
+          setAllMenuItems(BASE_MENU_ITEMS.map(item =>
+            labelMap[item.tab] ? { ...item, label: labelMap[item.tab] } : item
+          ));
         }
       }
     });
