@@ -96,7 +96,7 @@ const LoyaltyPage = () => {
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
-              className="flex items-center gap-4 mb-14"
+              className="flex items-center gap-4 mb-8"
             >
               <div className="h-px flex-1 bg-gradient-to-r from-primary/30 to-transparent" />
               <span className="text-[10px] uppercase tracking-[0.4em] text-primary font-medium whitespace-nowrap">How It Works</span>
