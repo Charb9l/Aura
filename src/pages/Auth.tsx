@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,7 +11,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import Navbar from "@/components/Navbar";
 import PhoneInput from "@/components/PhoneInput";
 import { useAuth } from "@/contexts/AuthContext";
-import { useEffect } from "react";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
