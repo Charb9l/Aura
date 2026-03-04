@@ -470,6 +470,7 @@ const AdminDashboard = () => {
         {activeTab === "matchmaker" && <MatchmakerTab />}
         {activeTab === "settings" && <SettingsTab />}
         {activeTab === "reports" && <ReportsTab />}
+        {activeTab === "nudges" && !myClubId && <NudgesTab />}
         {activeTab === "notifications" && (
           <NotificationsTab
             onUnreadCountChange={setNotificationCount}
