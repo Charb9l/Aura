@@ -24,18 +24,15 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
     // Verify the caller is an admin
-    const supabaseAuth = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const { data: { user } } = await supabaseAuth.auth.getUser();
+    const token = authHeader.replace("Bearer ", "");
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+    const { data: { user } } = await supabaseAdmin.auth.getUser(token);
     if (!user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
     // Check admin role
     const { data: isAdmin } = await supabaseAdmin.rpc("has_role", {
