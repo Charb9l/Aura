@@ -432,11 +432,66 @@ const HabitsPage = () => {
           {/* Header */}
           <div className="text-center mb-6">
             <h1 className="font-heading text-2xl sm:text-4xl md:text-5xl font-bold text-foreground mb-3">
-              {cmsContent.title || "AI Habit Tracker"}
+              {cmsContent.title || "Habit Tracker"}
             </h1>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-muted-foreground max-w-2xl mx-auto mb-8">
               {cmsContent.subtitle || "Discover your wellness patterns. Track streaks, earn badges, and get personalized insights."}
             </p>
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 max-w-full mx-auto"
+            >
+              {[
+                { label: "Streaks", hue: 160 },
+                { label: "Badges", hue: 200 },
+                { label: "Wellness Score", hue: 280 },
+                { label: "AI Insights", hue: 40 },
+                { label: "Session Patterns", hue: 340 },
+              ].map((c, i) => {
+                const iconMap: Record<string, React.ReactNode> = {
+                  Streaks: <Flame className="h-3.5 w-3.5" />,
+                  Badges: <Trophy className="h-3.5 w-3.5" />,
+                  "Wellness Score": <TrendingUp className="h-3.5 w-3.5" />,
+                  "AI Insights": <Sparkles className="h-3.5 w-3.5" />,
+                  "Session Patterns": <Clock className="h-3.5 w-3.5" />,
+                };
+                return (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.3 + i * 0.08, type: "spring", stiffness: 200 }}
+                    whileHover={{ scale: 1.08, y: -2 }}
+                    className="group relative inline-flex items-center gap-2.5 rounded-2xl px-5 py-3 text-sm font-semibold text-foreground cursor-default overflow-hidden"
+                    style={{
+                      background: `linear-gradient(135deg, hsl(${c.hue} 50% 15% / 0.6), hsl(${c.hue} 40% 20% / 0.3))`,
+                      border: `1px solid hsl(${c.hue} 50% 40% / 0.35)`,
+                      boxShadow: `0 0 12px hsl(${c.hue} 60% 50% / 0.25), 0 0 30px hsl(${c.hue} 60% 50% / 0.12), inset 0 1px 0 hsl(${c.hue} 50% 80% / 0.1)`,
+                    }}
+                  >
+                    <span
+                      className="flex items-center justify-center h-6 w-6 rounded-full"
+                      style={{
+                        background: `hsl(${c.hue} 60% 50% / 0.2)`,
+                        color: `hsl(${c.hue} 70% 65%)`,
+                        border: `1px solid hsl(${c.hue} 60% 50% / 0.3)`,
+                      }}
+                    >
+                      {iconMap[c.label]}
+                    </span>
+                    <span>{c.label}</span>
+                    <div
+                      className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                      style={{
+                        background: `radial-gradient(circle at 30% 50%, hsl(${c.hue} 60% 50% / 0.1), transparent 70%)`,
+                      }}
+                    />
+                  </motion.div>
+                );
+              })}
+            </motion.div>
           </div>
 
           {!user ? (
