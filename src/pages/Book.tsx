@@ -4,17 +4,16 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
-import { CalendarIcon, Clock, CheckCircle2 } from "lucide-react";
+import { CalendarIcon, Clock, CheckCircle2, User, Mail, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import Navbar from "@/components/Navbar";
-import PhoneInput from "@/components/PhoneInput";
 import ActivityFilter from "@/components/ActivityFilter";
 import PagePhotoStrip from "@/components/PagePhotoStrip";
 
@@ -48,8 +47,6 @@ const timeSlots = [
 
 const isValidEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 
-interface FormField { key: string; label: string; type: string; required: boolean; }
-
 /** Build inline style objects from an HSL brand_color string like "212 70% 55%" */
 const makeBrandStyles = (brandColor: string | null | undefined) => {
   const c = brandColor || "220 14% 60%"; // fallback muted
@@ -76,9 +73,6 @@ const BookPage = () => {
   const [courtType, setCourtType] = useState<"half" | "full" | "">("");
   const [date, setDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState("");
-  const [name, setName] = useState(user?.user_metadata?.full_name || "");
-  const [email, setEmail] = useState(user?.email || "");
-  const [phone, setPhone] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
@@ -88,11 +82,25 @@ const BookPage = () => {
   const [selectedLocation, setSelectedLocation] = useState("");
   const [pageTitle, setPageTitle] = useState("Book a Session");
   const [pageSubtitle, setPageSubtitle] = useState("Select your activity, date and time.");
-  const [detailFields, setDetailFields] = useState<FormField[]>([
-    { key: "name", label: "Full Name", type: "text", required: true },
-    { key: "email", label: "Email", type: "email", required: true },
-    { key: "phone", label: "Phone Number", type: "phone", required: true },
-  ]);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+
+  // Profile data fetched from DB
+  const [profileName, setProfileName] = useState("");
+  const [profileEmail, setProfileEmail] = useState("");
+  const [profilePhone, setProfilePhone] = useState("");
+
+  useEffect(() => {
+    if (!user) return;
+    setProfileEmail(user.email || "");
+    const fetchProfile = async () => {
+      const { data } = await supabase.from("profiles").select("full_name, phone").eq("user_id", user.id).single();
+      if (data) {
+        setProfileName(data.full_name || user.user_metadata?.full_name || "");
+        setProfilePhone(data.phone || "");
+      }
+    };
+    fetchProfile();
+  }, [user]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -111,7 +119,6 @@ const BookPage = () => {
         const c = contentRes.data.content as any;
         if (c?.title) setPageTitle(c.title);
         if (c?.subtitle) setPageSubtitle(c.subtitle);
-        if (c?.fields) setDetailFields(c.fields);
       }
     };
     fetchData();
@@ -205,10 +212,10 @@ const BookPage = () => {
     fetchBookedSlots();
   }, [selectedActivity, date]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleConfirmBooking = async () => {
     if (!user || !date) return;
     setSubmitting(true);
+    setShowConfirmDialog(false);
 
     const offering = offerings.find(o => o.slug === selectedActivity);
     const activityName = offering?.name || selectedActivity;
@@ -243,9 +250,9 @@ const BookPage = () => {
       activity_name: activityName,
       booking_date: format(date, "yyyy-MM-dd"),
       booking_time: selectedTime,
-      full_name: name,
-      email,
-      phone,
+      full_name: profileName,
+      email: profileEmail,
+      phone: profilePhone,
       court_type: selectedActivity === "basketball" ? courtType : null,
       discount_type: discountType,
     });
@@ -254,12 +261,10 @@ const BookPage = () => {
     if (error) {
       toast.error("Booking failed: " + error.message);
     } else {
-      await supabase.from("profiles").update({ phone, full_name: name }).eq("user_id", user.id);
-
       supabase.functions.invoke("booking-confirmation-email", {
         body: {
-          full_name: name,
-          email,
+          full_name: profileName,
+          email: profileEmail,
           activity_name: activityName,
           booking_date: format(date, "PPP"),
           booking_time: selectedTime,
@@ -269,6 +274,11 @@ const BookPage = () => {
 
       setSubmitted(true);
     }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setShowConfirmDialog(true);
   };
 
   if (submitted) {
@@ -283,7 +293,7 @@ const BookPage = () => {
             <p className="text-muted-foreground text-lg mb-2">
               {offering?.name || selectedActivity} — {date && format(date, "PPP")} at {selectedTime}
             </p>
-            <p className="text-muted-foreground">We'll send a confirmation to {email}</p>
+            <p className="text-muted-foreground">We'll send a confirmation to {profileEmail}</p>
           </motion.div>
         </div>
       </div>
@@ -499,34 +509,8 @@ const BookPage = () => {
             </div>
           </motion.div>
 
-          {/* Contact info - dynamic fields */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="space-y-4">
-            <Label className="text-sm font-medium text-muted-foreground mb-4 block">Your Details</Label>
-            <div className="grid md:grid-cols-3 gap-4">
-              {detailFields.map((field) => {
-                if (field.type === "phone") {
-                  return <PhoneInput key={field.key} value={phone} onChange={setPhone} required={field.required} />;
-                }
-                const val = field.key === "name" ? name : field.key === "email" ? email : "";
-                const setter = field.key === "name" ? setName : field.key === "email" ? setEmail : undefined;
-                return (
-                  <Input
-                    key={field.key}
-                    type={field.type === "number" ? "number" : field.type === "email" ? "email" : "text"}
-                    placeholder={field.label}
-                    value={val}
-                    onChange={setter ? (e) => setter(e.target.value) : undefined}
-                    required={field.required}
-                    className="h-12 bg-secondary border-border"
-                    style={selectedActivity ? brand.glowSm : undefined}
-                  />
-                );
-              })}
-            </div>
-          </motion.div>
-
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="flex items-center gap-5">
-            <Button type="submit" disabled={!selectedActivity || !date || !selectedTime || !name || !email || !isValidEmail(email) || !phone || (selectedActivity === "basketball" && !courtType) || (matchingClubs.length > 1 && !selectedClub) || !selectedLocation || submitting} className="h-14 px-10 text-lg font-bold rounded-xl glow">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="flex items-center gap-5">
+            <Button type="submit" disabled={!selectedActivity || !date || !selectedTime || (selectedActivity === "basketball" && !courtType) || (matchingClubs.length > 1 && !selectedClub) || !selectedLocation || submitting} className="h-14 px-10 text-lg font-bold rounded-xl glow">
               {submitting ? "Booking..." : "Confirm Booking"}
             </Button>
             {currentPrice !== null && (
@@ -536,6 +520,51 @@ const BookPage = () => {
               </div>
             )}
           </motion.div>
+
+          {/* Confirmation Dialog */}
+          <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-heading">Confirm Your Booking</DialogTitle>
+                <DialogDescription>Please review the details below before confirming.</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-2">
+                {/* Personal Info */}
+                <div className="rounded-lg border border-border bg-secondary/50 p-4 space-y-2">
+                  <h4 className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-2">Your Information</h4>
+                  <div className="flex items-center gap-2 text-sm">
+                    <User className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-foreground font-medium">{profileName || "—"}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-foreground">{profileEmail}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-foreground">{profilePhone || "—"}</span>
+                  </div>
+                </div>
+                {/* Booking Info */}
+                <div className="rounded-lg border border-border bg-secondary/50 p-4 space-y-2">
+                  <h4 className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-2">Booking Details</h4>
+                  <p className="text-sm"><span className="text-muted-foreground">Activity:</span> <span className="text-foreground font-medium">{offerings.find(o => o.slug === selectedActivity)?.name}</span></p>
+                  {resolvedClubId && <p className="text-sm"><span className="text-muted-foreground">Club:</span> <span className="text-foreground font-medium">{clubs.find(c => c.id === resolvedClubId)?.name}</span></p>}
+                  {selectedLocation && <p className="text-sm"><span className="text-muted-foreground">Location:</span> <span className="text-foreground font-medium">{clubLocations.find(l => l.id === selectedLocation)?.name} — {clubLocations.find(l => l.id === selectedLocation)?.location}</span></p>}
+                  {courtType && <p className="text-sm"><span className="text-muted-foreground">Court:</span> <span className="text-foreground font-medium">{courtType === "full" ? "Full Court" : "Half Court"}</span></p>}
+                  <p className="text-sm"><span className="text-muted-foreground">Date:</span> <span className="text-foreground font-medium">{date && format(date, "PPP")}</span></p>
+                  <p className="text-sm"><span className="text-muted-foreground">Time:</span> <span className="text-foreground font-medium">{selectedTime}</span></p>
+                  {currentPrice !== null && <p className="text-sm"><span className="text-muted-foreground">Price:</span> <span className="text-foreground font-bold">${currentPrice}</span></p>}
+                </div>
+              </div>
+              <DialogFooter className="gap-2 sm:gap-0">
+                <Button variant="outline" onClick={() => setShowConfirmDialog(false)}>Cancel</Button>
+                <Button onClick={handleConfirmBooking} disabled={submitting} className="glow">
+                  {submitting ? "Booking..." : "Confirm"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
           </>
           )}
         </form>
