@@ -189,17 +189,14 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
 
   const handleSave = async () => {
     if (!editClub) return;
-    // Check that each activity has at least one location
-    const allLocs = Object.entries(editActivityLocations).flatMap(([activity, locs]) =>
-      locs.filter(l => l.name.trim() && l.location.trim()).map(l => ({ ...l, activity }))
-    );
-    if (allLocs.length === 0) { toast.error("Each activity needs at least one location"); return; }
+    const validLocs = editClubLocs.filter(l => l.name.trim() && l.location.trim());
+    if (validLocs.length === 0) { toast.error("Please add at least one location"); return; }
 
     setSaving(true);
     const { error } = await supabase.from("clubs").update({ name: editName, description: editDescription || null, logo_url: editClub.logo_url, offerings: editOfferings, has_academy: editHasAcademy }).eq("id", editClub.id);
 
     // Delete removed locations
-    const existingIds = allLocs.filter(l => l.id).map(l => l.id!);
+    const existingIds = validLocs.filter(l => l.id).map(l => l.id!);
     const originalIds = clubLocations.filter(l => l.club_id === editClub.id).map(l => l.id);
     const deletedIds = originalIds.filter(id => !existingIds.includes(id));
     if (deletedIds.length > 0) {
@@ -207,36 +204,33 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
       setClubLocations(prev => prev.filter(l => !deletedIds.includes(l.id)));
     }
 
-    // Insert new locations
-    const newLocs = allLocs.filter(l => !l.id && l.name.trim() && l.location.trim());
+    // Insert new locations (no activity field)
+    const newLocs = validLocs.filter(l => !l.id);
     if (newLocs.length > 0) {
-      const locsToInsert = newLocs.map(l => ({ club_id: editClub.id, name: l.name.trim(), location: l.location.trim(), activity: l.activity }));
+      const locsToInsert = newLocs.map(l => ({ club_id: editClub.id, name: l.name.trim(), location: l.location.trim() }));
       const { data: insertedLocs } = await supabase.from("club_locations").insert(locsToInsert).select();
       if (insertedLocs) setClubLocations(prev => [...prev, ...(insertedLocs as unknown as ClubLocationRow[])]);
     }
 
-    // Save prices — delete old prices and re-insert
+    // Save prices — per activity (no location_id)
     await supabase.from("club_activity_prices").delete().eq("club_id", editClub.id);
     const priceRows = Object.entries(editPrices)
       .filter(([, val]) => val && Number(val) > 0)
       .map(([key, val]) => {
-        // key format: "slug:locationId:label" or "slug:locationId"
         const parts = key.split(":");
         const slug = parts[0];
-        const locationId = parts[1] === "none" ? null : parts[1];
-        const label = parts[2] || null;
+        const label = parts[1] || null;
         return {
           club_id: editClub.id,
           activity_slug: slug,
           price: Number(val),
           price_label: label,
-          location_id: locationId,
+          location_id: null,
         };
       });
     if (priceRows.length > 0) {
       await supabase.from("club_activity_prices").insert(priceRows as any);
     }
-    // Update local cache
     setAllActivityPrices(prev => [...prev.filter(p => p.club_id !== editClub.id), ...priceRows.map((r, i) => ({ ...r, id: `temp-${i}`, created_at: new Date().toISOString() }))] as ClubActivityPrice[]);
 
     setSaving(false);
