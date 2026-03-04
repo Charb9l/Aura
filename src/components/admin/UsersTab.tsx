@@ -272,7 +272,24 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
     toast.success("Badge updated");
   };
 
-  const handleSaveSelection = async (selId: string) => {
+  const handleAdjustLoyalty = async (clubId: string, delta: number) => {
+    if (!viewUser) return;
+    setAdjustingSaving(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    const { error } = await supabase.from("loyalty_point_adjustments").insert({
+      user_id: viewUser.user_id,
+      club_id: clubId,
+      points: delta,
+      reason: delta > 0 ? "Manual add by admin" : "Manual deduction by admin",
+      adjusted_by: user?.id,
+    } as any);
+    setAdjustingSaving(false);
+    if (error) { toast.error("Failed to adjust points"); return; }
+    setViewAdjustments(prev => ({ ...prev, [clubId]: (prev[clubId] || 0) + delta }));
+    toast.success(`${delta > 0 ? "Added" : "Removed"} 1 loyalty point`);
+  };
+
+
     if (!editSelData) return;
     setSavingSelection(true);
     const updates: any = {
