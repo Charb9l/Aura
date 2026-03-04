@@ -224,11 +224,16 @@ const Navbar = () => {
                 const isGold = glowRoutes.has(link.to);
                 return (
                   <Link key={link.to} to={link.to} onClick={() => setMobileOpen(false)} className={cn(
-                    "py-3 px-3 text-xs font-light uppercase tracking-[0.1em] transition-colors",
+                    "py-3 px-3 text-xs font-light uppercase tracking-[0.1em] transition-colors relative",
                     isGold && "text-primary",
                     isActive && !isGold && "text-foreground",
                     !isActive && !isGold && "text-muted-foreground hover:text-foreground"
-                  )}>{link.label}</Link>
+                  )}>
+                    {link.label}
+                    {link.to === "/book" && hasRewards && user && (
+                      <span className="inline-block ml-1.5 h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
+                    )}
+                  </Link>
                 );
               })}
               {isAdmin && (
