@@ -534,12 +534,38 @@ const BookPage = () => {
                 Sign In to Book a Session
               </Button>
             )}
-            {currentPrice !== null && (
-              <div className="flex items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 px-5 py-2.5 backdrop-blur-sm">
-                <span className="text-xs uppercase tracking-widest text-muted-foreground font-medium">Total</span>
-                <span className="font-heading text-2xl font-bold text-primary">${currentPrice}</span>
-              </div>
-            )}
+            {currentPrice !== null && (() => {
+              const clubReward = resolvedClubId ? getRewardForClub(resolvedClubId) : undefined;
+              const isFree = clubReward?.reward === "free";
+              const isHalf = clubReward?.reward === "50%";
+              const discountedPrice = isHalf ? (currentPrice / 2).toFixed(0) : null;
+
+              return (
+                <div className={cn(
+                  "flex items-center gap-3 rounded-xl border px-5 py-2.5 backdrop-blur-sm",
+                  isFree ? "border-emerald-500/50 bg-emerald-500/10" : isHalf ? "border-amber-500/50 bg-amber-500/10" : "border-primary/30 bg-primary/5"
+                )}>
+                  <span className="text-xs uppercase tracking-widest text-muted-foreground font-medium">Total</span>
+                  {isFree ? (
+                    <div className="flex items-center gap-2">
+                      <span className="font-heading text-lg text-muted-foreground line-through">${currentPrice}</span>
+                      <span className="font-heading text-2xl font-black text-emerald-400 animate-pulse flex items-center gap-1">
+                        <Sparkles className="h-5 w-5" /> FREE!
+                      </span>
+                    </div>
+                  ) : isHalf ? (
+                    <div className="flex items-center gap-2">
+                      <span className="font-heading text-lg text-muted-foreground line-through">${currentPrice}</span>
+                      <span className="font-heading text-2xl font-bold text-amber-400">${discountedPrice}</span>
+                      <span className="text-xs font-bold text-amber-400 bg-amber-400/15 rounded-full px-2 py-0.5">50% OFF</span>
+                    </div>
+                  ) : (
+                    <span className="font-heading text-2xl font-bold text-primary">${currentPrice}</span>
+                  )}
+                </div>
+              );
+            })()}
+
           </motion.div>
 
           {/* Confirmation Dialog */}
