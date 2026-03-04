@@ -29,6 +29,7 @@ interface HeroContent {
   hero_title_line1: string;
   hero_title_line2: string;
   hero_buttons: { to: string; label: string; glow?: boolean }[];
+  show_scroll_indicator?: boolean;
 }
 
 const CYCLE_INTERVAL = 4000;
