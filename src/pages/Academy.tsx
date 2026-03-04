@@ -300,41 +300,74 @@ const AcademyPage = () => {
   return (
     <div className="min-h-screen">
       <Navbar />
-      <div className="container mx-auto px-6 pt-28 pb-16">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <GraduationCap className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
-                <h1 className="font-heading text-2xl sm:text-4xl md:text-5xl font-bold text-foreground">{pageTitle}</h1>
-              </div>
-              <p className="text-muted-foreground text-sm sm:text-lg">{pageSubtitle}</p>
-            </div>
-            <div className="flex items-center gap-3 flex-wrap">
-              {academyOfferings.length > 0 && (
-                <ActivityFilter offerings={academyOfferings} selected={filterSlugs} onChange={(s) => { setFilterSlugs(s); setFilterLocation(""); }} />
-              )}
-              {availableLocations.length > 1 && (
-                <Select value={filterLocation || "all"} onValueChange={(v) => setFilterLocation(v === "all" ? "" : v)}>
-                  <SelectTrigger className="h-10 w-44 bg-secondary border-border">
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-                      <SelectValue placeholder="All Locations" />
-                    </div>
-                  </SelectTrigger>
-                  <SelectContent className="bg-card border-border z-50">
-                    <SelectItem value="all">All Locations</SelectItem>
-                    {availableLocations.map(l => (
-                      <SelectItem key={l.id} value={l.location}>{l.location}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            </div>
-          </div>
-        </motion.div>
 
-        <PagePhotoStrip pageSlug="academy" className="mb-10" />
+      {/* Hero section with dynamic grid background */}
+      <section className="relative min-h-[50vh] flex items-center justify-center overflow-hidden">
+        {visibleHeroPics.length > 0 && (
+          <div className={cn("absolute inset-0 grid", getGridLayout(visibleHeroPics.length))}>
+            <AnimatePresence mode="popLayout">
+              {visibleHeroPics.map((pic, i) => (
+                <motion.div
+                  key={`${pic.image}-${i}-${heroCycleIndex}`}
+                  className="relative overflow-hidden"
+                  initial={{ opacity: 0, scale: 1.1 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 1.2, delay: i * 0.08 }}
+                >
+                  <img
+                    src={pic.image}
+                    alt={pic.alt}
+                    className={cn(
+                      "h-full w-full object-cover saturate-[0.3] contrast-[1.1]",
+                      visibleHeroPics.length === 1 && "saturate-[0.4]"
+                    )}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        )}
+
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-background/80" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-background/30" />
+
+        {/* Content */}
+        <div className="relative z-10 container mx-auto px-6 py-32 text-center">
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <GraduationCap className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+              <h1 className="font-heading text-3xl sm:text-5xl md:text-6xl font-light text-foreground">{pageTitle}</h1>
+            </div>
+            <p className="text-muted-foreground text-sm sm:text-lg max-w-lg mx-auto">{pageSubtitle}</p>
+          </motion.div>
+        </div>
+      </section>
+
+      <div className="container mx-auto px-6 pb-16">
+        {/* Filters */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-3 flex-wrap py-8">
+          {academyOfferings.length > 0 && (
+            <ActivityFilter offerings={academyOfferings} selected={filterSlugs} onChange={(s) => { setFilterSlugs(s); setFilterLocation(""); }} />
+          )}
+          {availableLocations.length > 1 && (
+            <Select value={filterLocation || "all"} onValueChange={(v) => setFilterLocation(v === "all" ? "" : v)}>
+              <SelectTrigger className="h-10 w-44 bg-secondary border-border">
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+                  <SelectValue placeholder="All Locations" />
+                </div>
+              </SelectTrigger>
+              <SelectContent className="bg-card border-border z-50">
+                <SelectItem value="all">All Locations</SelectItem>
+                {availableLocations.map(l => (
+                  <SelectItem key={l.id} value={l.location}>{l.location}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </motion.div>
 
         {/* Academy Club Cards */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
