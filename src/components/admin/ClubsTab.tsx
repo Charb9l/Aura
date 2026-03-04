@@ -161,26 +161,21 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
     setEditShowAcademySportPicker(false);
     setEditLogoFile(null);
     setEditLogoPreview(club.logo_url?.startsWith("http") ? club.logo_url : null);
-    // Build per-activity locations map from existing club_locations
+    // Build club-level locations from existing club_locations
     const locs = clubLocations.filter(l => l.club_id === club.id);
-    const map: Record<string, { id?: string; name: string; location: string }[]> = {};
-    for (const o of (club.offerings || [])) {
-      map[o] = locs.filter(l => l.activity === o).map(l => ({ id: l.id, name: l.name, location: l.location }));
+    // Deduplicate by name+location (legacy per-activity may have duplicates)
+    const seen = new Set<string>();
+    const uniqueLocs: { id?: string; name: string; location: string }[] = [];
+    for (const l of locs) {
+      const key = `${l.name}::${l.location}`;
+      if (!seen.has(key)) { seen.add(key); uniqueLocs.push({ id: l.id, name: l.name, location: l.location }); }
     }
-    // Also include legacy locations (no activity) under first offering or as unassigned
-    const legacyLocs = locs.filter(l => !l.activity);
-    if (legacyLocs.length > 0 && (club.offerings || []).length > 0) {
-      const firstOffering = (club.offerings || [])[0];
-      map[firstOffering] = [...(map[firstOffering] || []), ...legacyLocs.map(l => ({ id: l.id, name: l.name, location: l.location }))];
-    }
-    setEditActivityLocations(map);
-    // Load prices for this club
+    setEditClubLocs(uniqueLocs);
+    // Load prices for this club — key format: "slug" or "slug:label"
     const clubPrices = allActivityPrices.filter(p => p.club_id === club.id);
     const priceState: Record<string, string> = {};
     clubPrices.forEach(p => {
-      // key format: "slug:locationId:label" or "slug:locationId" for non-basketball
-      const locPart = p.location_id || "none";
-      const key = p.price_label ? `${p.activity_slug}:${locPart}:${p.price_label}` : `${p.activity_slug}:${locPart}`;
+      const key = p.price_label ? `${p.activity_slug}:${p.price_label}` : p.activity_slug;
       priceState[key] = String(p.price);
     });
     setEditPrices(priceState);
