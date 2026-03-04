@@ -203,7 +203,7 @@ const SportSelectionCard = ({
           {/* Availability */}
           <div className="space-y-1.5">
             <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-              <Clock className="h-3 w-3" /> Availability <span className="text-muted-foreground/60">(select multiple)</span>:
+              <Clock className="h-3 w-3" /> Availability for Matchmaking <span className="text-muted-foreground/60">(select multiple)</span>:
             </p>
             <div className="grid grid-cols-4 gap-1 text-xs">
               {/* Header row */}
