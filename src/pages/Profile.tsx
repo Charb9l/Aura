@@ -9,7 +9,7 @@ import { useBadgeLevels } from "@/hooks/useBadgeLevels";
 import { useBadgePoints } from "@/hooks/useBadgePoints";
 import { useNudges } from "@/hooks/useNudges";
 import Navbar from "@/components/Navbar";
-import { Trophy, Clock, ArrowRight, Gift, Zap, CalendarCheck, Pencil, Trash2, CalendarIcon, Camera, Send, Check, X as XIcon, Users, Phone, Gamepad2 } from "lucide-react";
+import { Trophy, Clock, ArrowRight, Gift, Zap, CalendarCheck, Pencil, Trash2, CalendarIcon, Camera, Send, Check, X as XIcon, Users, Phone, Gamepad2, Shield, Award, Crown } from "lucide-react";
 import MyPlayerSection from "@/components/MyPlayerSection";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -89,6 +89,8 @@ const ProfilePage = () => {
   const [showMyPlayer, setShowMyPlayer] = useState(false);
   const [nudgeTab, setNudgeTab] = useState<"received" | "sent">("received");
   const [buddySportFilter, setBuddySportFilter] = useState<string>("");
+  const [badgeFirstClicked, setBadgeFirstClicked] = useState(() => localStorage.getItem("badge_first_click_seen") === "true");
+  const badgeEmailSentRef = useRef<Set<number>>(new Set());
 
   // Nudges
   const { sentNudges, receivedNudges, buddies, respondToNudge, pendingReceivedCount } = useNudges();
@@ -237,6 +239,29 @@ const ProfilePage = () => {
   // Badge level completion using shared hook
   const { completedLevelCount: completedBadgeLevels } = useBadgeLevels(bookings);
   const availableBadgePoints = completedBadgeLevels - assignedLevels.size;
+
+  // Send badge completion email when new level detected
+  const BADGE_NAMES_LIST = ["Rookie", "Athlete", "Legend"];
+  useEffect(() => {
+    if (!user || completedBadgeLevels === 0 || !profile) return;
+    // Check each completed level
+    for (let lvl = 1; lvl <= completedBadgeLevels; lvl++) {
+      const emailKey = `badge_email_sent_${user.id}_${lvl}`;
+      if (localStorage.getItem(emailKey)) continue;
+      if (badgeEmailSentRef.current.has(lvl)) continue;
+      badgeEmailSentRef.current.add(lvl);
+      localStorage.setItem(emailKey, "true");
+      // Fire and forget
+      supabase.functions.invoke("badge-completion-email", {
+        body: {
+          email: user.email,
+          full_name: profile.full_name || user.user_metadata?.full_name || "",
+          badge_name: BADGE_NAMES_LIST[lvl - 1] || `Level ${lvl}`,
+          badge_level: lvl,
+        },
+      });
+    }
+  }, [user, completedBadgeLevels, profile]);
 
   // Find next unassigned level number
   const nextUnassignedLevel = useMemo(() => {
@@ -411,6 +436,87 @@ const ProfilePage = () => {
 
         {/* MyPlayer Dialog (externally controlled) */}
         <MyPlayerSection externalOpen={showMyPlayer} onExternalOpenChange={setShowMyPlayer} />
+
+        {/* Habit Tracker Badge */}
+        {(() => {
+          const BADGE_NAMES = [
+            { name: "Rookie", icon: <Shield className="h-6 w-6" />, color: "text-primary", bg: "bg-primary/15", border: "border-primary/40", glow: "shadow-[0_0_20px_hsl(var(--primary)/0.5)]" },
+            { name: "Athlete", icon: <Award className="h-6 w-6" />, color: "text-accent", bg: "bg-accent/15", border: "border-accent/40", glow: "shadow-[0_0_20px_hsl(var(--accent)/0.5)]" },
+            { name: "Legend", icon: <Crown className="h-6 w-6" />, color: "text-amber-400", bg: "bg-amber-400/15", border: "border-amber-400/40", glow: "shadow-[0_0_20px_rgba(251,191,36,0.5)]" },
+          ];
+          const currentIdx = completedBadgeLevels - 1;
+          const badge = currentIdx >= 0 ? BADGE_NAMES[Math.min(currentIdx, BADGE_NAMES.length - 1)] : null;
+          const shouldGlow = availableBadgePoints > 0 && !badgeFirstClicked;
+          const handleBadgeClick = () => {
+            if (!badgeFirstClicked) {
+              localStorage.setItem("badge_first_click_seen", "true");
+              setBadgeFirstClicked(true);
+            }
+            if (availableBadgePoints > 0) {
+              setShowBadgeReward(true);
+            }
+          };
+
+          return (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="mb-8"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <Zap className="h-5 w-5 text-primary" />
+                <h2 className="font-heading text-lg font-bold text-foreground">Habit Tracker Badge</h2>
+                <Link to="/habits" className="ml-auto text-sm text-primary hover:underline flex items-center gap-1">
+                  View Habits <ArrowRight className="h-3 w-3" />
+                </Link>
+              </div>
+
+              <button
+                onClick={handleBadgeClick}
+                className={cn(
+                  "w-full rounded-2xl border p-5 text-left transition-all",
+                  badge ? `${badge.border} ${badge.bg}` : "border-border bg-card",
+                  shouldGlow && badge ? `${badge.glow} animate-pulse` : "",
+                  availableBadgePoints > 0 ? "cursor-pointer hover:scale-[1.01]" : "cursor-default"
+                )}
+              >
+                <div className="flex items-center gap-4">
+                  <div className={cn(
+                    "h-14 w-14 rounded-xl flex items-center justify-center border shrink-0",
+                    badge ? `${badge.border} ${badge.color}` : "border-border bg-secondary/50 text-muted-foreground"
+                  )}>
+                    {badge ? badge.icon : <Shield className="h-6 w-6" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={cn("font-heading font-bold text-lg", badge ? badge.color : "text-muted-foreground")}>
+                      {badge ? badge.name : "No Badge Yet"}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {badge
+                        ? availableBadgePoints > 0
+                          ? "🎉 Tap to claim your free loyalty point!"
+                          : `Level ${completedBadgeLevels} completed`
+                        : "Complete your first habit level to earn a badge"}
+                    </p>
+                  </div>
+                  {availableBadgePoints > 0 && (
+                    <div className="shrink-0">
+                      <Badge className="bg-amber-400/20 text-amber-400 border-amber-400/30 animate-bounce">
+                        +{availableBadgePoints} Free
+                      </Badge>
+                    </div>
+                  )}
+                  {badge && availableBadgePoints === 0 && (
+                    <div className={cn("h-8 w-8 rounded-full flex items-center justify-center shrink-0", badge.bg)}>
+                      <Check className={cn("h-4 w-4", badge.color)} />
+                    </div>
+                  )}
+                </div>
+              </button>
+            </motion.div>
+          );
+        })()}
 
         {/* Workout Buddies */}
         {buddies.length > 0 && (
@@ -737,32 +843,7 @@ const ProfilePage = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Badge Reward Banner */}
-        {availableBadgePoints > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.08 }}
-            className="mb-6 rounded-2xl border border-amber-400/30 bg-amber-400/5 p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4"
-          >
-            <div className="flex items-center gap-3 flex-1">
-              <div className="h-12 w-12 rounded-xl bg-amber-400/15 flex items-center justify-center text-amber-400 shrink-0">
-                <Gift className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="font-heading font-bold text-foreground">
-                  {availableBadgePoints} Free Loyalty Point{availableBadgePoints > 1 ? "s" : ""} Available!
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  You completed a badge level. Assign your free point to any club.
-                </p>
-              </div>
-            </div>
-            <Button onClick={() => setShowBadgeReward(true)} className="gap-2 bg-amber-400 hover:bg-amber-500 text-background font-bold shrink-0">
-              <Gift className="h-4 w-4" /> Assign Point
-            </Button>
-          </motion.div>
-        )}
+        {/* Badge Reward Banner - hidden since badge card handles it */}
 
         {/* Badge Reward Dialog */}
         <Dialog open={showBadgeReward} onOpenChange={setShowBadgeReward}>
