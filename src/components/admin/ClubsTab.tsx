@@ -86,8 +86,8 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
   const [addClubDragging, setAddClubDragging] = useState(false);
   const [addClubHasAcademy, setAddClubHasAcademy] = useState(false);
   const [showAcademySportPicker, setShowAcademySportPicker] = useState(false);
-  // Per-activity locations for add
-  const [addActivityLocations, setAddActivityLocations] = useState<Record<string, { name: string; location: string }[]>>({});
+  // Club-level locations for add
+  const [addClubLocs, setAddClubLocs] = useState<{ name: string; location: string }[]>([]);
   const [addClubPublished, setAddClubPublished] = useState(true);
   const [addPrices, setAddPrices] = useState<Record<string, string>>({});
   const [addClubPicFiles, setAddClubPicFiles] = useState<File[]>([]);
