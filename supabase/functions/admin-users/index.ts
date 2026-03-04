@@ -12,17 +12,15 @@ async function verifyAdmin(req: Request) {
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-  const callerClient = createClient(supabaseUrl, anonKey, {
-    global: { headers: { Authorization: authHeader } },
-  });
+  const adminClient = createClient(supabaseUrl, serviceKey);
 
-  // Get caller identity
-  const { data: { user: caller }, error: userError } = await callerClient.auth.getUser();
+  // Validate the caller's JWT using the admin client (bypasses RLS)
+  const token = authHeader.replace("Bearer ", "");
+  const { data: { user: caller }, error: userError } = await adminClient.auth.getUser(token);
   if (userError || !caller) return null;
 
-  const { data: roleData, error: roleError } = await callerClient
+  const { data: roleData, error: roleError } = await adminClient
     .from("user_roles")
     .select("user_id")
     .eq("user_id", caller.id)
@@ -31,7 +29,6 @@ async function verifyAdmin(req: Request) {
 
   if (roleError || !roleData) return null;
 
-  const adminClient = createClient(supabaseUrl, serviceKey);
   return adminClient;
 }
 
@@ -109,11 +106,8 @@ Deno.serve(async (req) => {
     // GET current admin's club_id
     if (action === "my-club") {
       const authHeader = req.headers.get("Authorization")!;
-      const callerClient = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
-        global: { headers: { Authorization: authHeader } },
-      });
-
-      const { data: { user: caller } } = await callerClient.auth.getUser();
+      const token = authHeader.replace("Bearer ", "");
+      const { data: { user: caller } } = await adminClient.auth.getUser(token);
       if (!caller) {
         return new Response(JSON.stringify({ error: "Unauthorized" }), {
           status: 401,
@@ -121,7 +115,7 @@ Deno.serve(async (req) => {
         });
       }
 
-      const { data: role, error: roleError } = await callerClient
+      const { data: role, error: roleError } = await adminClient
         .from("user_roles")
         .select("club_id")
         .eq("user_id", caller.id)
