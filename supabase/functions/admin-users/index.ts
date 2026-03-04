@@ -80,7 +80,7 @@ Deno.serve(async (req) => {
 
       const { data: profiles } = await adminClient
         .from("profiles")
-        .select("user_id, full_name, phone, created_at");
+        .select("user_id, full_name, phone, created_at, suspended");
 
       const profileMap = new Map((profiles || []).map(p => [p.user_id, p]));
 
@@ -91,6 +91,7 @@ Deno.serve(async (req) => {
         phone: profileMap.get(u.id)?.phone || u.user_metadata?.phone || "",
         created_at: profileMap.get(u.id)?.created_at || u.created_at,
         club_id: adminClubMap.get(u.id) || null,
+        suspended: profileMap.get(u.id)?.suspended || false,
       }));
 
       if (adminUserIds) {
@@ -309,6 +310,31 @@ Deno.serve(async (req) => {
         });
       }
 
+      return new Response(JSON.stringify({ success: true }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // TOGGLE suspend
+    if (action === "toggle-suspend") {
+      const { user_id, suspended } = body as Record<string, any>;
+      if (!user_id) {
+        return new Response(JSON.stringify({ error: "user_id required" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const { error } = await adminClient
+        .from("profiles")
+        .update({ suspended: !!suspended })
+        .eq("user_id", user_id);
+      if (error) {
+        return new Response(JSON.stringify({ error: error.message }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
       return new Response(JSON.stringify({ success: true }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
