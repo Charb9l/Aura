@@ -159,10 +159,6 @@ const MatchmakerPage = () => {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-6"
         >
-          <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 border border-primary/20 px-4 py-1.5 mb-5">
-            <Sparkles className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium text-primary">AI-Powered</span>
-          </div>
           <h1 className="font-heading text-3xl sm:text-5xl md:text-6xl font-bold text-foreground mb-4">
             {pageTitle}
           </h1>
