@@ -109,7 +109,7 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [bRes, pRes, uRes, aRes, cRes, mcRes, pricesRes] = await Promise.all([
+      const [bRes, pRes, uRes, aRes, cRes, mcRes, pricesRes, nRes] = await Promise.all([
         supabase.from("bookings").select("*").order("created_at", { ascending: false }),
         supabase.from("profiles").select("*").order("created_at", { ascending: false }),
         supabase.functions.invoke("admin-users", { body: { action: "list" } }),
@@ -117,6 +117,7 @@ const AdminDashboard = () => {
         supabase.from("clubs").select("*").order("name"),
         supabase.functions.invoke("admin-users", { body: { action: "my-club" } }),
         supabase.from("club_activity_prices").select("*"),
+        supabase.from("admin_notifications").select("id", { count: "exact", head: true }).eq("is_read", false),
       ]);
       if (bRes.data) setBookings(bRes.data);
       if (pRes.data) setProfiles(pRes.data);
@@ -125,6 +126,7 @@ const AdminDashboard = () => {
       if (cRes.data) setClubs(cRes.data as unknown as ClubRow[]);
       if (mcRes.data?.club_id) setMyClubId(mcRes.data.club_id);
       if (pricesRes.data) setActivityPrices(pricesRes.data as unknown as ClubActivityPrice[]);
+      if (typeof nRes.count === "number") setNotificationCount(nRes.count);
       setLoadingData(false);
     };
     fetchData();
