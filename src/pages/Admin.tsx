@@ -195,6 +195,7 @@ const AdminDashboard = () => {
   // Dashboard chart state
   const [bookingRange, setBookingRange] = useState<string>("today");
   const [revenueRange, setRevenueRange] = useState<string>("today");
+  const [showTodayRevenue, setShowTodayRevenue] = useState(false);
   const [bookingCustomDate, setBookingCustomDate] = useState<Date | undefined>(new Date());
   const [revenueCustomRange, setRevenueCustomRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: subDays(new Date(), 6), to: new Date() });
   const [bookingFilterType, setBookingFilterType] = useState<string>("all");
@@ -220,7 +221,8 @@ const AdminDashboard = () => {
   const showBookings = useMemo(() => filteredBookings.filter(b => b.attendance_status === "show"), [filteredBookings]);
 
   const todayStr = format(new Date(), "yyyy-MM-dd");
-  const dailyRevenue = showBookings.filter(b => b.booking_date === todayStr).reduce((sum, b) => sum + getBookingRevenue(b, priceMap), 0);
+  const todayShowBookings = useMemo(() => showBookings.filter(b => b.booking_date === todayStr), [showBookings, todayStr]);
+  const dailyRevenue = todayShowBookings.reduce((sum, b) => sum + getBookingRevenue(b, priceMap), 0);
   const totalRevenue = showBookings.reduce((sum, b) => sum + getBookingRevenue(b, priceMap), 0);
 
   const applyDashboardFilter = (list: BookingRow[], filterType: string, filterValue: string) => {
@@ -310,9 +312,67 @@ const AdminDashboard = () => {
             <h1 className="font-heading text-2xl md:text-4xl font-bold text-foreground mb-2">Dashboard</h1>
             <p className="text-muted-foreground mb-8">Revenue overview and booking analytics.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
-              <Card className="bg-card border-border"><CardHeader className="flex flex-row items-center justify-between pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Today's Revenue</CardTitle><DollarSign className="h-5 w-5 text-brand-tennis" /></CardHeader><CardContent><div className="text-3xl font-bold font-heading text-foreground">${dailyRevenue.toLocaleString()}</div></CardContent></Card>
+              <Card className="bg-card border-border cursor-pointer hover:border-primary/40 transition-colors" onClick={() => setShowTodayRevenue(true)}><CardHeader className="flex flex-row items-center justify-between pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Today's Revenue</CardTitle><DollarSign className="h-5 w-5 text-brand-tennis" /></CardHeader><CardContent><div className="text-3xl font-bold font-heading text-foreground">${dailyRevenue.toLocaleString()}</div><p className="text-xs text-muted-foreground mt-1">{todayShowBookings.length} booking{todayShowBookings.length !== 1 ? "s" : ""} — click for details</p></CardContent></Card>
               <Card className="bg-card border-border"><CardHeader className="flex flex-row items-center justify-between pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Total Revenue</CardTitle><TrendingUp className="h-5 w-5 text-primary" /></CardHeader><CardContent><div className="text-3xl font-bold font-heading text-foreground">${totalRevenue.toLocaleString()}</div></CardContent></Card>
             </div>
+
+            {/* Today's Revenue Breakdown Dialog */}
+            <Dialog open={showTodayRevenue} onOpenChange={setShowTodayRevenue}>
+              <DialogContent className="bg-card border-border max-w-2xl max-h-[80vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle className="font-heading text-xl flex items-center gap-2">
+                    <DollarSign className="h-5 w-5 text-primary" />
+                    Today's Revenue — {format(new Date(), "MMMM d, yyyy")}
+                  </DialogTitle>
+                </DialogHeader>
+                {todayShowBookings.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-8">No confirmed bookings with attendance today.</p>
+                ) : (
+                  <>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Customer</TableHead>
+                          <TableHead>Activity</TableHead>
+                          <TableHead>Time</TableHead>
+                          <TableHead className="text-right">Revenue</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {todayShowBookings.map(b => {
+                          const rev = getBookingRevenue(b, priceMap);
+                          return (
+                            <TableRow key={b.id}>
+                              <TableCell>
+                                <p className="font-medium text-foreground">{b.full_name}</p>
+                                <p className="text-xs text-muted-foreground">{b.email}</p>
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="secondary" className="text-xs">{b.activity_name}</Badge>
+                                {b.court_type && <span className="text-xs text-muted-foreground ml-1">({b.court_type})</span>}
+                              </TableCell>
+                              <TableCell className="text-sm">{b.booking_time}</TableCell>
+                              <TableCell className="text-right font-semibold">
+                                {b.discount_type === "free" ? (
+                                  <span className="text-muted-foreground">FREE</span>
+                                ) : b.discount_type === "50%" ? (
+                                  <span className="text-foreground">${rev} <span className="text-xs text-muted-foreground">(50% off)</span></span>
+                                ) : (
+                                  <span className="text-foreground">${rev}</span>
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                    <div className="flex justify-end pt-3 border-t border-border">
+                      <p className="font-heading font-bold text-lg text-foreground">Total: ${dailyRevenue.toLocaleString()}</p>
+                    </div>
+                  </>
+                )}
+              </DialogContent>
+            </Dialog>
             <Card className="bg-card border-border mb-6">
               <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <CardTitle className="text-lg">Bookings</CardTitle>
