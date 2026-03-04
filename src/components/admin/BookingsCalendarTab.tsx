@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { format, isSameDay, parseISO } from "date-fns";
-import { CalendarCheck, Clock, User, Mail, Phone, MapPin, FileText, Trash2, CheckCircle, XCircle, Search, GraduationCap } from "lucide-react";
+import { CalendarCheck, Clock, User, Mail, Phone, MapPin, FileText, Trash2, CheckCircle, XCircle, Search, GraduationCap, Eye } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -255,6 +255,7 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-[50px]"></TableHead>
                     <TableHead>Customer</TableHead>
                     <TableHead>Activity</TableHead>
                     <TableHead>Date</TableHead>
@@ -269,6 +270,18 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
                 <TableBody>
                   {allLogsEntries.map((entry, i) => (
                     <TableRow key={`${entry.id}-${entry.status_label}-${i}`} className={entry.status_label === "deleted" ? "opacity-60" : ""}>
+                      <TableCell>
+                        {entry.status_label !== "deleted" && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => setSelectedBooking(entry as unknown as BookingRow)}
+                          >
+                            <Eye className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                      </TableCell>
                       <TableCell>
                         <div>
                           <p className="font-medium text-foreground">{entry.full_name}</p>
