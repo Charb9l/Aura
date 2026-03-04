@@ -11,6 +11,7 @@ import { usePendingNudgeCount } from "@/hooks/useNudges";
 import { LogOut, ShieldCheck, Menu, X, LogIn } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { useRewards } from "@/hooks/useRewards";
 
 const DEFAULT_NAV_LINKS = [
   { to: "/", label: "Home" },
@@ -51,6 +52,7 @@ const Navbar = () => {
   const pendingNudgeCount = usePendingNudgeCount();
   const showGlow = user && (playerComplete === false || !avatarUrl || hasPendingBookings || hasUnassignedBadgePoints || pendingNudgeCount > 0);
   const { isAdmin } = useAdminRole();
+  const { hasRewards } = useRewards();
   const initials = getInitials(user?.user_metadata?.full_name, user?.email);
 
   const [glowRoutes, setGlowRoutes] = useState<Set<string>>(new Set());
@@ -124,13 +126,19 @@ const Navbar = () => {
                 key={link.to}
                 to={link.to}
                 className={cn(
-                  "text-xs font-light tracking-[0.1em] uppercase transition-colors whitespace-nowrap",
+                  "text-xs font-light tracking-[0.1em] uppercase transition-colors whitespace-nowrap relative",
                   isGold && "text-primary",
                   !isGold && isActive && "text-foreground",
                   !isGold && !isActive && "text-muted-foreground hover:text-foreground"
                 )}
               >
                 {link.label}
+                {link.to === "/book" && hasRewards && user && (
+                  <span className="absolute -top-1 -right-2.5 h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
+                )}
+                {link.to === "/book" && hasRewards && user && (
+                  <span className="absolute -top-1 -right-2.5 h-2 w-2 rounded-full bg-emerald-400" />
+                )}
                 {isActive && (
                   <motion.div
                     layoutId="nav-underline"
@@ -216,11 +224,16 @@ const Navbar = () => {
                 const isGold = glowRoutes.has(link.to);
                 return (
                   <Link key={link.to} to={link.to} onClick={() => setMobileOpen(false)} className={cn(
-                    "py-3 px-3 text-xs font-light uppercase tracking-[0.1em] transition-colors",
+                    "py-3 px-3 text-xs font-light uppercase tracking-[0.1em] transition-colors relative",
                     isGold && "text-primary",
                     isActive && !isGold && "text-foreground",
                     !isActive && !isGold && "text-muted-foreground hover:text-foreground"
-                  )}>{link.label}</Link>
+                  )}>
+                    {link.label}
+                    {link.to === "/book" && hasRewards && user && (
+                      <span className="inline-block ml-1.5 h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
+                    )}
+                  </Link>
                 );
               })}
               {isAdmin && (

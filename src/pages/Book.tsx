@@ -2,9 +2,9 @@ import { useState, useEffect, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
-import { CalendarIcon, Clock, CheckCircle2, User, Mail, Phone } from "lucide-react";
+import { CalendarIcon, Clock, CheckCircle2, User, Mail, Phone, Gift, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import Navbar from "@/components/Navbar";
 import ActivityFilter from "@/components/ActivityFilter";
 import PagePhotoStrip from "@/components/PagePhotoStrip";
+import { useRewards } from "@/hooks/useRewards";
 
 interface OfferingData {
   id: string;
@@ -83,7 +84,7 @@ const BookPage = () => {
   const [pageTitle, setPageTitle] = useState("Book a Session");
   const [pageSubtitle, setPageSubtitle] = useState("Select your activity, date and time.");
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-
+  const { activeRewards, getRewardForClub, hasRewards } = useRewards();
   // Profile data fetched from DB
   const [profileName, setProfileName] = useState("");
   const [profileEmail, setProfileEmail] = useState("");
@@ -220,29 +221,11 @@ const BookPage = () => {
     const offering = offerings.find(o => o.slug === selectedActivity);
     const activityName = offering?.name || selectedActivity;
 
+    // Determine discount from loyalty rewards
     let discountType: string | null = null;
-    const [showRes, noShowRes] = await Promise.all([
-      supabase
-        .from("bookings")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", user.id)
-        .eq("activity", selectedActivity)
-        .eq("attendance_status", "show"),
-      supabase
-        .from("bookings")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", user.id)
-        .eq("activity", selectedActivity)
-        .eq("attendance_status", "no_show"),
-    ]);
-
-    const effectivePoints = Math.max(0, (showRes.count || 0) - (noShowRes.count || 0));
-    const positionInCycle = effectivePoints % 10;
-    if (positionInCycle === 9) {
-      discountType = "free";
-    } else if (positionInCycle === 4) {
-      discountType = "50%";
-    }
+    const clubReward = resolvedClubId ? getRewardForClub(resolvedClubId) : undefined;
+    if (clubReward?.reward === "free") discountType = "free";
+    else if (clubReward?.reward === "50%") discountType = "50%";
 
     const { error } = await supabase.from("bookings").insert({
       user_id: user.id,
@@ -310,6 +293,31 @@ const BookPage = () => {
         </motion.div>
 
         <PagePhotoStrip pageSlug="book" className="mb-10" />
+
+        {/* Rewards Banner */}
+        {user && hasRewards && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
+            <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-4 sm:p-5">
+              <div className="flex items-start gap-3">
+                <div className="h-10 w-10 rounded-xl bg-emerald-500/15 flex items-center justify-center shrink-0">
+                  <Gift className="h-5 w-5 text-emerald-400" />
+                </div>
+                <div>
+                  <p className="font-heading font-bold text-foreground text-sm mb-1.5">🎉 You have rewards available!</p>
+                  <div className="space-y-1">
+                    {activeRewards.map(r => (
+                      <p key={r.clubId} className="text-sm text-muted-foreground">
+                        <span className="font-semibold text-foreground">{r.reward === "free" ? "🆓 Free booking" : "💰 50% off"}</span>
+                        {" "}at <span className="font-medium text-foreground">{r.clubName}</span>
+                      </p>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground/70 mt-2">Select the club below to auto-apply your discount.</p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-10">
           {/* Activity selection */}
@@ -508,12 +516,38 @@ const BookPage = () => {
                 Sign In to Book a Session
               </Button>
             )}
-            {currentPrice !== null && (
-              <div className="flex items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 px-5 py-2.5 backdrop-blur-sm">
-                <span className="text-xs uppercase tracking-widest text-muted-foreground font-medium">Total</span>
-                <span className="font-heading text-2xl font-bold text-primary">${currentPrice}</span>
-              </div>
-            )}
+            {currentPrice !== null && (() => {
+              const clubReward = resolvedClubId ? getRewardForClub(resolvedClubId) : undefined;
+              const isFree = clubReward?.reward === "free";
+              const isHalf = clubReward?.reward === "50%";
+              const discountedPrice = isHalf ? (currentPrice / 2).toFixed(0) : null;
+
+              return (
+                <div className={cn(
+                  "flex items-center gap-3 rounded-xl border px-5 py-2.5 backdrop-blur-sm",
+                  isFree ? "border-emerald-500/50 bg-emerald-500/10" : isHalf ? "border-amber-500/50 bg-amber-500/10" : "border-primary/30 bg-primary/5"
+                )}>
+                  <span className="text-xs uppercase tracking-widest text-muted-foreground font-medium">Total</span>
+                  {isFree ? (
+                    <div className="flex items-center gap-2">
+                      <span className="font-heading text-lg text-muted-foreground line-through">${currentPrice}</span>
+                      <span className="font-heading text-2xl font-black text-emerald-400 animate-pulse flex items-center gap-1">
+                        <Sparkles className="h-5 w-5" /> FREE!
+                      </span>
+                    </div>
+                  ) : isHalf ? (
+                    <div className="flex items-center gap-2">
+                      <span className="font-heading text-lg text-muted-foreground line-through">${currentPrice}</span>
+                      <span className="font-heading text-2xl font-bold text-amber-400">${discountedPrice}</span>
+                      <span className="text-xs font-bold text-amber-400 bg-amber-400/15 rounded-full px-2 py-0.5">50% OFF</span>
+                    </div>
+                  ) : (
+                    <span className="font-heading text-2xl font-bold text-primary">${currentPrice}</span>
+                  )}
+                </div>
+              );
+            })()}
+
           </motion.div>
 
           {/* Confirmation Dialog */}
@@ -550,7 +584,31 @@ const BookPage = () => {
                   {courtType && <p className="text-sm"><span className="text-muted-foreground">Court:</span> <span className="text-foreground font-medium">{courtType === "full" ? "Full Court" : "Half Court"}</span></p>}
                   <p className="text-sm"><span className="text-muted-foreground">Date:</span> <span className="text-foreground font-medium">{date && format(date, "PPP")}</span></p>
                   <p className="text-sm"><span className="text-muted-foreground">Time:</span> <span className="text-foreground font-medium">{selectedTime}</span></p>
-                  {currentPrice !== null && <p className="text-sm"><span className="text-muted-foreground">Price:</span> <span className="text-foreground font-bold">${currentPrice}</span></p>}
+                  {currentPrice !== null && (() => {
+                    const clubReward = resolvedClubId ? getRewardForClub(resolvedClubId) : undefined;
+                    const isFree = clubReward?.reward === "free";
+                    const isHalf = clubReward?.reward === "50%";
+                    const discountedPrice = isHalf ? (currentPrice / 2).toFixed(0) : null;
+                    return (
+                      <p className="text-sm">
+                        <span className="text-muted-foreground">Price:</span>{" "}
+                        {isFree ? (
+                          <>
+                            <span className="text-muted-foreground line-through mr-2">${currentPrice}</span>
+                            <span className="font-black text-emerald-400">FREE! 🎉</span>
+                          </>
+                        ) : isHalf ? (
+                          <>
+                            <span className="text-muted-foreground line-through mr-2">${currentPrice}</span>
+                            <span className="font-bold text-amber-400">${discountedPrice}</span>
+                            <span className="ml-1 text-xs text-amber-400">(50% off)</span>
+                          </>
+                        ) : (
+                          <span className="text-foreground font-bold">${currentPrice}</span>
+                        )}
+                      </p>
+                    );
+                  })()}
                 </div>
               </div>
               <DialogFooter className="gap-2 sm:gap-0">
