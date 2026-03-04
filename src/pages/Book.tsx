@@ -119,7 +119,6 @@ const BookPage = () => {
         const c = contentRes.data.content as any;
         if (c?.title) setPageTitle(c.title);
         if (c?.subtitle) setPageSubtitle(c.subtitle);
-        if (c?.fields) setDetailFields(c.fields);
       }
     };
     fetchData();
