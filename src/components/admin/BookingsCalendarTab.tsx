@@ -393,6 +393,21 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
                       <span className="text-foreground">{selectedBooking.activity_name}{selectedBooking.court_type ? ` — ${selectedBooking.court_type}` : ""}</span>
                     </div>
                   </div>
+                  {bookingPrice && (
+                    <div className="flex items-center justify-between pt-2 border-t border-border">
+                      <div className="flex items-center gap-2">
+                        <DollarSign className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground">Price{bookingPrice.label ? ` (${bookingPrice.label})` : ""}</span>
+                      </div>
+                      <span className="font-semibold text-foreground">
+                        {selectedBooking.discount_type === "free"
+                          ? <><span className="line-through text-muted-foreground mr-2">${bookingPrice.price}</span><span className="text-emerald-400">FREE</span></>
+                          : selectedBooking.discount_type === "50%"
+                          ? <><span className="line-through text-muted-foreground mr-2">${bookingPrice.price}</span>${(bookingPrice.price / 2).toFixed(0)}</>
+                          : `$${bookingPrice.price}`}
+                      </span>
+                    </div>
+                  )}
                   {selectedBooking.discount_type && (
                     <div className="flex items-center justify-between pt-2 border-t border-border">
                       <span className="text-xs text-muted-foreground">Loyalty Discount</span>
