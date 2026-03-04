@@ -213,15 +213,23 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
   const openProfileViewer = async (u: UserWithEmail) => {
     setViewUser(u);
     setViewLoading(true);
-    const [profileRes, selectionsRes, badgesRes, bookingsRes] = await Promise.all([
+    const [profileRes, selectionsRes, badgesRes, bookingsRes, adjustmentsRes] = await Promise.all([
       supabase.from("profiles").select("*").eq("user_id", u.user_id).maybeSingle(),
       supabase.from("player_selections").select("*").eq("user_id", u.user_id).order("rank"),
       supabase.from("badge_point_assignments").select("*").eq("user_id", u.user_id).order("created_at", { ascending: false }),
       supabase.from("bookings").select("activity, activity_name, attendance_status, created_at").eq("user_id", u.user_id).in("attendance_status", ["show", "no_show"]),
+      supabase.from("loyalty_point_adjustments").select("club_id, points").eq("user_id", u.user_id),
     ]);
     setViewProfile(profileRes.data);
     setViewSelections((selectionsRes.data || []) as unknown as PlayerSelection[]);
     setViewBadges((badgesRes.data || []) as unknown as BadgeAssignment[]);
+
+    // Sum manual adjustments per club
+    const adjMap: Record<string, number> = {};
+    ((adjustmentsRes.data || []) as { club_id: string; points: number }[]).forEach(a => {
+      adjMap[a.club_id] = (adjMap[a.club_id] || 0) + a.points;
+    });
+    setViewAdjustments(adjMap);
 
     // Calculate loyalty points per club from bookings
     // Each booking is attributed to exactly ONE club (first alphabetically if multiple match)
