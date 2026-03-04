@@ -137,13 +137,20 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
   // Auto-open profile viewer from notification
   useEffect(() => {
     if (initialViewUserId && allUsers.length > 0) {
-      const user = allUsers.find(u => u.user_id === initialViewUserId);
-      if (user) {
-        openProfileViewer(user);
+      // Check if this user is an admin — if so, switch to admin sub-tab instead of opening customer profile
+      const isAdmin = adminUsers.some(a => a.user_id === initialViewUserId);
+      if (isAdmin) {
+        setSubTab("admins");
+        toast.info("This user is a club admin, not a customer.");
+      } else {
+        const user = allUsers.find(u => u.user_id === initialViewUserId);
+        if (user) {
+          openProfileViewer(user);
+        }
       }
       onInitialViewHandled?.();
     }
-  }, [initialViewUserId, allUsers]);
+  }, [initialViewUserId, allUsers, adminUsers]);
 
   const customers = allUsers.filter(u => !adminUsers.some(a => a.user_id === u.user_id && a.club_id));
 
