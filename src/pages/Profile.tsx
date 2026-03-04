@@ -304,7 +304,7 @@ const ProfilePage = () => {
   bookings.forEach((b) => {
     if (b.attendance_status !== "show" && b.attendance_status !== "no_show") return;
     const matchingClubs = clubs
-      .filter(club => club.offerings.some(off => off.toLowerCase() === b.activity_name.toLowerCase()))
+      .filter(club => club.offerings.some(off => off.toLowerCase() === b.activity.toLowerCase()))
       .sort((a, z) => a.name.localeCompare(z.name));
     const club = matchingClubs[0];
     if (!club) return;
