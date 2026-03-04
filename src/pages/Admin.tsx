@@ -367,7 +367,16 @@ const AdminDashboard = () => {
         {activeTab === "matchmaker" && <MatchmakerTab />}
         {activeTab === "settings" && <SettingsTab />}
         {activeTab === "reports" && <ReportsTab />}
-        {activeTab === "notifications" && <NotificationsTab onUnreadCountChange={setNotificationCount} />}
+        {activeTab === "notifications" && (
+          <NotificationsTab
+            onUnreadCountChange={setNotificationCount}
+            onNavigate={(tab, ctx) => {
+              if (ctx?.userId) setPendingViewUserId(ctx.userId);
+              if (ctx?.bookingDate) setPendingBookingDate(ctx.bookingDate);
+              setActiveTab(tab);
+            }}
+          />
+        )}
 
         {activeTab === "habits" && <HabitsTab />}
         {activeTab === "activities" && <ActivitiesTab />}
