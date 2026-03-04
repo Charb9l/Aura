@@ -70,6 +70,7 @@ const ProfilePage = () => {
   const { avatarUrl, setAvatarUrl } = useAvatar();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [loyaltyAdjustments, setLoyaltyAdjustments] = useState<Record<string, number>>({});
   const [profile, setProfile] = useState<Profile | null>(null);
   const [clubs, setClubs] = useState<ClubInfo[]>([]);
   const [loadingData, setLoadingData] = useState(true);
@@ -133,7 +134,7 @@ const ProfilePage = () => {
     if (!user) return;
 
     const fetchData = async () => {
-      const [bookingsRes, profileRes, clubsRes] = await Promise.all([
+      const [bookingsRes, profileRes, clubsRes, adjustmentsRes] = await Promise.all([
         supabase
           .from("bookings")
           .select("*")
@@ -148,11 +149,23 @@ const ProfilePage = () => {
           .from("clubs")
           .select("id, name, logo_url, offerings, published")
           .order("name"),
+        supabase
+          .from("loyalty_point_adjustments")
+          .select("club_id, points")
+          .eq("user_id", user.id),
       ]);
 
       if (bookingsRes.data) setBookings(bookingsRes.data);
       if (profileRes.data) setProfile(profileRes.data);
       if (clubsRes.data) setClubs((clubsRes.data as any[]).filter(c => c.published !== false));
+      
+      // Sum manual adjustments per club
+      const adjMap: Record<string, number> = {};
+      ((adjustmentsRes.data || []) as { club_id: string; points: number }[]).forEach(a => {
+        adjMap[a.club_id] = (adjMap[a.club_id] || 0) + a.points;
+      });
+      setLoyaltyAdjustments(adjMap);
+      
       setLoadingData(false);
     };
 
@@ -325,7 +338,7 @@ const ProfilePage = () => {
   });
   const effectiveClubPoints: Record<string, number> = {};
   clubs.forEach(club => {
-    effectiveClubPoints[club.id] = (clubPoints[club.id] || 0) + (badgePointsByClub[club.id] || 0);
+    effectiveClubPoints[club.id] = (clubPoints[club.id] || 0) + (badgePointsByClub[club.id] || 0) + (loyaltyAdjustments[club.id] || 0);
   });
 
   return (

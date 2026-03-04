@@ -510,6 +510,44 @@ export type Database = {
         }
         Relationships: []
       }
+      loyalty_point_adjustments: {
+        Row: {
+          adjusted_by: string | null
+          club_id: string
+          created_at: string
+          id: string
+          points: number
+          reason: string | null
+          user_id: string
+        }
+        Insert: {
+          adjusted_by?: string | null
+          club_id: string
+          created_at?: string
+          id?: string
+          points?: number
+          reason?: string | null
+          user_id: string
+        }
+        Update: {
+          adjusted_by?: string | null
+          club_id?: string
+          created_at?: string
+          id?: string
+          points?: number
+          reason?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loyalty_point_adjustments_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       nudges: {
         Row: {
           created_at: string
