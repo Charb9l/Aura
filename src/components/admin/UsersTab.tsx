@@ -549,7 +549,9 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
                   // Show ALL clubs, not just ones with bookings
                   const allClubLoyalty = clubs.map(club => {
                     const existing = viewLoyalty.find(l => l.clubId === club.id);
-                    return existing || { clubId: club.id, clubName: club.name, shows: 0, noShows: 0, total: 0 };
+                    const adj = viewAdjustments[club.id] || 0;
+                    const base = existing || { clubId: club.id, clubName: club.name, shows: 0, noShows: 0, total: 0 };
+                    return { ...base, adjustment: adj, effectiveTotal: base.total + adj };
                   });
 
                   return (
@@ -563,23 +565,48 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
                               <p className="text-sm font-medium text-foreground">{lp.clubName}</p>
                               <p className="text-xs text-muted-foreground">
                                 {lp.shows} show{lp.shows !== 1 ? "s" : ""} · {lp.noShows} no-show{lp.noShows !== 1 ? "s" : ""}
+                                {lp.adjustment !== 0 && (
+                                  <span className={cn("ml-1", lp.adjustment > 0 ? "text-primary" : "text-destructive")}>
+                                    · {lp.adjustment > 0 ? "+" : ""}{lp.adjustment} manual
+                                  </span>
+                                )}
                               </p>
                             </div>
-                            <div className="flex gap-0.5">
-                              {Array.from({ length: 10 }, (_, i) => (
-                                <div key={i} className={cn(
-                                  "h-3 w-3 rounded-full",
-                                  i < Math.max(0, lp.total) ? "bg-primary" : "bg-border",
-                                  i === 4 && "ring-1 ring-primary/40",
-                                  i === 9 && "ring-1 ring-primary/40"
-                                )} />
-                              ))}
+                            <div className="flex items-center gap-1.5">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                disabled={adjustingSaving || lp.effectiveTotal <= 0}
+                                onClick={() => handleAdjustLoyalty(lp.clubId, -1)}
+                              >
+                                <Minus className="h-3.5 w-3.5" />
+                              </Button>
+                              <div className="flex gap-0.5">
+                                {Array.from({ length: 10 }, (_, i) => (
+                                  <div key={i} className={cn(
+                                    "h-3 w-3 rounded-full",
+                                    i < Math.max(0, lp.effectiveTotal) ? "bg-primary" : "bg-border",
+                                    i === 4 && "ring-1 ring-primary/40",
+                                    i === 9 && "ring-1 ring-primary/40"
+                                  )} />
+                                ))}
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-primary hover:text-primary hover:bg-primary/10"
+                                disabled={adjustingSaving}
+                                onClick={() => handleAdjustLoyalty(lp.clubId, 1)}
+                              >
+                                <Plus className="h-3.5 w-3.5" />
+                              </Button>
                             </div>
                             <span className={cn(
                               "text-sm font-bold tabular-nums min-w-[2rem] text-right",
-                              lp.total > 0 ? "text-primary" : lp.total < 0 ? "text-destructive" : "text-muted-foreground"
+                              lp.effectiveTotal > 0 ? "text-primary" : lp.effectiveTotal < 0 ? "text-destructive" : "text-muted-foreground"
                             )}>
-                              {lp.total}
+                              {lp.effectiveTotal}
                             </span>
                           </div>
                         ))}
