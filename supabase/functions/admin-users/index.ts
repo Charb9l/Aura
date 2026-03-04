@@ -80,7 +80,7 @@ Deno.serve(async (req) => {
 
       const { data: profiles } = await adminClient
         .from("profiles")
-        .select("user_id, full_name, phone, created_at");
+        .select("user_id, full_name, phone, created_at, suspended");
 
       const profileMap = new Map((profiles || []).map(p => [p.user_id, p]));
 
@@ -91,6 +91,7 @@ Deno.serve(async (req) => {
         phone: profileMap.get(u.id)?.phone || u.user_metadata?.phone || "",
         created_at: profileMap.get(u.id)?.created_at || u.created_at,
         club_id: adminClubMap.get(u.id) || null,
+        suspended: profileMap.get(u.id)?.suspended || false,
       }));
 
       if (adminUserIds) {
