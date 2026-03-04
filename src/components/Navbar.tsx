@@ -11,6 +11,7 @@ import { usePendingNudgeCount } from "@/hooks/useNudges";
 import { LogOut, ShieldCheck, Menu, X, LogIn } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { useRewards } from "@/hooks/useRewards";
 
 const DEFAULT_NAV_LINKS = [
   { to: "/", label: "Home" },
