@@ -89,6 +89,7 @@ const ProfilePage = () => {
   const [showMyPlayer, setShowMyPlayer] = useState(false);
   const [nudgeTab, setNudgeTab] = useState<"received" | "sent">("received");
   const [buddySportFilter, setBuddySportFilter] = useState<string>("");
+  const [badgeFirstClicked, setBadgeFirstClicked] = useState(() => localStorage.getItem("badge_first_click_seen") === "true");
 
   // Nudges
   const { sentNudges, receivedNudges, buddies, respondToNudge, pendingReceivedCount } = useNudges();
