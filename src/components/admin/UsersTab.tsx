@@ -26,6 +26,8 @@ interface UsersTabProps {
   onDeleteAdmin: (userId: string) => void;
   onAdminCreated: () => void;
   isMasterAdmin: boolean;
+  initialViewUserId?: string | null;
+  onInitialViewHandled?: () => void;
 }
 
 interface PlayerSelection {
@@ -47,7 +49,7 @@ interface BadgeAssignment {
   created_at: string;
 }
 
-const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, onDeleteAdmin, onAdminCreated, isMasterAdmin }: UsersTabProps) => {
+const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, onDeleteAdmin, onAdminCreated, isMasterAdmin, initialViewUserId, onInitialViewHandled }: UsersTabProps) => {
   const [subTab, setSubTab] = useState<"customers" | "admins">("customers");
   const [userSearch, setUserSearch] = useState("");
   const [adminSearch, setAdminSearch] = useState("");
@@ -129,6 +131,17 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
     };
     fetchLookups();
   }, []);
+
+  // Auto-open profile viewer from notification
+  useEffect(() => {
+    if (initialViewUserId && allUsers.length > 0) {
+      const user = allUsers.find(u => u.user_id === initialViewUserId);
+      if (user) {
+        openProfileViewer(user);
+      }
+      onInitialViewHandled?.();
+    }
+  }, [initialViewUserId, allUsers]);
 
   const customers = allUsers.filter(u => !adminUsers.some(a => a.user_id === u.user_id && a.club_id));
 

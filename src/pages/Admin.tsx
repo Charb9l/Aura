@@ -45,6 +45,8 @@ const AdminDashboard = () => {
   const [allUsers, setAllUsers] = useState<UserWithEmail[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
+  const [pendingViewUserId, setPendingViewUserId] = useState<string | null>(null);
+  const [pendingBookingDate, setPendingBookingDate] = useState<string | null>(null);
 
   const [editUser, setEditUser] = useState<UserWithEmail | null>(null);
   const [editName, setEditName] = useState("");
@@ -344,6 +346,8 @@ const AdminDashboard = () => {
             adminUsers={adminUsers}
             clubs={clubs}
             isMasterAdmin={!myClubId}
+            initialViewUserId={pendingViewUserId}
+            onInitialViewHandled={() => setPendingViewUserId(null)}
             onUpdateUser={(userId, updates) => setAllUsers(prev => prev.map(u => u.user_id === userId ? { ...u, ...updates } as UserWithEmail : u))}
             onUpdateAdmin={(userId, updates) => setAdminUsers(prev => prev.map(u => u.user_id === userId ? { ...u, ...updates } as UserWithEmail : u))}
             onDeleteAdmin={(userId) => { setAdminUsers(prev => prev.filter(u => u.user_id !== userId)); setAllUsers(prev => prev.filter(u => u.user_id !== userId)); }}
@@ -355,7 +359,7 @@ const AdminDashboard = () => {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="bookings">
             <h1 className="font-heading text-2xl md:text-4xl font-bold text-foreground mb-2">Bookings</h1>
             <p className="text-muted-foreground mb-8">View daily bookings by time slot.</p>
-            <BookingsCalendarTab bookings={myClubId ? filteredBookings : bookings} clubs={clubs} isMasterAdmin={!myClubId} onDeleteBooking={(id) => setBookings(prev => prev.filter(b => b.id !== id))} onUpdateBooking={(id, updates) => setBookings(prev => prev.map(b => b.id === id ? { ...b, ...updates } : b))} onAddBooking={(b) => setBookings(prev => [b, ...prev])} allUsers={allUsers} />
+            <BookingsCalendarTab bookings={myClubId ? filteredBookings : bookings} clubs={clubs} isMasterAdmin={!myClubId} onDeleteBooking={(id) => setBookings(prev => prev.filter(b => b.id !== id))} onUpdateBooking={(id, updates) => setBookings(prev => prev.map(b => b.id === id ? { ...b, ...updates } : b))} onAddBooking={(b) => setBookings(prev => [b, ...prev])} allUsers={allUsers} initialDate={pendingBookingDate} onInitialDateHandled={() => setPendingBookingDate(null)} />
           </motion.div>
         )}
 
@@ -363,7 +367,16 @@ const AdminDashboard = () => {
         {activeTab === "matchmaker" && <MatchmakerTab />}
         {activeTab === "settings" && <SettingsTab />}
         {activeTab === "reports" && <ReportsTab />}
-        {activeTab === "notifications" && <NotificationsTab onUnreadCountChange={setNotificationCount} />}
+        {activeTab === "notifications" && (
+          <NotificationsTab
+            onUnreadCountChange={setNotificationCount}
+            onNavigate={(tab, ctx) => {
+              if (ctx?.userId) setPendingViewUserId(ctx.userId);
+              if (ctx?.bookingDate) setPendingBookingDate(ctx.bookingDate);
+              setActiveTab(tab);
+            }}
+          />
+        )}
 
         {activeTab === "habits" && <HabitsTab />}
         {activeTab === "activities" && <ActivitiesTab />}

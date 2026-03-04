@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Bell, CheckCheck, Trash2, UserPlus, AlertTriangle, BarChart3, XCircle, Download, MailOpen, Mail } from "lucide-react";
+import { Bell, CheckCheck, Trash2, UserPlus, AlertTriangle, BarChart3, XCircle, Download, MailOpen, Mail, ExternalLink } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -30,9 +30,10 @@ const TYPE_CONFIG: Record<string, { icon: typeof Bell; color: string; label: str
 
 interface Props {
   onUnreadCountChange?: (count: number) => void;
+  onNavigate?: (tab: string, context?: { userId?: string; bookingDate?: string }) => void;
 }
 
-const NotificationsTab = ({ onUnreadCountChange }: Props) => {
+const NotificationsTab = ({ onUnreadCountChange, onNavigate }: Props) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterType, setFilterType] = useState("all");
@@ -285,12 +286,23 @@ const NotificationsTab = ({ onUnreadCountChange }: Props) => {
                       {isExpanded && (
                         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="mt-2">
                           <p className="text-sm text-muted-foreground whitespace-pre-line">{n.body}</p>
-                          {n.type === "daily_report" && n.metadata?.csv_data && (
-                            <Button variant="outline" size="sm" className="mt-3 gap-2" onClick={(e) => { e.stopPropagation(); handleDownloadCSV(n); }}>
-                              <Download className="h-3.5 w-3.5" />
-                              Download CSV
-                            </Button>
-                          )}
+                          <div className="flex items-center gap-2 mt-3 flex-wrap">
+                            {n.type === "new_signup" && n.metadata?.user_id && (
+                              <Button variant="outline" size="sm" className="gap-1.5" onClick={(e) => { e.stopPropagation(); onNavigate?.("users", { userId: n.metadata.user_id }); }}>
+                                <ExternalLink className="h-3.5 w-3.5" /> View Profile
+                              </Button>
+                            )}
+                            {(n.type === "booking_cancelled" || n.type === "unmarked_booking") && n.metadata?.booking_date && (
+                              <Button variant="outline" size="sm" className="gap-1.5" onClick={(e) => { e.stopPropagation(); onNavigate?.("bookings", { bookingDate: n.metadata.booking_date }); }}>
+                                <ExternalLink className="h-3.5 w-3.5" /> View Bookings
+                              </Button>
+                            )}
+                            {n.type === "daily_report" && n.metadata?.csv_data && (
+                              <Button variant="outline" size="sm" className="gap-2" onClick={(e) => { e.stopPropagation(); handleDownloadCSV(n); }}>
+                                <Download className="h-3.5 w-3.5" /> Download CSV
+                              </Button>
+                            )}
+                          </div>
                         </motion.div>
                       )}
                     </div>

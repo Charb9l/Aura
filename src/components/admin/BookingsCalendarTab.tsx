@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { format, isSameDay, parseISO } from "date-fns";
 import { CalendarCheck, Clock, User, Mail, Phone, MapPin, FileText, Trash2, CheckCircle, XCircle, Search, GraduationCap, Eye } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -38,10 +38,12 @@ interface Props {
   onUpdateBooking?: (id: string, updates: Partial<BookingRow>) => void;
   onAddBooking?: (booking: BookingRow) => void;
   allUsers?: UserWithEmail[];
+  initialDate?: string | null;
+  onInitialDateHandled?: () => void;
 }
 
-const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, onUpdateBooking, onAddBooking, allUsers }: Props) => {
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, onUpdateBooking, onAddBooking, allUsers, initialDate, onInitialDateHandled }: Props) => {
+  const [selectedDate, setSelectedDate] = useState<Date>(initialDate ? parseISO(initialDate) : new Date());
   const [selectedBooking, setSelectedBooking] = useState<BookingRow | null>(null);
   const [clubFilter, setClubFilter] = useState<string>("all");
   const [showLogs, setShowLogs] = useState(false);
@@ -60,6 +62,13 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
   const [addPhone, setAddPhone] = useState("");
   const [addCourtType, setAddCourtType] = useState("");
   const [addSaving, setAddSaving] = useState(false);
+
+  useEffect(() => {
+    if (initialDate) {
+      setSelectedDate(parseISO(initialDate));
+      onInitialDateHandled?.();
+    }
+  }, [initialDate, onInitialDateHandled]);
 
   const clubActivityFilter = useMemo(() => {
     if (!isMasterAdmin || clubFilter === "all" || !clubs) return null;
