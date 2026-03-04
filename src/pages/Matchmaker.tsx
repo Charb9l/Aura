@@ -283,72 +283,38 @@ const MatchmakerPage = () => {
                 Filter:
               </div>
 
-              <button
-                onClick={() => setSportFilter("")}
-                className={cn(
-                  "rounded-full px-4 py-2 text-sm font-medium border transition-all",
-                  !sportFilter
-                    ? "border-primary bg-primary/15 text-primary"
-                    : "border-border text-muted-foreground hover:border-muted-foreground/50"
-                )}
+              <select
+                value={sportFilter}
+                onChange={(e) => { setSportFilter(e.target.value); setLocationFilter(""); }}
+                className="rounded-full px-4 py-2 text-sm font-medium border border-border bg-background text-foreground appearance-none cursor-pointer hover:border-primary/50 transition-all focus:outline-none focus:border-primary pr-8"
+                style={{
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'right 12px center',
+                }}
               >
-                All Sports
-              </button>
-              {offerings.map((o) => {
-                const active = sportFilter === o.id;
-                const chipStyle = active && o.brand_color
-                  ? {
-                      borderColor: `hsl(${o.brand_color})`,
-                      backgroundColor: `hsl(${o.brand_color} / 0.15)`,
-                      color: `hsl(${o.brand_color})`,
-                    }
-                  : {};
-                return (
-                  <button
-                    key={o.id}
-                    onClick={() => { setSportFilter(active ? "" : o.id); setLocationFilter(""); }}
-                    className={cn(
-                      "rounded-full px-4 py-2 text-sm font-medium border transition-all",
-                      !active && "border-border text-muted-foreground hover:border-muted-foreground/50"
-                    )}
-                    style={chipStyle}
-                  >
-                    {o.name}
-                  </button>
-                );
-              })}
+                <option value="">All Sports</option>
+                {offerings.map((o) => (
+                  <option key={o.id} value={o.id}>{o.name}</option>
+                ))}
+              </select>
 
               {locations.length > 0 && (
-                <>
-                  <div className="h-5 w-px bg-border mx-1" />
-                  <button
-                    onClick={() => setLocationFilter("")}
-                    className={cn(
-                      "rounded-full px-4 py-2 text-sm font-medium border transition-all flex items-center gap-1.5",
-                      !locationFilter
-                        ? "border-primary/50 bg-primary/10 text-primary"
-                        : "border-border text-muted-foreground hover:border-muted-foreground/50"
-                    )}
-                  >
-                    <MapPin className="h-3.5 w-3.5" />
-                    All Locations
-                  </button>
+                <select
+                  value={locationFilter}
+                  onChange={(e) => setLocationFilter(e.target.value)}
+                  className="rounded-full px-4 py-2 text-sm font-medium border border-border bg-background text-foreground appearance-none cursor-pointer hover:border-primary/50 transition-all focus:outline-none focus:border-primary pr-8"
+                  style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'right 12px center',
+                  }}
+                >
+                  <option value="">All Locations</option>
                   {locations.map((loc) => (
-                    <button
-                      key={loc.id}
-                      onClick={() => setLocationFilter(locationFilter === loc.id ? "" : loc.id)}
-                      className={cn(
-                        "rounded-full px-4 py-2 text-sm font-medium border transition-all flex items-center gap-1.5",
-                        locationFilter === loc.id
-                          ? "border-accent bg-accent/15 text-accent"
-                          : "border-border text-muted-foreground hover:border-muted-foreground/50"
-                      )}
-                    >
-                      <MapPin className="h-3.5 w-3.5" />
-                      {loc.name}
-                    </button>
+                    <option key={loc.id} value={loc.id}>{loc.name}</option>
                   ))}
-                </>
+                </select>
               )}
             </motion.div>
 
