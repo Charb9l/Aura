@@ -44,6 +44,7 @@ interface AdminNavbarProps {
 
 const AdminNavbar = ({ activeTab, onTabChange, assignedClubId }: AdminNavbarProps) => {
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const assignedAdminTabs = new Set(["overview", "promotions", "bookings"]);
 
