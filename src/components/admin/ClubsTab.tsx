@@ -51,72 +51,7 @@ const DropZone = ({ id, dragging, setDragging, onFiles, uploading, hint, multipl
   </div>
 );
 
-// Per-activity location editor
-const ActivityLocationsEditor = ({
-  activity,
-  locations,
-  onAdd,
-  onRemove,
-  locationsList,
-  isAcademy,
-}: {
-  activity: string;
-  locations: { id?: string; name: string; location: string }[];
-  onAdd: () => void;
-  onRemove: (index: number) => void;
-  locationsList: { id: string; name: string }[];
-  isAcademy?: boolean;
-}) => (
-  <div className={cn("rounded-lg border p-3 space-y-2", isAcademy ? "border-primary/20 bg-primary/5" : "border-border bg-secondary/30")}>
-    <div className="flex items-center justify-between">
-      <Label className="text-xs font-semibold flex items-center gap-1.5">
-        {isAcademy && <GraduationCap className="h-3.5 w-3.5 text-primary" />}
-        <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-        {activity} — Locations
-      </Label>
-      <Button type="button" variant="outline" size="sm" onClick={onAdd} className="gap-1 text-xs h-7">
-        <Plus className="h-3 w-3" /> Add
-      </Button>
-    </div>
-    {locations.length === 0 && (
-      <p className="text-xs text-muted-foreground text-center py-2">No locations yet. Click "Add" to create one.</p>
-    )}
-    {locations.map((loc, i) => (
-      <div key={loc.id || `new-${i}`} className="flex gap-2">
-        <Input
-          placeholder="Court / Location name"
-          value={loc.name}
-          onChange={(e) => {
-            // Handled by parent via callback
-            const el = e.target as HTMLInputElement;
-            el.dataset.locIndex = String(i);
-            el.dataset.locField = "name";
-          }}
-          onInput={(e) => {
-            // Use a custom event approach — parent handles state
-          }}
-          className="h-9 bg-background border-border text-sm flex-1"
-          readOnly={!!loc.id}
-          disabled={!!loc.id}
-        />
-        <Select value={loc.location} onValueChange={() => {}}>
-          <SelectTrigger className="h-9 bg-background border-border text-sm w-[160px]" disabled={!!loc.id}>
-            <SelectValue placeholder="Select city" />
-          </SelectTrigger>
-          <SelectContent className="bg-card border-border z-50 max-h-60">
-            {locationsList.map(l => (
-              <SelectItem key={l.id} value={l.name}>{l.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Button type="button" variant="ghost" size="icon" onClick={() => onRemove(i)} className="shrink-0 text-destructive hover:text-destructive h-9 w-9">
-          <X className="h-3.5 w-3.5" />
-        </Button>
-      </div>
-    ))}
-  </div>
-);
-
+// (ActivityLocationsEditor removed — locations are now per-club)
 const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
   const { locations: locationsList } = useLocations();
   const [clubs, setClubs] = useState<ClubRow[]>([]);
@@ -135,8 +70,8 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
   const [dragging, setDragging] = useState(false);
   const [editHasAcademy, setEditHasAcademy] = useState(false);
   const [editShowAcademySportPicker, setEditShowAcademySportPicker] = useState(false);
-  // Per-activity locations for edit
-  const [editActivityLocations, setEditActivityLocations] = useState<Record<string, { id?: string; name: string; location: string }[]>>({});
+  // Club-level locations for edit
+  const [editClubLocs, setEditClubLocs] = useState<{ id?: string; name: string; location: string }[]>([]);
   // Per-activity prices for edit: key = "slug" or "slug:half"/"slug:full"
   const [editPrices, setEditPrices] = useState<Record<string, string>>({});
   const [allActivityPrices, setAllActivityPrices] = useState<ClubActivityPrice[]>([]);
@@ -151,8 +86,8 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
   const [addClubDragging, setAddClubDragging] = useState(false);
   const [addClubHasAcademy, setAddClubHasAcademy] = useState(false);
   const [showAcademySportPicker, setShowAcademySportPicker] = useState(false);
-  // Per-activity locations for add
-  const [addActivityLocations, setAddActivityLocations] = useState<Record<string, { name: string; location: string }[]>>({});
+  // Club-level locations for add
+  const [addClubLocs, setAddClubLocs] = useState<{ name: string; location: string }[]>([]);
   const [addClubPublished, setAddClubPublished] = useState(true);
   const [addPrices, setAddPrices] = useState<Record<string, string>>({});
   const [addClubPicFiles, setAddClubPicFiles] = useState<File[]>([]);
@@ -226,26 +161,21 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
     setEditShowAcademySportPicker(false);
     setEditLogoFile(null);
     setEditLogoPreview(club.logo_url?.startsWith("http") ? club.logo_url : null);
-    // Build per-activity locations map from existing club_locations
+    // Build club-level locations from existing club_locations
     const locs = clubLocations.filter(l => l.club_id === club.id);
-    const map: Record<string, { id?: string; name: string; location: string }[]> = {};
-    for (const o of (club.offerings || [])) {
-      map[o] = locs.filter(l => l.activity === o).map(l => ({ id: l.id, name: l.name, location: l.location }));
+    // Deduplicate by name+location (legacy per-activity may have duplicates)
+    const seen = new Set<string>();
+    const uniqueLocs: { id?: string; name: string; location: string }[] = [];
+    for (const l of locs) {
+      const key = `${l.name}::${l.location}`;
+      if (!seen.has(key)) { seen.add(key); uniqueLocs.push({ id: l.id, name: l.name, location: l.location }); }
     }
-    // Also include legacy locations (no activity) under first offering or as unassigned
-    const legacyLocs = locs.filter(l => !l.activity);
-    if (legacyLocs.length > 0 && (club.offerings || []).length > 0) {
-      const firstOffering = (club.offerings || [])[0];
-      map[firstOffering] = [...(map[firstOffering] || []), ...legacyLocs.map(l => ({ id: l.id, name: l.name, location: l.location }))];
-    }
-    setEditActivityLocations(map);
-    // Load prices for this club
+    setEditClubLocs(uniqueLocs);
+    // Load prices for this club — key format: "slug" or "slug:label"
     const clubPrices = allActivityPrices.filter(p => p.club_id === club.id);
     const priceState: Record<string, string> = {};
     clubPrices.forEach(p => {
-      // key format: "slug:locationId:label" or "slug:locationId" for non-basketball
-      const locPart = p.location_id || "none";
-      const key = p.price_label ? `${p.activity_slug}:${locPart}:${p.price_label}` : `${p.activity_slug}:${locPart}`;
+      const key = p.price_label ? `${p.activity_slug}:${p.price_label}` : p.activity_slug;
       priceState[key] = String(p.price);
     });
     setEditPrices(priceState);
@@ -259,17 +189,14 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
 
   const handleSave = async () => {
     if (!editClub) return;
-    // Check that each activity has at least one location
-    const allLocs = Object.entries(editActivityLocations).flatMap(([activity, locs]) =>
-      locs.filter(l => l.name.trim() && l.location.trim()).map(l => ({ ...l, activity }))
-    );
-    if (allLocs.length === 0) { toast.error("Each activity needs at least one location"); return; }
+    const validLocs = editClubLocs.filter(l => l.name.trim() && l.location.trim());
+    if (validLocs.length === 0) { toast.error("Please add at least one location"); return; }
 
     setSaving(true);
     const { error } = await supabase.from("clubs").update({ name: editName, description: editDescription || null, logo_url: editClub.logo_url, offerings: editOfferings, has_academy: editHasAcademy }).eq("id", editClub.id);
 
     // Delete removed locations
-    const existingIds = allLocs.filter(l => l.id).map(l => l.id!);
+    const existingIds = validLocs.filter(l => l.id).map(l => l.id!);
     const originalIds = clubLocations.filter(l => l.club_id === editClub.id).map(l => l.id);
     const deletedIds = originalIds.filter(id => !existingIds.includes(id));
     if (deletedIds.length > 0) {
@@ -277,36 +204,33 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
       setClubLocations(prev => prev.filter(l => !deletedIds.includes(l.id)));
     }
 
-    // Insert new locations
-    const newLocs = allLocs.filter(l => !l.id && l.name.trim() && l.location.trim());
+    // Insert new locations (no activity field)
+    const newLocs = validLocs.filter(l => !l.id);
     if (newLocs.length > 0) {
-      const locsToInsert = newLocs.map(l => ({ club_id: editClub.id, name: l.name.trim(), location: l.location.trim(), activity: l.activity }));
+      const locsToInsert = newLocs.map(l => ({ club_id: editClub.id, name: l.name.trim(), location: l.location.trim() }));
       const { data: insertedLocs } = await supabase.from("club_locations").insert(locsToInsert).select();
       if (insertedLocs) setClubLocations(prev => [...prev, ...(insertedLocs as unknown as ClubLocationRow[])]);
     }
 
-    // Save prices — delete old prices and re-insert
+    // Save prices — per activity (no location_id)
     await supabase.from("club_activity_prices").delete().eq("club_id", editClub.id);
     const priceRows = Object.entries(editPrices)
       .filter(([, val]) => val && Number(val) > 0)
       .map(([key, val]) => {
-        // key format: "slug:locationId:label" or "slug:locationId"
         const parts = key.split(":");
         const slug = parts[0];
-        const locationId = parts[1] === "none" ? null : parts[1];
-        const label = parts[2] || null;
+        const label = parts[1] || null;
         return {
           club_id: editClub.id,
           activity_slug: slug,
           price: Number(val),
           price_label: label,
-          location_id: locationId,
+          location_id: null,
         };
       });
     if (priceRows.length > 0) {
       await supabase.from("club_activity_prices").insert(priceRows as any);
     }
-    // Update local cache
     setAllActivityPrices(prev => [...prev.filter(p => p.club_id !== editClub.id), ...priceRows.map((r, i) => ({ ...r, id: `temp-${i}`, created_at: new Date().toISOString() }))] as ClubActivityPrice[]);
 
     setSaving(false);
@@ -376,12 +300,9 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
 
   const handleAddClub = async () => {
     if (!addClubName.trim()) { toast.error("Please enter a club name"); return; }
-    // Validate that each activity has at least one location
-    const allLocs = Object.entries(addActivityLocations).flatMap(([activity, locs]) =>
-      locs.filter(l => l.name.trim() && l.location.trim()).map(l => ({ ...l, activity }))
-    );
-    if (addClubOfferings.length > 0 && allLocs.length === 0) {
-      toast.error("Please add at least one location for your activities");
+    const validLocs = addClubLocs.filter(l => l.name.trim() && l.location.trim());
+    if (addClubOfferings.length > 0 && validLocs.length === 0) {
+      toast.error("Please add at least one location");
       return;
     }
 
@@ -395,22 +316,11 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
       const { error: uploadError } = await supabase.storage.from("club-logos").upload(filePath, addClubLogoFile, { upsert: true, cacheControl: "0" });
       if (!uploadError) { const { data: urlData } = supabase.storage.from("club-logos").getPublicUrl(filePath); logoUrl = `${urlData.publicUrl}?t=${Date.now()}`; await supabase.from("clubs").update({ logo_url: logoUrl }).eq("id", (newClub as any).id); }
     }
-    // Insert per-activity locations and build index-to-id map
-    const locIdMap: Record<string, string> = {}; // "activity:index" -> id
-    if (allLocs.length > 0) {
-      const locsToInsert = allLocs.map(l => ({ club_id: (newClub as any).id, name: l.name.trim(), location: l.location.trim(), activity: l.activity }));
+    // Insert club locations (no activity field)
+    if (validLocs.length > 0) {
+      const locsToInsert = validLocs.map(l => ({ club_id: (newClub as any).id, name: l.name.trim(), location: l.location.trim() }));
       const { data: newLocs } = await supabase.from("club_locations").insert(locsToInsert).select();
-      if (newLocs) {
-        setClubLocations(prev => [...prev, ...(newLocs as unknown as ClubLocationRow[])]);
-        // Build map: for each activity, map the index to the inserted ID
-        const activityCounters: Record<string, number> = {};
-        for (const loc of newLocs as any[]) {
-          const act = loc.activity || "";
-          const idx = activityCounters[act] || 0;
-          locIdMap[`${act}:${idx}`] = loc.id;
-          activityCounters[act] = idx + 1;
-        }
-      }
+      if (newLocs) setClubLocations(prev => [...prev, ...(newLocs as unknown as ClubLocationRow[])]);
     }
     if (addClubPicFiles.length > 0) await uploadClubPictures((newClub as any).id, addClubPicFiles);
     if (addClubHasAcademy) {
@@ -420,19 +330,15 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
         await uploadAcademyPicture(clubId, addAcademyGalleryFiles[i], "carousel", i);
       }
     }
-    // Save activity prices — resolve temp keys to real location IDs
+    // Save activity prices (per activity, no location_id)
     const newClubId = (newClub as any).id;
     const priceRows = Object.entries(addPrices)
       .filter(([, val]) => val && Number(val) > 0)
       .map(([key, val]) => {
-        // key format: "slug:activity:index:label" or "slug:activity:index"
         const parts = key.split(":");
         const slug = parts[0];
-        const actName = parts[1];
-        const locIdx = parts[2];
-        const label = parts[3] || null;
-        const locationId = locIdMap[`${actName}:${locIdx}`] || null;
-        return { club_id: newClubId, activity_slug: slug, price: Number(val), price_label: label, location_id: locationId };
+        const label = parts[1] || null;
+        return { club_id: newClubId, activity_slug: slug, price: Number(val), price_label: label, location_id: null };
       });
     if (priceRows.length > 0) {
       await supabase.from("club_activity_prices").insert(priceRows as any);
@@ -442,7 +348,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
     toast.success(`Club "${addClubName.trim()}" added successfully`);
     setClubs(prev => [...prev, { ...newClub as unknown as ClubRow, logo_url: logoUrl }].sort((a, b) => a.name.localeCompare(b.name)));
     setShowAddClub(false); setAddClubName(""); setAddClubDescription(""); setAddClubOfferings([]); setAddClubHasAcademy(false); setAddClubPublished(true);
-    setAddClubLogoFile(null); setAddClubLogoPreview(null); setAddActivityLocations({}); setShowAcademySportPicker(false);
+    setAddClubLogoFile(null); setAddClubLogoPreview(null); setAddClubLocs([]); setShowAcademySportPicker(false);
     setAddClubPicFiles([]); setAddClubPicPreviews([]);
     setAddAcademyBubbleFile(null); setAddAcademyBubblePreview(null);
     setAddAcademyGalleryFiles([]); setAddAcademyGalleryPreviews([]);
@@ -675,7 +581,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
   );
 
   // Helper: count total locations for add dialog
-  const addTotalLocations = Object.values(addActivityLocations).reduce((sum, locs) => sum + locs.filter(l => l.name.trim() && l.location.trim()).length, 0);
+  const addTotalLocations = addClubLocs.filter(l => l.name.trim() && l.location.trim()).length;
 
   // ───── Render ─────
   return (
@@ -761,123 +667,60 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
               <div><Label className="text-sm font-medium text-muted-foreground mb-2 block">Description</Label><Textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} className="bg-secondary border-border min-h-[100px]" placeholder="Brief description..." /></div>
               <div>
                 <Label className="text-sm font-medium text-muted-foreground mb-2 block">Activities</Label>
-                <div className="flex flex-wrap gap-2 mb-3">{editOfferings.map((o) => (<Badge key={o} variant="secondary" className="text-xs flex items-center gap-1 pr-1">{o}<button type="button" onClick={() => { setEditOfferings(prev => prev.filter(x => x !== o)); if (o.toLowerCase().includes("academy")) { if (!editOfferings.filter(x => x !== o).some(x => x.toLowerCase().includes("academy"))) setEditHasAcademy(false); } const newMap = { ...editActivityLocations }; delete newMap[o]; setEditActivityLocations(newMap); }} className="ml-1 rounded-full hover:bg-destructive/20 p-0.5"><X className="h-3 w-3" /></button></Badge>))}</div>
-                <Select value="" onValueChange={(v) => { if (v === "__academy__") { setEditShowAcademySportPicker(true); return; } if (v && !editOfferings.includes(v)) { setEditOfferings(prev => [...prev, v]); setEditActivityLocations(prev => ({ ...prev, [v]: [] })); } }}>
+                <div className="flex flex-wrap gap-2 mb-3">{editOfferings.map((o) => (<Badge key={o} variant="secondary" className="text-xs flex items-center gap-1 pr-1">{o}<button type="button" onClick={() => { setEditOfferings(prev => prev.filter(x => x !== o)); if (o.toLowerCase().includes("academy")) { if (!editOfferings.filter(x => x !== o).some(x => x.toLowerCase().includes("academy"))) setEditHasAcademy(false); } }} className="ml-1 rounded-full hover:bg-destructive/20 p-0.5"><X className="h-3 w-3" /></button></Badge>))}</div>
+                <Select value="" onValueChange={(v) => { if (v === "__academy__") { setEditShowAcademySportPicker(true); return; } if (v && !editOfferings.includes(v)) { setEditOfferings(prev => [...prev, v]); } }}>
                   <SelectTrigger className="h-10 bg-secondary border-border"><SelectValue placeholder="Select an activity..." /></SelectTrigger>
                   <SelectContent className="bg-card border-border z-50">{offeringNames.filter(o => !editOfferings.includes(o)).map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}<SelectItem value="__academy__" className="font-semibold text-primary"><span className="flex items-center gap-1.5"><GraduationCap className="h-3.5 w-3.5" /> Academy</span></SelectItem></SelectContent>
                 </Select>
-                {editShowAcademySportPicker && (<div className="mt-3 p-3 rounded-lg border border-primary/30 bg-primary/5 space-y-2"><Label className="text-xs font-medium text-primary block">Choose Academy Sport</Label><div className="flex flex-wrap gap-2">{offeringNames.map(name => { const sportName = name.replace(/\s*(Court|Studio|Classes|Rental|\(Kids\))/gi, "").trim(); const academyLabel = `${sportName} Academy`; if (editOfferings.includes(academyLabel)) return null; return (<Button key={name} type="button" variant="outline" size="sm" onClick={() => { setEditOfferings(prev => [...prev, academyLabel]); setEditHasAcademy(true); setEditShowAcademySportPicker(false); setEditActivityLocations(prev => ({ ...prev, [academyLabel]: [] })); }}>{sportName}</Button>); })}</div><Button type="button" variant="ghost" size="sm" onClick={() => setEditShowAcademySportPicker(false)} className="text-xs text-muted-foreground">Cancel</Button></div>)}
+                {editShowAcademySportPicker && (<div className="mt-3 p-3 rounded-lg border border-primary/30 bg-primary/5 space-y-2"><Label className="text-xs font-medium text-primary block">Choose Academy Sport</Label><div className="flex flex-wrap gap-2">{offeringNames.map(name => { const sportName = name.replace(/\s*(Court|Studio|Classes|Rental|\(Kids\))/gi, "").trim(); const academyLabel = `${sportName} Academy`; if (editOfferings.includes(academyLabel)) return null; return (<Button key={name} type="button" variant="outline" size="sm" onClick={() => { setEditOfferings(prev => [...prev, academyLabel]); setEditHasAcademy(true); setEditShowAcademySportPicker(false); }}>{sportName}</Button>); })}</div><Button type="button" variant="ghost" size="sm" onClick={() => setEditShowAcademySportPicker(false)} className="text-xs text-muted-foreground">Cancel</Button></div>)}
               </div>
 
-              {/* Per-activity locations */}
-              {editOfferings.length > 0 && (
-                <div className="space-y-3">
-                  <Label className="text-sm font-medium text-muted-foreground block">Locations per Activity</Label>
-                  {editOfferings.map(activity => {
-                    const locs = editActivityLocations[activity] || [];
-                    const isAcademy = activity.toLowerCase().includes("academy");
-                    return (
-                      <div key={activity} className={cn("rounded-lg border p-3 space-y-2", isAcademy ? "border-primary/20 bg-primary/5" : "border-border bg-secondary/30")}>
-                        <div className="flex items-center justify-between">
-                          <Label className="text-xs font-semibold flex items-center gap-1.5">
-                            {isAcademy && <GraduationCap className="h-3.5 w-3.5 text-primary" />}
-                            <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-                            {activity}
-                          </Label>
-                          <Button type="button" variant="outline" size="sm" onClick={() => setEditActivityLocations(prev => ({ ...prev, [activity]: [...(prev[activity] || []), { name: "", location: "" }] }))} className="gap-1 text-xs h-7">
-                            <Plus className="h-3 w-3" /> Add
-                          </Button>
-                        </div>
-                        {locs.length === 0 && <p className="text-xs text-muted-foreground text-center py-2">No locations. Click "Add" to create one.</p>}
-                        {locs.map((loc, i) => (
-                          <div key={loc.id || `new-${i}`} className="flex gap-2">
-                            <Input
-                              placeholder="Court / Location name"
-                              value={loc.name}
-                              onChange={(e) => setEditActivityLocations(prev => {
-                                const updated = [...(prev[activity] || [])];
-                                updated[i] = { ...updated[i], name: e.target.value };
-                                return { ...prev, [activity]: updated };
-                              })}
-                              className="h-9 bg-background border-border text-sm flex-1"
-                              disabled={!!loc.id}
-                            />
-                            <Select
-                              value={loc.location}
-                              onValueChange={(val) => setEditActivityLocations(prev => {
-                                const updated = [...(prev[activity] || [])];
-                                updated[i] = { ...updated[i], location: val };
-                                return { ...prev, [activity]: updated };
-                              })}
-                            >
-                              <SelectTrigger className="h-9 bg-background border-border text-sm w-[160px]" disabled={!!loc.id}>
-                                <SelectValue placeholder="Select city" />
-                              </SelectTrigger>
-                              <SelectContent className="bg-card border-border z-50 max-h-60">
-                                {locationsList.map(l => <SelectItem key={l.id} value={l.name}>{l.name}</SelectItem>)}
-                              </SelectContent>
-                            </Select>
-                            <Button type="button" variant="ghost" size="icon" onClick={() => setEditActivityLocations(prev => {
-                              const updated = [...(prev[activity] || [])];
-                              updated.splice(i, 1);
-                              return { ...prev, [activity]: updated };
-                            })} className="shrink-0 text-destructive hover:text-destructive h-9 w-9">
-                              <X className="h-3.5 w-3.5" />
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    );
-                  })}
+              {/* Club Locations */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-medium text-muted-foreground block">Club Locations</Label>
+                  <Button type="button" variant="outline" size="sm" onClick={() => setEditClubLocs(prev => [...prev, { name: "", location: "" }])} className="gap-1 text-xs h-7">
+                    <Plus className="h-3 w-3" /> Add
+                  </Button>
                 </div>
-              )}
+                {editClubLocs.length === 0 && <p className="text-xs text-muted-foreground text-center py-2">No locations. Click "Add" to create one.</p>}
+                {editClubLocs.map((loc, i) => (
+                  <div key={loc.id || `new-${i}`} className="flex gap-2">
+                    <Input placeholder="Location name" value={loc.name} onChange={(e) => setEditClubLocs(prev => { const u = [...prev]; u[i] = { ...u[i], name: e.target.value }; return u; })} className="h-9 bg-background border-border text-sm flex-1" disabled={!!loc.id} />
+                    <Select value={loc.location} onValueChange={(val) => setEditClubLocs(prev => { const u = [...prev]; u[i] = { ...u[i], location: val }; return u; })}>
+                      <SelectTrigger className="h-9 bg-background border-border text-sm w-[160px]" disabled={!!loc.id}><SelectValue placeholder="Select city" /></SelectTrigger>
+                      <SelectContent className="bg-card border-border z-50 max-h-60">{locationsList.map(l => <SelectItem key={l.id} value={l.name}>{l.name}</SelectItem>)}</SelectContent>
+                    </Select>
+                    <Button type="button" variant="ghost" size="icon" onClick={() => setEditClubLocs(prev => { const u = [...prev]; u.splice(i, 1); return u; })} className="shrink-0 text-destructive hover:text-destructive h-9 w-9"><X className="h-3.5 w-3.5" /></Button>
+                  </div>
+                ))}
+              </div>
 
-              {/* ── Pricing per Activity per Location ── */}
+              {/* ── Pricing per Activity ── */}
               {editOfferings.filter(o => offeringToSlug(o)).length > 0 && (
                 <div className="space-y-3">
-                  <Label className="text-sm font-medium text-muted-foreground block">Activity Pricing ($) — per Location</Label>
+                  <Label className="text-sm font-medium text-muted-foreground block">Activity Pricing ($)</Label>
                   {editOfferings.map(activity => {
                     const slug = offeringToSlug(activity);
                     if (!slug) return null;
                     const isBasketball = slug === "basketball";
-                    const activityLocs = (editActivityLocations[activity] || []).filter(l => l.id && l.name.trim());
-                    if (activityLocs.length === 0) return (
-                      <div key={`price-${activity}`} className="rounded-lg border border-border bg-secondary/30 p-3">
-                        <Label className="text-xs font-semibold">{activity}</Label>
-                        <p className="text-xs text-muted-foreground mt-1">Add locations above to set prices.</p>
-                      </div>
-                    );
                     return (
-                      <div key={`price-${activity}`} className="rounded-lg border border-border bg-secondary/30 p-3 space-y-3">
+                      <div key={`price-${activity}`} className="rounded-lg border border-border bg-secondary/30 p-3 space-y-2">
                         <Label className="text-xs font-semibold">{activity}</Label>
-                        {activityLocs.map(loc => (
-                          <div key={loc.id} className="rounded-md border border-border/50 bg-background/50 p-2.5 space-y-1.5">
-                            <Label className="text-[11px] text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" />{loc.name} — {loc.location}</Label>
-                            {isBasketball ? (
-                              <div className="grid grid-cols-2 gap-2">
-                                <div>
-                                  <Label className="text-[10px] text-muted-foreground">Half Court</Label>
-                                  <Input type="number" min="0" step="0.01" placeholder="0.00"
-                                    value={editPrices[`${slug}:${loc.id}:half`] || ""}
-                                    onChange={(e) => setEditPrices(prev => ({ ...prev, [`${slug}:${loc.id}:half`]: e.target.value }))}
-                                    className="h-8 bg-background border-border text-sm" />
-                                </div>
-                                <div>
-                                  <Label className="text-[10px] text-muted-foreground">Full Court</Label>
-                                  <Input type="number" min="0" step="0.01" placeholder="0.00"
-                                    value={editPrices[`${slug}:${loc.id}:full`] || ""}
-                                    onChange={(e) => setEditPrices(prev => ({ ...prev, [`${slug}:${loc.id}:full`]: e.target.value }))}
-                                    className="h-8 bg-background border-border text-sm" />
-                                </div>
-                              </div>
-                            ) : (
-                              <Input type="number" min="0" step="0.01" placeholder="0.00"
-                                value={editPrices[`${slug}:${loc.id}`] || ""}
-                                onChange={(e) => setEditPrices(prev => ({ ...prev, [`${slug}:${loc.id}`]: e.target.value }))}
-                                className="h-8 bg-background border-border text-sm max-w-[180px]" />
-                            )}
+                        {isBasketball ? (
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <Label className="text-[10px] text-muted-foreground">Half Court</Label>
+                              <Input type="number" min="0" step="0.01" placeholder="0.00" value={editPrices[`${slug}:half`] || ""} onChange={(e) => setEditPrices(prev => ({ ...prev, [`${slug}:half`]: e.target.value }))} className="h-8 bg-background border-border text-sm" />
+                            </div>
+                            <div>
+                              <Label className="text-[10px] text-muted-foreground">Full Court</Label>
+                              <Input type="number" min="0" step="0.01" placeholder="0.00" value={editPrices[`${slug}:full`] || ""} onChange={(e) => setEditPrices(prev => ({ ...prev, [`${slug}:full`]: e.target.value }))} className="h-8 bg-background border-border text-sm" />
+                            </div>
                           </div>
-                        ))}
+                        ) : (
+                          <Input type="number" min="0" step="0.01" placeholder="0.00" value={editPrices[slug] || ""} onChange={(e) => setEditPrices(prev => ({ ...prev, [slug]: e.target.value }))} className="h-8 bg-background border-border text-sm max-w-[180px]" />
+                        )}
                       </div>
                     );
                   })}
@@ -910,122 +753,60 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
             {/* 3. Activities */}
             <div>
               <Label className="text-sm font-medium text-muted-foreground mb-2 block">Activities</Label>
-              <div className="flex flex-wrap gap-2 mb-3">{addClubOfferings.map((o) => (<Badge key={o} variant="secondary" className="text-xs flex items-center gap-1 pr-1">{o}<button type="button" onClick={() => { setAddClubOfferings(prev => prev.filter(x => x !== o)); if (o.toLowerCase().includes("academy")) { if (!addClubOfferings.filter(x => x !== o).some(x => x.toLowerCase().includes("academy"))) { setAddClubHasAcademy(false); } } const newMap = { ...addActivityLocations }; delete newMap[o]; setAddActivityLocations(newMap); }} className="ml-1 rounded-full hover:bg-destructive/20 p-0.5"><X className="h-3 w-3" /></button></Badge>))}</div>
-              <Select value="" onValueChange={(v) => { if (v === "__academy__") { setShowAcademySportPicker(true); return; } if (v && !addClubOfferings.includes(v)) { setAddClubOfferings(prev => [...prev, v]); setAddActivityLocations(prev => ({ ...prev, [v]: [] })); } }}>
+              <div className="flex flex-wrap gap-2 mb-3">{addClubOfferings.map((o) => (<Badge key={o} variant="secondary" className="text-xs flex items-center gap-1 pr-1">{o}<button type="button" onClick={() => { setAddClubOfferings(prev => prev.filter(x => x !== o)); if (o.toLowerCase().includes("academy")) { if (!addClubOfferings.filter(x => x !== o).some(x => x.toLowerCase().includes("academy"))) { setAddClubHasAcademy(false); } } }} className="ml-1 rounded-full hover:bg-destructive/20 p-0.5"><X className="h-3 w-3" /></button></Badge>))}</div>
+              <Select value="" onValueChange={(v) => { if (v === "__academy__") { setShowAcademySportPicker(true); return; } if (v && !addClubOfferings.includes(v)) { setAddClubOfferings(prev => [...prev, v]); } }}>
                 <SelectTrigger className="h-10 bg-secondary border-border"><SelectValue placeholder="Select an activity..." /></SelectTrigger>
                 <SelectContent className="bg-card border-border z-50">{offeringNames.filter(o => !addClubOfferings.includes(o)).map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}<SelectItem value="__academy__" className="font-semibold text-primary"><span className="flex items-center gap-1.5"><GraduationCap className="h-3.5 w-3.5" /> Academy</span></SelectItem></SelectContent>
               </Select>
-              {showAcademySportPicker && (<div className="mt-3 p-3 rounded-lg border border-primary/30 bg-primary/5 space-y-2"><Label className="text-xs font-medium text-primary block">Choose Academy Sport</Label><div className="flex flex-wrap gap-2">{offeringNames.map(name => { const sportName = name.replace(/\s*(Court|Studio|Classes|Rental|\(Kids\))/gi, "").trim(); const academyLabel = `${sportName} Academy`; if (addClubOfferings.includes(academyLabel)) return null; return (<Button key={name} type="button" variant="outline" size="sm" onClick={() => { setAddClubOfferings(prev => [...prev, academyLabel]); setAddClubHasAcademy(true); setShowAcademySportPicker(false); setAddActivityLocations(prev => ({ ...prev, [academyLabel]: [] })); }}>{sportName}</Button>); })}</div><Button type="button" variant="ghost" size="sm" onClick={() => setShowAcademySportPicker(false)} className="text-xs text-muted-foreground">Cancel</Button></div>)}
+              {showAcademySportPicker && (<div className="mt-3 p-3 rounded-lg border border-primary/30 bg-primary/5 space-y-2"><Label className="text-xs font-medium text-primary block">Choose Academy Sport</Label><div className="flex flex-wrap gap-2">{offeringNames.map(name => { const sportName = name.replace(/\s*(Court|Studio|Classes|Rental|\(Kids\))/gi, "").trim(); const academyLabel = `${sportName} Academy`; if (addClubOfferings.includes(academyLabel)) return null; return (<Button key={name} type="button" variant="outline" size="sm" onClick={() => { setAddClubOfferings(prev => [...prev, academyLabel]); setAddClubHasAcademy(true); setShowAcademySportPicker(false); }}>{sportName}</Button>); })}</div><Button type="button" variant="ghost" size="sm" onClick={() => setShowAcademySportPicker(false)} className="text-xs text-muted-foreground">Cancel</Button></div>)}
             </div>
 
-            {/* 4. Per-activity locations */}
-            {addClubOfferings.length > 0 && (
-              <div className="space-y-3">
-                <Label className="text-sm font-medium text-muted-foreground block">Locations per Activity</Label>
-                {addClubOfferings.map(activity => {
-                  const locs = addActivityLocations[activity] || [];
-                  const isAcademy = activity.toLowerCase().includes("academy");
-                  return (
-                    <div key={activity} className={cn("rounded-lg border p-3 space-y-2", isAcademy ? "border-primary/20 bg-primary/5" : "border-border bg-secondary/30")}>
-                      <div className="flex items-center justify-between">
-                        <Label className="text-xs font-semibold flex items-center gap-1.5">
-                          {isAcademy && <GraduationCap className="h-3.5 w-3.5 text-primary" />}
-                          <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-                          {activity}
-                        </Label>
-                        <Button type="button" variant="outline" size="sm" onClick={() => setAddActivityLocations(prev => ({ ...prev, [activity]: [...(prev[activity] || []), { name: "", location: "" }] }))} className="gap-1 text-xs h-7">
-                          <Plus className="h-3 w-3" /> Add
-                        </Button>
-                      </div>
-                      {locs.length === 0 && <p className="text-xs text-muted-foreground text-center py-2">No locations. Click "Add" to create one.</p>}
-                      {locs.map((loc, i) => (
-                        <div key={`add-${activity}-${i}`} className="flex gap-2">
-                          <Input
-                            placeholder="Court / Location name"
-                            value={loc.name}
-                            onChange={(e) => setAddActivityLocations(prev => {
-                              const updated = [...(prev[activity] || [])];
-                              updated[i] = { ...updated[i], name: e.target.value };
-                              return { ...prev, [activity]: updated };
-                            })}
-                            className="h-9 bg-background border-border text-sm flex-1"
-                          />
-                          <Select
-                            value={loc.location}
-                            onValueChange={(val) => setAddActivityLocations(prev => {
-                              const updated = [...(prev[activity] || [])];
-                              updated[i] = { ...updated[i], location: val };
-                              return { ...prev, [activity]: updated };
-                            })}
-                          >
-                            <SelectTrigger className="h-9 bg-background border-border text-sm w-[160px]">
-                              <SelectValue placeholder="Select city" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-card border-border z-50 max-h-60">
-                              {locationsList.map(l => <SelectItem key={l.id} value={l.name}>{l.name}</SelectItem>)}
-                            </SelectContent>
-                          </Select>
-                          <Button type="button" variant="ghost" size="icon" onClick={() => setAddActivityLocations(prev => {
-                            const updated = [...(prev[activity] || [])];
-                            updated.splice(i, 1);
-                            return { ...prev, [activity]: updated };
-                          })} className="shrink-0 text-destructive hover:text-destructive h-9 w-9">
-                            <X className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  );
-                })}
+            {/* 4. Club Locations */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium text-muted-foreground block">Club Locations</Label>
+                <Button type="button" variant="outline" size="sm" onClick={() => setAddClubLocs(prev => [...prev, { name: "", location: "" }])} className="gap-1 text-xs h-7">
+                  <Plus className="h-3 w-3" /> Add
+                </Button>
               </div>
-            )}
+              {addClubLocs.length === 0 && <p className="text-xs text-muted-foreground text-center py-2">No locations. Click "Add" to create one.</p>}
+              {addClubLocs.map((loc, i) => (
+                <div key={`add-loc-${i}`} className="flex gap-2">
+                  <Input placeholder="Location name" value={loc.name} onChange={(e) => setAddClubLocs(prev => { const u = [...prev]; u[i] = { ...u[i], name: e.target.value }; return u; })} className="h-9 bg-background border-border text-sm flex-1" />
+                  <Select value={loc.location} onValueChange={(val) => setAddClubLocs(prev => { const u = [...prev]; u[i] = { ...u[i], location: val }; return u; })}>
+                    <SelectTrigger className="h-9 bg-background border-border text-sm w-[160px]"><SelectValue placeholder="Select city" /></SelectTrigger>
+                    <SelectContent className="bg-card border-border z-50 max-h-60">{locationsList.map(l => <SelectItem key={l.id} value={l.name}>{l.name}</SelectItem>)}</SelectContent>
+                  </Select>
+                  <Button type="button" variant="ghost" size="icon" onClick={() => setAddClubLocs(prev => { const u = [...prev]; u.splice(i, 1); return u; })} className="shrink-0 text-destructive hover:text-destructive h-9 w-9"><X className="h-3.5 w-3.5" /></Button>
+                </div>
+              ))}
+            </div>
 
-            {/* Pricing per Activity per Location */}
+            {/* Pricing per Activity */}
             {addClubOfferings.filter(o => offeringToSlug(o)).length > 0 && (
               <div className="space-y-3">
-                <Label className="text-sm font-medium text-muted-foreground block">Activity Pricing ($) — per Location</Label>
+                <Label className="text-sm font-medium text-muted-foreground block">Activity Pricing ($)</Label>
                 {addClubOfferings.map(activity => {
                   const slug = offeringToSlug(activity);
                   if (!slug) return null;
                   const isBasketball = slug === "basketball";
-                  const activityLocs = (addActivityLocations[activity] || []).filter(l => l.name.trim());
-                  if (activityLocs.length === 0) return (
-                    <div key={`add-price-${activity}`} className="rounded-lg border border-border bg-secondary/30 p-3">
-                      <Label className="text-xs font-semibold">{activity}</Label>
-                      <p className="text-xs text-muted-foreground mt-1">Add locations above to set prices.</p>
-                    </div>
-                  );
                   return (
-                    <div key={`add-price-${activity}`} className="rounded-lg border border-border bg-secondary/30 p-3 space-y-3">
+                    <div key={`add-price-${activity}`} className="rounded-lg border border-border bg-secondary/30 p-3 space-y-2">
                       <Label className="text-xs font-semibold">{activity}</Label>
-                      {activityLocs.map((loc, locIdx) => (
-                        <div key={`add-loc-price-${locIdx}`} className="rounded-md border border-border/50 bg-background/50 p-2.5 space-y-1.5">
-                          <Label className="text-[11px] text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" />{loc.name} — {loc.location}</Label>
-                          {isBasketball ? (
-                            <div className="grid grid-cols-2 gap-2">
-                              <div>
-                                <Label className="text-[10px] text-muted-foreground">Half Court</Label>
-                                <Input type="number" min="0" step="0.01" placeholder="0.00"
-                                  value={addPrices[`${slug}:${activity}:${locIdx}:half`] || ""}
-                                  onChange={(e) => setAddPrices(prev => ({ ...prev, [`${slug}:${activity}:${locIdx}:half`]: e.target.value }))}
-                                  className="h-8 bg-background border-border text-sm" />
-                              </div>
-                              <div>
-                                <Label className="text-[10px] text-muted-foreground">Full Court</Label>
-                                <Input type="number" min="0" step="0.01" placeholder="0.00"
-                                  value={addPrices[`${slug}:${activity}:${locIdx}:full`] || ""}
-                                  onChange={(e) => setAddPrices(prev => ({ ...prev, [`${slug}:${activity}:${locIdx}:full`]: e.target.value }))}
-                                  className="h-8 bg-background border-border text-sm" />
-                              </div>
-                            </div>
-                          ) : (
-                            <Input type="number" min="0" step="0.01" placeholder="0.00"
-                              value={addPrices[`${slug}:${activity}:${locIdx}`] || ""}
-                              onChange={(e) => setAddPrices(prev => ({ ...prev, [`${slug}:${activity}:${locIdx}`]: e.target.value }))}
-                              className="h-8 bg-background border-border text-sm max-w-[180px]" />
-                          )}
+                      {isBasketball ? (
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <Label className="text-[10px] text-muted-foreground">Half Court</Label>
+                            <Input type="number" min="0" step="0.01" placeholder="0.00" value={addPrices[`${slug}:half`] || ""} onChange={(e) => setAddPrices(prev => ({ ...prev, [`${slug}:half`]: e.target.value }))} className="h-8 bg-background border-border text-sm" />
+                          </div>
+                          <div>
+                            <Label className="text-[10px] text-muted-foreground">Full Court</Label>
+                            <Input type="number" min="0" step="0.01" placeholder="0.00" value={addPrices[`${slug}:full`] || ""} onChange={(e) => setAddPrices(prev => ({ ...prev, [`${slug}:full`]: e.target.value }))} className="h-8 bg-background border-border text-sm" />
+                          </div>
                         </div>
-                      ))}
+                      ) : (
+                        <Input type="number" min="0" step="0.01" placeholder="0.00" value={addPrices[slug] || ""} onChange={(e) => setAddPrices(prev => ({ ...prev, [slug]: e.target.value }))} className="h-8 bg-background border-border text-sm max-w-[180px]" />
+                      )}
                     </div>
                   );
                 })}
