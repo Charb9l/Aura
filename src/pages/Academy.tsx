@@ -302,7 +302,7 @@ const AcademyPage = () => {
       <Navbar />
 
       {/* Hero section with dynamic grid background */}
-      <section className="relative min-h-[50vh] flex items-center justify-center overflow-hidden">
+      <section className="relative min-h-[38vh] flex items-center justify-center overflow-hidden">
         {visibleHeroPics.length > 0 && (
           <div className={cn("absolute inset-0 grid", getGridLayout(visibleHeroPics.length))}>
             <AnimatePresence mode="popLayout">
@@ -334,7 +334,7 @@ const AcademyPage = () => {
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-background/30" />
 
         {/* Content */}
-        <div className="relative z-10 container mx-auto px-6 py-24 text-center">
+        <div className="relative z-10 container mx-auto px-6 py-20 text-center">
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
             <div className="flex items-center justify-center gap-3 mb-4">
               <GraduationCap className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
