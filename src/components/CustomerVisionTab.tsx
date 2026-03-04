@@ -674,13 +674,6 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
               </div>
               <PagePicturesManager pageSlug="home" />
 
-              <div className="border-t border-border my-6" />
-
-              <div className="space-y-2 mb-4">
-                <Label className="text-sm font-medium text-foreground block">Photo Carousel Belt</Label>
-                <p className="text-xs text-muted-foreground">These pictures scroll horizontally in the infinite photo strip below the hero section.</p>
-              </div>
-              <PagePicturesManager pageSlug="home-strip" />
             </div>
 
             <Button onClick={handleSaveHome} disabled={saving} className="w-full h-12 text-base font-semibold glow">
