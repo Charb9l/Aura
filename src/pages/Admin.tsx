@@ -195,6 +195,7 @@ const AdminDashboard = () => {
   // Dashboard chart state
   const [bookingRange, setBookingRange] = useState<string>("today");
   const [revenueRange, setRevenueRange] = useState<string>("today");
+  const [showTodayRevenue, setShowTodayRevenue] = useState(false);
   const [bookingCustomDate, setBookingCustomDate] = useState<Date | undefined>(new Date());
   const [revenueCustomRange, setRevenueCustomRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: subDays(new Date(), 6), to: new Date() });
   const [bookingFilterType, setBookingFilterType] = useState<string>("all");
