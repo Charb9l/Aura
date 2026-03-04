@@ -819,32 +819,7 @@ const ProfilePage = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Badge Reward Banner */}
-        {availableBadgePoints > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.08 }}
-            className="mb-6 rounded-2xl border border-amber-400/30 bg-amber-400/5 p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4"
-          >
-            <div className="flex items-center gap-3 flex-1">
-              <div className="h-12 w-12 rounded-xl bg-amber-400/15 flex items-center justify-center text-amber-400 shrink-0">
-                <Gift className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="font-heading font-bold text-foreground">
-                  {availableBadgePoints} Free Loyalty Point{availableBadgePoints > 1 ? "s" : ""} Available!
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  You completed a badge level. Assign your free point to any club.
-                </p>
-              </div>
-            </div>
-            <Button onClick={() => setShowBadgeReward(true)} className="gap-2 bg-amber-400 hover:bg-amber-500 text-background font-bold shrink-0">
-              <Gift className="h-4 w-4" /> Assign Point
-            </Button>
-          </motion.div>
-        )}
+        {/* Badge Reward Banner - hidden since badge card handles it */}
 
         {/* Badge Reward Dialog */}
         <Dialog open={showBadgeReward} onOpenChange={setShowBadgeReward}>
