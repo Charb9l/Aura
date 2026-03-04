@@ -94,6 +94,7 @@ const HeroSection = () => {
   const titleLine1 = content?.hero_title_line1 || "Your Journey.";
   const titleLine2 = content?.hero_title_line2 || "Your Space.";
   const actions = content?.hero_buttons?.map((b, i) => ({ ...b, delay: 0.4 + i * 0.1 })) || defaultActions;
+  const showScrollIndicator = content?.show_scroll_indicator ?? false;
 
   const totalCount = allPictures.length > 0 ? allPictures.length : (loaded ? 0 : fallbackPanels.length);
   const layout = getGridLayout(pictures.length);
