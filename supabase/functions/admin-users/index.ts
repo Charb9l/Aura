@@ -106,11 +106,8 @@ Deno.serve(async (req) => {
     // GET current admin's club_id
     if (action === "my-club") {
       const authHeader = req.headers.get("Authorization")!;
-      const callerClient = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
-        global: { headers: { Authorization: authHeader } },
-      });
-
-      const { data: { user: caller } } = await callerClient.auth.getUser();
+      const token = authHeader.replace("Bearer ", "");
+      const { data: { user: caller } } = await adminClient.auth.getUser(token);
       if (!caller) {
         return new Response(JSON.stringify({ error: "Unauthorized" }), {
           status: 401,
@@ -118,7 +115,7 @@ Deno.serve(async (req) => {
         });
       }
 
-      const { data: role, error: roleError } = await callerClient
+      const { data: role, error: roleError } = await adminClient
         .from("user_roles")
         .select("club_id")
         .eq("user_id", caller.id)
