@@ -77,7 +77,7 @@ const BookPage = () => {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
-  const [clubs, setClubs] = useState<{ id: string; name: string; offerings: string[] }[]>([]);
+  const [clubs, setClubs] = useState<{ id: string; name: string; offerings: string[]; logo_url: string | null }[]>([]);
   const [clubLocations, setClubLocations] = useState<ClubLocation[]>([]);
   const [activityPrices, setActivityPrices] = useState<{ club_id: string; activity_slug: string; price: number; price_label: string | null; location_id: string | null }[]>([]);
   const [selectedLocation, setSelectedLocation] = useState("");
@@ -107,7 +107,7 @@ const BookPage = () => {
     const fetchData = async () => {
       const [offRes, clubRes, locRes, contentRes, pricesRes] = await Promise.all([
         supabase.from("offerings").select("*").order("name"),
-        supabase.from("clubs").select("id, name, offerings, published").order("name"),
+        supabase.from("clubs").select("id, name, offerings, published, logo_url").order("name"),
         supabase.from("club_locations").select("*").order("name"),
         supabase.from("page_content").select("content").eq("page_slug", "book").single(),
         supabase.from("club_activity_prices").select("*"),
@@ -157,27 +157,39 @@ const BookPage = () => {
     ).sort((a, b) => a.name.localeCompare(b.name));
   }, [selectedActivity, clubs]);
 
+  // Build club+location combos for selection
+  const clubLocationOptions = useMemo(() => {
+    return matchingClubs.flatMap(club => {
+      const locs = clubLocations.filter(l => l.club_id === club.id).sort((a, b) => a.name.localeCompare(b.name));
+      if (locs.length === 0) return [{ club, location: null }];
+      return locs.map(loc => ({ club, location: loc }));
+    });
+  }, [matchingClubs, clubLocations]);
+
+  // Combined selection key: "clubId::locationId"
+  const selectedComboKey = selectedClub && selectedLocation ? `${selectedClub}::${selectedLocation}` : "";
+
+  const handleSelectCombo = (clubId: string, locationId: string | null) => {
+    setSelectedClub(clubId);
+    setSelectedLocation(locationId || "");
+    setCourtType("");
+    setDate(undefined);
+    setSelectedTime("");
+  };
+
+  // Auto-select if only one option
   useEffect(() => {
-    if (matchingClubs.length === 1) {
-      setSelectedClub(matchingClubs[0].id);
-    } else if (matchingClubs.length === 0) {
+    if (clubLocationOptions.length === 1) {
+      const opt = clubLocationOptions[0];
+      setSelectedClub(opt.club.id);
+      setSelectedLocation(opt.location?.id || "");
+    } else if (clubLocationOptions.length === 0) {
       setSelectedClub("");
-    }
-  }, [matchingClubs]);
-
-  const resolvedClubId = selectedClub || (matchingClubs.length === 1 ? matchingClubs[0].id : "");
-  const locationsForClub = useMemo(() => {
-    if (!resolvedClubId) return [];
-    return clubLocations.filter(l => l.club_id === resolvedClubId).sort((a, b) => a.name.localeCompare(b.name));
-  }, [resolvedClubId, clubLocations]);
-
-  useEffect(() => {
-    if (locationsForClub.length === 1) {
-      setSelectedLocation(locationsForClub[0].id);
-    } else if (locationsForClub.length === 0) {
       setSelectedLocation("");
     }
-  }, [locationsForClub]);
+  }, [clubLocationOptions]);
+
+  const resolvedClubId = selectedClub || (matchingClubs.length === 1 ? matchingClubs[0].id : "");
 
   // Dynamic brand color from the selected offering
   const selectedOffering = offerings.find(o => o.slug === selectedActivity);
@@ -419,43 +431,61 @@ const BookPage = () => {
             </div>
           </motion.div>
 
-          {selectedActivity && matchingClubs.length > 1 && (
+          {selectedActivity && clubLocationOptions.length > 1 && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}>
               <Label className="text-sm font-medium text-muted-foreground mb-4 block">Choose Club</Label>
-              <Select value={selectedClub} onValueChange={setSelectedClub}>
-                <SelectTrigger className="w-full max-w-sm h-12" style={selectedClub ? brand.glowSm : undefined}>
-                  <SelectValue placeholder="Select a club..." />
-                </SelectTrigger>
-                <SelectContent className="bg-card border-border z-50">
-                  {matchingClubs.map(c => (
-                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 max-w-2xl">
+                {clubLocationOptions.map((opt) => {
+                  const comboKey = `${opt.club.id}::${opt.location?.id || ""}`;
+                  const isSelected = selectedComboKey === comboKey;
+                  const c = selectedOffering?.brand_color || "220 14% 60%";
+                  return (
+                    <button
+                      type="button"
+                      key={comboKey}
+                      onClick={() => handleSelectCombo(opt.club.id, opt.location?.id || null)}
+                      className={cn(
+                        "flex items-center gap-3 rounded-xl border-2 px-4 py-3 text-left transition-all",
+                        isSelected ? "shadow-md" : "border-border hover:border-muted-foreground/50"
+                      )}
+                      style={isSelected ? { borderColor: `hsl(${c})`, backgroundColor: `hsl(${c} / 0.08)`, boxShadow: `0 0 18px hsl(${c} / 0.25)` } : undefined}
+                    >
+                      {opt.club.logo_url ? (
+                        <img src={opt.club.logo_url} alt="" className="h-10 w-10 rounded-lg object-cover shrink-0 border border-border" />
+                      ) : (
+                        <div className="h-10 w-10 rounded-lg bg-secondary flex items-center justify-center shrink-0 border border-border text-muted-foreground font-heading font-bold text-sm">
+                          {opt.club.name[0]}
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <p className="font-heading font-semibold text-sm text-foreground truncate">{opt.club.name}</p>
+                        {opt.location && (
+                          <p className="text-xs text-muted-foreground truncate">{opt.location.name}, {opt.location.location}</p>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
             </motion.div>
           )}
-
-          {/* Location selector */}
-          {selectedActivity && resolvedClubId && locationsForClub.length > 1 && (
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.13 }}>
-              <Label className="text-sm font-medium text-muted-foreground mb-4 block">Choose Location</Label>
-              <Select value={selectedLocation} onValueChange={setSelectedLocation}>
-                <SelectTrigger className="w-full max-w-sm h-12" style={selectedLocation ? brand.glowSm : undefined}>
-                  <SelectValue placeholder="Select a location..." />
-                </SelectTrigger>
-                <SelectContent className="bg-card border-border z-50">
-                  {locationsForClub.map(loc => (
-                    <SelectItem key={loc.id} value={loc.id}>{loc.name} — {loc.location}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </motion.div>
-          )}
-          {selectedActivity && resolvedClubId && locationsForClub.length === 1 && (
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.13 }}>
-              <Label className="text-sm font-medium text-muted-foreground mb-4 block">Location</Label>
-              <div className="w-full max-w-sm h-12 flex items-center px-4 rounded-md border bg-secondary" style={brand.glowSm}>
-                <span className="text-foreground">{locationsForClub[0].name} — {locationsForClub[0].location}</span>
+          {selectedActivity && clubLocationOptions.length === 1 && (
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}>
+              <Label className="text-sm font-medium text-muted-foreground mb-4 block">Club</Label>
+              <div className="flex items-center gap-3 rounded-xl border-2 px-4 py-3 max-w-sm" style={brand.glowSm}>
+                {clubLocationOptions[0].club.logo_url ? (
+                  <img src={clubLocationOptions[0].club.logo_url} alt="" className="h-10 w-10 rounded-lg object-cover shrink-0 border border-border" />
+                ) : (
+                  <div className="h-10 w-10 rounded-lg bg-secondary flex items-center justify-center shrink-0 border border-border text-muted-foreground font-heading font-bold text-sm">
+                    {clubLocationOptions[0].club.name[0]}
+                  </div>
+                )}
+                <div>
+                  <p className="font-heading font-semibold text-sm text-foreground">{clubLocationOptions[0].club.name}</p>
+                  {clubLocationOptions[0].location && (
+                    <p className="text-xs text-muted-foreground">{clubLocationOptions[0].location.name}, {clubLocationOptions[0].location.location}</p>
+                  )}
+                </div>
               </div>
             </motion.div>
           )}
