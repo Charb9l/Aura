@@ -43,6 +43,7 @@ interface ClubInfo {
   name: string;
   logo_url: string | null;
   offerings: string[];
+  created_at: string;
 }
 
 const TIME_SLOTS = [
@@ -144,7 +145,7 @@ const ProfilePage = () => {
           .maybeSingle(),
         supabase
           .from("clubs")
-          .select("id, name, logo_url, offerings, published")
+          .select("id, name, logo_url, offerings, published, created_at")
           .order("name"),
       ]);
 
@@ -259,12 +260,45 @@ const ProfilePage = () => {
 
   const totalBookings = bookings.filter(b => b.attendance_status === "show").length;
 
-  // Loyalty per club: count bookings whose activity slug is in the club's activities
+  // Loyalty per club: each booking is attributed to exactly one club
+  const normalize = (v: string) => (v || "").toLowerCase().replace(/[-_]+/g, " ").trim();
+  const resolveClubForBooking = (b: Booking) => {
+    const activitySlug = normalize(b.activity);
+    const activityName = normalize(b.activity_name);
+
+    const candidates = clubs.filter((club) =>
+      club.offerings.some((off) => {
+        const o = normalize(off);
+        return o.includes(activitySlug) || o.includes(activityName) || activityName.includes(o);
+      })
+    );
+
+    if (candidates.length <= 1) return candidates[0] || null;
+
+    const eligibleByTime = candidates.filter((club) => new Date(club.created_at) <= new Date(b.created_at));
+    if (eligibleByTime.length === 1) return eligibleByTime[0];
+    if (eligibleByTime.length > 1) {
+      return eligibleByTime.sort((a, z) => new Date(z.created_at).getTime() - new Date(a.created_at).getTime())[0];
+    }
+
+    return candidates.sort((a, z) => a.name.localeCompare(z.name))[0];
+  };
+
   const clubPoints: Record<string, number> = {};
   clubs.forEach(club => {
-    const showCount = bookings.filter(b => club.offerings.includes(b.activity_name) && b.attendance_status === "show").length;
-    const noShowCount = bookings.filter(b => club.offerings.includes(b.activity_name) && b.attendance_status === "no_show").length;
-    clubPoints[club.id] = Math.max(0, showCount - noShowCount);
+    clubPoints[club.id] = 0;
+  });
+
+  bookings.forEach((b) => {
+    if (b.attendance_status !== "show" && b.attendance_status !== "no_show") return;
+    const club = resolveClubForBooking(b);
+    if (!club) return;
+    if (b.attendance_status === "show") clubPoints[club.id] += 1;
+    if (b.attendance_status === "no_show") clubPoints[club.id] -= 1;
+  });
+
+  Object.keys(clubPoints).forEach((clubId) => {
+    clubPoints[clubId] = Math.max(0, clubPoints[clubId]);
   });
 
   const handleAssignPoint = async () => {

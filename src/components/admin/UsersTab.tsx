@@ -202,25 +202,47 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
       supabase.from("profiles").select("*").eq("user_id", u.user_id).maybeSingle(),
       supabase.from("player_selections").select("*").eq("user_id", u.user_id).order("rank"),
       supabase.from("badge_point_assignments").select("*").eq("user_id", u.user_id).order("created_at", { ascending: false }),
-      supabase.from("bookings").select("activity, attendance_status").eq("user_id", u.user_id).in("attendance_status", ["show", "no_show"]),
+      supabase.from("bookings").select("activity, activity_name, attendance_status, created_at").eq("user_id", u.user_id).in("attendance_status", ["show", "no_show"]),
     ]);
     setViewProfile(profileRes.data);
     setViewSelections((selectionsRes.data || []) as unknown as PlayerSelection[]);
     setViewBadges((badgesRes.data || []) as unknown as BadgeAssignment[]);
 
-    // Calculate loyalty points per club from bookings
-    const bookings = (bookingsRes.data || []) as { activity: string; attendance_status: string }[];
+    // Calculate loyalty points per club from bookings (1 booking => max 1 club)
+    const normalize = (v: string) => (v || "").toLowerCase().replace(/[-_]+/g, " ").trim();
+    const bookings = (bookingsRes.data || []) as { activity: string; activity_name: string; attendance_status: string; created_at: string }[];
     const pointsByClub = new Map<string, { shows: number; noShows: number }>();
-    for (const b of bookings) {
-      for (const club of clubs) {
-        if (club.offerings.includes(b.activity)) {
-          const existing = pointsByClub.get(club.id) || { shows: 0, noShows: 0 };
-          if (b.attendance_status === "show") existing.shows++;
-          else if (b.attendance_status === "no_show") existing.noShows++;
-          pointsByClub.set(club.id, existing);
-        }
+
+    const resolveClubForBooking = (b: { activity: string; activity_name: string; created_at: string }) => {
+      const activitySlug = normalize(b.activity);
+      const activityName = normalize(b.activity_name);
+      const candidates = clubs.filter((club) =>
+        club.offerings.some((off) => {
+          const o = normalize(off);
+          return o.includes(activitySlug) || o.includes(activityName) || activityName.includes(o);
+        })
+      );
+
+      if (candidates.length <= 1) return candidates[0] || null;
+
+      const eligibleByTime = candidates.filter((club) => new Date(club.created_at) <= new Date(b.created_at));
+      if (eligibleByTime.length === 1) return eligibleByTime[0];
+      if (eligibleByTime.length > 1) {
+        return eligibleByTime.sort((a, z) => new Date(z.created_at).getTime() - new Date(a.created_at).getTime())[0];
       }
+
+      return candidates.sort((a, z) => a.name.localeCompare(z.name))[0];
+    };
+
+    for (const b of bookings) {
+      const club = resolveClubForBooking(b);
+      if (!club) continue;
+      const existing = pointsByClub.get(club.id) || { shows: 0, noShows: 0 };
+      if (b.attendance_status === "show") existing.shows++;
+      else if (b.attendance_status === "no_show") existing.noShows++;
+      pointsByClub.set(club.id, existing);
     }
+
     const loyaltyArr = Array.from(pointsByClub.entries()).map(([clubId, pts]) => ({
       clubId,
       clubName: clubs.find(c => c.id === clubId)?.name || "Unknown",
