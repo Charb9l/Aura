@@ -203,7 +203,7 @@ const SportSelectionCard = ({
           {/* Availability */}
           <div className="space-y-1.5">
             <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-              <Clock className="h-3 w-3" /> Availability <span className="text-muted-foreground/60">(select multiple)</span>:
+              <Clock className="h-3 w-3" /> Availability for Matchmaking <span className="text-muted-foreground/60">(select multiple)</span>:
             </p>
             <div className="grid grid-cols-4 gap-1 text-xs">
               {/* Header row */}
@@ -226,12 +226,12 @@ const SportSelectionCard = ({
                         key={`${day}-${period.value}`}
                         onClick={() => onToggleAvailability(sel.rank, day, period.value)}
                         className={cn(
-                          "rounded-md border py-2 transition-all font-medium",
-                          !active && "border-border text-muted-foreground/40 hover:border-muted-foreground/50 hover:text-foreground"
+                          "h-8 w-8 mx-auto rounded-full border transition-all font-medium flex items-center justify-center text-xs",
+                          !active && "border-border text-muted-foreground/40 hover:border-muted-foreground/50"
                         )}
                         style={chipStyle(active)}
                       >
-                        {active ? "✓" : "–"}
+                        {active ? "✓" : ""}
                       </button>
                     );
                   })}
