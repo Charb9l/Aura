@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { format, isSameDay, parseISO } from "date-fns";
-import { CalendarCheck, Clock, User, Mail, Phone, MapPin, FileText, Trash2, CheckCircle, XCircle, Search, GraduationCap, Eye } from "lucide-react";
+import { CalendarCheck, Clock, User, Mail, Phone, MapPin, FileText, Trash2, CheckCircle, XCircle, Search, GraduationCap, Eye, DollarSign } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -40,6 +40,7 @@ interface Props {
 const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, onUpdateBooking, onAddBooking, allUsers, initialDate, onInitialDateHandled }: Props) => {
   const [selectedDate, setSelectedDate] = useState<Date>(initialDate ? parseISO(initialDate) : new Date());
   const [selectedBooking, setSelectedBooking] = useState<BookingRow | null>(null);
+  const [bookingPrice, setBookingPrice] = useState<{ price: number; label: string | null } | null>(null);
   const [clubFilter, setClubFilter] = useState<string>("all");
   const [showLogs, setShowLogs] = useState(false);
   const [auditLogs, setAuditLogs] = useState<AuditLogRow[]>([]);
@@ -47,6 +48,28 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
   const [logSearch, setLogSearch] = useState("");
   const [logActivityFilter, setLogActivityFilter] = useState<string>("all");
   const [logAcademyOnly, setLogAcademyOnly] = useState(false);
+
+  // Fetch price when a booking is selected
+  useEffect(() => {
+    if (!selectedBooking) { setBookingPrice(null); return; }
+    const fetchPrice = async () => {
+      const slug = selectedBooking.activity;
+      const courtType = selectedBooking.court_type;
+      let query = supabase.from("club_activity_prices").select("price, price_label").eq("activity_slug", slug);
+      if (courtType) {
+        query = query.eq("price_label", courtType);
+      }
+      const { data } = await query.limit(1).maybeSingle();
+      if (data) {
+        setBookingPrice({ price: data.price, label: data.price_label });
+      } else {
+        // fallback: try without price_label filter
+        const { data: fallback } = await supabase.from("club_activity_prices").select("price, price_label").eq("activity_slug", slug).limit(1).maybeSingle();
+        setBookingPrice(fallback ? { price: fallback.price, label: fallback.price_label } : null);
+      }
+    };
+    fetchPrice();
+  }, [selectedBooking]);
 
 
   useEffect(() => {
@@ -370,6 +393,21 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
                       <span className="text-foreground">{selectedBooking.activity_name}{selectedBooking.court_type ? ` — ${selectedBooking.court_type}` : ""}</span>
                     </div>
                   </div>
+                  {bookingPrice && (
+                    <div className="flex items-center justify-between pt-2 border-t border-border">
+                      <div className="flex items-center gap-2">
+                        <DollarSign className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground">Price{bookingPrice.label ? ` (${bookingPrice.label})` : ""}</span>
+                      </div>
+                      <span className="font-semibold text-foreground">
+                        {selectedBooking.discount_type === "free"
+                          ? <><span className="line-through text-muted-foreground mr-2">${bookingPrice.price}</span><span className="text-emerald-400">FREE</span></>
+                          : selectedBooking.discount_type === "50%"
+                          ? <><span className="line-through text-muted-foreground mr-2">${bookingPrice.price}</span>${(bookingPrice.price / 2).toFixed(0)}</>
+                          : `$${bookingPrice.price}`}
+                      </span>
+                    </div>
+                  )}
                   {selectedBooking.discount_type && (
                     <div className="flex items-center justify-between pt-2 border-t border-border">
                       <span className="text-xs text-muted-foreground">Loyalty Discount</span>
