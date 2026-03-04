@@ -91,7 +91,7 @@ const LoyaltyPage = () => {
       {/* How it works — editorial grid */}
       <section className="border-t border-border/50">
         <div className="container mx-auto px-6">
-          <div className="py-16">
+          <div className="py-10">
             <motion.div
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
