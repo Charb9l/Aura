@@ -298,7 +298,7 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen flex bg-background">
-      <AdminNavbar activeTab={activeTab} onTabChange={setActiveTab} assignedClubId={myClubId} />
+      <AdminNavbar activeTab={activeTab} onTabChange={setActiveTab} assignedClubId={myClubId} notificationCount={notificationCount} />
       <div className="flex-1 md:ml-60 px-4 md:px-10 pt-[72px] md:pt-8 pb-16">
 
         {activeTab === "overview" && (
