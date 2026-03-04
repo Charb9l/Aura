@@ -362,6 +362,28 @@ const BookPage = () => {
           </motion.div>
         )}
 
+        {/* Admin Promotion Banner */}
+        {user && activePromo && !hasRewards && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
+            <div className="rounded-2xl border border-accent/30 bg-accent/5 p-4 sm:p-5">
+              <div className="flex items-start gap-3">
+                <div className="h-10 w-10 rounded-xl bg-accent/15 flex items-center justify-center shrink-0">
+                  <Sparkles className="h-5 w-5 text-accent-foreground" />
+                </div>
+                <div>
+                  <p className="font-heading font-bold text-foreground text-sm mb-1">🎁 You have a special promotion!</p>
+                  <p className="text-sm text-muted-foreground">
+                    <span className="font-semibold text-foreground">
+                      {activePromo.discount_type === "free" ? "Free booking" : activePromo.discount_type === "percentage" ? `${activePromo.discount_value}% off` : `$${activePromo.discount_value} off`}
+                    </span>
+                    {" "}— valid for your next {activePromo.remaining_uses} booking{activePromo.remaining_uses > 1 ? "s" : ""}.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-10">
           {/* Activity selection */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
