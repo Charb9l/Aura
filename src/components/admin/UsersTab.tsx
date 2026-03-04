@@ -90,6 +90,7 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
   const [viewProfile, setViewProfile] = useState<any>(null);
   const [viewSelections, setViewSelections] = useState<PlayerSelection[]>([]);
   const [viewBadges, setViewBadges] = useState<BadgeAssignment[]>([]);
+  const [viewLoyalty, setViewLoyalty] = useState<{ clubId: string; clubName: string; shows: number; noShows: number; total: number }[]>([]);
   const [viewLoading, setViewLoading] = useState(false);
 
   // Lookup data for profile viewer
