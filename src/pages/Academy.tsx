@@ -347,7 +347,7 @@ const AcademyPage = () => {
 
       <div className="container mx-auto px-6 pb-16">
         {/* Filters */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-3 flex-wrap py-8">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-3 flex-wrap py-5">
           {academyOfferings.length > 0 && (
             <ActivityFilter offerings={academyOfferings} selected={filterSlugs} onChange={(s) => { setFilterSlugs(s); setFilterLocation(""); }} />
           )}
