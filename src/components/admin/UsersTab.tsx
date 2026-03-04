@@ -112,14 +112,20 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
 
   useEffect(() => {
     const fetchLookups = async () => {
-      const [oRes, lRes, clRes] = await Promise.all([
+      const [oRes, lRes, locRes, psRes, gRes, pRes] = await Promise.all([
         supabase.from("offerings").select("id, name, slug, brand_color"),
         supabase.from("player_levels").select("id, label, display_order").order("display_order"),
-        supabase.from("club_locations").select("id, name, location, club_id"),
+        supabase.from("locations").select("id, name").order("name"),
+        supabase.from("playstyles").select("label, value").order("display_order"),
+        supabase.from("goals").select("label, value").order("display_order"),
+        supabase.from("availability_periods").select("label, value").order("display_order"),
       ]);
       if (oRes.data) setOfferings(oRes.data);
       if (lRes.data) setPlayerLevels(lRes.data);
-      if (clRes.data) setClubLocations(clRes.data);
+      if (locRes.data) setAllLocations(locRes.data);
+      if (psRes.data) setAllPlaystyles(psRes.data);
+      if (gRes.data) setAllGoals(gRes.data);
+      if (pRes.data) setAllPeriods(pRes.data);
     };
     fetchLookups();
   }, []);
