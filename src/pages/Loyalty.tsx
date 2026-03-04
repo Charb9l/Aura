@@ -44,54 +44,44 @@ const LoyaltyPage = () => {
       <Navbar />
 
       {/* Hero — cinematic, angular */}
-      <section className="relative pt-32 pb-24 overflow-hidden">
-        {/* Geometric accent lines */}
+      <section className="relative pt-28 pb-12 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-20 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
-          <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/10 to-transparent" />
-          <div className="absolute top-0 left-1/4 w-px h-full bg-gradient-to-b from-transparent via-primary/8 to-transparent" />
-          <div className="absolute top-0 right-1/4 w-px h-full bg-gradient-to-b from-transparent via-primary/8 to-transparent" />
         </div>
 
         <div className="container mx-auto px-6 relative">
           <motion.div
-            initial={{ opacity: 0, y: 40 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            className="max-w-3xl mx-auto text-center"
+            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            className="max-w-4xl mx-auto flex flex-col md:flex-row items-center md:items-end gap-6 md:gap-12"
           >
-            <motion.span
-              initial={{ opacity: 0, letterSpacing: "0.3em" }}
-              animate={{ opacity: 1, letterSpacing: "0.35em" }}
-              transition={{ delay: 0.3, duration: 0.6 }}
-              className="inline-block text-[10px] uppercase tracking-[0.35em] text-primary font-medium mb-8"
-            >
-              Summit Rewards Program
-            </motion.span>
+            <div className="flex-1 text-center md:text-left">
+              <span className="inline-block text-[10px] uppercase tracking-[0.35em] text-primary font-medium mb-4">
+                Summit Rewards Program
+              </span>
+              <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl font-light text-foreground leading-[0.95]">
+                {title.split(". ").length > 1 ? (
+                  <>
+                    {title.split(". ")[0]}.{" "}
+                    <span className="text-primary italic">{title.split(". ").slice(1).join(". ")}</span>
+                  </>
+                ) : (
+                  <span className="text-primary italic">{title}</span>
+                )}
+              </h1>
+              <p className="text-muted-foreground text-sm max-w-md mt-3 leading-relaxed font-light md:mx-0 mx-auto">
+                {subtitle}
+              </p>
+            </div>
 
-            <h1 className="font-heading text-4xl sm:text-5xl md:text-7xl font-light text-foreground mb-6 leading-[0.95]">
-              {title.split(". ").length > 1 ? (
-                <>
-                  {title.split(". ")[0]}.
-                  <br />
-                  <span className="text-primary italic">{title.split(". ").slice(1).join(". ")}</span>
-                </>
-              ) : (
-                <span className="text-primary italic">{title}</span>
-              )}
-            </h1>
-
-            <p className="text-muted-foreground text-sm md:text-base max-w-lg mx-auto mb-10 leading-relaxed font-light">
-              {subtitle}
-            </p>
-
-            <Link to="/profile">
+            <Link to="/profile" className="shrink-0">
               <Button
                 variant="outline"
-                className="h-11 px-8 text-xs uppercase tracking-[0.2em] font-medium border-primary/40 text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-500"
+                className="h-10 px-6 text-[10px] uppercase tracking-[0.2em] font-medium border-primary/40 text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-500"
               >
                 View My Loyalty
-                <ChevronRight className="ml-2 h-3.5 w-3.5" />
+                <ChevronRight className="ml-2 h-3 w-3" />
               </Button>
             </Link>
           </motion.div>
