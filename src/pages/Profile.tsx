@@ -316,6 +316,14 @@ const ProfilePage = () => {
     clubPoints[clubId] = Math.max(0, clubPoints[clubId]);
   });
 
+  // Helper: map booking activity slug → club name
+  const getClubForBooking = (b: Booking): string => {
+    const matched = clubs
+      .filter(club => club.offerings.some(off => off.toLowerCase() === b.activity.toLowerCase()))
+      .sort((a, z) => a.name.localeCompare(z.name));
+    return matched[0]?.name || b.activity_name;
+  };
+
   const handleAssignPoint = async () => {
     if (!selectedClubForPoint || availableBadgePoints <= 0 || !nextUnassignedLevel) return;
     setAssigningPoint(true);
