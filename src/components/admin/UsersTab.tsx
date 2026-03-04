@@ -90,6 +90,7 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
   const [viewProfile, setViewProfile] = useState<any>(null);
   const [viewSelections, setViewSelections] = useState<PlayerSelection[]>([]);
   const [viewBadges, setViewBadges] = useState<BadgeAssignment[]>([]);
+  const [viewLoyalty, setViewLoyalty] = useState<{ clubId: string; clubName: string; shows: number; noShows: number; total: number }[]>([]);
   const [viewLoading, setViewLoading] = useState(false);
 
   // Lookup data for profile viewer
@@ -190,14 +191,37 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
   const openProfileViewer = async (u: UserWithEmail) => {
     setViewUser(u);
     setViewLoading(true);
-    const [profileRes, selectionsRes, badgesRes] = await Promise.all([
+    const [profileRes, selectionsRes, badgesRes, bookingsRes] = await Promise.all([
       supabase.from("profiles").select("*").eq("user_id", u.user_id).maybeSingle(),
       supabase.from("player_selections").select("*").eq("user_id", u.user_id).order("rank"),
       supabase.from("badge_point_assignments").select("*").eq("user_id", u.user_id).order("created_at", { ascending: false }),
+      supabase.from("bookings").select("activity, attendance_status").eq("user_id", u.user_id).in("attendance_status", ["show", "no_show"]),
     ]);
     setViewProfile(profileRes.data);
     setViewSelections((selectionsRes.data || []) as unknown as PlayerSelection[]);
     setViewBadges((badgesRes.data || []) as unknown as BadgeAssignment[]);
+
+    // Calculate loyalty points per club from bookings
+    const bookings = (bookingsRes.data || []) as { activity: string; attendance_status: string }[];
+    const pointsByClub = new Map<string, { shows: number; noShows: number }>();
+    for (const b of bookings) {
+      for (const club of clubs) {
+        if (club.offerings.includes(b.activity)) {
+          const existing = pointsByClub.get(club.id) || { shows: 0, noShows: 0 };
+          if (b.attendance_status === "show") existing.shows++;
+          else if (b.attendance_status === "no_show") existing.noShows++;
+          pointsByClub.set(club.id, existing);
+        }
+      }
+    }
+    const loyaltyArr = Array.from(pointsByClub.entries()).map(([clubId, pts]) => ({
+      clubId,
+      clubName: clubs.find(c => c.id === clubId)?.name || "Unknown",
+      shows: pts.shows,
+      noShows: pts.noShows,
+      total: pts.shows - pts.noShows,
+    })).sort((a, b) => b.total - a.total);
+    setViewLoyalty(loyaltyArr);
     setViewLoading(false);
   };
 
@@ -460,44 +484,82 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
                 <h3 className="font-heading text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
                   <Trophy className="h-5 w-5 text-primary" /> Loyalty Program
                 </h3>
-                {viewBadges.length === 0 ? (
+                {viewLoyalty.length === 0 && viewBadges.length === 0 ? (
                   <p className="text-sm text-muted-foreground">No loyalty records yet.</p>
                 ) : (
-                  <div className="space-y-2">
-                    {viewBadges.map(badge => {
-                      const club = clubs.find(c => c.id === badge.club_id);
-                      const isEditing = editingBadge?.id === badge.id;
-                      return (
-                        <div key={badge.id} className="flex items-center gap-3 rounded-lg border border-border bg-secondary/30 p-3">
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-foreground">{club?.name || "Unknown Club"}</p>
-                            <p className="text-xs text-muted-foreground">Points: {badge.badge_level} / 10</p>
-                          </div>
-                          {/* Visual tracker */}
-                          <div className="flex gap-0.5">
-                            {Array.from({ length: 10 }, (_, i) => (
-                              <div key={i} className={cn("h-3 w-3 rounded-full", i < badge.badge_level ? "bg-primary" : "bg-border")} />
-                            ))}
-                          </div>
-                          {isEditing ? (
-                            <div className="flex items-center gap-2">
-                              <Input
-                                type="number"
-                                min={0}
-                                max={10}
-                                value={editingBadge.level}
-                                onChange={(e) => setEditingBadge({ ...editingBadge, level: parseInt(e.target.value) || 0 })}
-                                className="h-8 w-16 bg-secondary border-border text-sm text-center"
-                              />
-                              <Button size="sm" variant="default" disabled={savingBadge} onClick={() => handleSaveBadge(badge.id, editingBadge.level)} className="h-8 px-3">Save</Button>
-                              <Button size="sm" variant="ghost" onClick={() => setEditingBadge(null)} className="h-8 px-2">✕</Button>
+                  <div className="space-y-3">
+                    {/* Booking-based loyalty points */}
+                    {viewLoyalty.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Points from Attendance</p>
+                        {viewLoyalty.map(lp => (
+                          <div key={lp.clubId} className="flex items-center gap-3 rounded-lg border border-border bg-secondary/30 p-3">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-foreground">{lp.clubName}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {lp.shows} show{lp.shows !== 1 ? "s" : ""} · {lp.noShows} no-show{lp.noShows !== 1 ? "s" : ""}
+                              </p>
                             </div>
-                          ) : (
-                            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => setEditingBadge({ id: badge.id, level: badge.badge_level })}><Pencil className="h-3.5 w-3.5" /></Button>
-                          )}
-                        </div>
-                      );
-                    })}
+                            <div className="flex gap-0.5">
+                              {Array.from({ length: 10 }, (_, i) => (
+                                <div key={i} className={cn(
+                                  "h-3 w-3 rounded-full",
+                                  i < Math.max(0, lp.total) ? (i < 5 ? "bg-primary" : "bg-primary") : "bg-border",
+                                  i === 4 && "ring-1 ring-primary/40",
+                                  i === 9 && "ring-1 ring-primary/40"
+                                )} />
+                              ))}
+                            </div>
+                            <span className={cn(
+                              "text-sm font-bold tabular-nums min-w-[2rem] text-right",
+                              lp.total > 0 ? "text-primary" : lp.total < 0 ? "text-destructive" : "text-muted-foreground"
+                            )}>
+                              {lp.total}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Badge reward assignments */}
+                    {viewBadges.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Badge Reward Points</p>
+                        {viewBadges.map(badge => {
+                          const club = clubs.find(c => c.id === badge.club_id);
+                          const isEditing = editingBadge?.id === badge.id;
+                          return (
+                            <div key={badge.id} className="flex items-center gap-3 rounded-lg border border-border bg-secondary/30 p-3">
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-foreground">{club?.name || "Unknown Club"}</p>
+                                <p className="text-xs text-muted-foreground">Badge Points: {badge.badge_level} / 10</p>
+                              </div>
+                              <div className="flex gap-0.5">
+                                {Array.from({ length: 10 }, (_, i) => (
+                                  <div key={i} className={cn("h-3 w-3 rounded-full", i < badge.badge_level ? "bg-primary" : "bg-border")} />
+                                ))}
+                              </div>
+                              {isEditing ? (
+                                <div className="flex items-center gap-2">
+                                  <Input
+                                    type="number"
+                                    min={0}
+                                    max={10}
+                                    value={editingBadge.level}
+                                    onChange={(e) => setEditingBadge({ ...editingBadge, level: parseInt(e.target.value) || 0 })}
+                                    className="h-8 w-16 bg-secondary border-border text-sm text-center"
+                                  />
+                                  <Button size="sm" variant="default" disabled={savingBadge} onClick={() => handleSaveBadge(badge.id, editingBadge.level)} className="h-8 px-3">Save</Button>
+                                  <Button size="sm" variant="ghost" onClick={() => setEditingBadge(null)} className="h-8 px-2">✕</Button>
+                                </div>
+                              ) : (
+                                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => setEditingBadge({ id: badge.id, level: badge.badge_level })}><Pencil className="h-3.5 w-3.5" /></Button>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
