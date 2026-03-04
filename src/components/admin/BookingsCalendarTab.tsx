@@ -360,110 +360,110 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
             </Card>
           </div>
 
-          {/* Booking detail dialog */}
-          <Dialog open={!!selectedBooking} onOpenChange={(o) => !o && setSelectedBooking(null)}>
-            <DialogContent className="bg-card border-border max-w-md">
-              <DialogHeader>
-                <DialogTitle className="font-heading">Booking Details</DialogTitle>
-              </DialogHeader>
-              {selectedBooking && (
-                <div className="space-y-4 pt-2">
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary">
-                    <User className="h-5 w-5 text-primary" />
-                    <div>
-                      <p className="font-medium text-foreground">{selectedBooking.full_name}</p>
-                      <p className="text-xs text-muted-foreground">Customer</p>
-                    </div>
+      )}
+
+      {/* Booking detail dialog - outside conditional so it works from both calendar and logs */}
+      <Dialog open={!!selectedBooking} onOpenChange={(o) => !o && setSelectedBooking(null)}>
+        <DialogContent className="bg-card border-border max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-heading">Booking Details</DialogTitle>
+          </DialogHeader>
+          {selectedBooking && (
+            <div className="space-y-4 pt-2">
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary">
+                <User className="h-5 w-5 text-primary" />
+                <div>
+                  <p className="font-medium text-foreground">{selectedBooking.full_name}</p>
+                  <p className="text-xs text-muted-foreground">Customer</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 gap-3">
+                <div className="flex items-center gap-3 text-sm">
+                  <Mail className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-foreground">{selectedBooking.email}</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm">
+                  <Phone className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-foreground">{selectedBooking.phone}</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm">
+                  <CalendarCheck className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-foreground">{selectedBooking.booking_date} at {selectedBooking.booking_time}</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-foreground">{selectedBooking.activity_name}{selectedBooking.court_type ? ` — ${selectedBooking.court_type}` : ""}</span>
+                </div>
+              </div>
+              {bookingPrice && (
+                <div className="flex items-center justify-between pt-2 border-t border-border">
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground">Price{bookingPrice.label ? ` (${bookingPrice.label})` : ""}</span>
                   </div>
-                  <div className="grid grid-cols-1 gap-3">
-                    <div className="flex items-center gap-3 text-sm">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-foreground">{selectedBooking.email}</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-sm">
-                      <Phone className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-foreground">{selectedBooking.phone}</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-sm">
-                      <CalendarCheck className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-foreground">{selectedBooking.booking_date} at {selectedBooking.booking_time}</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-sm">
-                      <MapPin className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-foreground">{selectedBooking.activity_name}{selectedBooking.court_type ? ` — ${selectedBooking.court_type}` : ""}</span>
-                    </div>
-                  </div>
-                  {bookingPrice && (
-                    <div className="flex items-center justify-between pt-2 border-t border-border">
-                      <div className="flex items-center gap-2">
-                        <DollarSign className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-xs text-muted-foreground">Price{bookingPrice.label ? ` (${bookingPrice.label})` : ""}</span>
-                      </div>
-                      <span className="font-semibold text-foreground">
-                        {selectedBooking.discount_type === "free"
-                          ? <><span className="line-through text-muted-foreground mr-2">${bookingPrice.price}</span><span className="text-emerald-400">FREE</span></>
-                          : selectedBooking.discount_type === "50%"
-                          ? <><span className="line-through text-muted-foreground mr-2">${bookingPrice.price}</span>${(bookingPrice.price / 2).toFixed(0)}</>
-                          : `$${bookingPrice.price}`}
-                      </span>
-                    </div>
-                  )}
-                  {selectedBooking.discount_type && (
-                    <div className="flex items-center justify-between pt-2 border-t border-border">
-                      <span className="text-xs text-muted-foreground">Loyalty Discount</span>
-                      {selectedBooking.discount_type === "50%" && <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">50% OFF</Badge>}
-                      {selectedBooking.discount_type === "free" && <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">FREE</Badge>}
-                    </div>
-                  )}
-                  <div className="flex items-center justify-between pt-2 border-t border-border">
-                    <span className="text-xs text-muted-foreground">Status</span>
-                    <Badge variant={selectedBooking.status === "confirmed" ? "default" : "secondary"}>{selectedBooking.status}</Badge>
-                  </div>
-                  {selectedBooking.attendance_status && (
-                    <div className="flex items-center justify-between pt-2 border-t border-border">
-                      <span className="text-xs text-muted-foreground">Attendance</span>
-                      {selectedBooking.attendance_status === "show" ? (
-                        <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 flex items-center gap-1"><CheckCircle className="h-3 w-3" /> Show</Badge>
-                      ) : (
-                        <Badge className="bg-destructive/20 text-destructive border-destructive/30 flex items-center gap-1"><XCircle className="h-3 w-3" /> No Show</Badge>
-                      )}
-                    </div>
-                  )}
-                  {onUpdateBooking && !selectedBooking.attendance_status && (
-                    <div className="pt-4 border-t border-border flex gap-3">
-                      <Button className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white gap-2" onClick={async () => {
-                        const { error } = await supabase.from("bookings").update({ attendance_status: "show" }).eq("id", selectedBooking.id);
-                        if (error) { toast.error("Failed to mark as show: " + error.message); }
-                        else { toast.success(`${selectedBooking.full_name} marked as Show ✓`); onUpdateBooking(selectedBooking.id, { attendance_status: "show" }); setSelectedBooking(null); }
-                      }}>
-                        <CheckCircle className="h-4 w-4" /> Show
-                      </Button>
-                      <Button variant="destructive" className="flex-1 gap-2" onClick={async () => {
-                        const { error: fnError } = await supabase.functions.invoke("no-show-email", { body: { booking_id: selectedBooking.id } });
-                        if (fnError) { toast.error("Failed to mark no-show: " + fnError.message); }
-                        else { toast.success(`${selectedBooking.full_name} marked as No Show. -1 loyalty penalty applied.`); onUpdateBooking(selectedBooking.id, { attendance_status: "no_show" }); setSelectedBooking(null); }
-                      }}>
-                        <XCircle className="h-4 w-4" /> No Show
-                      </Button>
-                    </div>
-                  )}
-                  {onDeleteBooking && (
-                    <div className={cn("border-t border-border", selectedBooking.attendance_status ? "pt-4" : "pt-2")}>
-                      <Button variant="destructive" className="w-full" onClick={async () => {
-                        const { error } = await supabase.from("bookings").delete().eq("id", selectedBooking.id);
-                        if (error) { toast.error("Failed to delete booking: " + error.message); }
-                        else { toast.success("Booking deleted successfully"); onDeleteBooking(selectedBooking.id); setSelectedBooking(null); }
-                      }}>
-                        Delete Booking
-                      </Button>
-                    </div>
+                  <span className="font-semibold text-foreground">
+                    {selectedBooking.discount_type === "free"
+                      ? <><span className="line-through text-muted-foreground mr-2">${bookingPrice.price}</span><span className="text-emerald-400">FREE</span></>
+                      : selectedBooking.discount_type === "50%"
+                      ? <><span className="line-through text-muted-foreground mr-2">${bookingPrice.price}</span>${(bookingPrice.price / 2).toFixed(0)}</>
+                      : `$${bookingPrice.price}`}
+                  </span>
+                </div>
+              )}
+              {selectedBooking.discount_type && (
+                <div className="flex items-center justify-between pt-2 border-t border-border">
+                  <span className="text-xs text-muted-foreground">Loyalty Discount</span>
+                  {selectedBooking.discount_type === "50%" && <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">50% OFF</Badge>}
+                  {selectedBooking.discount_type === "free" && <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">FREE</Badge>}
+                </div>
+              )}
+              <div className="flex items-center justify-between pt-2 border-t border-border">
+                <span className="text-xs text-muted-foreground">Status</span>
+                <Badge variant={selectedBooking.status === "confirmed" ? "default" : "secondary"}>{selectedBooking.status}</Badge>
+              </div>
+              {selectedBooking.attendance_status && (
+                <div className="flex items-center justify-between pt-2 border-t border-border">
+                  <span className="text-xs text-muted-foreground">Attendance</span>
+                  {selectedBooking.attendance_status === "show" ? (
+                    <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 flex items-center gap-1"><CheckCircle className="h-3 w-3" /> Show</Badge>
+                  ) : (
+                    <Badge className="bg-destructive/20 text-destructive border-destructive/30 flex items-center gap-1"><XCircle className="h-3 w-3" /> No Show</Badge>
                   )}
                 </div>
               )}
-            </DialogContent>
-          </Dialog>
-        </>
-      )}
+              {onUpdateBooking && !selectedBooking.attendance_status && (
+                <div className="pt-4 border-t border-border flex gap-3">
+                  <Button className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white gap-2" onClick={async () => {
+                    const { error } = await supabase.from("bookings").update({ attendance_status: "show" }).eq("id", selectedBooking.id);
+                    if (error) { toast.error("Failed to mark as show: " + error.message); }
+                    else { toast.success(`${selectedBooking.full_name} marked as Show ✓`); onUpdateBooking(selectedBooking.id, { attendance_status: "show" }); setSelectedBooking(null); }
+                  }}>
+                    <CheckCircle className="h-4 w-4" /> Show
+                  </Button>
+                  <Button variant="destructive" className="flex-1 gap-2" onClick={async () => {
+                    const { error: fnError } = await supabase.functions.invoke("no-show-email", { body: { booking_id: selectedBooking.id } });
+                    if (fnError) { toast.error("Failed to mark no-show: " + fnError.message); }
+                    else { toast.success(`${selectedBooking.full_name} marked as No Show. -1 loyalty penalty applied.`); onUpdateBooking(selectedBooking.id, { attendance_status: "no_show" }); setSelectedBooking(null); }
+                  }}>
+                    <XCircle className="h-4 w-4" /> No Show
+                  </Button>
+                </div>
+              )}
+              {onDeleteBooking && (
+                <div className={cn("border-t border-border", selectedBooking.attendance_status ? "pt-4" : "pt-2")}>
+                  <Button variant="destructive" className="w-full" onClick={async () => {
+                    const { error } = await supabase.from("bookings").delete().eq("id", selectedBooking.id);
+                    if (error) { toast.error("Failed to delete booking: " + error.message); }
+                    else { toast.success("Booking deleted successfully"); onDeleteBooking(selectedBooking.id); setSelectedBooking(null); }
+                  }}>
+                    Delete Booking
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
     </div>
   );
