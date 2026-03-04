@@ -53,15 +53,6 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
   const [logActivityFilter, setLogActivityFilter] = useState<string>("all");
   const [logAcademyOnly, setLogAcademyOnly] = useState(false);
 
-  const [showAddBooking, setShowAddBooking] = useState(false);
-  const [addActivity, setAddActivity] = useState("");
-  const [addDate, setAddDate] = useState<Date | undefined>(undefined);
-  const [addTime, setAddTime] = useState("");
-  const [addName, setAddName] = useState("");
-  const [addEmail, setAddEmail] = useState("");
-  const [addPhone, setAddPhone] = useState("");
-  const [addCourtType, setAddCourtType] = useState("");
-  const [addSaving, setAddSaving] = useState(false);
 
   useEffect(() => {
     if (initialDate) {
