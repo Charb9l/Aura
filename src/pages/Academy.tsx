@@ -302,7 +302,7 @@ const AcademyPage = () => {
       <Navbar />
 
       {/* Hero section with dynamic grid background */}
-      <section className="relative min-h-[50vh] flex items-center justify-center overflow-hidden">
+      <section className="relative min-h-[38vh] flex items-center justify-center overflow-hidden">
         {visibleHeroPics.length > 0 && (
           <div className={cn("absolute inset-0 grid", getGridLayout(visibleHeroPics.length))}>
             <AnimatePresence mode="popLayout">
