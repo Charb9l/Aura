@@ -346,6 +346,8 @@ const AdminDashboard = () => {
             adminUsers={adminUsers}
             clubs={clubs}
             isMasterAdmin={!myClubId}
+            initialViewUserId={pendingViewUserId}
+            onInitialViewHandled={() => setPendingViewUserId(null)}
             onUpdateUser={(userId, updates) => setAllUsers(prev => prev.map(u => u.user_id === userId ? { ...u, ...updates } as UserWithEmail : u))}
             onUpdateAdmin={(userId, updates) => setAdminUsers(prev => prev.map(u => u.user_id === userId ? { ...u, ...updates } as UserWithEmail : u))}
             onDeleteAdmin={(userId) => { setAdminUsers(prev => prev.filter(u => u.user_id !== userId)); setAllUsers(prev => prev.filter(u => u.user_id !== userId)); }}
