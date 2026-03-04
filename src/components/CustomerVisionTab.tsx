@@ -506,6 +506,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
       background_picture: backgroundPicture,
       platform_name_line1: platformNameLine1,
       platform_name_line2: platformNameLine2,
+      show_scroll_indicator: showScrollIndicator,
     });
   };
 
