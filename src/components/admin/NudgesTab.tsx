@@ -109,6 +109,7 @@ const NudgesTab = () => {
               onChange={setSearch}
               placeholder="Search by name..."
               className="max-w-[200px]"
+              suggestions={[]}
             />
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-[130px] h-9 bg-secondary border-border text-sm">
