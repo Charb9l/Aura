@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   LogOut, LayoutDashboard, Users, Settings, Tag, CalendarCheck,
-  Building2, GraduationCap, Gamepad2, TrendingUp, PanelLeftClose, PanelLeft, FileBarChart, Package, Menu, X,
+  Building2, GraduationCap, Gamepad2, TrendingUp, PanelLeftClose, PanelLeft, FileBarChart, Package, Menu, X, Bell,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -30,6 +30,7 @@ const BASE_MENU_ITEMS = [
   { label: "Habit Tracker", icon: TrendingUp, tab: "habits" },
   { label: "Promotions", icon: Tag, tab: "promotions" },
   { label: "Reports", icon: FileBarChart, tab: "reports" },
+  { label: "Notifications", icon: Bell, tab: "notifications" },
   { label: "Users", icon: Users, tab: "users" },
   { label: "Settings", icon: Settings, tab: "settings" },
 ];
@@ -39,9 +40,10 @@ interface AdminNavbarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
   assignedClubId?: string | null;
+  notificationCount?: number;
 }
 
-const AdminNavbar = ({ activeTab, onTabChange, assignedClubId }: AdminNavbarProps) => {
+const AdminNavbar = ({ activeTab, onTabChange, assignedClubId, notificationCount = 0 }: AdminNavbarProps) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -141,6 +143,11 @@ const AdminNavbar = ({ activeTab, onTabChange, assignedClubId }: AdminNavbarProp
             </motion.span>
           )}
         </AnimatePresence>
+        {item.tab === "notifications" && notificationCount > 0 && (
+          <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold px-1.5">
+            {notificationCount > 99 ? "99+" : notificationCount}
+          </span>
+        )}
       </button>
     );
 

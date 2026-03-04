@@ -36,6 +36,7 @@ import HabitsTab from "@/components/admin/HabitsTab";
 import ActivitiesTab from "@/components/admin/ActivitiesTab";
 import AdminFinderInput, { type FinderSuggestion } from "@/components/admin/AdminFinderInput";
 import UsersTab from "@/components/admin/UsersTab";
+import NotificationsTab from "@/components/admin/NotificationsTab";
 
 // ─── Main Admin Dashboard ──────────────────────────────────────
 const AdminDashboard = () => {
@@ -82,6 +83,7 @@ const AdminDashboard = () => {
   const [clubs, setClubs] = useState<ClubRow[]>([]);
   const [myClubId, setMyClubId] = useState<string | null>(null);
   const [activityPrices, setActivityPrices] = useState<ClubActivityPrice[]>([]);
+  const [notificationCount, setNotificationCount] = useState(0);
 
   const clubActivityMap = useMemo(() => {
     const map: Record<string, string[]> = {};
@@ -107,7 +109,7 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [bRes, pRes, uRes, aRes, cRes, mcRes, pricesRes] = await Promise.all([
+      const [bRes, pRes, uRes, aRes, cRes, mcRes, pricesRes, nRes] = await Promise.all([
         supabase.from("bookings").select("*").order("created_at", { ascending: false }),
         supabase.from("profiles").select("*").order("created_at", { ascending: false }),
         supabase.functions.invoke("admin-users", { body: { action: "list" } }),
@@ -115,6 +117,7 @@ const AdminDashboard = () => {
         supabase.from("clubs").select("*").order("name"),
         supabase.functions.invoke("admin-users", { body: { action: "my-club" } }),
         supabase.from("club_activity_prices").select("*"),
+        supabase.from("admin_notifications").select("id", { count: "exact", head: true }).eq("is_read", false),
       ]);
       if (bRes.data) setBookings(bRes.data);
       if (pRes.data) setProfiles(pRes.data);
@@ -123,6 +126,7 @@ const AdminDashboard = () => {
       if (cRes.data) setClubs(cRes.data as unknown as ClubRow[]);
       if (mcRes.data?.club_id) setMyClubId(mcRes.data.club_id);
       if (pricesRes.data) setActivityPrices(pricesRes.data as unknown as ClubActivityPrice[]);
+      if (typeof nRes.count === "number") setNotificationCount(nRes.count);
       setLoadingData(false);
     };
     fetchData();
@@ -256,7 +260,7 @@ const AdminDashboard = () => {
   if (loadingData) {
     return (
       <div className="min-h-screen flex">
-        <AdminNavbar activeTab={activeTab} onTabChange={setActiveTab} assignedClubId={myClubId} />
+        <AdminNavbar activeTab={activeTab} onTabChange={setActiveTab} assignedClubId={myClubId} notificationCount={notificationCount} />
         <div className="flex-1 md:ml-60 mt-14 md:mt-0 flex items-center justify-center"><p className="text-muted-foreground text-sm">Loading...</p></div>
       </div>
     );
@@ -296,7 +300,7 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen flex bg-background">
-      <AdminNavbar activeTab={activeTab} onTabChange={setActiveTab} assignedClubId={myClubId} />
+      <AdminNavbar activeTab={activeTab} onTabChange={setActiveTab} assignedClubId={myClubId} notificationCount={notificationCount} />
       <div className="flex-1 md:ml-60 px-4 md:px-10 pt-[72px] md:pt-8 pb-16">
 
         {activeTab === "overview" && (
@@ -359,6 +363,7 @@ const AdminDashboard = () => {
         {activeTab === "matchmaker" && <MatchmakerTab />}
         {activeTab === "settings" && <SettingsTab />}
         {activeTab === "reports" && <ReportsTab />}
+        {activeTab === "notifications" && <NotificationsTab onUnreadCountChange={setNotificationCount} />}
 
         {activeTab === "habits" && <HabitsTab />}
         {activeTab === "activities" && <ActivitiesTab />}
