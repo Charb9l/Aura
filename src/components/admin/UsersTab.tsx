@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Pencil, History, Eye, Trophy, Swords, MapPin, CalendarClock, Target, Star, UserPlus, Trash2 } from "lucide-react";
+import { Pencil, History, Eye, Trophy, Swords, MapPin, CalendarClock, Target, Star, UserPlus, Trash2, Clock, Check } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -96,7 +96,10 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
   // Lookup data for profile viewer
   const [offerings, setOfferings] = useState<any[]>([]);
   const [playerLevels, setPlayerLevels] = useState<any[]>([]);
-  const [clubLocations, setClubLocations] = useState<any[]>([]);
+  const [allLocations, setAllLocations] = useState<any[]>([]);
+  const [allPlaystyles, setAllPlaystyles] = useState<any[]>([]);
+  const [allGoals, setAllGoals] = useState<any[]>([]);
+  const [allPeriods, setAllPeriods] = useState<any[]>([]);
 
   // Edit badge state
   const [editingBadge, setEditingBadge] = useState<{ id: string; level: number } | null>(null);
@@ -104,21 +107,25 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
 
   // Edit selection state
   const [editingSelection, setEditingSelection] = useState<string | null>(null);
-  const [editSelLevel, setEditSelLevel] = useState("");
-  const [editSelPlaystyle, setEditSelPlaystyle] = useState("");
-  const [editSelExperience, setEditSelExperience] = useState("");
+  const [editSelData, setEditSelData] = useState<PlayerSelection | null>(null);
   const [savingSelection, setSavingSelection] = useState(false);
 
   useEffect(() => {
     const fetchLookups = async () => {
-      const [oRes, lRes, clRes] = await Promise.all([
+      const [oRes, lRes, locRes, psRes, gRes, pRes] = await Promise.all([
         supabase.from("offerings").select("id, name, slug, brand_color"),
         supabase.from("player_levels").select("id, label, display_order").order("display_order"),
-        supabase.from("club_locations").select("id, name, location, club_id"),
+        supabase.from("locations").select("id, name").order("name"),
+        supabase.from("playstyles").select("label, value").order("display_order"),
+        supabase.from("goals").select("label, value").order("display_order"),
+        supabase.from("availability_periods").select("label, value").order("display_order"),
       ]);
       if (oRes.data) setOfferings(oRes.data);
       if (lRes.data) setPlayerLevels(lRes.data);
-      if (clRes.data) setClubLocations(clRes.data);
+      if (locRes.data) setAllLocations(locRes.data);
+      if (psRes.data) setAllPlaystyles(psRes.data);
+      if (gRes.data) setAllGoals(gRes.data);
+      if (pRes.data) setAllPeriods(pRes.data);
     };
     fetchLookups();
   }, []);
@@ -236,16 +243,23 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
   };
 
   const handleSaveSelection = async (selId: string) => {
+    if (!editSelData) return;
     setSavingSelection(true);
-    const updates: any = {};
-    if (editSelLevel) updates.level_id = editSelLevel;
-    if (editSelPlaystyle) updates.playstyle = editSelPlaystyle;
-    if (editSelExperience !== "") updates.years_experience = parseInt(editSelExperience) || null;
+    const updates: any = {
+      level_id: editSelData.level_id,
+      playstyle: editSelData.playstyle || null,
+      years_experience: editSelData.years_experience,
+      goals: editSelData.goals,
+      location_ids: editSelData.location_ids,
+      availability: editSelData.availability,
+      sport_id: editSelData.sport_id,
+    };
     const { error } = await supabase.from("player_selections").update(updates).eq("id", selId);
     setSavingSelection(false);
     if (error) { toast.error("Failed to update"); return; }
     setViewSelections(prev => prev.map(s => s.id === selId ? { ...s, ...updates } : s));
     setEditingSelection(null);
+    setEditSelData(null);
     toast.success("MyPlayer updated");
   };
 
@@ -253,7 +267,7 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
   const getOfferingColor = (id: string) => offerings.find(o => o.id === id)?.brand_color || null;
   const getLevelLabel = (id: string) => playerLevels.find(l => l.id === id)?.label || "—";
   const getLocationName = (id: string) => {
-    const loc = clubLocations.find(l => l.id === id);
+    const loc = allLocations.find(l => l.id === id);
     return loc ? loc.name : "—";
   };
 
@@ -484,15 +498,19 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
                 <h3 className="font-heading text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
                   <Trophy className="h-5 w-5 text-primary" /> Loyalty Program
                 </h3>
-                {viewLoyalty.length === 0 && viewBadges.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No loyalty records yet.</p>
-                ) : (
-                  <div className="space-y-3">
-                    {/* Booking-based loyalty points */}
-                    {viewLoyalty.length > 0 && (
+                {(() => {
+                  // Show ALL clubs, not just ones with bookings
+                  const allClubLoyalty = clubs.map(club => {
+                    const existing = viewLoyalty.find(l => l.clubId === club.id);
+                    return existing || { clubId: club.id, clubName: club.name, shows: 0, noShows: 0, total: 0 };
+                  });
+
+                  return (
+                    <div className="space-y-3">
+                      {/* Booking-based loyalty points */}
                       <div className="space-y-2">
                         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Points from Attendance</p>
-                        {viewLoyalty.map(lp => (
+                        {allClubLoyalty.map(lp => (
                           <div key={lp.clubId} className="flex items-center gap-3 rounded-lg border border-border bg-secondary/30 p-3">
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium text-foreground">{lp.clubName}</p>
@@ -504,7 +522,7 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
                               {Array.from({ length: 10 }, (_, i) => (
                                 <div key={i} className={cn(
                                   "h-3 w-3 rounded-full",
-                                  i < Math.max(0, lp.total) ? (i < 5 ? "bg-primary" : "bg-primary") : "bg-border",
+                                  i < Math.max(0, lp.total) ? "bg-primary" : "bg-border",
                                   i === 4 && "ring-1 ring-primary/40",
                                   i === 9 && "ring-1 ring-primary/40"
                                 )} />
@@ -519,49 +537,49 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
                           </div>
                         ))}
                       </div>
-                    )}
 
-                    {/* Badge reward assignments */}
-                    {viewBadges.length > 0 && (
-                      <div className="space-y-2">
-                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Badge Reward Points</p>
-                        {viewBadges.map(badge => {
-                          const club = clubs.find(c => c.id === badge.club_id);
-                          const isEditing = editingBadge?.id === badge.id;
-                          return (
-                            <div key={badge.id} className="flex items-center gap-3 rounded-lg border border-border bg-secondary/30 p-3">
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-foreground">{club?.name || "Unknown Club"}</p>
-                                <p className="text-xs text-muted-foreground">Badge Points: {badge.badge_level} / 10</p>
-                              </div>
-                              <div className="flex gap-0.5">
-                                {Array.from({ length: 10 }, (_, i) => (
-                                  <div key={i} className={cn("h-3 w-3 rounded-full", i < badge.badge_level ? "bg-primary" : "bg-border")} />
-                                ))}
-                              </div>
-                              {isEditing ? (
-                                <div className="flex items-center gap-2">
-                                  <Input
-                                    type="number"
-                                    min={0}
-                                    max={10}
-                                    value={editingBadge.level}
-                                    onChange={(e) => setEditingBadge({ ...editingBadge, level: parseInt(e.target.value) || 0 })}
-                                    className="h-8 w-16 bg-secondary border-border text-sm text-center"
-                                  />
-                                  <Button size="sm" variant="default" disabled={savingBadge} onClick={() => handleSaveBadge(badge.id, editingBadge.level)} className="h-8 px-3">Save</Button>
-                                  <Button size="sm" variant="ghost" onClick={() => setEditingBadge(null)} className="h-8 px-2">✕</Button>
+                      {/* Badge reward assignments */}
+                      {viewBadges.length > 0 && (
+                        <div className="space-y-2">
+                          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Badge Reward Points</p>
+                          {viewBadges.map(badge => {
+                            const club = clubs.find(c => c.id === badge.club_id);
+                            const isEditing = editingBadge?.id === badge.id;
+                            return (
+                              <div key={badge.id} className="flex items-center gap-3 rounded-lg border border-border bg-secondary/30 p-3">
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-foreground">{club?.name || "Unknown Club"}</p>
+                                  <p className="text-xs text-muted-foreground">Badge Points: {badge.badge_level} / 10</p>
                                 </div>
-                              ) : (
-                                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => setEditingBadge({ id: badge.id, level: badge.badge_level })}><Pencil className="h-3.5 w-3.5" /></Button>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                )}
+                                <div className="flex gap-0.5">
+                                  {Array.from({ length: 10 }, (_, i) => (
+                                    <div key={i} className={cn("h-3 w-3 rounded-full", i < badge.badge_level ? "bg-primary" : "bg-border")} />
+                                  ))}
+                                </div>
+                                {isEditing ? (
+                                  <div className="flex items-center gap-2">
+                                    <Input
+                                      type="number"
+                                      min={0}
+                                      max={10}
+                                      value={editingBadge.level}
+                                      onChange={(e) => setEditingBadge({ ...editingBadge, level: parseInt(e.target.value) || 0 })}
+                                      className="h-8 w-16 bg-secondary border-border text-sm text-center"
+                                    />
+                                    <Button size="sm" variant="default" disabled={savingBadge} onClick={() => handleSaveBadge(badge.id, editingBadge.level)} className="h-8 px-3">Save</Button>
+                                    <Button size="sm" variant="ghost" onClick={() => setEditingBadge(null)} className="h-8 px-2">✕</Button>
+                                  </div>
+                                ) : (
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => setEditingBadge({ id: badge.id, level: badge.badge_level })}><Pencil className="h-3.5 w-3.5" /></Button>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* MyPlayer Builds */}
@@ -576,6 +594,8 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
                     {viewSelections.map(sel => {
                       const color = getOfferingColor(sel.sport_id);
                       const isEditing = editingSelection === sel.id;
+                      const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
                       return (
                         <div
                           key={sel.id}
@@ -592,67 +612,136 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
                             {!isEditing && (
                               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => {
                                 setEditingSelection(sel.id);
-                                setEditSelLevel(sel.level_id);
-                                setEditSelPlaystyle(sel.playstyle || "");
-                                setEditSelExperience(sel.years_experience?.toString() || "");
+                                setEditSelData({ ...sel });
                               }}><Pencil className="h-3.5 w-3.5" /></Button>
                             )}
                           </div>
 
-                          {isEditing ? (
-                            <div className="space-y-3">
+                          {isEditing && editSelData ? (
+                            <div className="space-y-4">
+                              {/* Sport */}
+                              <div>
+                                <Label className="text-xs text-muted-foreground">Sport</Label>
+                                <Select value={editSelData.sport_id} onValueChange={(v) => setEditSelData({ ...editSelData, sport_id: v })}>
+                                  <SelectTrigger className="h-9 bg-secondary border-border mt-1"><SelectValue /></SelectTrigger>
+                                  <SelectContent>{offerings.map(o => <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>)}</SelectContent>
+                                </Select>
+                              </div>
+                              {/* Level */}
                               <div>
                                 <Label className="text-xs text-muted-foreground">Level</Label>
-                                <Select value={editSelLevel} onValueChange={setEditSelLevel}>
+                                <Select value={editSelData.level_id} onValueChange={(v) => setEditSelData({ ...editSelData, level_id: v })}>
                                   <SelectTrigger className="h-9 bg-secondary border-border mt-1"><SelectValue /></SelectTrigger>
                                   <SelectContent>{playerLevels.map(l => <SelectItem key={l.id} value={l.id}>{l.label}</SelectItem>)}</SelectContent>
                                 </Select>
                               </div>
+                              {/* Playstyle */}
                               <div>
                                 <Label className="text-xs text-muted-foreground">Playstyle</Label>
-                                <Select value={editSelPlaystyle} onValueChange={setEditSelPlaystyle}>
+                                <Select value={editSelData.playstyle || ""} onValueChange={(v) => setEditSelData({ ...editSelData, playstyle: v })}>
                                   <SelectTrigger className="h-9 bg-secondary border-border mt-1"><SelectValue placeholder="None" /></SelectTrigger>
                                   <SelectContent>
-                                    <SelectItem value="casual">Casual</SelectItem>
-                                    <SelectItem value="competitive">Competitive</SelectItem>
-                                    <SelectItem value="very_competitive">Very Competitive</SelectItem>
+                                    {allPlaystyles.map(ps => <SelectItem key={ps.value} value={ps.value}>{ps.label}</SelectItem>)}
                                   </SelectContent>
                                 </Select>
                               </div>
+                              {/* Years Experience */}
                               <div>
                                 <Label className="text-xs text-muted-foreground">Years Experience</Label>
-                                <Input type="number" value={editSelExperience} onChange={(e) => setEditSelExperience(e.target.value)} className="h-9 bg-secondary border-border mt-1" placeholder="e.g. 3" />
+                                <Input type="number" value={editSelData.years_experience ?? ""} onChange={(e) => setEditSelData({ ...editSelData, years_experience: e.target.value ? parseInt(e.target.value) : null })} className="h-9 bg-secondary border-border mt-1 max-w-[120px]" placeholder="e.g. 3" />
                               </div>
-                              <div className="flex gap-2">
-                                <Button size="sm" disabled={savingSelection} onClick={() => handleSaveSelection(sel.id)} className="glow">{savingSelection ? "Saving..." : "Save"}</Button>
-                                <Button size="sm" variant="ghost" onClick={() => setEditingSelection(null)}>Cancel</Button>
+                              {/* Goals */}
+                              <div>
+                                <Label className="text-xs text-muted-foreground">Goals</Label>
+                                <div className="grid grid-cols-2 gap-1.5 mt-1">
+                                  {allGoals.map(g => {
+                                    const active = editSelData.goals.includes(g.value);
+                                    return (
+                                      <button key={g.value} onClick={() => setEditSelData({ ...editSelData, goals: active ? editSelData.goals.filter(x => x !== g.value) : [...editSelData.goals, g.value] })} className={cn("rounded-md border px-2 py-1.5 text-xs font-medium transition-all text-left", active ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:border-muted-foreground/50")}>
+                                        {active && <Check className="h-3 w-3 inline mr-1" />}{g.label}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                              {/* Availability */}
+                              <div>
+                                <Label className="text-xs text-muted-foreground flex items-center gap-1"><Clock className="h-3 w-3" /> Availability</Label>
+                                <div className="grid grid-cols-4 gap-1 text-xs mt-1">
+                                  <div />
+                                  {allPeriods.map(p => <div key={p.value} className="text-center text-muted-foreground/70 font-medium pb-1">{p.label}</div>)}
+                                  {DAYS.map(day => (
+                                    <>
+                                      <div key={`label-${day}`} className="flex items-center text-muted-foreground font-medium">{day}</div>
+                                      {allPeriods.map(period => {
+                                        const active = editSelData.availability.some((a: any) => a.day === day && a.period === period.value);
+                                        return (
+                                          <button key={`${day}-${period.value}`} onClick={() => {
+                                            const newAvail = active
+                                              ? editSelData.availability.filter((a: any) => !(a.day === day && a.period === period.value))
+                                              : [...editSelData.availability, { day, period: period.value }];
+                                            setEditSelData({ ...editSelData, availability: newAvail });
+                                          }} className={cn("rounded-md border py-1.5 transition-all font-medium", active ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground/40 hover:border-muted-foreground/50")}>
+                                            {active ? "✓" : "–"}
+                                          </button>
+                                        );
+                                      })}
+                                    </>
+                                  ))}
+                                </div>
+                              </div>
+                              {/* Top 3 Locations */}
+                              <div>
+                                <Label className="text-xs text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" /> Top 3 Locations</Label>
+                                <div className="space-y-1.5 mt-1">
+                                  {[0, 1, 2].map(slotIdx => {
+                                    const selectedId = editSelData.location_ids[slotIdx] || "";
+                                    const availLocs = allLocations.filter(l => l.id === selectedId || !editSelData.location_ids.includes(l.id));
+                                    return (
+                                      <div key={slotIdx} className="flex items-center gap-2">
+                                        <span className="text-[10px] font-bold text-muted-foreground w-4 shrink-0">#{slotIdx + 1}</span>
+                                        <Select value={selectedId} onValueChange={(val) => {
+                                          const newIds = [...editSelData.location_ids];
+                                          while (newIds.length <= slotIdx) newIds.push("");
+                                          newIds[slotIdx] = val;
+                                          setEditSelData({ ...editSelData, location_ids: newIds.filter(Boolean) });
+                                        }}>
+                                          <SelectTrigger className="h-9 text-sm bg-secondary border-border"><SelectValue placeholder="Select..." /></SelectTrigger>
+                                          <SelectContent className="bg-card border-border z-50 max-h-60">{availLocs.map(loc => <SelectItem key={loc.id} value={loc.id}>{loc.name}</SelectItem>)}</SelectContent>
+                                        </Select>
+                                        {selectedId && (
+                                          <button onClick={() => setEditSelData({ ...editSelData, location_ids: editSelData.location_ids.filter((_, i) => i !== slotIdx) })} className="text-muted-foreground hover:text-destructive transition-colors shrink-0">✕</button>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                              <div className="flex gap-2 pt-1">
+                                <Button size="sm" disabled={savingSelection} onClick={() => handleSaveSelection(sel.id)} className="glow">{savingSelection ? "Saving..." : "Save All"}</Button>
+                                <Button size="sm" variant="ghost" onClick={() => { setEditingSelection(null); setEditSelData(null); }}>Cancel</Button>
                               </div>
                             </div>
                           ) : (
                             <div className="grid grid-cols-2 gap-2 text-sm">
                               <div className="flex items-center gap-1.5 text-muted-foreground">
-                                <Star className="h-3.5 w-3.5" /> {getLevelLabel(sel.level_id)}
+                                <Star className="h-3.5 w-3.5" /> Level: {getLevelLabel(sel.level_id)}
                               </div>
-                              {sel.playstyle && (
-                                <div className="flex items-center gap-1.5 text-muted-foreground">
-                                  <Swords className="h-3.5 w-3.5" /> {sel.playstyle.replace("_", " ")}
-                                </div>
-                              )}
-                              {sel.years_experience != null && (
-                                <div className="flex items-center gap-1.5 text-muted-foreground">
-                                  <CalendarClock className="h-3.5 w-3.5" /> {sel.years_experience} yrs
-                                </div>
-                              )}
-                              {sel.goals.length > 0 && (
-                                <div className="flex items-center gap-1.5 text-muted-foreground col-span-2">
-                                  <Target className="h-3.5 w-3.5" /> {sel.goals.join(", ")}
-                                </div>
-                              )}
-                              {sel.location_ids.length > 0 && (
-                                <div className="flex items-center gap-1.5 text-muted-foreground col-span-2">
-                                  <MapPin className="h-3.5 w-3.5" /> {sel.location_ids.map(id => getLocationName(id)).join(", ")}
-                                </div>
-                              )}
+                              <div className="flex items-center gap-1.5 text-muted-foreground">
+                                <Swords className="h-3.5 w-3.5" /> Playstyle: {sel.playstyle ? sel.playstyle.replace("_", " ") : "—"}
+                              </div>
+                              <div className="flex items-center gap-1.5 text-muted-foreground">
+                                <CalendarClock className="h-3.5 w-3.5" /> Experience: {sel.years_experience != null ? `${sel.years_experience} yrs` : "—"}
+                              </div>
+                              <div className="flex items-center gap-1.5 text-muted-foreground col-span-2">
+                                <Target className="h-3.5 w-3.5" /> Goals: {sel.goals.length > 0 ? sel.goals.join(", ") : "—"}
+                              </div>
+                              <div className="flex items-center gap-1.5 text-muted-foreground col-span-2">
+                                <Clock className="h-3.5 w-3.5" /> Availability: {sel.availability.length > 0 ? `${sel.availability.length} slot${sel.availability.length !== 1 ? "s" : ""}` : "—"}
+                              </div>
+                              <div className="flex items-center gap-1.5 text-muted-foreground col-span-2">
+                                <MapPin className="h-3.5 w-3.5" /> Locations: {sel.location_ids.length > 0 ? sel.location_ids.map(id => getLocationName(id)).join(", ") : "—"}
+                              </div>
                             </div>
                           )}
                         </div>
