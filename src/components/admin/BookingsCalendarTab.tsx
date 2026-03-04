@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { format, isSameDay, parseISO } from "date-fns";
-import { CalendarCheck, Clock, User, Mail, Phone, MapPin, FileText, Trash2, CheckCircle, XCircle, Search, GraduationCap } from "lucide-react";
+import { CalendarCheck, Clock, User, Mail, Phone, MapPin, FileText, Trash2, CheckCircle, XCircle, Search, GraduationCap, Eye } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
