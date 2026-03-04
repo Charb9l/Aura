@@ -40,6 +40,7 @@ interface Props {
 const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, onUpdateBooking, onAddBooking, allUsers, initialDate, onInitialDateHandled }: Props) => {
   const [selectedDate, setSelectedDate] = useState<Date>(initialDate ? parseISO(initialDate) : new Date());
   const [selectedBooking, setSelectedBooking] = useState<BookingRow | null>(null);
+  const [bookingPrice, setBookingPrice] = useState<{ price: number; label: string | null } | null>(null);
   const [clubFilter, setClubFilter] = useState<string>("all");
   const [showLogs, setShowLogs] = useState(false);
   const [auditLogs, setAuditLogs] = useState<AuditLogRow[]>([]);
@@ -47,6 +48,28 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
   const [logSearch, setLogSearch] = useState("");
   const [logActivityFilter, setLogActivityFilter] = useState<string>("all");
   const [logAcademyOnly, setLogAcademyOnly] = useState(false);
+
+  // Fetch price when a booking is selected
+  useEffect(() => {
+    if (!selectedBooking) { setBookingPrice(null); return; }
+    const fetchPrice = async () => {
+      const slug = selectedBooking.activity;
+      const courtType = selectedBooking.court_type;
+      let query = supabase.from("club_activity_prices").select("price, price_label").eq("activity_slug", slug);
+      if (courtType) {
+        query = query.eq("price_label", courtType);
+      }
+      const { data } = await query.limit(1).maybeSingle();
+      if (data) {
+        setBookingPrice({ price: data.price, label: data.price_label });
+      } else {
+        // fallback: try without price_label filter
+        const { data: fallback } = await supabase.from("club_activity_prices").select("price, price_label").eq("activity_slug", slug).limit(1).maybeSingle();
+        setBookingPrice(fallback ? { price: fallback.price, label: fallback.price_label } : null);
+      }
+    };
+    fetchPrice();
+  }, [selectedBooking]);
 
 
   useEffect(() => {
