@@ -102,6 +102,37 @@ const AcademyPage = () => {
     { key: "age", label: "Age", type: "number", required: true },
   ]);
 
+  // Hero grid pictures
+  const [heroPictures, setHeroPictures] = useState<{ image: string; alt: string }[]>([]);
+  const [heroCycleIndex, setHeroCycleIndex] = useState(0);
+
+  const CYCLE_INTERVAL = 4000;
+
+  const getGridLayout = (count: number) => {
+    if (count === 1) return "grid-cols-1";
+    if (count === 2) return "grid-cols-2";
+    if (count === 3) return "grid-cols-3";
+    if (count === 4) return "grid-cols-2 md:grid-cols-4";
+    if (count <= 6) return "grid-cols-3 grid-rows-2";
+    if (count <= 9) return "grid-cols-3 grid-rows-3";
+    return "grid-cols-3 md:grid-cols-6";
+  };
+
+  useEffect(() => {
+    if (heroPictures.length <= 9) return;
+    const timer = setInterval(() => {
+      setHeroCycleIndex(prev => (prev + 1) % heroPictures.length);
+    }, CYCLE_INTERVAL);
+    return () => clearInterval(timer);
+  }, [heroPictures.length]);
+
+  const visibleHeroPics = useMemo(() => {
+    if (heroPictures.length === 0) return [];
+    if (heroPictures.length <= 9) return heroPictures;
+    const windowSize = 6;
+    return Array.from({ length: windowSize }, (_, i) => heroPictures[(heroCycleIndex + i) % heroPictures.length]);
+  }, [heroPictures, heroCycleIndex]);
+
   // Dialog state
   const [selectedClub, setSelectedClub] = useState<AcademyClub | null>(null);
   const [showRegister, setShowRegister] = useState(false);
