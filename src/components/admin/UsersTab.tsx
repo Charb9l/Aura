@@ -243,16 +243,23 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
   };
 
   const handleSaveSelection = async (selId: string) => {
+    if (!editSelData) return;
     setSavingSelection(true);
-    const updates: any = {};
-    if (editSelLevel) updates.level_id = editSelLevel;
-    if (editSelPlaystyle) updates.playstyle = editSelPlaystyle;
-    if (editSelExperience !== "") updates.years_experience = parseInt(editSelExperience) || null;
+    const updates: any = {
+      level_id: editSelData.level_id,
+      playstyle: editSelData.playstyle || null,
+      years_experience: editSelData.years_experience,
+      goals: editSelData.goals,
+      location_ids: editSelData.location_ids,
+      availability: editSelData.availability,
+      sport_id: editSelData.sport_id,
+    };
     const { error } = await supabase.from("player_selections").update(updates).eq("id", selId);
     setSavingSelection(false);
     if (error) { toast.error("Failed to update"); return; }
     setViewSelections(prev => prev.map(s => s.id === selId ? { ...s, ...updates } : s));
     setEditingSelection(null);
+    setEditSelData(null);
     toast.success("MyPlayer updated");
   };
 
@@ -260,7 +267,7 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
   const getOfferingColor = (id: string) => offerings.find(o => o.id === id)?.brand_color || null;
   const getLevelLabel = (id: string) => playerLevels.find(l => l.id === id)?.label || "—";
   const getLocationName = (id: string) => {
-    const loc = clubLocations.find(l => l.id === id);
+    const loc = allLocations.find(l => l.id === id);
     return loc ? loc.name : "—";
   };
 
