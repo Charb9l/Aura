@@ -16,6 +16,7 @@ import PhoneInput from "@/components/PhoneInput";
 import AdminFinderInput from "./AdminFinderInput";
 import { UserWithEmail, ClubRow } from "./types";
 import { format } from "date-fns";
+import { findMatchingClubForBooking } from "@/lib/loyalty-club-match";
 
 interface UsersTabProps {
   allUsers: UserWithEmail[];
