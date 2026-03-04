@@ -84,7 +84,7 @@ const BookPage = () => {
   const [pageTitle, setPageTitle] = useState("Book a Session");
   const [pageSubtitle, setPageSubtitle] = useState("Select your activity, date and time.");
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-
+  const { activeRewards, getRewardForClub, hasRewards } = useRewards();
   // Profile data fetched from DB
   const [profileName, setProfileName] = useState("");
   const [profileEmail, setProfileEmail] = useState("");
