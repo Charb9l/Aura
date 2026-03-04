@@ -240,6 +240,29 @@ const ProfilePage = () => {
   const { completedLevelCount: completedBadgeLevels } = useBadgeLevels(bookings);
   const availableBadgePoints = completedBadgeLevels - assignedLevels.size;
 
+  // Send badge completion email when new level detected
+  const BADGE_NAMES_LIST = ["Rookie", "Athlete", "Legend"];
+  useEffect(() => {
+    if (!user || completedBadgeLevels === 0 || !profile) return;
+    // Check each completed level
+    for (let lvl = 1; lvl <= completedBadgeLevels; lvl++) {
+      const emailKey = `badge_email_sent_${user.id}_${lvl}`;
+      if (localStorage.getItem(emailKey)) continue;
+      if (badgeEmailSentRef.current.has(lvl)) continue;
+      badgeEmailSentRef.current.add(lvl);
+      localStorage.setItem(emailKey, "true");
+      // Fire and forget
+      supabase.functions.invoke("badge-completion-email", {
+        body: {
+          email: user.email,
+          full_name: profile.full_name || user.user_metadata?.full_name || "",
+          badge_name: BADGE_NAMES_LIST[lvl - 1] || `Level ${lvl}`,
+          badge_level: lvl,
+        },
+      });
+    }
+  }, [user, completedBadgeLevels, profile]);
+
   // Find next unassigned level number
   const nextUnassignedLevel = useMemo(() => {
     for (let i = 1; i <= 3; i++) {
