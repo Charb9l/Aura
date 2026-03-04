@@ -26,6 +26,8 @@ interface UsersTabProps {
   onDeleteAdmin: (userId: string) => void;
   onAdminCreated: () => void;
   isMasterAdmin: boolean;
+  initialViewUserId?: string | null;
+  onInitialViewHandled?: () => void;
 }
 
 interface PlayerSelection {
