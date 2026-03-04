@@ -269,7 +269,7 @@ const SportSelectionCard = ({
           {/* Top 3 Locations */}
           <div className="space-y-1.5">
             <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-              <MapPin className="h-3 w-3" /> Top 3 locations <span className="text-muted-foreground/60">(select up to 3)</span>:
+              <MapPin className="h-3 w-3" /> Top 3 locations <span className="text-muted-foreground/60">(used by AI Matchmaker to find nearby players)</span>:
             </p>
             <div className="space-y-2">
               {[0, 1, 2].map((slotIdx) => {
