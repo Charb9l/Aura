@@ -80,10 +80,12 @@ DATA CONTEXT:
 
 PRICING: Tennis=$15, Aerial Yoga=$20, Pilates=$20, Basketball Half=$45, Basketball Full=$90. discount "free"→$0, "50%"→half.
 
-BOOKINGS DATA (act=activity slug, act_name=display name, court=court_type, discount=discount_type):
+CRITICAL RULE: Revenue can ONLY come from bookings where attendance="show". Bookings without attendance_status="show" have $0 revenue and MUST NOT appear in any revenue report. If the admin asks about revenue, ONLY include rows where attendance="show".
+
+BOOKINGS DATA (act=activity slug, act_name=display name, court=court_type, discount=discount_type, attendance=attendance_status):
 ${bookingsJson}
 
-TASK: The admin asks a question. Use the generate_report tool to return filtered booking-level rows with ALL details per booking. Always include: date, time, activity, activity_name, customer name, email, phone, court_type, discount_type, attendance_status, status, created_at, and calculated revenue. Sort by date descending.`;
+TASK: The admin asks a question. Use the generate_report tool to return filtered booking-level rows. For revenue queries, ONLY include rows where attendance="show". Always include: date, time, activity, activity_name, customer name, email, phone, court_type, discount_type, attendance_status, status, created_at, and calculated revenue (revenue is $0 if attendance!="show"). Sort by date descending.`;
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
