@@ -509,34 +509,8 @@ const BookPage = () => {
             </div>
           </motion.div>
 
-          {/* Contact info - dynamic fields */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="space-y-4">
-            <Label className="text-sm font-medium text-muted-foreground mb-4 block">Your Details</Label>
-            <div className="grid md:grid-cols-3 gap-4">
-              {detailFields.map((field) => {
-                if (field.type === "phone") {
-                  return <PhoneInput key={field.key} value={phone} onChange={setPhone} required={field.required} />;
-                }
-                const val = field.key === "name" ? name : field.key === "email" ? email : "";
-                const setter = field.key === "name" ? setName : field.key === "email" ? setEmail : undefined;
-                return (
-                  <Input
-                    key={field.key}
-                    type={field.type === "number" ? "number" : field.type === "email" ? "email" : "text"}
-                    placeholder={field.label}
-                    value={val}
-                    onChange={setter ? (e) => setter(e.target.value) : undefined}
-                    required={field.required}
-                    className="h-12 bg-secondary border-border"
-                    style={selectedActivity ? brand.glowSm : undefined}
-                  />
-                );
-              })}
-            </div>
-          </motion.div>
-
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="flex items-center gap-5">
-            <Button type="submit" disabled={!selectedActivity || !date || !selectedTime || !name || !email || !isValidEmail(email) || !phone || (selectedActivity === "basketball" && !courtType) || (matchingClubs.length > 1 && !selectedClub) || !selectedLocation || submitting} className="h-14 px-10 text-lg font-bold rounded-xl glow">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="flex items-center gap-5">
+            <Button type="submit" disabled={!selectedActivity || !date || !selectedTime || (selectedActivity === "basketball" && !courtType) || (matchingClubs.length > 1 && !selectedClub) || !selectedLocation || submitting} className="h-14 px-10 text-lg font-bold rounded-xl glow">
               {submitting ? "Booking..." : "Confirm Booking"}
             </Button>
             {currentPrice !== null && (
@@ -546,6 +520,51 @@ const BookPage = () => {
               </div>
             )}
           </motion.div>
+
+          {/* Confirmation Dialog */}
+          <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-heading">Confirm Your Booking</DialogTitle>
+                <DialogDescription>Please review the details below before confirming.</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-2">
+                {/* Personal Info */}
+                <div className="rounded-lg border border-border bg-secondary/50 p-4 space-y-2">
+                  <h4 className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-2">Your Information</h4>
+                  <div className="flex items-center gap-2 text-sm">
+                    <User className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-foreground font-medium">{profileName || "—"}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-foreground">{profileEmail}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-foreground">{profilePhone || "—"}</span>
+                  </div>
+                </div>
+                {/* Booking Info */}
+                <div className="rounded-lg border border-border bg-secondary/50 p-4 space-y-2">
+                  <h4 className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-2">Booking Details</h4>
+                  <p className="text-sm"><span className="text-muted-foreground">Activity:</span> <span className="text-foreground font-medium">{offerings.find(o => o.slug === selectedActivity)?.name}</span></p>
+                  {resolvedClubId && <p className="text-sm"><span className="text-muted-foreground">Club:</span> <span className="text-foreground font-medium">{clubs.find(c => c.id === resolvedClubId)?.name}</span></p>}
+                  {selectedLocation && <p className="text-sm"><span className="text-muted-foreground">Location:</span> <span className="text-foreground font-medium">{clubLocations.find(l => l.id === selectedLocation)?.name} — {clubLocations.find(l => l.id === selectedLocation)?.location}</span></p>}
+                  {courtType && <p className="text-sm"><span className="text-muted-foreground">Court:</span> <span className="text-foreground font-medium">{courtType === "full" ? "Full Court" : "Half Court"}</span></p>}
+                  <p className="text-sm"><span className="text-muted-foreground">Date:</span> <span className="text-foreground font-medium">{date && format(date, "PPP")}</span></p>
+                  <p className="text-sm"><span className="text-muted-foreground">Time:</span> <span className="text-foreground font-medium">{selectedTime}</span></p>
+                  {currentPrice !== null && <p className="text-sm"><span className="text-muted-foreground">Price:</span> <span className="text-foreground font-bold">${currentPrice}</span></p>}
+                </div>
+              </div>
+              <DialogFooter className="gap-2 sm:gap-0">
+                <Button variant="outline" onClick={() => setShowConfirmDialog(false)}>Cancel</Button>
+                <Button onClick={handleConfirmBooking} disabled={submitting} className="glow">
+                  {submitting ? "Booking..." : "Confirm"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
           </>
           )}
         </form>
