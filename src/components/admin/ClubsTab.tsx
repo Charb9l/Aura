@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react"; // admin clubs
 import { motion } from "framer-motion";
 import { Building2, Pencil, Trash2, Upload, X, Image, GraduationCap, MapPin, Plus, Search, Eye, EyeOff } from "lucide-react";
-import PageContentEditor from "./PageContentEditor";
+import { Building2, Pencil, Trash2, Upload, X, Image, GraduationCap, MapPin, Plus, Search, Eye, EyeOff } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
