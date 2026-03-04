@@ -77,7 +77,7 @@ const BookPage = () => {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
-  const [clubs, setClubs] = useState<{ id: string; name: string; offerings: string[] }[]>([]);
+  const [clubs, setClubs] = useState<{ id: string; name: string; offerings: string[]; logo_url: string | null }[]>([]);
   const [clubLocations, setClubLocations] = useState<ClubLocation[]>([]);
   const [activityPrices, setActivityPrices] = useState<{ club_id: string; activity_slug: string; price: number; price_label: string | null; location_id: string | null }[]>([]);
   const [selectedLocation, setSelectedLocation] = useState("");
