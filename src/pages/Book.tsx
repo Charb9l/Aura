@@ -221,29 +221,11 @@ const BookPage = () => {
     const offering = offerings.find(o => o.slug === selectedActivity);
     const activityName = offering?.name || selectedActivity;
 
+    // Determine discount from loyalty rewards
     let discountType: string | null = null;
-    const [showRes, noShowRes] = await Promise.all([
-      supabase
-        .from("bookings")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", user.id)
-        .eq("activity", selectedActivity)
-        .eq("attendance_status", "show"),
-      supabase
-        .from("bookings")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", user.id)
-        .eq("activity", selectedActivity)
-        .eq("attendance_status", "no_show"),
-    ]);
-
-    const effectivePoints = Math.max(0, (showRes.count || 0) - (noShowRes.count || 0));
-    const positionInCycle = effectivePoints % 10;
-    if (positionInCycle === 9) {
-      discountType = "free";
-    } else if (positionInCycle === 4) {
-      discountType = "50%";
-    }
+    const clubReward = resolvedClubId ? getRewardForClub(resolvedClubId) : undefined;
+    if (clubReward?.reward === "free") discountType = "free";
+    else if (clubReward?.reward === "50%") discountType = "50%";
 
     const { error } = await supabase.from("bookings").insert({
       user_id: user.id,
