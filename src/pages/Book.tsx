@@ -363,17 +363,6 @@ const BookPage = () => {
             </div>
           </motion.div>
 
-          {!user ? (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20">
-              <CalendarIcon className="h-16 w-16 text-muted-foreground/30 mx-auto mb-4" />
-              <h2 className="font-heading text-2xl font-bold text-foreground mb-2">Sign in to book a session</h2>
-              <p className="text-muted-foreground mb-6">Create an account to reserve your spot and start earning loyalty points.</p>
-              <Button onClick={() => navigate("/auth")} className="glow px-8 h-12 font-semibold text-base">
-                Login / Sign Up
-              </Button>
-            </motion.div>
-          ) : (
-          <>
           {selectedActivity && matchingClubs.length > 1 && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}>
               <Label className="text-sm font-medium text-muted-foreground mb-4 block">Choose Club</Label>
@@ -510,9 +499,15 @@ const BookPage = () => {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="flex items-center gap-5">
-            <Button type="submit" disabled={!selectedActivity || !date || !selectedTime || (selectedActivity === "basketball" && !courtType) || (matchingClubs.length > 1 && !selectedClub) || !selectedLocation || submitting} className="h-14 px-10 text-lg font-bold rounded-xl glow">
-              {submitting ? "Booking..." : "Confirm Booking"}
-            </Button>
+            {user ? (
+              <Button type="submit" disabled={!selectedActivity || !date || !selectedTime || (selectedActivity === "basketball" && !courtType) || (matchingClubs.length > 1 && !selectedClub) || !selectedLocation || submitting} className="h-14 px-10 text-lg font-bold rounded-xl glow">
+                {submitting ? "Booking..." : "Confirm Booking"}
+              </Button>
+            ) : (
+              <Button type="button" onClick={() => navigate("/auth")} className="h-14 px-10 text-lg font-bold rounded-xl glow">
+                Sign In to Book a Session
+              </Button>
+            )}
             {currentPrice !== null && (
               <div className="flex items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 px-5 py-2.5 backdrop-blur-sm">
                 <span className="text-xs uppercase tracking-widest text-muted-foreground font-medium">Total</span>
@@ -522,6 +517,7 @@ const BookPage = () => {
           </motion.div>
 
           {/* Confirmation Dialog */}
+          {user && (
           <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
@@ -565,7 +561,6 @@ const BookPage = () => {
               </DialogFooter>
             </DialogContent>
           </Dialog>
-          </>
           )}
         </form>
       </div>
