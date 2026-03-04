@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { toast } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
-import PhoneInput from "@/components/PhoneInput";
+
 import { BookingRow, ClubRow, UserWithEmail, AuditLogRow, OPEN_HOUR, CLOSE_HOUR, ACTIVITY_OPTIONS } from "./types";
 import AdminFinderInput from "./AdminFinderInput";
 
@@ -24,11 +24,6 @@ const timeSlots = Array.from({ length: CLOSE_HOUR - OPEN_HOUR }, (_, i) => {
   return { hour: h, label };
 });
 
-const HOUR_OPTIONS = Array.from({ length: CLOSE_HOUR - OPEN_HOUR }, (_, i) => {
-  const h = OPEN_HOUR + i;
-  const label = h < 12 ? `${h}:00 AM` : h === 12 ? `12:00 PM` : `${h - 12}:00 PM`;
-  return { value: `${h}:00`, label };
-});
 
 interface Props {
   bookings: BookingRow[];
@@ -53,15 +48,6 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
   const [logActivityFilter, setLogActivityFilter] = useState<string>("all");
   const [logAcademyOnly, setLogAcademyOnly] = useState(false);
 
-  const [showAddBooking, setShowAddBooking] = useState(false);
-  const [addActivity, setAddActivity] = useState("");
-  const [addDate, setAddDate] = useState<Date | undefined>(undefined);
-  const [addTime, setAddTime] = useState("");
-  const [addName, setAddName] = useState("");
-  const [addEmail, setAddEmail] = useState("");
-  const [addPhone, setAddPhone] = useState("");
-  const [addCourtType, setAddCourtType] = useState("");
-  const [addSaving, setAddSaving] = useState(false);
 
   useEffect(() => {
     if (initialDate) {
@@ -167,43 +153,6 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
     return user?.full_name || user?.email || "Unknown";
   };
 
-  const handleAddBooking = async () => {
-    if (!addActivity || !addDate || !addTime || !addName || !addEmail || !addPhone) {
-      toast.error("Please fill in all fields");
-      return;
-    }
-    setAddSaving(true);
-    const activityOption = ACTIVITY_OPTIONS.find(a => a.key === addActivity);
-    const { data: { user } } = await supabase.auth.getUser();
-
-    const newBooking: any = {
-      activity: addActivity,
-      activity_name: activityOption?.name || addActivity,
-      booking_date: format(addDate, "yyyy-MM-dd"),
-      booking_time: addTime,
-      full_name: addName,
-      email: addEmail,
-      phone: addPhone,
-      user_id: user?.id,
-      created_by: user?.id,
-      status: "confirmed",
-    };
-    if (addActivity === "basketball" && addCourtType) newBooking.court_type = addCourtType;
-
-    const { data, error } = await supabase.from("bookings").insert(newBooking).select().single();
-    setAddSaving(false);
-
-    if (error) {
-      toast.error("Failed to add booking: " + error.message);
-    } else {
-      toast.success(`Booking added for ${addName}`);
-      onAddBooking?.(data as unknown as BookingRow);
-      setShowAddBooking(false);
-      setAddActivity(""); setAddDate(undefined); setAddTime("");
-      setAddName(""); setAddEmail(""); setAddPhone(""); setAddCourtType("");
-    }
-  };
-
   return (
     <div className="space-y-6">
       {/* Controls row */}
@@ -227,10 +176,6 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
         <Button variant={showLogs ? "default" : "outline"} size="sm" onClick={() => { setShowLogs(!showLogs); if (!showLogs && auditLogs.length === 0) fetchLogs(); }} className="gap-2">
           <FileText className="h-4 w-4" />
           {showLogs ? "Back to Calendar" : "Logs"}
-        </Button>
-        <Button size="sm" onClick={() => setShowAddBooking(true)} className="gap-2 ml-auto">
-          <CalendarCheck className="h-4 w-4" />
-          Add Booking
         </Button>
       </div>
 
@@ -482,76 +427,6 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
         </>
       )}
 
-      {/* Add Booking Dialog */}
-      <Dialog open={showAddBooking} onOpenChange={setShowAddBooking}>
-        <DialogContent className="bg-card border-border max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="font-heading">Add Booking</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 pt-2">
-            <div>
-              <Label>Activity</Label>
-              <Select value={addActivity} onValueChange={(v) => { setAddActivity(v); setAddCourtType(""); }}>
-                <SelectTrigger className="h-12 bg-secondary border-border mt-1"><SelectValue placeholder="Select activity" /></SelectTrigger>
-                <SelectContent className="bg-card border-border z-50">
-                  {ACTIVITY_OPTIONS.map(a => <SelectItem key={a.key} value={a.key}>{a.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            {addActivity === "basketball" && (
-              <div>
-                <Label>Court Type</Label>
-                <Select value={addCourtType} onValueChange={setAddCourtType}>
-                  <SelectTrigger className="h-12 bg-secondary border-border mt-1"><SelectValue placeholder="Select court type" /></SelectTrigger>
-                  <SelectContent className="bg-card border-border z-50">
-                    <SelectItem value="half">Half Court</SelectItem>
-                    <SelectItem value="full">Full Court</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            <div>
-              <Label>Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className={cn("w-full h-12 justify-start text-left mt-1 bg-secondary border-border", !addDate && "text-muted-foreground")}>
-                    <CalendarCheck className="h-4 w-4 mr-2" />
-                    {addDate ? format(addDate, "PPP") : "Select date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar mode="single" selected={addDate} onSelect={setAddDate} initialFocus className="p-3 pointer-events-auto" />
-                </PopoverContent>
-              </Popover>
-            </div>
-            <div>
-              <Label>Time</Label>
-              <Select value={addTime} onValueChange={setAddTime}>
-                <SelectTrigger className="h-12 bg-secondary border-border mt-1"><SelectValue placeholder="Select time" /></SelectTrigger>
-                <SelectContent className="bg-card border-border z-50">
-                  {HOUR_OPTIONS.map(h => <SelectItem key={h.value} value={h.value}>{h.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Customer Name</Label>
-              <Input value={addName} onChange={(e) => setAddName(e.target.value)} placeholder="Full name" className="h-12 bg-secondary border-border mt-1" />
-            </div>
-            <div>
-              <Label>Email</Label>
-              <Input type="email" value={addEmail} onChange={(e) => setAddEmail(e.target.value)} placeholder="customer@example.com" className="h-12 bg-secondary border-border mt-1" />
-            </div>
-            <div>
-              <Label>Phone</Label>
-              <PhoneInput value={addPhone} onChange={setAddPhone} className="mt-1" />
-            </div>
-            <Button onClick={handleAddBooking} disabled={addSaving} className="w-full h-12 text-base font-semibold glow">
-              <CalendarCheck className="h-4 w-4 mr-2" />
-              {addSaving ? "Adding..." : "Add Booking"}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
