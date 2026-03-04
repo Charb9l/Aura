@@ -43,7 +43,6 @@ interface ClubInfo {
   name: string;
   logo_url: string | null;
   offerings: string[];
-  created_at: string;
 }
 
 const TIME_SLOTS = [
