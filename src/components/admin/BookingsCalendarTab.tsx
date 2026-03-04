@@ -63,6 +63,13 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
   const [addCourtType, setAddCourtType] = useState("");
   const [addSaving, setAddSaving] = useState(false);
 
+  useEffect(() => {
+    if (initialDate) {
+      setSelectedDate(parseISO(initialDate));
+      onInitialDateHandled?.();
+    }
+  }, [initialDate, onInitialDateHandled]);
+
   const clubActivityFilter = useMemo(() => {
     if (!isMasterAdmin || clubFilter === "all" || !clubs) return null;
     const club = clubs.find(c => c.id === clubFilter);
