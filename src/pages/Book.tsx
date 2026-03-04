@@ -2,9 +2,9 @@ import { useState, useEffect, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
-import { CalendarIcon, Clock, CheckCircle2, User, Mail, Phone } from "lucide-react";
+import { CalendarIcon, Clock, CheckCircle2, User, Mail, Phone, Gift, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import Navbar from "@/components/Navbar";
 import ActivityFilter from "@/components/ActivityFilter";
 import PagePhotoStrip from "@/components/PagePhotoStrip";
+import { useRewards } from "@/hooks/useRewards";
 
 interface OfferingData {
   id: string;
