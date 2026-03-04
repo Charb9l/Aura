@@ -157,37 +157,39 @@ const BookPage = () => {
     ).sort((a, b) => a.name.localeCompare(b.name));
   }, [selectedActivity, clubs]);
 
-  // Build club+location combos for selection
-  const clubLocationOptions = useMemo(() => {
-    return matchingClubs.flatMap(club => {
+  // Build club+location combos for selection — one card per CLUB, not per location
+  const clubLocationsForSelected = useMemo(() => {
+    return matchingClubs.map(club => {
       const locs = clubLocations.filter(l => l.club_id === club.id).sort((a, b) => a.name.localeCompare(b.name));
-      if (locs.length === 0) return [{ club, location: null }];
-      return locs.map(loc => ({ club, location: loc }));
+      return { club, locations: locs };
     });
   }, [matchingClubs, clubLocations]);
 
-  // Combined selection key: "clubId::locationId"
-  const selectedComboKey = selectedClub && selectedLocation ? `${selectedClub}::${selectedLocation}` : "";
+  const selectedClubLocations = useMemo(() => {
+    return clubLocationsForSelected.find(c => c.club.id === selectedClub)?.locations || [];
+  }, [clubLocationsForSelected, selectedClub]);
 
-  const handleSelectCombo = (clubId: string, locationId: string | null) => {
+  const handleSelectClub = (clubId: string) => {
     setSelectedClub(clubId);
-    setSelectedLocation(locationId || "");
+    // Auto-select location if club has exactly one
+    const locs = clubLocations.filter(l => l.club_id === clubId);
+    setSelectedLocation(locs.length === 1 ? locs[0].id : "");
     setCourtType("");
     setDate(undefined);
     setSelectedTime("");
   };
 
-  // Auto-select if only one option
+  // Auto-select if only one club
   useEffect(() => {
-    if (clubLocationOptions.length === 1) {
-      const opt = clubLocationOptions[0];
+    if (clubLocationsForSelected.length === 1) {
+      const opt = clubLocationsForSelected[0];
       setSelectedClub(opt.club.id);
-      setSelectedLocation(opt.location?.id || "");
-    } else if (clubLocationOptions.length === 0) {
+      setSelectedLocation(opt.locations.length === 1 ? opt.locations[0].id : "");
+    } else if (clubLocationsForSelected.length === 0) {
       setSelectedClub("");
       setSelectedLocation("");
     }
-  }, [clubLocationOptions]);
+  }, [clubLocationsForSelected]);
 
   const resolvedClubId = selectedClub || (matchingClubs.length === 1 ? matchingClubs[0].id : "");
 
