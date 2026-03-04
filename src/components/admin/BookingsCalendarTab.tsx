@@ -158,43 +158,6 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
     return user?.full_name || user?.email || "Unknown";
   };
 
-  const handleAddBooking = async () => {
-    if (!addActivity || !addDate || !addTime || !addName || !addEmail || !addPhone) {
-      toast.error("Please fill in all fields");
-      return;
-    }
-    setAddSaving(true);
-    const activityOption = ACTIVITY_OPTIONS.find(a => a.key === addActivity);
-    const { data: { user } } = await supabase.auth.getUser();
-
-    const newBooking: any = {
-      activity: addActivity,
-      activity_name: activityOption?.name || addActivity,
-      booking_date: format(addDate, "yyyy-MM-dd"),
-      booking_time: addTime,
-      full_name: addName,
-      email: addEmail,
-      phone: addPhone,
-      user_id: user?.id,
-      created_by: user?.id,
-      status: "confirmed",
-    };
-    if (addActivity === "basketball" && addCourtType) newBooking.court_type = addCourtType;
-
-    const { data, error } = await supabase.from("bookings").insert(newBooking).select().single();
-    setAddSaving(false);
-
-    if (error) {
-      toast.error("Failed to add booking: " + error.message);
-    } else {
-      toast.success(`Booking added for ${addName}`);
-      onAddBooking?.(data as unknown as BookingRow);
-      setShowAddBooking(false);
-      setAddActivity(""); setAddDate(undefined); setAddTime("");
-      setAddName(""); setAddEmail(""); setAddPhone(""); setAddCourtType("");
-    }
-  };
-
   return (
     <div className="space-y-6">
       {/* Controls row */}
