@@ -293,7 +293,7 @@ const BookPage = () => {
             <p className="text-muted-foreground text-lg mb-2">
               {offering?.name || selectedActivity} — {date && format(date, "PPP")} at {selectedTime}
             </p>
-            <p className="text-muted-foreground">We'll send a confirmation to {email}</p>
+            <p className="text-muted-foreground">We'll send a confirmation to {profileEmail}</p>
           </motion.div>
         </div>
       </div>
