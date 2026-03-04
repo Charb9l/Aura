@@ -37,6 +37,7 @@ import ActivitiesTab from "@/components/admin/ActivitiesTab";
 import AdminFinderInput, { type FinderSuggestion } from "@/components/admin/AdminFinderInput";
 import UsersTab from "@/components/admin/UsersTab";
 import NotificationsTab from "@/components/admin/NotificationsTab";
+import NudgesTab from "@/components/admin/NudgesTab";
 
 // ─── Main Admin Dashboard ──────────────────────────────────────
 const AdminDashboard = () => {
