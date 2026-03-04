@@ -312,6 +312,31 @@ const BookPage = () => {
 
         <PagePhotoStrip pageSlug="book" className="mb-10" />
 
+        {/* Rewards Banner */}
+        {user && hasRewards && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
+            <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-4 sm:p-5">
+              <div className="flex items-start gap-3">
+                <div className="h-10 w-10 rounded-xl bg-emerald-500/15 flex items-center justify-center shrink-0">
+                  <Gift className="h-5 w-5 text-emerald-400" />
+                </div>
+                <div>
+                  <p className="font-heading font-bold text-foreground text-sm mb-1.5">🎉 You have rewards available!</p>
+                  <div className="space-y-1">
+                    {activeRewards.map(r => (
+                      <p key={r.clubId} className="text-sm text-muted-foreground">
+                        <span className="font-semibold text-foreground">{r.reward === "free" ? "🆓 Free booking" : "💰 50% off"}</span>
+                        {" "}at <span className="font-medium text-foreground">{r.clubName}</span>
+                      </p>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground/70 mt-2">Select the club below to auto-apply your discount.</p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-10">
           {/* Activity selection */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
