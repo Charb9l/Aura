@@ -71,7 +71,19 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
+    const today = new Date();
+    const currentYear = today.getUTCFullYear();
+    const currentMonth = today.getUTCMonth(); // 0-indexed
+    const firstOfMonth = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-01`;
+    const lastDay = new Date(currentYear, currentMonth + 1, 0).getUTCDate();
+    const lastOfMonth = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+    const todayStr = today.toISOString().slice(0, 10);
+
     const systemPrompt = `You are a data analyst for Elevate Wellness Hub, a multi-sport booking platform in Lebanon.
+
+TODAY'S DATE: ${todayStr}
+CURRENT CALENDAR MONTH: ${firstOfMonth} to ${lastOfMonth}
+IMPORTANT: When the user says "this month", they mean the FULL calendar month from ${firstOfMonth} to ${lastOfMonth} (inclusive). Include future dates within the month.
 
 DATA CONTEXT:
 - ${totalBookings} bookings spanning ${dateRange}
