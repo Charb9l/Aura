@@ -52,6 +52,7 @@ const Navbar = () => {
   const pendingNudgeCount = usePendingNudgeCount();
   const showGlow = user && (playerComplete === false || !avatarUrl || hasPendingBookings || hasUnassignedBadgePoints || pendingNudgeCount > 0);
   const { isAdmin } = useAdminRole();
+  const { hasRewards } = useRewards();
   const initials = getInitials(user?.user_metadata?.full_name, user?.email);
 
   const [glowRoutes, setGlowRoutes] = useState<Set<string>>(new Set());
