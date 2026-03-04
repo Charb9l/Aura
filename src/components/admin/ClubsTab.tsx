@@ -70,8 +70,8 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
   const [dragging, setDragging] = useState(false);
   const [editHasAcademy, setEditHasAcademy] = useState(false);
   const [editShowAcademySportPicker, setEditShowAcademySportPicker] = useState(false);
-  // Per-activity locations for edit
-  const [editActivityLocations, setEditActivityLocations] = useState<Record<string, { id?: string; name: string; location: string }[]>>({});
+  // Club-level locations for edit
+  const [editClubLocs, setEditClubLocs] = useState<{ id?: string; name: string; location: string }[]>([]);
   // Per-activity prices for edit: key = "slug" or "slug:half"/"slug:full"
   const [editPrices, setEditPrices] = useState<Record<string, string>>({});
   const [allActivityPrices, setAllActivityPrices] = useState<ClubActivityPrice[]>([]);
