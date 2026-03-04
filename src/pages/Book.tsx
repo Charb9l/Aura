@@ -89,15 +89,24 @@ const BookPage = () => {
   const [profileName, setProfileName] = useState("");
   const [profileEmail, setProfileEmail] = useState("");
   const [profilePhone, setProfilePhone] = useState("");
+  // User promotions (admin-assigned)
+  const [activePromo, setActivePromo] = useState<{ id: string; discount_type: string; discount_value: number; remaining_uses: number } | null>(null);
 
   useEffect(() => {
     if (!user) return;
     setProfileEmail(user.email || "");
     const fetchProfile = async () => {
-      const { data } = await supabase.from("profiles").select("full_name, phone").eq("user_id", user.id).single();
-      if (data) {
-        setProfileName(data.full_name || user.user_metadata?.full_name || "");
-        setProfilePhone(data.phone || "");
+      const [profileRes, promoRes] = await Promise.all([
+        supabase.from("profiles").select("full_name, phone").eq("user_id", user.id).single(),
+        supabase.from("user_promotions").select("*").eq("user_id", user.id).gt("remaining_uses", 0).order("created_at", { ascending: true }).limit(1),
+      ]);
+      if (profileRes.data) {
+        setProfileName(profileRes.data.full_name || user.user_metadata?.full_name || "");
+        setProfilePhone(profileRes.data.phone || "");
+      }
+      if (promoRes.data && promoRes.data.length > 0) {
+        const p = promoRes.data[0] as any;
+        setActivePromo({ id: p.id, discount_type: p.discount_type, discount_value: p.discount_value, remaining_uses: p.remaining_uses });
       }
     };
     fetchProfile();
@@ -235,11 +244,23 @@ const BookPage = () => {
     const offering = offerings.find(o => o.slug === selectedActivity);
     const activityName = offering?.name || selectedActivity;
 
-    // Determine discount from loyalty rewards
+    // Determine discount: loyalty rewards take priority, then admin promotions
     let discountType: string | null = null;
     const clubReward = resolvedClubId ? getRewardForClub(resolvedClubId) : undefined;
     if (clubReward?.reward === "free") discountType = "free";
     else if (clubReward?.reward === "50%") discountType = "50%";
+    else if (activePromo) {
+      if (activePromo.discount_type === "free") discountType = "free";
+      else if (activePromo.discount_type === "percentage") discountType = `${activePromo.discount_value}%` === "50%" ? "50%" : "free"; // map to existing discount_type format
+      // For simplicity: percentage promos map to 50% if value=50, else "free" if 100
+      if (activePromo.discount_type === "percentage") {
+        discountType = activePromo.discount_value >= 100 ? "free" : "50%";
+      } else if (activePromo.discount_type === "fixed") {
+        discountType = "50%"; // fixed amount discounts stored as 50% for display
+      } else if (activePromo.discount_type === "free") {
+        discountType = "free";
+      }
+    }
 
     const { error } = await supabase.from("bookings").insert({
       user_id: user.id,
@@ -268,6 +289,14 @@ const BookPage = () => {
           court_type: selectedActivity === "basketball" ? courtType : null,
         },
       });
+
+      // Decrement promo uses if applied
+      if (activePromo && !clubReward) {
+        const newUses = activePromo.remaining_uses - 1;
+        await supabase.from("user_promotions").update({ remaining_uses: newUses } as any).eq("id", activePromo.id);
+        if (newUses <= 0) setActivePromo(null);
+        else setActivePromo({ ...activePromo, remaining_uses: newUses });
+      }
 
       setSubmitted(true);
     }
@@ -327,6 +356,28 @@ const BookPage = () => {
                     ))}
                   </div>
                   <p className="text-xs text-muted-foreground/70 mt-2">Select the club below to auto-apply your discount.</p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Admin Promotion Banner */}
+        {user && activePromo && !hasRewards && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
+            <div className="rounded-2xl border border-accent/30 bg-accent/5 p-4 sm:p-5">
+              <div className="flex items-start gap-3">
+                <div className="h-10 w-10 rounded-xl bg-accent/15 flex items-center justify-center shrink-0">
+                  <Sparkles className="h-5 w-5 text-accent-foreground" />
+                </div>
+                <div>
+                  <p className="font-heading font-bold text-foreground text-sm mb-1">🎁 You have a special promotion!</p>
+                  <p className="text-sm text-muted-foreground">
+                    <span className="font-semibold text-foreground">
+                      {activePromo.discount_type === "free" ? "Free booking" : activePromo.discount_type === "percentage" ? `${activePromo.discount_value}% off` : `$${activePromo.discount_value} off`}
+                    </span>
+                    {" "}— valid for your next {activePromo.remaining_uses} booking{activePromo.remaining_uses > 1 ? "s" : ""}.
+                  </p>
                 </div>
               </div>
             </div>

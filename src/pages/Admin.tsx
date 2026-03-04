@@ -38,6 +38,7 @@ import AdminFinderInput, { type FinderSuggestion } from "@/components/admin/Admi
 import UsersTab from "@/components/admin/UsersTab";
 import NotificationsTab from "@/components/admin/NotificationsTab";
 import NudgesTab from "@/components/admin/NudgesTab";
+import PromotionsTab from "@/components/admin/PromotionsTab";
 
 // ─── Main Admin Dashboard ──────────────────────────────────────
 const AdminDashboard = () => {
@@ -486,11 +487,7 @@ const AdminDashboard = () => {
         {activeTab === "activities" && <ActivitiesTab />}
 
         {activeTab === "promotions" && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="promotions">
-            <h1 className="font-heading text-2xl md:text-4xl font-bold text-foreground mb-2">Promotions</h1>
-            <p className="text-muted-foreground mb-8">Manage deals and promotional offers.</p>
-            <Card className="bg-card border-border"><CardContent className="py-12 text-center text-muted-foreground">Promotions coming soon.</CardContent></Card>
-          </motion.div>
+          <PromotionsTab allUsers={allUsers} clubs={clubs} />
         )}
 
         {/* Current & Former Dialog */}

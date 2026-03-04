@@ -739,6 +739,69 @@ export type Database = {
         }
         Relationships: []
       }
+      price_rule_clubs: {
+        Row: {
+          club_id: string
+          created_at: string
+          id: string
+          price_rule_id: string
+        }
+        Insert: {
+          club_id: string
+          created_at?: string
+          id?: string
+          price_rule_id: string
+        }
+        Update: {
+          club_id?: string
+          created_at?: string
+          id?: string
+          price_rule_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "price_rule_clubs_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "price_rule_clubs_price_rule_id_fkey"
+            columns: ["price_rule_id"]
+            isOneToOne: false
+            referencedRelation: "price_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      price_rules: {
+        Row: {
+          active: boolean
+          created_at: string
+          discount_type: string
+          discount_value: number
+          id: string
+          name: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          discount_type: string
+          discount_value?: number
+          id?: string
+          name: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          discount_type?: string
+          discount_value?: number
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -771,6 +834,50 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_promotions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          discount_type: string
+          discount_value: number
+          id: string
+          price_rule_id: string | null
+          remaining_uses: number
+          source: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          discount_type: string
+          discount_value?: number
+          id?: string
+          price_rule_id?: string | null
+          remaining_uses?: number
+          source?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          discount_type?: string
+          discount_value?: number
+          id?: string
+          price_rule_id?: string | null
+          remaining_uses?: number
+          source?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_promotions_price_rule_id_fkey"
+            columns: ["price_rule_id"]
+            isOneToOne: false
+            referencedRelation: "price_rules"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
