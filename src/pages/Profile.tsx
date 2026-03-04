@@ -338,7 +338,7 @@ const ProfilePage = () => {
   });
   const effectiveClubPoints: Record<string, number> = {};
   clubs.forEach(club => {
-    effectiveClubPoints[club.id] = (clubPoints[club.id] || 0) + (badgePointsByClub[club.id] || 0);
+    effectiveClubPoints[club.id] = (clubPoints[club.id] || 0) + (badgePointsByClub[club.id] || 0) + (loyaltyAdjustments[club.id] || 0);
   });
 
   return (
