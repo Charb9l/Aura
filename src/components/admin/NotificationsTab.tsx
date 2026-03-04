@@ -1,9 +1,10 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Bell, CheckCheck, Trash2, UserPlus, AlertTriangle, BarChart3, XCircle, Download, Eye } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Bell, CheckCheck, Trash2, UserPlus, AlertTriangle, BarChart3, XCircle, Download, MailOpen, Mail } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,6 +37,11 @@ const NotificationsTab = ({ onUnreadCountChange }: Props) => {
   const [loading, setLoading] = useState(true);
   const [filterType, setFilterType] = useState("all");
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  const updateUnreadCount = useCallback((items: Notification[]) => {
+    onUnreadCountChange?.(items.filter(n => !n.is_read).length);
+  }, [onUnreadCountChange]);
 
   const fetchNotifications = useCallback(async () => {
     const { data } = await supabase
@@ -46,14 +52,11 @@ const NotificationsTab = ({ onUnreadCountChange }: Props) => {
     const items = (data as unknown as Notification[]) || [];
     setNotifications(items);
     setLoading(false);
-    onUnreadCountChange?.(items.filter(n => !n.is_read).length);
-  }, [onUnreadCountChange]);
+    updateUnreadCount(items);
+  }, [updateUnreadCount]);
 
-  useEffect(() => {
-    fetchNotifications();
-  }, [fetchNotifications]);
+  useEffect(() => { fetchNotifications(); }, [fetchNotifications]);
 
-  // Realtime subscription
   useEffect(() => {
     const channel = supabase
       .channel("admin-notifications")
@@ -61,13 +64,13 @@ const NotificationsTab = ({ onUnreadCountChange }: Props) => {
         const n = payload.new as Notification;
         setNotifications(prev => {
           const next = [n, ...prev];
-          onUnreadCountChange?.(next.filter(x => !x.is_read).length);
+          updateUnreadCount(next);
           return next;
         });
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [onUnreadCountChange]);
+  }, [updateUnreadCount]);
 
   const filtered = useMemo(() => {
     if (filterType === "all") return notifications;
@@ -77,11 +80,53 @@ const NotificationsTab = ({ onUnreadCountChange }: Props) => {
 
   const unreadCount = useMemo(() => notifications.filter(n => !n.is_read).length, [notifications]);
 
+  const toggleSelect = (id: string) => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const selectAll = () => {
+    if (selected.size === filtered.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(filtered.map(n => n.id)));
+    }
+  };
+
+  const bulkSetReadStatus = async (isRead: boolean) => {
+    if (selected.size === 0) return;
+    const ids = Array.from(selected);
+    await supabase.from("admin_notifications").update({ is_read: isRead } as any).in("id", ids);
+    setNotifications(prev => {
+      const next = prev.map(n => ids.includes(n.id) ? { ...n, is_read: isRead } : n);
+      updateUnreadCount(next);
+      return next;
+    });
+    setSelected(new Set());
+    toast.success(`${ids.length} notification${ids.length > 1 ? "s" : ""} marked as ${isRead ? "read" : "unread"}`);
+  };
+
+  const bulkDelete = async () => {
+    if (selected.size === 0) return;
+    const ids = Array.from(selected);
+    await supabase.from("admin_notifications").delete().in("id", ids);
+    setNotifications(prev => {
+      const next = prev.filter(n => !ids.includes(n.id));
+      updateUnreadCount(next);
+      return next;
+    });
+    setSelected(new Set());
+    toast.success(`${ids.length} notification${ids.length > 1 ? "s" : ""} deleted`);
+  };
+
   const markRead = async (id: string) => {
     await supabase.from("admin_notifications").update({ is_read: true } as any).eq("id", id);
     setNotifications(prev => {
       const next = prev.map(n => n.id === id ? { ...n, is_read: true } : n);
-      onUnreadCountChange?.(next.filter(x => !x.is_read).length);
+      updateUnreadCount(next);
       return next;
     });
   };
@@ -92,7 +137,7 @@ const NotificationsTab = ({ onUnreadCountChange }: Props) => {
     await supabase.from("admin_notifications").update({ is_read: true } as any).in("id", unreadIds);
     setNotifications(prev => {
       const next = prev.map(n => ({ ...n, is_read: true }));
-      onUnreadCountChange?.(0);
+      updateUnreadCount(next);
       return next;
     });
     toast.success("All notifications marked as read");
@@ -102,9 +147,10 @@ const NotificationsTab = ({ onUnreadCountChange }: Props) => {
     await supabase.from("admin_notifications").delete().eq("id", id);
     setNotifications(prev => {
       const next = prev.filter(n => n.id !== id);
-      onUnreadCountChange?.(next.filter(x => !x.is_read).length);
+      updateUnreadCount(next);
       return next;
     });
+    setSelected(prev => { const next = new Set(prev); next.delete(id); return next; });
   };
 
   const handleDownloadCSV = (n: Notification) => {
@@ -120,14 +166,18 @@ const NotificationsTab = ({ onUnreadCountChange }: Props) => {
     toast.success("Report downloaded");
   };
 
+  const hasSelection = selected.size > 0;
+  const selectedHasUnread = hasSelection && notifications.some(n => selected.has(n.id) && !n.is_read);
+  const selectedHasRead = hasSelection && notifications.some(n => selected.has(n.id) && n.is_read);
+
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="notifications">
       <h1 className="font-heading text-2xl md:text-4xl font-bold text-foreground mb-2">Notifications</h1>
       <p className="text-muted-foreground mb-6">Stay updated on signups, bookings, and daily reports.</p>
 
       {/* Controls */}
-      <div className="flex items-center gap-3 mb-6 flex-wrap">
-        <Select value={filterType} onValueChange={setFilterType}>
+      <div className="flex items-center gap-3 mb-4 flex-wrap">
+        <Select value={filterType} onValueChange={(v) => { setFilterType(v); setSelected(new Set()); }}>
           <SelectTrigger className="w-[180px] h-10 bg-secondary border-border">
             <SelectValue placeholder="All Notifications" />
           </SelectTrigger>
@@ -148,6 +198,39 @@ const NotificationsTab = ({ onUnreadCountChange }: Props) => {
         )}
       </div>
 
+      {/* Bulk actions bar */}
+      {filtered.length > 0 && (
+        <div className="flex items-center gap-3 mb-3 flex-wrap">
+          <div className="flex items-center gap-2">
+            <Checkbox
+              checked={filtered.length > 0 && selected.size === filtered.length}
+              onCheckedChange={selectAll}
+              className="border-muted-foreground"
+            />
+            <span className="text-xs text-muted-foreground">
+              {hasSelection ? `${selected.size} selected` : "Select all"}
+            </span>
+          </div>
+          {hasSelection && (
+            <>
+              {selectedHasUnread && (
+                <Button variant="outline" size="sm" className="gap-1.5 h-7 text-xs" onClick={() => bulkSetReadStatus(true)}>
+                  <MailOpen className="h-3 w-3" /> Mark read
+                </Button>
+              )}
+              {selectedHasRead && (
+                <Button variant="outline" size="sm" className="gap-1.5 h-7 text-xs" onClick={() => bulkSetReadStatus(false)}>
+                  <Mail className="h-3 w-3" /> Mark unread
+                </Button>
+              )}
+              <Button variant="outline" size="sm" className="gap-1.5 h-7 text-xs text-destructive hover:text-destructive" onClick={bulkDelete}>
+                <Trash2 className="h-3 w-3" /> Delete
+              </Button>
+            </>
+          )}
+        </div>
+      )}
+
       {loading ? (
         <Card className="bg-card border-border">
           <CardContent className="py-12 text-center text-muted-foreground">Loading notifications...</CardContent>
@@ -165,13 +248,15 @@ const NotificationsTab = ({ onUnreadCountChange }: Props) => {
             const config = TYPE_CONFIG[n.type] || { icon: Bell, color: "text-muted-foreground", label: n.type };
             const Icon = config.icon;
             const isExpanded = expanded === n.id;
+            const isSelected = selected.has(n.id);
 
             return (
               <Card
                 key={n.id}
                 className={cn(
                   "bg-card border-border transition-all cursor-pointer hover:border-primary/30",
-                  !n.is_read && "border-l-2 border-l-primary"
+                  !n.is_read && "border-l-2 border-l-primary",
+                  isSelected && "ring-1 ring-primary/40"
                 )}
                 onClick={() => {
                   if (!n.is_read) markRead(n.id);
@@ -180,8 +265,15 @@ const NotificationsTab = ({ onUnreadCountChange }: Props) => {
               >
                 <CardContent className="p-4">
                   <div className="flex items-start gap-3">
+                    <div className="mt-0.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={() => toggleSelect(n.id)}
+                        className="border-muted-foreground"
+                      />
+                    </div>
                     <div className={cn("mt-0.5 shrink-0", config.color)}>
-                      <Icon className="h-4.5 w-4.5" />
+                      <Icon className="h-4 w-4" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
