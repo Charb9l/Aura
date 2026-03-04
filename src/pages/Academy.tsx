@@ -334,7 +334,7 @@ const AcademyPage = () => {
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-background/30" />
 
         {/* Content */}
-        <div className="relative z-10 container mx-auto px-6 py-32 text-center">
+        <div className="relative z-10 container mx-auto px-6 py-24 text-center">
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
             <div className="flex items-center justify-center gap-3 mb-4">
               <GraduationCap className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
@@ -347,7 +347,7 @@ const AcademyPage = () => {
 
       <div className="container mx-auto px-6 pb-16">
         {/* Filters */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-3 flex-wrap py-8">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-3 flex-wrap py-5">
           {academyOfferings.length > 0 && (
             <ActivityFilter offerings={academyOfferings} selected={filterSlugs} onChange={(s) => { setFilterSlugs(s); setFilterLocation(""); }} />
           )}
