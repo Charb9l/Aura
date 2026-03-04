@@ -51,72 +51,7 @@ const DropZone = ({ id, dragging, setDragging, onFiles, uploading, hint, multipl
   </div>
 );
 
-// Per-activity location editor
-const ActivityLocationsEditor = ({
-  activity,
-  locations,
-  onAdd,
-  onRemove,
-  locationsList,
-  isAcademy,
-}: {
-  activity: string;
-  locations: { id?: string; name: string; location: string }[];
-  onAdd: () => void;
-  onRemove: (index: number) => void;
-  locationsList: { id: string; name: string }[];
-  isAcademy?: boolean;
-}) => (
-  <div className={cn("rounded-lg border p-3 space-y-2", isAcademy ? "border-primary/20 bg-primary/5" : "border-border bg-secondary/30")}>
-    <div className="flex items-center justify-between">
-      <Label className="text-xs font-semibold flex items-center gap-1.5">
-        {isAcademy && <GraduationCap className="h-3.5 w-3.5 text-primary" />}
-        <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-        {activity} — Locations
-      </Label>
-      <Button type="button" variant="outline" size="sm" onClick={onAdd} className="gap-1 text-xs h-7">
-        <Plus className="h-3 w-3" /> Add
-      </Button>
-    </div>
-    {locations.length === 0 && (
-      <p className="text-xs text-muted-foreground text-center py-2">No locations yet. Click "Add" to create one.</p>
-    )}
-    {locations.map((loc, i) => (
-      <div key={loc.id || `new-${i}`} className="flex gap-2">
-        <Input
-          placeholder="Court / Location name"
-          value={loc.name}
-          onChange={(e) => {
-            // Handled by parent via callback
-            const el = e.target as HTMLInputElement;
-            el.dataset.locIndex = String(i);
-            el.dataset.locField = "name";
-          }}
-          onInput={(e) => {
-            // Use a custom event approach — parent handles state
-          }}
-          className="h-9 bg-background border-border text-sm flex-1"
-          readOnly={!!loc.id}
-          disabled={!!loc.id}
-        />
-        <Select value={loc.location} onValueChange={() => {}}>
-          <SelectTrigger className="h-9 bg-background border-border text-sm w-[160px]" disabled={!!loc.id}>
-            <SelectValue placeholder="Select city" />
-          </SelectTrigger>
-          <SelectContent className="bg-card border-border z-50 max-h-60">
-            {locationsList.map(l => (
-              <SelectItem key={l.id} value={l.name}>{l.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Button type="button" variant="ghost" size="icon" onClick={() => onRemove(i)} className="shrink-0 text-destructive hover:text-destructive h-9 w-9">
-          <X className="h-3.5 w-3.5" />
-        </Button>
-      </div>
-    ))}
-  </div>
-);
-
+// (ActivityLocationsEditor removed — locations are now per-club)
 const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
   const { locations: locationsList } = useLocations();
   const [clubs, setClubs] = useState<ClubRow[]>([]);
