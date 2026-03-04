@@ -1065,9 +1065,9 @@ const ProfilePage = () => {
                   className="rounded-xl border border-border bg-card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
                 >
                   <div>
-                    <p className="font-heading font-semibold text-foreground">{booking.activity_name}</p>
+                    <p className="font-heading font-semibold text-foreground">{getClubForBooking(booking)}</p>
                     <p className="text-sm text-muted-foreground">
-                      {format(new Date(booking.booking_date), "PPP")} at {booking.booking_time}
+                      {booking.activity_name} · {format(new Date(booking.booking_date), "PPP")} at {booking.booking_time}
                     </p>
                   </div>
                   <span className={cn(
