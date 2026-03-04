@@ -144,7 +144,7 @@ const ProfilePage = () => {
           .maybeSingle(),
         supabase
           .from("clubs")
-          .select("id, name, logo_url, offerings, published, created_at")
+          .select("id, name, logo_url, offerings, published")
           .order("name"),
       ]);
 
