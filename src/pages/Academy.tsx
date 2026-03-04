@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { GraduationCap, CheckCircle2, ChevronLeft, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,6 @@ import Navbar from "@/components/Navbar";
 import PhoneInput from "@/components/PhoneInput";
 import ActivityFilter from "@/components/ActivityFilter";
 import GalleryMosaic from "@/components/GalleryMosaic";
-import PagePhotoStrip from "@/components/PagePhotoStrip";
 
 interface AcademyClub {
   id: string;
