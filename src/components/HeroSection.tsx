@@ -29,6 +29,7 @@ interface HeroContent {
   hero_title_line1: string;
   hero_title_line2: string;
   hero_buttons: { to: string; label: string; glow?: boolean }[];
+  show_scroll_indicator?: boolean;
 }
 
 const CYCLE_INTERVAL = 4000;
@@ -93,6 +94,7 @@ const HeroSection = () => {
   const titleLine1 = content?.hero_title_line1 || "Your Journey.";
   const titleLine2 = content?.hero_title_line2 || "Your Space.";
   const actions = content?.hero_buttons?.map((b, i) => ({ ...b, delay: 0.4 + i * 0.1 })) || defaultActions;
+  const showScrollIndicator = content?.show_scroll_indicator ?? false;
 
   const totalCount = allPictures.length > 0 ? allPictures.length : (loaded ? 0 : fallbackPanels.length);
   const layout = getGridLayout(pictures.length);
@@ -178,20 +180,22 @@ const HeroSection = () => {
       </div>
 
       {/* Scroll indicator */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.2, duration: 1 }}
-        className="absolute bottom-12 left-1/2 -translate-x-1/2"
-      >
-        <div className="h-16 w-[1px] bg-gradient-to-b from-transparent via-primary/40 to-transparent relative">
-          <motion.div
-            animate={{ y: [0, 40, 0] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute top-0 left-1/2 -translate-x-1/2 h-2 w-[1px] bg-primary"
-          />
-        </div>
-      </motion.div>
+      {showScrollIndicator && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.2, duration: 1 }}
+          className="absolute bottom-12 left-1/2 -translate-x-1/2"
+        >
+          <div className="h-16 w-[1px] bg-gradient-to-b from-transparent via-primary/40 to-transparent relative">
+            <motion.div
+              animate={{ y: [0, 40, 0] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute top-0 left-1/2 -translate-x-1/2 h-2 w-[1px] bg-primary"
+            />
+          </div>
+        </motion.div>
+      )}
     </section>
   );
 };

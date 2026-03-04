@@ -439,6 +439,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
   const [backgroundPicture, setBackgroundPicture] = useState(""); // kept for backward compat in save
   const [platformNameLine1, setPlatformNameLine1] = useState("");
   const [platformNameLine2, setPlatformNameLine2] = useState("");
+  const [showScrollIndicator, setShowScrollIndicator] = useState(false);
 
   // Generic page state
   const [pageTitle, setPageTitle] = useState("");
@@ -469,6 +470,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
       setBackgroundPicture(content.background_picture || "");
       setPlatformNameLine1(content.platform_name_line1 || (content.platform_name ? content.platform_name.trim().split(/\s+/)[0] : ""));
       setPlatformNameLine2(content.platform_name_line2 || (content.platform_name ? content.platform_name.trim().split(/\s+/).slice(1).join(" ") : ""));
+      setShowScrollIndicator(content.show_scroll_indicator ?? false);
     } else {
       setPageTitle(content.title || "");
       setPageSubtitle(content.subtitle || "");
@@ -504,6 +506,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
       background_picture: backgroundPicture,
       platform_name_line1: platformNameLine1,
       platform_name_line2: platformNameLine2,
+      show_scroll_indicator: showScrollIndicator,
     });
   };
 
@@ -662,8 +665,18 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
               </div>
             </div>
 
+            {/* Scroll Indicator Toggle */}
+            <div className="border-t border-border pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-sm font-medium text-foreground block">Scroll Indicator</Label>
+                  <p className="text-xs text-muted-foreground mt-1">Show the animated scroll line at the bottom of the hero section.</p>
+                </div>
+                <Switch checked={showScrollIndicator} onCheckedChange={setShowScrollIndicator} />
+              </div>
+            </div>
 
-            {/* === Pictures Section (always at bottom) === */}
+
             <div className="border-t border-border pt-6">
               <h3 className="text-base font-heading font-semibold text-foreground mb-1">📷 Pictures</h3>
               <p className="text-xs text-muted-foreground mb-6">All image uploads for the main page are managed here.</p>
