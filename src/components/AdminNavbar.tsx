@@ -143,6 +143,11 @@ const AdminNavbar = ({ activeTab, onTabChange, assignedClubId, notificationCount
             </motion.span>
           )}
         </AnimatePresence>
+        {item.tab === "notifications" && notificationCount > 0 && (
+          <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold px-1.5">
+            {notificationCount > 99 ? "99+" : notificationCount}
+          </span>
+        )}
       </button>
     );
 
