@@ -157,7 +157,7 @@ const MatchmakerPage = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
+          className="text-center mb-6"
         >
           <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 border border-primary/20 px-4 py-1.5 mb-5">
             <Sparkles className="h-4 w-4 text-primary" />
@@ -229,31 +229,37 @@ const MatchmakerPage = () => {
         </motion.div>
 
         {!user ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-20"
-          >
-            <Users className="h-16 w-16 text-muted-foreground/30 mx-auto mb-4" />
-            <h2 className="font-heading text-2xl font-bold text-foreground mb-2">Sign in to find matches</h2>
-            <p className="text-muted-foreground mb-6">Create an account and set up your MyPlayer profile to get started.</p>
-            <Button onClick={() => navigate("/auth")} className="glow px-8 h-12 font-semibold text-base">
-              Login / Sign Up
-            </Button>
-          </motion.div>
+          <>
+            <div className="w-full max-w-md mx-auto h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent mb-8" />
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center pb-12"
+            >
+              <Users className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
+              <h2 className="font-heading text-xl font-bold text-foreground mb-2">Sign in to find matches</h2>
+              <p className="text-muted-foreground text-sm mb-5">Create an account and set up your MyPlayer profile to get started.</p>
+              <Button onClick={() => navigate("/auth")} className="glow px-8 h-11 font-semibold">
+                Login / Sign Up
+              </Button>
+            </motion.div>
+          </>
         ) : hasProfile === false ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-20"
-          >
-            <Trophy className="h-16 w-16 text-muted-foreground/30 mx-auto mb-4" />
-            <h2 className="font-heading text-2xl font-bold text-foreground mb-2">Set up your MyPlayer profile first</h2>
-            <p className="text-muted-foreground mb-6">We need to know your sports and levels to find the best matches for you.</p>
-            <Button onClick={() => navigate("/profile")} className="glow px-8 h-12 font-semibold text-base gap-2">
-              Go to Profile <ArrowRight className="h-4 w-4" />
-            </Button>
-          </motion.div>
+          <>
+            <div className="w-full max-w-md mx-auto h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent mb-8" />
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center pb-12"
+            >
+              <Trophy className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
+              <h2 className="font-heading text-xl font-bold text-foreground mb-2">Set up your MyPlayer profile first</h2>
+              <p className="text-muted-foreground text-sm mb-5">We need to know your sports and levels to find the best matches for you.</p>
+              <Button onClick={() => navigate("/profile")} className="glow px-8 h-11 font-semibold gap-2">
+                Go to Profile <ArrowRight className="h-4 w-4" />
+              </Button>
+            </motion.div>
+          </>
         ) : (
           <>
             {/* Filters */}

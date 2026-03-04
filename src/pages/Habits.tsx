@@ -430,7 +430,7 @@ const HabitsPage = () => {
       <div className="container mx-auto px-6 pt-28 pb-20">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           {/* Header */}
-          <div className="text-center mb-12">
+          <div className="text-center mb-6">
             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.1 }}>
               <Badge className="bg-primary/10 text-primary border-primary/20 mb-4">
                 <Sparkles className="h-3 w-3 mr-1" />
@@ -446,14 +446,17 @@ const HabitsPage = () => {
           </div>
 
           {!user ? (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20">
-              <Sparkles className="h-16 w-16 text-muted-foreground/30 mx-auto mb-4" />
-              <h2 className="font-heading text-2xl font-bold text-foreground mb-2">Sign in to track your habits</h2>
-              <p className="text-muted-foreground mb-6">Create an account and start booking sessions to unlock your personalized wellness dashboard.</p>
-              <Button onClick={() => navigate("/auth")} className="glow px-8 h-12 font-semibold text-base">
-                Login / Sign Up
-              </Button>
-            </motion.div>
+            <>
+              <div className="w-full max-w-md mx-auto h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent mb-8" />
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center pb-12">
+                <Sparkles className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
+                <h2 className="font-heading text-xl font-bold text-foreground mb-2">Sign in to track your habits</h2>
+                <p className="text-muted-foreground text-sm mb-5">Create an account and start booking sessions to unlock your personalized wellness dashboard.</p>
+                <Button onClick={() => navigate("/auth")} className="glow px-8 h-11 font-semibold">
+                  Login / Sign Up
+                </Button>
+              </motion.div>
+            </>
           ) : (
           <>
           {/* Session Times — moved right after subtitle */}
