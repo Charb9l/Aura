@@ -381,19 +381,17 @@ const BookPage = () => {
                       style={{
                         clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
                         background: isSelected
-                          ? `linear-gradient(135deg, hsl(${c} / 0.25), hsl(${c} / 0.08))`
-                          : "hsl(var(--secondary) / 0.5)",
-                        boxShadow: isSelected ? `0 0 25px hsl(${c} / 0.35)` : undefined,
+                          ? `hsl(var(--primary))`
+                          : "hsl(var(--primary) / 0.3)",
+                        boxShadow: isSelected ? `0 0 25px hsl(var(--primary) / 0.4)` : undefined,
                       }}
                     >
-                      {/* Inner border hexagon */}
+                      {/* Inner white hexagon */}
                       <div
                         className="absolute inset-[2px] flex items-center justify-center"
                         style={{
                           clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
-                          background: isSelected
-                            ? `linear-gradient(160deg, hsl(${c} / 0.15), hsl(var(--card)))`
-                            : "hsl(var(--card))",
+                          background: "white",
                         }}
                       >
                         {a.logo_url ? (
