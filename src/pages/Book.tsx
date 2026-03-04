@@ -290,6 +290,14 @@ const BookPage = () => {
         },
       });
 
+      // Decrement promo uses if applied
+      if (activePromo && !clubReward) {
+        const newUses = activePromo.remaining_uses - 1;
+        await supabase.from("user_promotions").update({ remaining_uses: newUses } as any).eq("id", activePromo.id);
+        if (newUses <= 0) setActivePromo(null);
+        else setActivePromo({ ...activePromo, remaining_uses: newUses });
+      }
+
       setSubmitted(true);
     }
   };
