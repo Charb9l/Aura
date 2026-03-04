@@ -226,12 +226,12 @@ const SportSelectionCard = ({
                         key={`${day}-${period.value}`}
                         onClick={() => onToggleAvailability(sel.rank, day, period.value)}
                         className={cn(
-                          "rounded-md border py-2 transition-all font-medium",
-                          !active && "border-border text-muted-foreground/40 hover:border-muted-foreground/50 hover:text-foreground"
+                          "h-8 w-8 mx-auto rounded-full border transition-all font-medium flex items-center justify-center text-xs",
+                          !active && "border-border text-muted-foreground/40 hover:border-muted-foreground/50"
                         )}
                         style={chipStyle(active)}
                       >
-                        {active ? "✓" : "–"}
+                        {active ? "✓" : ""}
                       </button>
                     );
                   })}
