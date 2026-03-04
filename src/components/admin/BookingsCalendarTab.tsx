@@ -246,7 +246,7 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
                 </TableHeader>
                 <TableBody>
                   {allLogsEntries.map((entry, i) => (
-                    <TableRow key={`${entry.id}-${entry.status_label}-${i}`} className={entry.status_label === "deleted" ? "opacity-60" : ""}>
+                    <TableRow key={`${entry.id}-${entry.status_label}-${i}`} className={cn(entry.status_label === "deleted" ? "opacity-60" : "cursor-pointer hover:bg-secondary/50")} onClick={() => { if (entry.status_label !== "deleted") setSelectedBooking(entry as unknown as BookingRow); }}>
                       <TableCell>
                         {entry.status_label !== "deleted" && (
                           <Button
