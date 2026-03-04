@@ -70,6 +70,7 @@ const ProfilePage = () => {
   const { avatarUrl, setAvatarUrl } = useAvatar();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [loyaltyAdjustments, setLoyaltyAdjustments] = useState<Record<string, number>>({});
   const [profile, setProfile] = useState<Profile | null>(null);
   const [clubs, setClubs] = useState<ClubInfo[]>([]);
   const [loadingData, setLoadingData] = useState(true);
