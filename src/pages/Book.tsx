@@ -602,7 +602,31 @@ const BookPage = () => {
                   {courtType && <p className="text-sm"><span className="text-muted-foreground">Court:</span> <span className="text-foreground font-medium">{courtType === "full" ? "Full Court" : "Half Court"}</span></p>}
                   <p className="text-sm"><span className="text-muted-foreground">Date:</span> <span className="text-foreground font-medium">{date && format(date, "PPP")}</span></p>
                   <p className="text-sm"><span className="text-muted-foreground">Time:</span> <span className="text-foreground font-medium">{selectedTime}</span></p>
-                  {currentPrice !== null && <p className="text-sm"><span className="text-muted-foreground">Price:</span> <span className="text-foreground font-bold">${currentPrice}</span></p>}
+                  {currentPrice !== null && (() => {
+                    const clubReward = resolvedClubId ? getRewardForClub(resolvedClubId) : undefined;
+                    const isFree = clubReward?.reward === "free";
+                    const isHalf = clubReward?.reward === "50%";
+                    const discountedPrice = isHalf ? (currentPrice / 2).toFixed(0) : null;
+                    return (
+                      <p className="text-sm">
+                        <span className="text-muted-foreground">Price:</span>{" "}
+                        {isFree ? (
+                          <>
+                            <span className="text-muted-foreground line-through mr-2">${currentPrice}</span>
+                            <span className="font-black text-emerald-400">FREE! 🎉</span>
+                          </>
+                        ) : isHalf ? (
+                          <>
+                            <span className="text-muted-foreground line-through mr-2">${currentPrice}</span>
+                            <span className="font-bold text-amber-400">${discountedPrice}</span>
+                            <span className="ml-1 text-xs text-amber-400">(50% off)</span>
+                          </>
+                        ) : (
+                          <span className="text-foreground font-bold">${currentPrice}</span>
+                        )}
+                      </p>
+                    );
+                  })()}
                 </div>
               </div>
               <DialogFooter className="gap-2 sm:gap-0">
