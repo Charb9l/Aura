@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Pencil, Plus, Trash2, ArrowUp, ArrowDown } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import { Gamepad2, Flame, Target, Clock, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Check, X } from "lucide-react";
