@@ -1,16 +1,13 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Eye, Pencil, Plus, Trash2, ArrowUp, ArrowDown } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import { Gamepad2, Flame, Target, Clock, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Check, X } from "lucide-react";
-import PageContentEditor from "@/components/admin/PageContentEditor";
 
 // ─── MyPlayer Config types ────────────────────────────────────
 interface ConfigItem {
@@ -106,90 +103,6 @@ const ConfigList = ({
   );
 };
 
-// ─── Match Criteria Editor ────────────────────────────────────
-const MatchCriteriaEditor = () => {
-  const [content, setContent] = useState<any>({});
-  const [criteria, setCriteria] = useState<{ emoji: string; label: string }[]>([]);
-  const [title, setTitle] = useState("");
-  const [subtitle, setSubtitle] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [open, setOpen] = useState(false);
-
-  const fetchContent = async () => {
-    const { data } = await supabase.from("page_content").select("content").eq("page_slug", "matchmaker").single();
-    const c = (data?.content as any) || {};
-    setContent(c);
-    setTitle(c.title || "");
-    setSubtitle(c.subtitle || "");
-    setCriteria(c.criteria || []);
-  };
-
-  useEffect(() => { fetchContent(); }, []);
-
-  const handleSave = async () => {
-    setSaving(true);
-    const updated = { ...content, title, subtitle, criteria: criteria.filter(c => c.label.trim()) };
-    const { error } = await supabase.from("page_content").update({ content: updated, updated_at: new Date().toISOString() }).eq("page_slug", "matchmaker");
-    setSaving(false);
-    if (error) { toast.error("Failed to save: " + error.message); }
-    else { toast.success("Matchmaker page updated"); setContent(updated); setOpen(false); }
-  };
-
-  return (
-    <>
-      <Button variant="outline" size="sm" className="gap-2" onClick={() => { fetchContent(); setOpen(true); }}>
-        <Eye className="h-4 w-4" /> Edit Page Content
-      </Button>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="bg-card border-border max-w-2xl w-[66vw] max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="font-heading text-xl flex items-center gap-2">
-              <Eye className="h-5 w-5 text-primary" /> Edit AI Matchmaker Page
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-6 pt-2">
-            <div>
-              <Label className="text-sm font-medium text-muted-foreground mb-2 block">Page Title</Label>
-              <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Page title" className="h-12 bg-secondary border-border" />
-            </div>
-            <div>
-              <Label className="text-sm font-medium text-muted-foreground mb-2 block">Subtitle</Label>
-              <Input value={subtitle} onChange={(e) => setSubtitle(e.target.value)} placeholder="Subtitle text" className="h-12 bg-secondary border-border" />
-            </div>
-
-            <div className="border-t border-border pt-6">
-              <div className="flex items-center justify-between mb-3">
-                <Label className="text-sm font-medium text-muted-foreground">Match Criteria Badges</Label>
-                <Button type="button" variant="outline" size="sm" onClick={() => setCriteria(prev => [...prev, { emoji: "✓", label: "" }])} className="gap-1.5 text-xs">
-                  <Plus className="h-3.5 w-3.5" /> Add Criteria
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground mb-3">These appear as styled pills below the subtitle on the matchmaker page.</p>
-              <div className="space-y-3">
-                {criteria.map((c, i) => (
-                  <div key={i} className="flex items-center gap-2 p-3 rounded-lg border border-border bg-secondary/50">
-                    <div className="flex flex-col gap-1 shrink-0">
-                      <Button type="button" variant="ghost" size="icon" className="h-7 w-7" disabled={i === 0} onClick={() => { const arr = [...criteria]; [arr[i - 1], arr[i]] = [arr[i], arr[i - 1]]; setCriteria(arr); }}><ArrowUp className="h-3.5 w-3.5" /></Button>
-                      <Button type="button" variant="ghost" size="icon" className="h-7 w-7" disabled={i === criteria.length - 1} onClick={() => { const arr = [...criteria]; [arr[i], arr[i + 1]] = [arr[i + 1], arr[i]]; setCriteria(arr); }}><ArrowDown className="h-3.5 w-3.5" /></Button>
-                    </div>
-                    <Input value={c.emoji} onChange={(e) => setCriteria(prev => prev.map((cr, idx) => idx === i ? { ...cr, emoji: e.target.value } : cr))} placeholder="✓" className="h-9 w-16 bg-background border-border text-sm text-center" maxLength={4} />
-                    <Input value={c.label} onChange={(e) => setCriteria(prev => prev.map((cr, idx) => idx === i ? { ...cr, label: e.target.value } : cr))} placeholder="e.g. Skill Level" className="h-9 flex-1 bg-background border-border text-sm" />
-                    <Button type="button" variant="ghost" size="icon" onClick={() => setCriteria(prev => prev.filter((_, idx) => idx !== i))} className="shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"><Trash2 className="h-4 w-4" /></Button>
-                  </div>
-                ))}
-                {criteria.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No criteria yet.</p>}
-              </div>
-            </div>
-
-            <Button onClick={handleSave} disabled={saving} className="w-full h-12 text-base font-semibold glow">
-              {saving ? "Saving..." : "Save Changes"}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
-  );
-};
 
 // ─── Main Matchmaker Tab ──────────────────────────────────────
 const MatchmakerTab = () => {
@@ -218,9 +131,8 @@ const MatchmakerTab = () => {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="matchmaker">
-      <div className="flex items-center justify-between mb-2">
+      <div className="mb-2">
         <h1 className="font-heading text-4xl font-bold text-foreground">AI Matchmaker</h1>
-        <MatchCriteriaEditor />
       </div>
       <p className="text-muted-foreground mb-8">
         Configure the matchmaker page content and player profile options.

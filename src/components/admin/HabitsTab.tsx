@@ -8,7 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Plus, Trash2, GripVertical, Save, Shield, Award, Crown, Star, Zap, Target, Sun, Moon, Flame, TrendingUp, Sparkles, Trophy, Clock } from "lucide-react";
-import PageContentEditor from "./PageContentEditor";
 import { cn } from "@/lib/utils";
 
 const ICON_OPTIONS = [
@@ -202,7 +201,6 @@ const HabitsTab = () => {
           <p className="text-muted-foreground">Manage badge levels, requirements, and page content.</p>
         </div>
         <div className="flex items-center gap-2">
-          <PageContentEditor pageSlug="habits" pageName="AI Habit Tracker" />
           <Button onClick={handleSave} disabled={saving} className="gap-2">
             <Save className="h-4 w-4" />
             {saving ? "Saving..." : "Save Levels"}
