@@ -45,6 +45,8 @@ const AdminDashboard = () => {
   const [allUsers, setAllUsers] = useState<UserWithEmail[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
+  const [pendingViewUserId, setPendingViewUserId] = useState<string | null>(null);
+  const [pendingBookingDate, setPendingBookingDate] = useState<string | null>(null);
 
   const [editUser, setEditUser] = useState<UserWithEmail | null>(null);
   const [editName, setEditName] = useState("");
