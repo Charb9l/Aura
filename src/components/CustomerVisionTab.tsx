@@ -439,6 +439,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
   const [backgroundPicture, setBackgroundPicture] = useState(""); // kept for backward compat in save
   const [platformNameLine1, setPlatformNameLine1] = useState("");
   const [platformNameLine2, setPlatformNameLine2] = useState("");
+  const [showScrollIndicator, setShowScrollIndicator] = useState(false);
 
   // Generic page state
   const [pageTitle, setPageTitle] = useState("");
