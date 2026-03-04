@@ -1,14 +1,14 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Building2, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 import Navbar from "@/components/Navbar";
 import GalleryMosaic from "@/components/GalleryMosaic";
-import PagePhotoStrip from "@/components/PagePhotoStrip";
 
 interface Club {
   id: string;
@@ -32,6 +32,18 @@ const clubActivityMap: Record<string, string> = {
   "En Forme": "pilates",
 };
 
+const CYCLE_INTERVAL = 4000;
+
+const getGridLayout = (count: number) => {
+  if (count === 1) return "grid-cols-1";
+  if (count === 2) return "grid-cols-2";
+  if (count === 3) return "grid-cols-3";
+  if (count === 4) return "grid-cols-2 md:grid-cols-4";
+  if (count <= 6) return "grid-cols-3 grid-rows-2";
+  if (count <= 9) return "grid-cols-3 grid-rows-3";
+  return "grid-cols-3 md:grid-cols-6";
+};
+
 const ClubsPage = () => {
   const [clubs, setClubs] = useState<Club[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,11 +54,16 @@ const ClubsPage = () => {
   const [picturesLoading, setPicturesLoading] = useState(false);
   const navigate = useNavigate();
 
+  // Hero grid pictures
+  const [heroPictures, setHeroPictures] = useState<{ image: string; alt: string }[]>([]);
+  const [heroCycleIndex, setHeroCycleIndex] = useState(0);
+
   useEffect(() => {
     const fetchData = async () => {
-      const [clubsRes, contentRes] = await Promise.all([
+      const [clubsRes, contentRes, heroRes] = await Promise.all([
         supabase.from("clubs").select("*").order("name"),
         supabase.from("page_content").select("content").eq("page_slug", "clubs").single(),
+        supabase.from("hero_pictures").select("id, image_url, display_order").eq("page_slug", "clubs").order("display_order"),
       ]);
       if (clubsRes.data) setClubs((clubsRes.data as unknown as Club[]).filter(c => (c as any).published !== false));
       if (contentRes.data) {
@@ -54,10 +71,28 @@ const ClubsPage = () => {
         if (c?.title) setPageTitle(c.title);
         if (c?.subtitle) setPageSubtitle(c.subtitle);
       }
+      if (heroRes.data && heroRes.data.length > 0) {
+        setHeroPictures(heroRes.data.map((p: any) => ({ image: p.image_url, alt: "Clubs" })));
+      }
       setLoading(false);
     };
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (heroPictures.length <= 9) return;
+    const timer = setInterval(() => {
+      setHeroCycleIndex(prev => (prev + 1) % heroPictures.length);
+    }, CYCLE_INTERVAL);
+    return () => clearInterval(timer);
+  }, [heroPictures.length]);
+
+  const visibleHeroPics = useMemo(() => {
+    if (heroPictures.length === 0) return [];
+    if (heroPictures.length <= 9) return heroPictures;
+    const windowSize = 6;
+    return Array.from({ length: windowSize }, (_, i) => heroPictures[(heroCycleIndex + i) % heroPictures.length]);
+  }, [heroPictures, heroCycleIndex]);
 
   const openClub = async (club: Club) => {
     setSelectedClub(club);
@@ -74,16 +109,52 @@ const ClubsPage = () => {
   return (
     <div className="min-h-screen">
       <Navbar />
-      <div className="container mx-auto px-6 pt-28 pb-16">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <div className="flex items-center gap-3 mb-2">
-            <Building2 className="h-8 w-8 text-primary" />
-            <h1 className="font-heading text-2xl sm:text-4xl md:text-5xl font-bold text-foreground">{pageTitle}</h1>
-          </div>
-          <p className="text-muted-foreground text-lg mb-6">{pageSubtitle}</p>
-        </motion.div>
 
-        <PagePhotoStrip pageSlug="clubs" className="mb-10" />
+      {/* Hero section with dynamic grid background */}
+      <section className="relative min-h-[50vh] flex items-center justify-center overflow-hidden">
+        {visibleHeroPics.length > 0 && (
+          <div className={cn("absolute inset-0 grid", getGridLayout(visibleHeroPics.length))}>
+            <AnimatePresence mode="popLayout">
+              {visibleHeroPics.map((pic, i) => (
+                <motion.div
+                  key={`${pic.image}-${i}-${heroCycleIndex}`}
+                  className="relative overflow-hidden"
+                  initial={{ opacity: 0, scale: 1.1 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 1.2, delay: i * 0.08 }}
+                >
+                  <img
+                    src={pic.image}
+                    alt={pic.alt}
+                    className={cn(
+                      "h-full w-full object-cover saturate-[0.3] contrast-[1.1]",
+                      visibleHeroPics.length === 1 && "saturate-[0.4]"
+                    )}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        )}
+
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-background/80" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-background/30" />
+
+        {/* Content */}
+        <div className="relative z-10 container mx-auto px-6 py-32 text-center">
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <Building2 className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+              <h1 className="font-heading text-3xl sm:text-5xl md:text-6xl font-light text-foreground">{pageTitle}</h1>
+            </div>
+            <p className="text-muted-foreground text-sm sm:text-lg max-w-lg mx-auto">{pageSubtitle}</p>
+          </motion.div>
+        </div>
+      </section>
+
+      <div className="container mx-auto px-6 pb-16">
 
 
         {loading ? (
