@@ -56,20 +56,20 @@ const LoyaltyPage = () => {
               <span className="text-sm font-medium text-primary">Rewards Program</span>
             </motion.div>
 
-            <h1 className="font-heading text-2xl sm:text-4xl md:text-6xl font-bold text-foreground mb-4">
+            <h1 className="font-heading text-xl sm:text-2xl md:text-4xl font-bold text-foreground mb-3">
               {title.split(". ").length > 1 ? (
                 <>{title.split(". ")[0]}. <span className="text-gradient">{title.split(". ").slice(1).join(". ")}</span></>
               ) : (
                 <span className="text-gradient">{title}</span>
               )}
             </h1>
-            <p className="text-muted-foreground text-lg md:text-xl max-w-xl mx-auto mb-8">
+            <p className="text-muted-foreground text-base md:text-lg max-w-xl mx-auto mb-8">
               {subtitle}
             </p>
 
-            <Link to="/book">
-              <Button className="h-14 px-10 text-lg font-bold rounded-xl glow">
-                Start Earning <ArrowRight className="ml-2 h-5 w-5" />
+            <Link to="/profile">
+              <Button className="h-12 px-8 text-base font-bold rounded-xl glow">
+                My Summit Loyalty <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
           </motion.div>
