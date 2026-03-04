@@ -644,8 +644,16 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
                       <Button type="button" variant="ghost" size="icon" className="h-6 w-6" disabled={i === 0} onClick={() => { const arr = [...navOrder]; [arr[i - 1], arr[i]] = [arr[i], arr[i - 1]]; setNavOrder(arr); }}><ArrowUp className="h-3 w-3" /></Button>
                       <Button type="button" variant="ghost" size="icon" className="h-6 w-6" disabled={i === navOrder.length - 1} onClick={() => { const arr = [...navOrder]; [arr[i], arr[i + 1]] = [arr[i + 1], arr[i]]; setNavOrder(arr); }}><ArrowDown className="h-3 w-3" /></Button>
                     </div>
-                    <span className="flex-1 text-sm font-medium text-foreground">{item.label}</span>
-                    <span className="text-xs text-muted-foreground font-mono">{item.to}</span>
+                    <Input
+                      value={item.label}
+                      onChange={(e) => {
+                        const arr = [...navOrder];
+                        arr[i] = { ...arr[i], label: e.target.value };
+                        setNavOrder(arr);
+                      }}
+                      className="flex-1 h-9 bg-background border-border text-sm"
+                    />
+                    <span className="text-xs text-muted-foreground font-mono shrink-0">{item.to}</span>
                   </div>
                 ))}
               </div>
