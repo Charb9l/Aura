@@ -204,6 +204,16 @@ const AdminDashboard = () => {
   const [revenueFilterType, setRevenueFilterType] = useState<string>("all");
   const [revenueFilterValue, setRevenueFilterValue] = useState<string>("all");
 
+  // For club admins, restrict available activities and hide club filter
+  const myClubActivities = useMemo(() => {
+    if (!myClubId) return ALL_CATEGORIES;
+    const allowed = clubActivityMap[myClubId] || [];
+    return ALL_CATEGORIES.filter(c => allowed.includes(c.key));
+  }, [myClubId, clubActivityMap]);
+
+  const showActivityFilter = myClubActivities.length > 1;
+  const showClubFilter = !myClubId; // only super admins can filter by club
+
   useEffect(() => { setBookingFilterValue("all"); }, [bookingFilterType]);
   useEffect(() => { setRevenueFilterValue("all"); }, [revenueFilterType]);
 
