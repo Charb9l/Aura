@@ -340,32 +340,80 @@ const BookPage = () => {
                 <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={() => setFilterLocation("")}>Clear location</Button>
               )}
             </div>
-            <div className="flex flex-wrap gap-2.5">
-              {filteredOfferings.map((a) => {
+            <div className="flex flex-wrap gap-3">
+              {filteredOfferings.map((a, i) => {
                 const isSelected = selectedActivity === a.slug;
                 const aBrand = makeBrandStyles(a.brand_color);
+                const c = a.brand_color || "220 14% 60%";
                 return (
-                  <button
+                  <motion.button
                     type="button"
                     key={a.slug}
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.04 }}
                     onClick={() => { setSelectedActivity(a.slug); setSelectedClub(""); setSelectedLocation(""); setCourtType(""); setDate(undefined); setSelectedTime(""); }}
                     className={cn(
-                      "flex items-center gap-2.5 rounded-full border px-4 py-2 transition-all text-sm font-medium",
-                      isSelected
-                        ? "shadow-md"
-                        : "border-border text-muted-foreground hover:border-muted-foreground/50 hover:text-foreground bg-secondary/30"
+                      "group relative flex flex-col items-center gap-1.5 transition-all duration-300",
+                      isSelected ? "scale-105" : "hover:scale-105"
                     )}
-                    style={isSelected ? aBrand.bg10 : undefined}
                   >
-                    {a.logo_url && (
-                      <img
-                        src={a.logo_url}
-                        alt=""
-                        className="h-6 w-6 rounded-full object-cover flex-shrink-0"
-                      />
-                    )}
-                    <span className="whitespace-nowrap">{a.name}</span>
-                  </button>
+                    {/* Hexagonal card */}
+                    <div
+                      className={cn(
+                        "relative h-20 w-20 sm:h-[88px] sm:w-[88px] overflow-hidden transition-all duration-300",
+                        isSelected
+                          ? "shadow-lg"
+                          : "border-border/50 group-hover:border-muted-foreground/40"
+                      )}
+                      style={{
+                        clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
+                        background: isSelected
+                          ? `linear-gradient(135deg, hsl(${c} / 0.25), hsl(${c} / 0.08))`
+                          : "hsl(var(--secondary) / 0.5)",
+                        boxShadow: isSelected ? `0 0 25px hsl(${c} / 0.35)` : undefined,
+                      }}
+                    >
+                      {/* Inner border hexagon */}
+                      <div
+                        className="absolute inset-[2px] flex items-center justify-center"
+                        style={{
+                          clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
+                          background: isSelected
+                            ? `linear-gradient(160deg, hsl(${c} / 0.15), hsl(var(--card)))`
+                            : "hsl(var(--card))",
+                        }}
+                      >
+                        {a.logo_url ? (
+                          <img
+                            src={a.logo_url}
+                            alt=""
+                            className={cn(
+                              "h-10 w-10 sm:h-11 sm:w-11 object-contain transition-all duration-300",
+                              isSelected ? "brightness-110" : "opacity-60 group-hover:opacity-90"
+                            )}
+                          />
+                        ) : (
+                          <span className={cn(
+                            "text-lg font-heading font-bold transition-colors",
+                            isSelected ? "text-foreground" : "text-muted-foreground group-hover:text-foreground"
+                          )}>
+                            {a.name[0]}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    {/* Label */}
+                    <span
+                      className={cn(
+                        "text-[10px] sm:text-xs font-medium tracking-wide uppercase transition-colors max-w-[80px] text-center leading-tight",
+                        isSelected ? "text-foreground" : "text-muted-foreground/70 group-hover:text-muted-foreground"
+                      )}
+                      style={isSelected ? { color: `hsl(${c})` } : undefined}
+                    >
+                      {a.name}
+                    </span>
+                  </motion.button>
                 );
               })}
             </div>
