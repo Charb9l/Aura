@@ -24,11 +24,6 @@ const timeSlots = Array.from({ length: CLOSE_HOUR - OPEN_HOUR }, (_, i) => {
   return { hour: h, label };
 });
 
-const HOUR_OPTIONS = Array.from({ length: CLOSE_HOUR - OPEN_HOUR }, (_, i) => {
-  const h = OPEN_HOUR + i;
-  const label = h < 12 ? `${h}:00 AM` : h === 12 ? `12:00 PM` : `${h - 12}:00 PM`;
-  return { value: `${h}:00`, label };
-});
 
 interface Props {
   bookings: BookingRow[];
