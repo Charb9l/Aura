@@ -193,8 +193,8 @@ const LoyaltyPage = () => {
 
       {/* Activities marquee — sleek */}
       {offerings.length > 0 && (
-        <section className="border-t border-border/50 py-20 overflow-hidden">
-          <div className="container mx-auto px-6 mb-12">
+        <section className="border-t border-border/50 py-12 overflow-hidden">
+          <div className="container mx-auto px-6 mb-8">
             <div className="flex items-center gap-4">
               <div className="h-px flex-1 bg-gradient-to-r from-primary/30 to-transparent" />
               <span className="text-[10px] uppercase tracking-[0.4em] text-primary font-medium whitespace-nowrap">Every Activity Counts</span>
