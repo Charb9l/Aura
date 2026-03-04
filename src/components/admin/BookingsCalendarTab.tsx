@@ -182,10 +182,6 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
           <FileText className="h-4 w-4" />
           {showLogs ? "Back to Calendar" : "Logs"}
         </Button>
-        <Button size="sm" onClick={() => setShowAddBooking(true)} className="gap-2 ml-auto">
-          <CalendarCheck className="h-4 w-4" />
-          Add Booking
-        </Button>
       </div>
 
       {showLogs ? (
