@@ -289,7 +289,7 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
     toast.success(`${delta > 0 ? "Added" : "Removed"} 1 loyalty point`);
   };
 
-
+  const handleSaveSelection = async (selId: string) => {
     if (!editSelData) return;
     setSavingSelection(true);
     const updates: any = {
