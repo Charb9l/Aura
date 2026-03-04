@@ -202,7 +202,6 @@ const HabitsTab = () => {
           <p className="text-muted-foreground">Manage badge levels, requirements, and page content.</p>
         </div>
         <div className="flex items-center gap-2">
-          <PageContentEditor pageSlug="habits" pageName="AI Habit Tracker" />
           <Button onClick={handleSave} disabled={saving} className="gap-2">
             <Save className="h-4 w-4" />
             {saving ? "Saving..." : "Save Levels"}

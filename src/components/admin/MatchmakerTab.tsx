@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Eye, Pencil, Plus, Trash2, ArrowUp, ArrowDown } from "lucide-react";
+import { Pencil, Plus, Trash2, ArrowUp, ArrowDown } from "lucide-react";
 import { Gamepad2, Flame, Target, Clock, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { toast } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Check, X } from "lucide-react";
-import PageContentEditor from "@/components/admin/PageContentEditor";
 
 // ─── MyPlayer Config types ────────────────────────────────────
 interface ConfigItem {
