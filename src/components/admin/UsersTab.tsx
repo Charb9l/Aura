@@ -132,6 +132,17 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
     fetchLookups();
   }, []);
 
+  // Auto-open profile viewer from notification
+  useEffect(() => {
+    if (initialViewUserId && allUsers.length > 0) {
+      const user = allUsers.find(u => u.user_id === initialViewUserId);
+      if (user) {
+        openProfileViewer(user);
+      }
+      onInitialViewHandled?.();
+    }
+  }, [initialViewUserId, allUsers]);
+
   const customers = allUsers.filter(u => !adminUsers.some(a => a.user_id === u.user_id && a.club_id));
 
   const openEditDialog = (u: UserWithEmail) => {
