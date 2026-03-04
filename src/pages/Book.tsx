@@ -157,27 +157,39 @@ const BookPage = () => {
     ).sort((a, b) => a.name.localeCompare(b.name));
   }, [selectedActivity, clubs]);
 
+  // Build club+location combos for selection
+  const clubLocationOptions = useMemo(() => {
+    return matchingClubs.flatMap(club => {
+      const locs = clubLocations.filter(l => l.club_id === club.id).sort((a, b) => a.name.localeCompare(b.name));
+      if (locs.length === 0) return [{ club, location: null }];
+      return locs.map(loc => ({ club, location: loc }));
+    });
+  }, [matchingClubs, clubLocations]);
+
+  // Combined selection key: "clubId::locationId"
+  const selectedComboKey = selectedClub && selectedLocation ? `${selectedClub}::${selectedLocation}` : "";
+
+  const handleSelectCombo = (clubId: string, locationId: string | null) => {
+    setSelectedClub(clubId);
+    setSelectedLocation(locationId || "");
+    setCourtType("");
+    setDate(undefined);
+    setSelectedTime("");
+  };
+
+  // Auto-select if only one option
   useEffect(() => {
-    if (matchingClubs.length === 1) {
-      setSelectedClub(matchingClubs[0].id);
-    } else if (matchingClubs.length === 0) {
+    if (clubLocationOptions.length === 1) {
+      const opt = clubLocationOptions[0];
+      setSelectedClub(opt.club.id);
+      setSelectedLocation(opt.location?.id || "");
+    } else if (clubLocationOptions.length === 0) {
       setSelectedClub("");
-    }
-  }, [matchingClubs]);
-
-  const resolvedClubId = selectedClub || (matchingClubs.length === 1 ? matchingClubs[0].id : "");
-  const locationsForClub = useMemo(() => {
-    if (!resolvedClubId) return [];
-    return clubLocations.filter(l => l.club_id === resolvedClubId).sort((a, b) => a.name.localeCompare(b.name));
-  }, [resolvedClubId, clubLocations]);
-
-  useEffect(() => {
-    if (locationsForClub.length === 1) {
-      setSelectedLocation(locationsForClub[0].id);
-    } else if (locationsForClub.length === 0) {
       setSelectedLocation("");
     }
-  }, [locationsForClub]);
+  }, [clubLocationOptions]);
+
+  const resolvedClubId = selectedClub || (matchingClubs.length === 1 ? matchingClubs[0].id : "");
 
   // Dynamic brand color from the selected offering
   const selectedOffering = offerings.find(o => o.slug === selectedActivity);
