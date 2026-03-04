@@ -96,10 +96,17 @@ const BookPage = () => {
     if (!user) return;
     setProfileEmail(user.email || "");
     const fetchProfile = async () => {
-      const { data } = await supabase.from("profiles").select("full_name, phone").eq("user_id", user.id).single();
-      if (data) {
-        setProfileName(data.full_name || user.user_metadata?.full_name || "");
-        setProfilePhone(data.phone || "");
+      const [profileRes, promoRes] = await Promise.all([
+        supabase.from("profiles").select("full_name, phone").eq("user_id", user.id).single(),
+        supabase.from("user_promotions").select("*").eq("user_id", user.id).gt("remaining_uses", 0).order("created_at", { ascending: true }).limit(1),
+      ]);
+      if (profileRes.data) {
+        setProfileName(profileRes.data.full_name || user.user_metadata?.full_name || "");
+        setProfilePhone(profileRes.data.phone || "");
+      }
+      if (promoRes.data && promoRes.data.length > 0) {
+        const p = promoRes.data[0] as any;
+        setActivePromo({ id: p.id, discount_type: p.discount_type, discount_value: p.discount_value, remaining_uses: p.remaining_uses });
       }
     };
     fetchProfile();
