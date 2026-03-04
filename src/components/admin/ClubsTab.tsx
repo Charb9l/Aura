@@ -753,122 +753,60 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
             {/* 3. Activities */}
             <div>
               <Label className="text-sm font-medium text-muted-foreground mb-2 block">Activities</Label>
-              <div className="flex flex-wrap gap-2 mb-3">{addClubOfferings.map((o) => (<Badge key={o} variant="secondary" className="text-xs flex items-center gap-1 pr-1">{o}<button type="button" onClick={() => { setAddClubOfferings(prev => prev.filter(x => x !== o)); if (o.toLowerCase().includes("academy")) { if (!addClubOfferings.filter(x => x !== o).some(x => x.toLowerCase().includes("academy"))) { setAddClubHasAcademy(false); } } const newMap = { ...addActivityLocations }; delete newMap[o]; setAddActivityLocations(newMap); }} className="ml-1 rounded-full hover:bg-destructive/20 p-0.5"><X className="h-3 w-3" /></button></Badge>))}</div>
-              <Select value="" onValueChange={(v) => { if (v === "__academy__") { setShowAcademySportPicker(true); return; } if (v && !addClubOfferings.includes(v)) { setAddClubOfferings(prev => [...prev, v]); setAddActivityLocations(prev => ({ ...prev, [v]: [] })); } }}>
+              <div className="flex flex-wrap gap-2 mb-3">{addClubOfferings.map((o) => (<Badge key={o} variant="secondary" className="text-xs flex items-center gap-1 pr-1">{o}<button type="button" onClick={() => { setAddClubOfferings(prev => prev.filter(x => x !== o)); if (o.toLowerCase().includes("academy")) { if (!addClubOfferings.filter(x => x !== o).some(x => x.toLowerCase().includes("academy"))) { setAddClubHasAcademy(false); } } }} className="ml-1 rounded-full hover:bg-destructive/20 p-0.5"><X className="h-3 w-3" /></button></Badge>))}</div>
+              <Select value="" onValueChange={(v) => { if (v === "__academy__") { setShowAcademySportPicker(true); return; } if (v && !addClubOfferings.includes(v)) { setAddClubOfferings(prev => [...prev, v]); } }}>
                 <SelectTrigger className="h-10 bg-secondary border-border"><SelectValue placeholder="Select an activity..." /></SelectTrigger>
                 <SelectContent className="bg-card border-border z-50">{offeringNames.filter(o => !addClubOfferings.includes(o)).map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}<SelectItem value="__academy__" className="font-semibold text-primary"><span className="flex items-center gap-1.5"><GraduationCap className="h-3.5 w-3.5" /> Academy</span></SelectItem></SelectContent>
               </Select>
-              {showAcademySportPicker && (<div className="mt-3 p-3 rounded-lg border border-primary/30 bg-primary/5 space-y-2"><Label className="text-xs font-medium text-primary block">Choose Academy Sport</Label><div className="flex flex-wrap gap-2">{offeringNames.map(name => { const sportName = name.replace(/\s*(Court|Studio|Classes|Rental|\(Kids\))/gi, "").trim(); const academyLabel = `${sportName} Academy`; if (addClubOfferings.includes(academyLabel)) return null; return (<Button key={name} type="button" variant="outline" size="sm" onClick={() => { setAddClubOfferings(prev => [...prev, academyLabel]); setAddClubHasAcademy(true); setShowAcademySportPicker(false); setAddActivityLocations(prev => ({ ...prev, [academyLabel]: [] })); }}>{sportName}</Button>); })}</div><Button type="button" variant="ghost" size="sm" onClick={() => setShowAcademySportPicker(false)} className="text-xs text-muted-foreground">Cancel</Button></div>)}
+              {showAcademySportPicker && (<div className="mt-3 p-3 rounded-lg border border-primary/30 bg-primary/5 space-y-2"><Label className="text-xs font-medium text-primary block">Choose Academy Sport</Label><div className="flex flex-wrap gap-2">{offeringNames.map(name => { const sportName = name.replace(/\s*(Court|Studio|Classes|Rental|\(Kids\))/gi, "").trim(); const academyLabel = `${sportName} Academy`; if (addClubOfferings.includes(academyLabel)) return null; return (<Button key={name} type="button" variant="outline" size="sm" onClick={() => { setAddClubOfferings(prev => [...prev, academyLabel]); setAddClubHasAcademy(true); setShowAcademySportPicker(false); }}>{sportName}</Button>); })}</div><Button type="button" variant="ghost" size="sm" onClick={() => setShowAcademySportPicker(false)} className="text-xs text-muted-foreground">Cancel</Button></div>)}
             </div>
 
-            {/* 4. Per-activity locations */}
-            {addClubOfferings.length > 0 && (
-              <div className="space-y-3">
-                <Label className="text-sm font-medium text-muted-foreground block">Locations per Activity</Label>
-                {addClubOfferings.map(activity => {
-                  const locs = addActivityLocations[activity] || [];
-                  const isAcademy = activity.toLowerCase().includes("academy");
-                  return (
-                    <div key={activity} className={cn("rounded-lg border p-3 space-y-2", isAcademy ? "border-primary/20 bg-primary/5" : "border-border bg-secondary/30")}>
-                      <div className="flex items-center justify-between">
-                        <Label className="text-xs font-semibold flex items-center gap-1.5">
-                          {isAcademy && <GraduationCap className="h-3.5 w-3.5 text-primary" />}
-                          <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-                          {activity}
-                        </Label>
-                        <Button type="button" variant="outline" size="sm" onClick={() => setAddActivityLocations(prev => ({ ...prev, [activity]: [...(prev[activity] || []), { name: "", location: "" }] }))} className="gap-1 text-xs h-7">
-                          <Plus className="h-3 w-3" /> Add
-                        </Button>
-                      </div>
-                      {locs.length === 0 && <p className="text-xs text-muted-foreground text-center py-2">No locations. Click "Add" to create one.</p>}
-                      {locs.map((loc, i) => (
-                        <div key={`add-${activity}-${i}`} className="flex gap-2">
-                          <Input
-                            placeholder="Court / Location name"
-                            value={loc.name}
-                            onChange={(e) => setAddActivityLocations(prev => {
-                              const updated = [...(prev[activity] || [])];
-                              updated[i] = { ...updated[i], name: e.target.value };
-                              return { ...prev, [activity]: updated };
-                            })}
-                            className="h-9 bg-background border-border text-sm flex-1"
-                          />
-                          <Select
-                            value={loc.location}
-                            onValueChange={(val) => setAddActivityLocations(prev => {
-                              const updated = [...(prev[activity] || [])];
-                              updated[i] = { ...updated[i], location: val };
-                              return { ...prev, [activity]: updated };
-                            })}
-                          >
-                            <SelectTrigger className="h-9 bg-background border-border text-sm w-[160px]">
-                              <SelectValue placeholder="Select city" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-card border-border z-50 max-h-60">
-                              {locationsList.map(l => <SelectItem key={l.id} value={l.name}>{l.name}</SelectItem>)}
-                            </SelectContent>
-                          </Select>
-                          <Button type="button" variant="ghost" size="icon" onClick={() => setAddActivityLocations(prev => {
-                            const updated = [...(prev[activity] || [])];
-                            updated.splice(i, 1);
-                            return { ...prev, [activity]: updated };
-                          })} className="shrink-0 text-destructive hover:text-destructive h-9 w-9">
-                            <X className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  );
-                })}
+            {/* 4. Club Locations */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium text-muted-foreground block">Club Locations</Label>
+                <Button type="button" variant="outline" size="sm" onClick={() => setAddClubLocs(prev => [...prev, { name: "", location: "" }])} className="gap-1 text-xs h-7">
+                  <Plus className="h-3 w-3" /> Add
+                </Button>
               </div>
-            )}
+              {addClubLocs.length === 0 && <p className="text-xs text-muted-foreground text-center py-2">No locations. Click "Add" to create one.</p>}
+              {addClubLocs.map((loc, i) => (
+                <div key={`add-loc-${i}`} className="flex gap-2">
+                  <Input placeholder="Location name" value={loc.name} onChange={(e) => setAddClubLocs(prev => { const u = [...prev]; u[i] = { ...u[i], name: e.target.value }; return u; })} className="h-9 bg-background border-border text-sm flex-1" />
+                  <Select value={loc.location} onValueChange={(val) => setAddClubLocs(prev => { const u = [...prev]; u[i] = { ...u[i], location: val }; return u; })}>
+                    <SelectTrigger className="h-9 bg-background border-border text-sm w-[160px]"><SelectValue placeholder="Select city" /></SelectTrigger>
+                    <SelectContent className="bg-card border-border z-50 max-h-60">{locationsList.map(l => <SelectItem key={l.id} value={l.name}>{l.name}</SelectItem>)}</SelectContent>
+                  </Select>
+                  <Button type="button" variant="ghost" size="icon" onClick={() => setAddClubLocs(prev => { const u = [...prev]; u.splice(i, 1); return u; })} className="shrink-0 text-destructive hover:text-destructive h-9 w-9"><X className="h-3.5 w-3.5" /></Button>
+                </div>
+              ))}
+            </div>
 
-            {/* Pricing per Activity per Location */}
+            {/* Pricing per Activity */}
             {addClubOfferings.filter(o => offeringToSlug(o)).length > 0 && (
               <div className="space-y-3">
-                <Label className="text-sm font-medium text-muted-foreground block">Activity Pricing ($) — per Location</Label>
+                <Label className="text-sm font-medium text-muted-foreground block">Activity Pricing ($)</Label>
                 {addClubOfferings.map(activity => {
                   const slug = offeringToSlug(activity);
                   if (!slug) return null;
                   const isBasketball = slug === "basketball";
-                  const activityLocs = (addActivityLocations[activity] || []).filter(l => l.name.trim());
-                  if (activityLocs.length === 0) return (
-                    <div key={`add-price-${activity}`} className="rounded-lg border border-border bg-secondary/30 p-3">
-                      <Label className="text-xs font-semibold">{activity}</Label>
-                      <p className="text-xs text-muted-foreground mt-1">Add locations above to set prices.</p>
-                    </div>
-                  );
                   return (
-                    <div key={`add-price-${activity}`} className="rounded-lg border border-border bg-secondary/30 p-3 space-y-3">
+                    <div key={`add-price-${activity}`} className="rounded-lg border border-border bg-secondary/30 p-3 space-y-2">
                       <Label className="text-xs font-semibold">{activity}</Label>
-                      {activityLocs.map((loc, locIdx) => (
-                        <div key={`add-loc-price-${locIdx}`} className="rounded-md border border-border/50 bg-background/50 p-2.5 space-y-1.5">
-                          <Label className="text-[11px] text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" />{loc.name} — {loc.location}</Label>
-                          {isBasketball ? (
-                            <div className="grid grid-cols-2 gap-2">
-                              <div>
-                                <Label className="text-[10px] text-muted-foreground">Half Court</Label>
-                                <Input type="number" min="0" step="0.01" placeholder="0.00"
-                                  value={addPrices[`${slug}:${activity}:${locIdx}:half`] || ""}
-                                  onChange={(e) => setAddPrices(prev => ({ ...prev, [`${slug}:${activity}:${locIdx}:half`]: e.target.value }))}
-                                  className="h-8 bg-background border-border text-sm" />
-                              </div>
-                              <div>
-                                <Label className="text-[10px] text-muted-foreground">Full Court</Label>
-                                <Input type="number" min="0" step="0.01" placeholder="0.00"
-                                  value={addPrices[`${slug}:${activity}:${locIdx}:full`] || ""}
-                                  onChange={(e) => setAddPrices(prev => ({ ...prev, [`${slug}:${activity}:${locIdx}:full`]: e.target.value }))}
-                                  className="h-8 bg-background border-border text-sm" />
-                              </div>
-                            </div>
-                          ) : (
-                            <Input type="number" min="0" step="0.01" placeholder="0.00"
-                              value={addPrices[`${slug}:${activity}:${locIdx}`] || ""}
-                              onChange={(e) => setAddPrices(prev => ({ ...prev, [`${slug}:${activity}:${locIdx}`]: e.target.value }))}
-                              className="h-8 bg-background border-border text-sm max-w-[180px]" />
-                          )}
+                      {isBasketball ? (
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <Label className="text-[10px] text-muted-foreground">Half Court</Label>
+                            <Input type="number" min="0" step="0.01" placeholder="0.00" value={addPrices[`${slug}:half`] || ""} onChange={(e) => setAddPrices(prev => ({ ...prev, [`${slug}:half`]: e.target.value }))} className="h-8 bg-background border-border text-sm" />
+                          </div>
+                          <div>
+                            <Label className="text-[10px] text-muted-foreground">Full Court</Label>
+                            <Input type="number" min="0" step="0.01" placeholder="0.00" value={addPrices[`${slug}:full`] || ""} onChange={(e) => setAddPrices(prev => ({ ...prev, [`${slug}:full`]: e.target.value }))} className="h-8 bg-background border-border text-sm" />
+                          </div>
                         </div>
-                      ))}
+                      ) : (
+                        <Input type="number" min="0" step="0.01" placeholder="0.00" value={addPrices[slug] || ""} onChange={(e) => setAddPrices(prev => ({ ...prev, [slug]: e.target.value }))} className="h-8 bg-background border-border text-sm max-w-[180px]" />
+                      )}
                     </div>
                   );
                 })}
