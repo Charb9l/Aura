@@ -42,8 +42,8 @@ interface Props {
   onInitialDateHandled?: () => void;
 }
 
-const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, onUpdateBooking, onAddBooking, allUsers }: Props) => {
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, onUpdateBooking, onAddBooking, allUsers, initialDate, onInitialDateHandled }: Props) => {
+  const [selectedDate, setSelectedDate] = useState<Date>(initialDate ? parseISO(initialDate) : new Date());
   const [selectedBooking, setSelectedBooking] = useState<BookingRow | null>(null);
   const [clubFilter, setClubFilter] = useState<string>("all");
   const [showLogs, setShowLogs] = useState(false);
