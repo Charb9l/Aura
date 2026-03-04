@@ -96,7 +96,10 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
   // Lookup data for profile viewer
   const [offerings, setOfferings] = useState<any[]>([]);
   const [playerLevels, setPlayerLevels] = useState<any[]>([]);
-  const [clubLocations, setClubLocations] = useState<any[]>([]);
+  const [allLocations, setAllLocations] = useState<any[]>([]);
+  const [allPlaystyles, setAllPlaystyles] = useState<any[]>([]);
+  const [allGoals, setAllGoals] = useState<any[]>([]);
+  const [allPeriods, setAllPeriods] = useState<any[]>([]);
 
   // Edit badge state
   const [editingBadge, setEditingBadge] = useState<{ id: string; level: number } | null>(null);
@@ -104,9 +107,7 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
 
   // Edit selection state
   const [editingSelection, setEditingSelection] = useState<string | null>(null);
-  const [editSelLevel, setEditSelLevel] = useState("");
-  const [editSelPlaystyle, setEditSelPlaystyle] = useState("");
-  const [editSelExperience, setEditSelExperience] = useState("");
+  const [editSelData, setEditSelData] = useState<PlayerSelection | null>(null);
   const [savingSelection, setSavingSelection] = useState(false);
 
   useEffect(() => {
