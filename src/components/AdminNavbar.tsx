@@ -11,7 +11,17 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 
-const allMenuItems = [
+// Route-to-tab mapping: allows nav_order label overrides from page_content
+const ROUTE_TO_TAB: Record<string, string> = {
+  "/book": "bookings",
+  "/matchmaker": "matchmaker",
+  "/academy": "academies",
+  "/clubs": "clubs",
+  "/loyalty": "loyalty",
+  "/habits": "habits",
+};
+
+const BASE_MENU_ITEMS = [
   { label: "Dashboard", icon: LayoutDashboard, tab: "overview" },
   { label: "Activities", icon: Package, tab: "activities" },
   { label: "AI Matchmaker", icon: Gamepad2, tab: "matchmaker" },
