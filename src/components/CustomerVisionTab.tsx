@@ -470,6 +470,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
       setBackgroundPicture(content.background_picture || "");
       setPlatformNameLine1(content.platform_name_line1 || (content.platform_name ? content.platform_name.trim().split(/\s+/)[0] : ""));
       setPlatformNameLine2(content.platform_name_line2 || (content.platform_name ? content.platform_name.trim().split(/\s+/).slice(1).join(" ") : ""));
+      setShowScrollIndicator(content.show_scroll_indicator ?? false);
     } else {
       setPageTitle(content.title || "");
       setPageSubtitle(content.subtitle || "");
