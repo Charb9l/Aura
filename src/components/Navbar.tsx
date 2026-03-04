@@ -126,13 +126,19 @@ const Navbar = () => {
                 key={link.to}
                 to={link.to}
                 className={cn(
-                  "text-xs font-light tracking-[0.1em] uppercase transition-colors whitespace-nowrap",
+                  "text-xs font-light tracking-[0.1em] uppercase transition-colors whitespace-nowrap relative",
                   isGold && "text-primary",
                   !isGold && isActive && "text-foreground",
                   !isGold && !isActive && "text-muted-foreground hover:text-foreground"
                 )}
               >
                 {link.label}
+                {link.to === "/book" && hasRewards && user && (
+                  <span className="absolute -top-1 -right-2.5 h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
+                )}
+                {link.to === "/book" && hasRewards && user && (
+                  <span className="absolute -top-1 -right-2.5 h-2 w-2 rounded-full bg-emerald-400" />
+                )}
                 {isActive && (
                   <motion.div
                     layoutId="nav-underline"
