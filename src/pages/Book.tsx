@@ -47,8 +47,6 @@ const timeSlots = [
 
 const isValidEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 
-interface FormField { key: string; label: string; type: string; required: boolean; }
-
 /** Build inline style objects from an HSL brand_color string like "212 70% 55%" */
 const makeBrandStyles = (brandColor: string | null | undefined) => {
   const c = brandColor || "220 14% 60%"; // fallback muted
