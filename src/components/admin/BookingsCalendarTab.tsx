@@ -359,7 +359,7 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
               </CardContent>
             </Card>
           </div>
-
+        </>
       )}
 
       {/* Booking detail dialog - outside conditional so it works from both calendar and logs */}
