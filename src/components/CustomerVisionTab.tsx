@@ -665,8 +665,18 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
               </div>
             </div>
 
+            {/* Scroll Indicator Toggle */}
+            <div className="border-t border-border pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-sm font-medium text-foreground block">Scroll Indicator</Label>
+                  <p className="text-xs text-muted-foreground mt-1">Show the animated scroll line at the bottom of the hero section.</p>
+                </div>
+                <Switch checked={showScrollIndicator} onCheckedChange={setShowScrollIndicator} />
+              </div>
+            </div>
 
-            {/* === Pictures Section (always at bottom) === */}
+
             <div className="border-t border-border pt-6">
               <h3 className="text-base font-heading font-semibold text-foreground mb-1">📷 Pictures</h3>
               <p className="text-xs text-muted-foreground mb-6">All image uploads for the main page are managed here.</p>
