@@ -208,35 +208,20 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
     setViewSelections((selectionsRes.data || []) as unknown as PlayerSelection[]);
     setViewBadges((badgesRes.data || []) as unknown as BadgeAssignment[]);
 
-    // Calculate loyalty points per club from bookings (1 booking => max 1 club)
-    const normalize = (v: string) => (v || "").toLowerCase().replace(/[-_]+/g, " ").trim();
-    const bookings = (bookingsRes.data || []) as { activity: string; activity_name: string; attendance_status: string; created_at: string }[];
+    // Calculate loyalty points per club from bookings
+    // Each booking is attributed to exactly ONE club (first alphabetically if multiple match)
+    const bookings = (bookingsRes.data || []) as { activity: string; activity_name: string; attendance_status: string }[];
     const pointsByClub = new Map<string, { shows: number; noShows: number }>();
 
-    const resolveClubForBooking = (b: { activity: string; activity_name: string; created_at: string }) => {
-      const activitySlug = normalize(b.activity);
-      const activityName = normalize(b.activity_name);
-      const candidates = clubs.filter((club) =>
-        club.offerings.some((off) => {
-          const o = normalize(off);
-          return o.includes(activitySlug) || o.includes(activityName) || activityName.includes(o);
-        })
-      );
-
-      if (candidates.length <= 1) return candidates[0] || null;
-
-      const eligibleByTime = candidates.filter((club) => new Date(club.created_at) <= new Date(b.created_at));
-      if (eligibleByTime.length === 1) return eligibleByTime[0];
-      if (eligibleByTime.length > 1) {
-        return eligibleByTime.sort((a, z) => new Date(z.created_at).getTime() - new Date(a.created_at).getTime())[0];
-      }
-
-      return candidates.sort((a, z) => a.name.localeCompare(z.name))[0];
-    };
-
     for (const b of bookings) {
-      const club = resolveClubForBooking(b);
+      // Match booking to club: compare activity_name against club offerings (case-insensitive)
+      const matchingClubs = clubs
+        .filter(club => club.offerings.some(off => off.toLowerCase() === b.activity_name.toLowerCase()))
+        .sort((a, z) => a.name.localeCompare(z.name));
+
+      const club = matchingClubs[0];
       if (!club) continue;
+
       const existing = pointsByClub.get(club.id) || { shows: 0, noShows: 0 };
       if (b.attendance_status === "show") existing.shows++;
       else if (b.attendance_status === "no_show") existing.noShows++;
