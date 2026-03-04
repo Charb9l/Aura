@@ -297,10 +297,10 @@ const BookPage = () => {
         {/* Rewards Banner */}
         {user && hasRewards && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
-            <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-4 sm:p-5">
+            <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4 sm:p-5">
               <div className="flex items-start gap-3">
-                <div className="h-10 w-10 rounded-xl bg-emerald-500/15 flex items-center justify-center shrink-0">
-                  <Gift className="h-5 w-5 text-emerald-400" />
+                <div className="h-10 w-10 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
+                  <Gift className="h-5 w-5 text-primary" />
                 </div>
                 <div>
                   <p className="font-heading font-bold text-foreground text-sm mb-1.5">🎉 You have rewards available!</p>
