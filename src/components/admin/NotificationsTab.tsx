@@ -30,9 +30,10 @@ const TYPE_CONFIG: Record<string, { icon: typeof Bell; color: string; label: str
 
 interface Props {
   onUnreadCountChange?: (count: number) => void;
+  onNavigate?: (tab: string, context?: { userId?: string; bookingDate?: string }) => void;
 }
 
-const NotificationsTab = ({ onUnreadCountChange }: Props) => {
+const NotificationsTab = ({ onUnreadCountChange, onNavigate }: Props) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterType, setFilterType] = useState("all");
