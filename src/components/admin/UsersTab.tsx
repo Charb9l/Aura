@@ -368,6 +368,7 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
                     <TableHead>Name</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead className="hidden sm:table-cell">Phone</TableHead>
+                    <TableHead className="w-[80px] text-center">Status</TableHead>
                     <TableHead className="w-[120px]">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -376,12 +377,28 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
                     const q = userSearch.toLowerCase();
                     const filtered = customers.filter(u => !q || (u.full_name || "").toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || (u.phone || "").toLowerCase().includes(q)).sort((a, b) => (a.full_name || a.email || "").localeCompare(b.full_name || b.email || ""));
                     return filtered.length === 0 ? (
-                      <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">{userSearch ? "No customers match." : "No customers yet."}</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">{userSearch ? "No customers match." : "No customers yet."}</TableCell></TableRow>
                     ) : filtered.map(u => (
-                      <TableRow key={u.user_id}>
+                      <TableRow key={u.user_id} className={u.suspended ? "opacity-50" : ""}>
                         <TableCell className="font-medium">{u.full_name || "—"}</TableCell>
                         <TableCell className="text-xs sm:text-sm">{u.email}</TableCell>
                         <TableCell className="hidden sm:table-cell">{u.phone || "—"}</TableCell>
+                        <TableCell className="text-center">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            title={u.suspended ? "Suspended — click to activate" : "Active — click to suspend"}
+                            onClick={async () => {
+                              const newVal = !u.suspended;
+                              const { data, error } = await supabase.functions.invoke("admin-users", { body: { action: "toggle-suspend", user_id: u.user_id, suspended: newVal } });
+                              if (error || data?.error) { toast.error("Failed to update status"); return; }
+                              onUpdateUser(u.user_id, { suspended: newVal });
+                              toast.success(newVal ? `${u.full_name || u.email} suspended` : `${u.full_name || u.email} activated`);
+                            }}
+                          >
+                            {u.suspended ? <Ban className="h-4 w-4 text-destructive" /> : <CheckCircle className="h-4 w-4 text-emerald-500" />}
+                          </Button>
+                        </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">
                             <Button variant="ghost" size="icon" onClick={() => openEditDialog(u)} title="Edit"><Pencil className="h-4 w-4" /></Button>

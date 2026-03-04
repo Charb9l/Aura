@@ -79,6 +79,21 @@ const Auth = () => {
       return;
     }
 
+    // Check if user is suspended
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("suspended")
+      .eq("user_id", data.user.id)
+      .maybeSingle();
+
+    if (profileData?.suspended) {
+      await supabase.auth.signOut();
+      setLoading(false);
+      setCheckingRole(false);
+      toast.error("Your account has been suspended. Please contact support.");
+      return;
+    }
+
     setCheckingRole(false);
     setLoading(false);
     navigate("/");
