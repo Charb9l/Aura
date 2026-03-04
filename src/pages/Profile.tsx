@@ -19,6 +19,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
+import { findMatchingClubForBooking } from "@/lib/loyalty-club-match";
 
 interface Booking {
   id: string;
@@ -303,10 +304,12 @@ const ProfilePage = () => {
 
   bookings.forEach((b) => {
     if (b.attendance_status !== "show" && b.attendance_status !== "no_show") return;
-    const matchingClubs = clubs
-      .filter(club => club.offerings.some(off => off.toLowerCase() === b.activity.toLowerCase()))
-      .sort((a, z) => a.name.localeCompare(z.name));
-    const club = matchingClubs[0];
+
+    const club = findMatchingClubForBooking(clubs, {
+      activity: b.activity,
+      activity_name: b.activity_name,
+    });
+
     if (!club) return;
     if (b.attendance_status === "show") clubPoints[club.id] += 1;
     if (b.attendance_status === "no_show") clubPoints[club.id] -= 1;
@@ -316,12 +319,13 @@ const ProfilePage = () => {
     clubPoints[clubId] = Math.max(0, clubPoints[clubId]);
   });
 
-  // Helper: map booking activity slug → club name
+  // Helper: map booking activity to club name
   const getClubForBooking = (b: Booking): string => {
-    const matched = clubs
-      .filter(club => club.offerings.some(off => off.toLowerCase() === b.activity.toLowerCase()))
-      .sort((a, z) => a.name.localeCompare(z.name));
-    return matched[0]?.name || b.activity_name;
+    const matchedClub = findMatchingClubForBooking(clubs, {
+      activity: b.activity,
+      activity_name: b.activity_name,
+    });
+    return matchedClub?.name || b.activity_name;
   };
 
   const handleAssignPoint = async () => {
