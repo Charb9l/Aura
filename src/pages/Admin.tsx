@@ -361,6 +361,7 @@ const AdminDashboard = () => {
         {activeTab === "matchmaker" && <MatchmakerTab />}
         {activeTab === "settings" && <SettingsTab />}
         {activeTab === "reports" && <ReportsTab />}
+        {activeTab === "notifications" && <NotificationsTab onUnreadCountChange={setNotificationCount} />}
 
         {activeTab === "habits" && <HabitsTab />}
         {activeTab === "activities" && <ActivitiesTab />}
