@@ -30,7 +30,7 @@ const ActivityFilter = ({ activities, selected, onChange, offerings: offeringsPr
       <PopoverTrigger asChild>
         <Button variant="outline" size="sm" className="gap-2 h-10">
           <Filter className="h-4 w-4" />
-          Filter
+          All Activities
           {selected.length > 0 && (
             <span className="ml-1 rounded-full bg-primary/20 text-primary px-2 py-0.5 text-xs font-semibold">
               {selected.length}
