@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Plus, Trash2, GripVertical, Save, Shield, Award, Crown, Star, Zap, Target, Sun, Moon, Flame, TrendingUp, Sparkles, Trophy, Clock } from "lucide-react";
-import PageContentEditor from "./PageContentEditor";
+import { cn } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 
 const ICON_OPTIONS = [
