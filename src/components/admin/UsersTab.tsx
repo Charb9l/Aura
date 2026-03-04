@@ -245,12 +245,11 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
     const pointsByClub = new Map<string, { shows: number; noShows: number }>();
 
     for (const b of bookings) {
-      // Match booking to club: compare activity_name against club offerings (case-insensitive)
-      const matchingClubs = clubs
-        .filter(club => club.offerings.some(off => off.toLowerCase() === b.activity_name.toLowerCase()))
-        .sort((a, z) => a.name.localeCompare(z.name));
+      const club = findMatchingClubForBooking(clubs, {
+        activity: b.activity,
+        activity_name: b.activity_name,
+      });
 
-      const club = matchingClubs[0];
       if (!club) continue;
 
       const existing = pointsByClub.get(club.id) || { shows: 0, noShows: 0 };
