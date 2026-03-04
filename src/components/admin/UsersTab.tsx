@@ -49,7 +49,7 @@ interface BadgeAssignment {
   created_at: string;
 }
 
-const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, onDeleteAdmin, onAdminCreated, isMasterAdmin }: UsersTabProps) => {
+const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, onDeleteAdmin, onAdminCreated, isMasterAdmin, initialViewUserId, onInitialViewHandled }: UsersTabProps) => {
   const [subTab, setSubTab] = useState<"customers" | "admins">("customers");
   const [userSearch, setUserSearch] = useState("");
   const [adminSearch, setAdminSearch] = useState("");

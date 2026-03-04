@@ -263,6 +263,14 @@ const NotificationsTab = ({ onUnreadCountChange, onNavigate }: Props) => {
                   if (!n.is_read) markRead(n.id);
                   setExpanded(isExpanded ? null : n.id);
                 }}
+                onDoubleClick={() => {
+                  if (!n.is_read) markRead(n.id);
+                  if (n.type === "new_signup" && n.metadata?.user_id) {
+                    onNavigate?.("users", { userId: n.metadata.user_id });
+                  } else if ((n.type === "booking_cancelled" || n.type === "unmarked_booking") && n.metadata?.booking_date) {
+                    onNavigate?.("bookings", { bookingDate: n.metadata.booking_date });
+                  }
+                }}
               >
                 <CardContent className="p-4">
                   <div className="flex items-start gap-3">

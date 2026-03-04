@@ -38,6 +38,8 @@ interface Props {
   onUpdateBooking?: (id: string, updates: Partial<BookingRow>) => void;
   onAddBooking?: (booking: BookingRow) => void;
   allUsers?: UserWithEmail[];
+  initialDate?: string | null;
+  onInitialDateHandled?: () => void;
 }
 
 const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, onUpdateBooking, onAddBooking, allUsers }: Props) => {
