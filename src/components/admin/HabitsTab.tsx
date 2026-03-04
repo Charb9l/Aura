@@ -9,7 +9,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Plus, Trash2, GripVertical, Save, Shield, Award, Crown, Star, Zap, Target, Sun, Moon, Flame, TrendingUp, Sparkles, Trophy, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { cn } from "@/lib/utils";
 
 const ICON_OPTIONS = [
   { value: "star", label: "Star", icon: <Star className="h-4 w-4" /> },
