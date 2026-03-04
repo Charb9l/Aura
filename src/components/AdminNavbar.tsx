@@ -43,7 +43,7 @@ interface AdminNavbarProps {
   notificationCount?: number;
 }
 
-const AdminNavbar = ({ activeTab, onTabChange, assignedClubId }: AdminNavbarProps) => {
+const AdminNavbar = ({ activeTab, onTabChange, assignedClubId, notificationCount = 0 }: AdminNavbarProps) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
