@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
@@ -7,29 +8,78 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-interface BadgeEmailRequest {
-  email: string;
-  full_name: string;
-  badge_name: string;
-  badge_level: number;
-}
-
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { email, full_name, badge_name, badge_level } = (await req.json()) as BadgeEmailRequest;
+    // 1. Authenticate the caller
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
-    if (!email || !badge_name) {
-      return new Response(JSON.stringify({ error: "Missing email or badge_name" }), {
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const userId = claimsData.claims.sub as string;
+    const userEmail = claimsData.claims.email as string;
+
+    // 2. Parse request body
+    const { badge_name, badge_level } = await req.json();
+
+    if (!badge_name || badge_level == null) {
+      return new Response(JSON.stringify({ error: "Missing badge_name or badge_level" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const name = full_name || "Champion";
+    // 3. Verify the badge was actually earned by this user via service role
+    const adminClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
+    const { data: assignment, error: assignErr } = await adminClient
+      .from("badge_point_assignments")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("badge_level", badge_level)
+      .limit(1)
+      .maybeSingle();
+
+    if (assignErr || !assignment) {
+      return new Response(JSON.stringify({ error: "Badge not earned by this user" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // 4. Get user's profile name (send email only to the authenticated user's own email)
+    const { data: profile } = await adminClient
+      .from("profiles")
+      .select("full_name")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    const name = profile?.full_name || "Champion";
 
     const html = `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 500px; margin: 0 auto; padding: 40px 20px;">
@@ -69,7 +119,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         from: "Summit Wellness <notifications@notify.summitwellnesshub.com>",
-        to: [email],
+        to: [userEmail],
         subject: `🏆 Congratulations! You completed ${badge_name}!`,
         html,
       }),
@@ -81,7 +131,7 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
