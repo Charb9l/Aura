@@ -268,8 +268,6 @@ const ProfilePage = () => {
       // Fire and forget
       supabase.functions.invoke("badge-completion-email", {
         body: {
-          email: user.email,
-          full_name: profile.full_name || user.user_metadata?.full_name || "",
           badge_name: BADGE_NAMES_LIST[lvl - 1] || `Level ${lvl}`,
           badge_level: lvl,
         },
