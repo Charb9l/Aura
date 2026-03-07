@@ -404,7 +404,7 @@ const ProfilePage = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="mb-8 grid grid-cols-3 gap-3"
+          className="mb-8 grid grid-cols-2 sm:grid-cols-4 gap-3"
         >
           {/* Pending Bookings */}
           <button
