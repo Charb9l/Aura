@@ -459,7 +459,32 @@ const ProfilePage = () => {
             <p className="font-heading font-bold text-sm text-foreground">MyPlayer</p>
             <p className="text-xs text-muted-foreground mt-0.5">Sport profile</p>
           </button>
+
+          {/* Notifications */}
+          <button
+            onClick={() => setShowNotifications(true)}
+            className="group relative rounded-2xl border border-border bg-card p-4 sm:p-5 text-left transition-all hover:border-primary/40 hover:shadow-[0_0_20px_hsl(var(--primary)/0.1)]"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div className={cn("h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors", customerNotifCount > 0 && "animate-pulse")}>
+                <Bell className="h-5 w-5 text-primary" />
+              </div>
+              {customerNotifCount > 0 && (
+                <>
+                  <Badge className="bg-primary text-primary-foreground text-xs px-2 py-0.5 animate-pulse">
+                    {customerNotifCount}
+                  </Badge>
+                  <span className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-primary animate-ping" />
+                  <span className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-primary" />
+                </>
+              )}
+            </div>
+            <p className="font-heading font-bold text-sm text-foreground">Notifications</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Updates & alerts</p>
+          </button>
         </motion.div>
+
+        <CustomerNotificationsPanel open={showNotifications} onClose={() => setShowNotifications(false)} />
 
         {/* MyPlayer Dialog (externally controlled) */}
         <MyPlayerSection externalOpen={showMyPlayer} onExternalOpenChange={setShowMyPlayer} />
