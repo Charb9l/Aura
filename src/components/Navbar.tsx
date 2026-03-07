@@ -52,7 +52,7 @@ const Navbar = () => {
   const hasUnassignedBadgePoints = !badgeLoading && completedLevelCount > assignedLevels.size;
   const pendingNudgeCount = usePendingNudgeCount();
   const customerNotifCount = useCustomerNotificationCount();
-  const showGlow = user && (playerComplete === false || !avatarUrl || hasPendingBookings || hasUnassignedBadgePoints || pendingNudgeCount > 0 || customerNotifCount > 0);
+  const showGlow = user && (playerComplete === false || !avatarUrl || customerNotifCount > 0);
   const { isAdmin } = useAdminRole();
   const { hasRewards } = useRewards();
   const initials = getInitials(user?.user_metadata?.full_name, user?.email);
