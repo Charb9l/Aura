@@ -9,7 +9,9 @@ import { useBadgeLevels } from "@/hooks/useBadgeLevels";
 import { useBadgePoints } from "@/hooks/useBadgePoints";
 import { useNudges } from "@/hooks/useNudges";
 import Navbar from "@/components/Navbar";
-import { Trophy, Clock, ArrowRight, Gift, Zap, CalendarCheck, Pencil, Trash2, CalendarIcon, Camera, Send, Check, X as XIcon, Users, Phone, Gamepad2, Shield, Award, Crown } from "lucide-react";
+import { Trophy, Clock, ArrowRight, Gift, Zap, CalendarCheck, Pencil, Trash2, CalendarIcon, Camera, Send, Check, X as XIcon, Users, Phone, Gamepad2, Shield, Award, Crown, Bell } from "lucide-react";
+import { useCustomerNotificationCount } from "@/hooks/useCustomerNotifications";
+import CustomerNotificationsPanel from "@/components/CustomerNotificationsPanel";
 import MyPlayerSection from "@/components/MyPlayerSection";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -92,6 +94,8 @@ const ProfilePage = () => {
   const [nudgeTab, setNudgeTab] = useState<"received" | "sent">("received");
   const [buddySportFilter, setBuddySportFilter] = useState<string>("");
   const [badgeFirstClicked, setBadgeFirstClicked] = useState(() => localStorage.getItem("badge_first_click_seen") === "true");
+  const [showNotifications, setShowNotifications] = useState(false);
+  const customerNotifCount = useCustomerNotificationCount();
   const badgeEmailSentRef = useRef<Set<number>>(new Set());
 
   // Nudges
@@ -400,7 +404,7 @@ const ProfilePage = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="mb-8 grid grid-cols-3 gap-3"
+          className="mb-8 grid grid-cols-2 sm:grid-cols-4 gap-3"
         >
           {/* Pending Bookings */}
           <button
@@ -455,7 +459,32 @@ const ProfilePage = () => {
             <p className="font-heading font-bold text-sm text-foreground">MyPlayer</p>
             <p className="text-xs text-muted-foreground mt-0.5">Sport profile</p>
           </button>
+
+          {/* Notifications */}
+          <button
+            onClick={() => setShowNotifications(true)}
+            className="group relative rounded-2xl border border-border bg-card p-4 sm:p-5 text-left transition-all hover:border-primary/40 hover:shadow-[0_0_20px_hsl(var(--primary)/0.1)]"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div className={cn("h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors", customerNotifCount > 0 && "animate-pulse")}>
+                <Bell className="h-5 w-5 text-primary" />
+              </div>
+              {customerNotifCount > 0 && (
+                <>
+                  <Badge className="bg-primary text-primary-foreground text-xs px-2 py-0.5 animate-pulse">
+                    {customerNotifCount}
+                  </Badge>
+                  <span className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-primary animate-ping" />
+                  <span className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-primary" />
+                </>
+              )}
+            </div>
+            <p className="font-heading font-bold text-sm text-foreground">Notifications</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Updates & alerts</p>
+          </button>
         </motion.div>
+
+        <CustomerNotificationsPanel open={showNotifications} onClose={() => setShowNotifications(false)} />
 
         {/* MyPlayer Dialog (externally controlled) */}
         <MyPlayerSection externalOpen={showMyPlayer} onExternalOpenChange={setShowMyPlayer} />

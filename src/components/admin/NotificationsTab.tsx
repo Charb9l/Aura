@@ -10,6 +10,7 @@ import { toast } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import SendNotificationDialog from "@/components/admin/SendNotificationDialog";
 
 interface Notification {
   id: string;
@@ -39,6 +40,7 @@ const NotificationsTab = ({ onUnreadCountChange, onNavigate }: Props) => {
   const [filterType, setFilterType] = useState("all");
   const [expanded, setExpanded] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [sendDialogOpen, setSendDialogOpen] = useState(false);
 
   const updateUnreadCount = useCallback((items: Notification[]) => {
     onUnreadCountChange?.(items.filter(n => !n.is_read).length);
@@ -197,7 +199,12 @@ const NotificationsTab = ({ onUnreadCountChange, onNavigate }: Props) => {
             Mark all read ({unreadCount})
           </Button>
         )}
+        <Button size="sm" className="gap-2 ml-auto" onClick={() => setSendDialogOpen(true)}>
+          <Bell className="h-3.5 w-3.5" /> Send Notification
+        </Button>
       </div>
+
+      <SendNotificationDialog open={sendDialogOpen} onOpenChange={setSendDialogOpen} />
 
       {/* Bulk actions bar */}
       {filtered.length > 0 && (
