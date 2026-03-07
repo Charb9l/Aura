@@ -10,6 +10,7 @@ import { toast } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import SendNotificationDialog from "@/components/admin/SendNotificationDialog";
 
 interface Notification {
   id: string;
