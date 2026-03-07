@@ -40,6 +40,7 @@ const NotificationsTab = ({ onUnreadCountChange, onNavigate }: Props) => {
   const [filterType, setFilterType] = useState("all");
   const [expanded, setExpanded] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [sendDialogOpen, setSendDialogOpen] = useState(false);
 
   const updateUnreadCount = useCallback((items: Notification[]) => {
     onUnreadCountChange?.(items.filter(n => !n.is_read).length);
