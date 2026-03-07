@@ -198,7 +198,12 @@ const NotificationsTab = ({ onUnreadCountChange, onNavigate }: Props) => {
             Mark all read ({unreadCount})
           </Button>
         )}
+        <Button size="sm" className="gap-2 ml-auto" onClick={() => setSendDialogOpen(true)}>
+          <Bell className="h-3.5 w-3.5" /> Send Notification
+        </Button>
       </div>
+
+      <SendNotificationDialog open={sendDialogOpen} onOpenChange={setSendDialogOpen} />
 
       {/* Bulk actions bar */}
       {filtered.length > 0 && (
