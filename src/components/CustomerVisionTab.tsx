@@ -594,7 +594,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
           <div className="space-y-6 pt-2">
             <div>
               <Label className="text-sm font-medium text-muted-foreground mb-2 block">Platform Name (main line in navbar)</Label>
-              <Input value={platformNameLine1} onChange={(e) => setPlatformNameLine1(e.target.value)} placeholder="e.g. ELEVATE" className="h-12 bg-secondary border-border" />
+              <Input value={platformNameLine1} onChange={(e) => setPlatformNameLine1(e.target.value)} placeholder="e.g. ELEVATE" className="h-9 bg-secondary border-border text-sm" />
             </div>
             <div>
               <Label className="text-sm font-medium text-muted-foreground mb-2 block">Platform Subname (smaller text under the name)</Label>
