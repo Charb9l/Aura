@@ -439,6 +439,9 @@ const PromotionsTab = ({ allUsers, clubs }: Props) => {
                         <Badge className={cn("text-xs", rule.discount_type === "free" ? "bg-emerald-500/15 text-emerald-500" : rule.discount_type === "percentage" ? "bg-amber-500/15 text-amber-500" : "bg-primary/15 text-primary")}>
                           {formatDiscount(rule.discount_type, rule.discount_value)}
                         </Badge>
+                        <span className="text-xs text-muted-foreground">
+                          {rule.max_total_uses ? `${rule.max_total_uses} total uses` : "Unlimited users"} · {rule.uses_per_customer}× per customer
+                        </span>
                       </div>
                       <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2">
