@@ -1,9 +1,9 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, CalendarCheck, Users, User, Ellipsis, Trophy, LogIn } from "lucide-react";
+import { Home, CalendarCheck, Users, User, Trophy, LogIn } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useMediaQuery } from "@/hooks/use-mobile";
 
 const TABS = [
   { to: "/", label: "Home", icon: Home },
@@ -15,10 +15,11 @@ const TABS = [
 const MobileTabBar = () => {
   const location = useLocation();
   const { user } = useAuth();
-  const isMobile = useIsMobile();
+  // Only show on small phones (< 640px), not tablets
+  const isSmallMobile = useMediaQuery("(max-width: 639px)");
 
-  // Only show on mobile, and not on admin pages
-  if (!isMobile || location.pathname.startsWith("/admin")) return null;
+  // Only show on small mobile phones, and not on admin pages
+  if (!isSmallMobile || location.pathname.startsWith("/admin")) return null;
 
   const profileTab = user
     ? { to: "/profile", label: "Profile", icon: User }
