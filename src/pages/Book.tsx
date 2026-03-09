@@ -132,6 +132,7 @@ const BookPage = () => {
         const c = contentRes.data.content as any;
         if (c?.title) setPageTitle(c.title);
         if (c?.subtitle) setPageSubtitle(c.subtitle);
+        if (c?.max_clubs_grid != null) setMaxClubsGrid(c.max_clubs_grid);
       }
     };
     fetchData();
