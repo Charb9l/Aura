@@ -170,9 +170,9 @@ const MatchmakerPage = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="w-full overflow-x-auto pb-2 scrollbar-hide"
+              className="w-full pb-2"
             >
-              <div className="mx-auto flex w-max min-w-full md:min-w-0 md:w-auto md:justify-center gap-2 sm:gap-3 px-1 snap-x snap-mandatory">
+              <div className="mx-auto flex flex-wrap justify-center gap-2 sm:gap-3 px-1">
                 {criteria.map((c, i) => {
                   const goldHue = 43;
                   const hues = [160, 200, 280, 40, 340];
@@ -195,7 +195,7 @@ const MatchmakerPage = () => {
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: 0.3 + i * 0.08, type: "spring", stiffness: 200 }}
                       whileHover={{ scale: 1.04, y: -2 }}
-                      className="group snap-start relative flex flex-col lg:flex-row items-center gap-1 lg:gap-2.5 rounded-xl lg:rounded-2xl px-2 py-1.5 lg:px-5 lg:py-3 text-foreground cursor-default overflow-hidden shrink-0 min-w-[78px] lg:min-w-0"
+                      className="group relative flex flex-col lg:flex-row items-center gap-1 lg:gap-2.5 rounded-xl lg:rounded-2xl px-2 py-1.5 lg:px-5 lg:py-3 text-foreground cursor-default overflow-hidden min-w-[60px] lg:min-w-0"
                       style={{
                         background: `linear-gradient(135deg, hsl(${hue} 50% 15% / 0.6), hsl(${hue} 40% 20% / 0.3))`,
                         border: `1px solid hsl(${hue} 50% 40% / 0.35)`,
