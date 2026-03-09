@@ -39,6 +39,7 @@ import UsersTab from "@/components/admin/UsersTab";
 import NotificationsTab from "@/components/admin/NotificationsTab";
 import NudgesTab from "@/components/admin/NudgesTab";
 import PromotionsTab from "@/components/admin/PromotionsTab";
+import FeaturedClubsTab from "@/components/admin/FeaturedClubsTab";
 
 // ─── Main Admin Dashboard ──────────────────────────────────────
 const AdminDashboard = () => {
