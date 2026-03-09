@@ -385,7 +385,7 @@ const ActivitiesManager = ({ open, onOpenChange }: { open: boolean; onOpenChange
             </Button>
             <div>
               <Label className="text-sm font-medium text-muted-foreground mb-2 block">Activity Name</Label>
-              <Input value={formName} onChange={(e) => { setFormName(e.target.value); setFormSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")); }} placeholder="e.g. Basketball Court" className="h-12 bg-secondary border-border" />
+              <Input value={formName} onChange={(e) => { setFormName(e.target.value); setFormSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")); }} placeholder="e.g. Basketball Court" className="h-9 bg-secondary border-border text-sm" />
             </div>
             <div>
               <Label className="text-sm font-medium text-muted-foreground mb-2 block">Slug</Label>
