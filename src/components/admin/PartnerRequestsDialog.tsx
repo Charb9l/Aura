@@ -296,6 +296,7 @@ const PartnerRequestsDialog = ({ open, onOpenChange }: Props) => {
                   ))}
                 </TableBody>
               </Table>
+              </div>
             )}
           </>
         )}
