@@ -510,7 +510,7 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
 
       {/* Former Users Dialog */}
       <Dialog open={formerDialogOpen} onOpenChange={setFormerDialogOpen}>
-        <DialogContent className="bg-card border-border max-w-2xl w-[66vw] min-h-[50vh]">
+        <DialogContent className="bg-card border-border max-w-2xl w-[95vw] sm:w-[66vw] min-h-[50vh]">
           <DialogHeader><DialogTitle className="font-heading text-xl">{formerDialogType === "customer" ? "Customers" : "Club Admins"}</DialogTitle></DialogHeader>
           <div className="flex gap-2 mb-4">
             <Button variant={formerTab === "current" ? "default" : "outline"} size="sm" onClick={() => setFormerTab("current")}>Current</Button>
