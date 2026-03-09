@@ -264,16 +264,30 @@ const BookPage = () => {
   const selectedOffering = offerings.find(o => o.slug === selectedActivity);
   const brand = makeBrandStyles(selectedOffering?.brand_color);
 
-  // Get price for current selection from DB — now location-aware
+  // Get price for current selection from DB — club-level by default, optionally location-specific
   const getActivityPrice = (slug: string, label?: string | null): number | null => {
-    if (!resolvedClubId || !selectedLocation) return null;
-    const match = activityPrices.find(p =>
-      p.club_id === resolvedClubId &&
-      p.activity_slug === slug &&
-      p.price_label === (label || null) &&
-      p.location_id === selectedLocation
+    if (!resolvedClubId) return null;
+
+    const wantedLabel = label || null;
+    const candidates = activityPrices.filter(
+      (p) =>
+        p.club_id === resolvedClubId &&
+        p.activity_slug === slug &&
+        p.price_label === wantedLabel
     );
-    return match ? Number(match.price) : null;
+
+    // Prefer location-specific price if the user selected a location
+    if (selectedLocation) {
+      const byLocation = candidates.find((p) => p.location_id === selectedLocation);
+      if (byLocation) return Number(byLocation.price);
+    }
+
+    // Fall back to club-level price (location_id is NULL)
+    const clubLevel = candidates.find((p) => p.location_id == null);
+    if (clubLevel) return Number(clubLevel.price);
+
+    // Last resort: if only location-specific prices exist, return the first one
+    return candidates.length ? Number(candidates[0].price) : null;
   };
   const currentPrice = selectedActivity === "basketball"
     ? (courtType ? getActivityPrice("basketball", courtType) : null)
