@@ -834,9 +834,11 @@ export type Database = {
           created_at: string
           discount_type: string
           discount_value: number
+          end_date: string | null
           id: string
           max_total_uses: number | null
           name: string
+          start_date: string | null
           uses_per_customer: number
         }
         Insert: {
@@ -844,9 +846,11 @@ export type Database = {
           created_at?: string
           discount_type: string
           discount_value?: number
+          end_date?: string | null
           id?: string
           max_total_uses?: number | null
           name: string
+          start_date?: string | null
           uses_per_customer?: number
         }
         Update: {
@@ -854,9 +858,11 @@ export type Database = {
           created_at?: string
           discount_type?: string
           discount_value?: number
+          end_date?: string | null
           id?: string
           max_total_uses?: number | null
           name?: string
+          start_date?: string | null
           uses_per_customer?: number
         }
         Relationships: []
