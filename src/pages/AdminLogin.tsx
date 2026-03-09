@@ -63,8 +63,10 @@ const AdminLogin = () => {
   if (user && isAdmin) return null;
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-6">
-      <motion.div
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6">
+      <div className="w-full max-w-md mb-2">
+        <MobileBackButton fallbackPath="/" />
+      </div>
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md"

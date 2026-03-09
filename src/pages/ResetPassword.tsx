@@ -112,6 +112,7 @@ const ResetPassword = () => {
           animate={{ opacity: 1, y: 0 }}
           className="w-full max-w-md space-y-8"
         >
+          <MobileBackButton fallbackPath="/auth" />
           <div className="text-center">
             <h1 className="font-heading text-3xl font-bold text-foreground">Set New Password</h1>
             <p className="mt-2 text-muted-foreground">Enter your new password below.</p>

@@ -154,6 +154,11 @@ const Auth = () => {
           animate={{ opacity: 1, y: 0 }}
           className="w-full max-w-md space-y-8"
         >
+          <MobileBackButton fallbackPath="/" />
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-md space-y-8"
+        >
           <div className="text-center">
             <h1 className="font-heading text-3xl font-bold text-foreground">
               {isLogin ? "Welcome Back" : "Create Account"}

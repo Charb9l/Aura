@@ -165,7 +165,7 @@ const ClubsPage = () => {
       </section>
 
       <div className="container mx-auto px-6 pb-16">
-
+        <MobileBackButton fallbackPath="/" />
 
         {loading ? (
           <p className="text-muted-foreground text-center py-20">Loading...</p>
