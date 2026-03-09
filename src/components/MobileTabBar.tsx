@@ -8,7 +8,7 @@ import { useMediaQuery } from "@/hooks/use-mobile";
 const TABS = [
   { to: "/", label: "Home", icon: Home },
   { to: "/book", label: "Book", icon: CalendarCheck },
-  { to: "/matchmaker", label: "Match", icon: Users },
+  { to: "/habits", label: "Habits", icon: TrendingUp },
   { to: "/loyalty", label: "Loyalty", icon: Trophy },
 ];
 
