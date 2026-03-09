@@ -780,6 +780,18 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
                         placeholder="e.g. Skill Level"
                         className="h-9 flex-1 bg-background border-border text-sm"
                       />
+                      <button
+                        type="button"
+                        onClick={() => setMatchCriteria(prev => prev.map((cr, idx) => idx === i ? { ...cr, use_gold: !cr.use_gold } : cr))}
+                        className={cn(
+                          "px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border transition-all shrink-0",
+                          c.use_gold
+                            ? "border-amber-400/60 bg-amber-400/15 text-amber-300 shadow-[0_0_12px_hsl(43_96%_56%/0.35)]"
+                            : "border-border text-muted-foreground hover:border-muted-foreground/50"
+                        )}
+                      >
+                        ✦ Gold
+                      </button>
                       <Button
                         type="button"
                         variant="ghost"
