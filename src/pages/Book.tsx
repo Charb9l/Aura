@@ -809,7 +809,7 @@ const BookPage = () => {
 
               return (
                 <div className={cn(
-                  "flex items-center justify-center gap-3 rounded-xl border px-5 py-2.5 backdrop-blur-sm",
+                  "flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 rounded-xl border px-4 sm:px-5 py-3 sm:py-2.5 backdrop-blur-sm order-first sm:order-last",
                   isFree ? "border-emerald-500/50 bg-emerald-500/10" : (isHalf || hasPromoDiscount) ? "border-amber-500/50 bg-amber-500/10" : "border-primary/30 bg-primary/5"
                 )}>
                   <span className="text-xs uppercase tracking-widest text-muted-foreground font-medium">Total</span>
