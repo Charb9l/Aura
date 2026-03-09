@@ -971,7 +971,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                   {editOfferingLogoPreview ? (<div className="flex flex-col items-center gap-3"><div className="h-32 w-32 rounded-xl overflow-hidden bg-secondary"><img src={editOfferingLogoPreview} alt="Activity preview" className="h-full w-full object-cover" /></div><p className="text-xs text-muted-foreground">Click or drag to replace</p></div>) : (<div className="flex flex-col items-center gap-2 py-4"><Upload className="h-8 w-8 text-muted-foreground" /><p className="text-sm text-muted-foreground">Drag & drop or click to upload</p></div>)}
                 </div>
               </div>
-              <Button onClick={handleEditOfferingSave} disabled={editOfferingSaving || !editOfferingName.trim()} className="w-full h-12 text-base font-semibold glow">{editOfferingSaving ? "Saving..." : "Save Changes"}</Button>
+              <Button onClick={handleEditOfferingSave} disabled={editOfferingSaving || !editOfferingName.trim()} className="w-full h-10 text-sm font-semibold glow">{editOfferingSaving ? "Saving..." : "Save Changes"}</Button>
             </div>
           ) : offeringsDialogMode === "list" ? (
             <div className="space-y-4 pt-2">
