@@ -63,7 +63,7 @@ const MatchmakerPage = () => {
   const [hasProfile, setHasProfile] = useState<boolean | null>(null);
   const [pageTitle, setPageTitle] = useState("Find Your Match");
   const [pageSubtitle, setPageSubtitle] = useState("Get matched with players who share your sports, skill level, and preferred location. Your next opponent or partner is just a click away.");
-  const [criteria, setCriteria] = useState<{ emoji: string; label: string }[]>([]);
+  const [criteria, setCriteria] = useState<{ emoji: string; label: string; use_gold?: boolean }[]>([]);
 
   // Nudge state
   const { sendNudge, sentNudges } = useNudges();
