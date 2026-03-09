@@ -397,7 +397,7 @@ const AdminDashboard = () => {
                         </TableHeader>
                         <TableBody>
                           {filtered.map(b => {
-                            const rev = getBookingRevenue(b, priceMap);
+                            const rev = getBookingRevenue(b, priceMap, clubActivityMap);
                             return (
                               <TableRow key={b.id}>
                                 <TableCell>
