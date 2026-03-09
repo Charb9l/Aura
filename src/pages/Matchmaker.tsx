@@ -162,7 +162,7 @@ const MatchmakerPage = () => {
           <h1 className="font-heading text-3xl sm:text-5xl md:text-6xl font-bold text-foreground mb-4">
             {pageTitle}
           </h1>
-          <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-8">
+          <p className="text-sm sm:text-base text-muted-foreground max-w-xl mx-auto mb-8">
             {pageSubtitle}
           </p>
           {criteria.length > 0 && (
