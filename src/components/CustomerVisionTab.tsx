@@ -515,7 +515,8 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
   };
 
   const handleSavePage = (slug: string) => {
-    const content: any = { title: pageTitle, subtitle: pageSubtitle };
+    const existing = allContent[slug] || {};
+    const content: any = { ...existing, title: pageTitle, subtitle: pageSubtitle };
     if (slug === "book" || slug === "academy") {
       content.fields = pageFields.filter(f => f.label.trim());
     }
