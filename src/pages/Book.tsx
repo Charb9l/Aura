@@ -15,7 +15,6 @@ import { toast } from "@/components/ui/sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import Navbar from "@/components/Navbar";
 import ActivityFilter from "@/components/ActivityFilter";
-import PagePhotoStrip from "@/components/PagePhotoStrip";
 import { useRewards } from "@/hooks/useRewards";
 
 interface OfferingData {
