@@ -722,7 +722,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
             </div>
             <div>
               <Label className="text-sm font-medium text-muted-foreground mb-2 block">Subtitle (text under the title)</Label>
-              <Input value={pageSubtitle} onChange={(e) => setPageSubtitle(e.target.value)} placeholder="Subtitle text" className="h-12 bg-secondary border-border" />
+              <Input value={pageSubtitle} onChange={(e) => setPageSubtitle(e.target.value)} placeholder="Subtitle text" className="h-9 bg-secondary border-border text-sm" />
             </div>
 
             {hasFields && (
