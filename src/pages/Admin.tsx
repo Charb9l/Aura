@@ -219,13 +219,18 @@ const AdminDashboard = () => {
   useEffect(() => { setBookingFilterValue("all"); }, [bookingFilterType]);
   useEffect(() => { setRevenueFilterValue("all"); }, [revenueFilterType]);
 
-  // Build a price map from activityPrices: key = "slug" or "slug:label"
-  // When multiple locations have different prices, uses the first found
+  // Build a price map from activityPrices with club-specific keys
   const priceMap = useMemo(() => {
     const map: Record<string, number> = {};
     activityPrices.forEach(p => {
-      const key = p.price_label ? `${p.activity_slug}:${p.price_label}` : p.activity_slug;
-      if (!(key in map)) map[key] = Number(p.price);
+      // Club-specific keys (preferred)
+      const clubKey = p.price_label
+        ? `${p.club_id}:${p.activity_slug}:${p.price_label}`
+        : `${p.club_id}:${p.activity_slug}`;
+      if (!(clubKey in map)) map[clubKey] = Number(p.price);
+      // Fallback keys (first price found for activity)
+      const fallbackKey = p.price_label ? `${p.activity_slug}:${p.price_label}` : p.activity_slug;
+      if (!(fallbackKey in map)) map[fallbackKey] = Number(p.price);
     });
     return map;
   }, [activityPrices]);
