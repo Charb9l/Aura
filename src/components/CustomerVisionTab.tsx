@@ -517,6 +517,9 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
     if (slug === "book" || slug === "academy") {
       content.fields = pageFields.filter(f => f.label.trim());
     }
+    if (slug === "book") {
+      content.max_clubs_grid = maxClubsGrid;
+    }
     if (slug === "matchmaker") {
       content.criteria = matchCriteria.filter(c => c.label.trim());
     }
