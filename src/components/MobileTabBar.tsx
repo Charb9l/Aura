@@ -1,36 +1,29 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, CalendarCheck, TrendingUp, User, Trophy, LogIn } from "lucide-react";
+import { Home, CalendarCheck, Users, TrendingUp, Trophy } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/contexts/AuthContext";
 import { useMediaQuery } from "@/hooks/use-mobile";
 
 const TABS = [
   { to: "/", label: "Home", icon: Home },
   { to: "/book", label: "Book", icon: CalendarCheck },
+  { to: "/matchmaker", label: "Match", icon: Users },
   { to: "/habits", label: "Habits", icon: TrendingUp },
   { to: "/loyalty", label: "Loyalty", icon: Trophy },
 ];
 
 const MobileTabBar = () => {
   const location = useLocation();
-  const { user } = useAuth();
   // Only show on small phones (< 640px), not tablets
   const isSmallMobile = useMediaQuery("(max-width: 639px)");
 
   // Only show on small mobile phones, and not on admin pages
   if (!isSmallMobile || location.pathname.startsWith("/admin")) return null;
 
-  const profileTab = user
-    ? { to: "/profile", label: "Profile", icon: User }
-    : { to: "/auth", label: "Login", icon: LogIn };
-
-  const allTabs = [...TABS, profileTab];
-
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background/95 backdrop-blur-md pb-[env(safe-area-inset-bottom)]">
       <div className="flex items-center justify-around h-14">
-        {allTabs.map((tab) => {
+        {TABS.map((tab) => {
           const isActive = tab.to === "/"
             ? location.pathname === "/"
             : location.pathname.startsWith(tab.to);
