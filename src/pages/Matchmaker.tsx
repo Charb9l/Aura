@@ -228,7 +228,7 @@ const MatchmakerPage = () => {
 
 
           {user && (
-            <Link to="/profile" className="inline-block mt-6">
+            <Link to="/profile?tab=myplayer" className="inline-block mt-6">
               <Button
                 variant="outline"
                 className="h-10 px-6 text-[10px] uppercase tracking-[0.2em] font-medium border-primary/40 text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-500"
@@ -267,7 +267,7 @@ const MatchmakerPage = () => {
               <Trophy className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
               <h2 className="font-heading text-xl font-bold text-foreground mb-2">Set up your MyPlayer profile first</h2>
               <p className="text-muted-foreground text-sm mb-5">We need to know your sports and levels to find the best matches for you.</p>
-              <Button onClick={() => navigate("/profile")} className="glow px-8 h-11 font-semibold gap-2">
+              <Button onClick={() => navigate("/profile?tab=myplayer")} className="glow px-8 h-11 font-semibold gap-2">
                 Go to Profile <ArrowRight className="h-4 w-4" />
               </Button>
             </motion.div>

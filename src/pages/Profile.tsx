@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useRef } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, parseISO, differenceInHours, startOfDay } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
@@ -90,7 +90,8 @@ const ProfilePage = () => {
   const [viewNudge, setViewNudge] = useState<any | null>(null);
   const [respondingNudge, setRespondingNudge] = useState(false);
   const [showNudges, setShowNudges] = useState(false);
-  const [showMyPlayer, setShowMyPlayer] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [showMyPlayer, setShowMyPlayer] = useState(searchParams.get("tab") === "myplayer");
   const [nudgeTab, setNudgeTab] = useState<"received" | "sent">("received");
   const [buddySportFilter, setBuddySportFilter] = useState<string>("");
   const [badgeFirstClicked, setBadgeFirstClicked] = useState(() => localStorage.getItem("badge_first_click_seen") === "true");
