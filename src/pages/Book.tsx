@@ -204,6 +204,26 @@ const BookPage = () => {
 
   const resolvedClubId = selectedClub || (matchingClubs.length === 1 ? matchingClubs[0].id : "");
 
+  // Fetch active price rule for selected club
+  useEffect(() => {
+    if (!resolvedClubId) { setActivePriceRule(null); return; }
+    const fetchPriceRule = async () => {
+      const today = new Date().toISOString().slice(0, 10);
+      const { data: ruleClubs } = await supabase.from("price_rule_clubs").select("price_rule_id").eq("club_id", resolvedClubId);
+      if (!ruleClubs || ruleClubs.length === 0) { setActivePriceRule(null); return; }
+      const ruleIds = ruleClubs.map(rc => rc.price_rule_id);
+      const { data: rules } = await supabase.from("price_rules").select("*").in("id", ruleIds).eq("active", true);
+      if (!rules || rules.length === 0) { setActivePriceRule(null); return; }
+      const validRule = (rules as any[]).find(r => {
+        if (r.start_date && r.start_date > today) return false;
+        if (r.end_date && r.end_date < today) return false;
+        return true;
+      });
+      setActivePriceRule(validRule ? { id: validRule.id, discount_type: validRule.discount_type, discount_value: validRule.discount_value } : null);
+    };
+    fetchPriceRule();
+  }, [resolvedClubId]);
+
   // Dynamic brand color from the selected offering
   const selectedOffering = offerings.find(o => o.slug === selectedActivity);
   const brand = makeBrandStyles(selectedOffering?.brand_color);
