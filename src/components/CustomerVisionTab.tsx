@@ -598,7 +598,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
             </div>
             <div>
               <Label className="text-sm font-medium text-muted-foreground mb-2 block">Platform Subname (smaller text under the name)</Label>
-              <Input value={platformNameLine2} onChange={(e) => setPlatformNameLine2(e.target.value)} placeholder="e.g. Wellness Hub" className="h-12 bg-secondary border-border" />
+              <Input value={platformNameLine2} onChange={(e) => setPlatformNameLine2(e.target.value)} placeholder="e.g. Wellness Hub" className="h-9 bg-secondary border-border text-sm" />
               <p className="text-xs text-muted-foreground mt-1">These appear as the brand in the top-left of the navbar, on both the customer and admin sides.</p>
             </div>
             
