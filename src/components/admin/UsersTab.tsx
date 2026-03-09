@@ -477,7 +477,7 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
 
       {/* Edit Admin Dialog */}
       <Dialog open={!!editAdmin} onOpenChange={(open) => !open && setEditAdmin(null)}>
-        <DialogContent className="bg-card border-border max-w-2xl w-[66vw]">
+        <DialogContent className="bg-card border-border max-w-2xl w-[95vw] sm:w-[66vw]">
           <DialogHeader><DialogTitle className="font-heading text-xl">Edit Admin — {editAdmin?.full_name || editAdmin?.email}</DialogTitle></DialogHeader>
           <div className="space-y-5 pt-4">
             <div><Label>Full Name</Label><Input value={editAdminName} onChange={(e) => setEditAdminName(e.target.value)} className="h-12 bg-secondary border-border mt-1" /></div>
