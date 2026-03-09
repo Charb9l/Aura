@@ -35,9 +35,11 @@ interface Props {
   allUsers?: UserWithEmail[];
   initialDate?: string | null;
   onInitialDateHandled?: () => void;
+  priceMap?: Record<string, number>;
+  clubActivityMap?: Record<string, string[]>;
 }
 
-const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, onUpdateBooking, onAddBooking, allUsers, initialDate, onInitialDateHandled }: Props) => {
+const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, onUpdateBooking, onAddBooking, allUsers, initialDate, onInitialDateHandled, priceMap, clubActivityMap }: Props) => {
   const [selectedDate, setSelectedDate] = useState<Date>(initialDate ? parseISO(initialDate) : new Date());
   const [selectedBooking, setSelectedBooking] = useState<BookingRow | null>(null);
   const [bookingPrice, setBookingPrice] = useState<{ price: number; label: string | null } | null>(null);
