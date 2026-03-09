@@ -177,7 +177,9 @@ const ProfilePage = () => {
     fetchData();
   }, [user]);
 
-  // Pending bookings = future bookings that are confirmed
+  const [bookingsTab, setBookingsTab] = useState<"pending" | "past">("pending");
+
+  // Pending bookings = confirmed, no attendance status
   const pendingBookings = useMemo(() => {
     return bookings.filter(b => {
       return b.status === "confirmed" && !b.attendance_status;
@@ -185,6 +187,15 @@ const ProfilePage = () => {
       const dtA = getBookingDateTime(a);
       const dtB = getBookingDateTime(b);
       return dtA.getTime() - dtB.getTime();
+    });
+  }, [bookings]);
+
+  // Past bookings = those with an attendance status
+  const pastBookings = useMemo(() => {
+    return bookings.filter(b => !!b.attendance_status).sort((a, b) => {
+      const dtA = getBookingDateTime(a);
+      const dtB = getBookingDateTime(b);
+      return dtB.getTime() - dtA.getTime(); // newest first
     });
   }, [bookings]);
 
@@ -738,25 +749,103 @@ const ProfilePage = () => {
             <DialogHeader>
               <DialogTitle className="font-heading text-xl flex items-center gap-2">
                 <CalendarCheck className="h-5 w-5 text-primary" />
-                Pending Bookings
+                Bookings
               </DialogTitle>
             </DialogHeader>
 
-            {pendingBookings.length === 0 ? (
-              <div className="py-12 text-center">
-                <p className="text-muted-foreground mb-4">No upcoming bookings.</p>
-                <Link to="/book" onClick={() => setShowPending(false)}>
-                  <Button className="rounded-xl glow">Book a Session</Button>
-                </Link>
-              </div>
-            ) : (
-              <div className="space-y-3 pt-2">
-                {pendingBookings.map((booking) => {
-                  const deletable = canDeleteBooking(booking);
-                  const bookingDt = getBookingDateTime(booking);
-                  const hoursLeft = differenceInHours(bookingDt, new Date());
+            {/* Tabs */}
+            <div className="flex gap-2 mb-4">
+              <button onClick={() => setBookingsTab("pending")} className={cn("rounded-full px-4 py-2 text-sm font-medium border transition-all", bookingsTab === "pending" ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground")}>
+                Pending {pendingBookings.length > 0 && `(${pendingBookings.length})`}
+              </button>
+              <button onClick={() => setBookingsTab("past")} className={cn("rounded-full px-4 py-2 text-sm font-medium border transition-all", bookingsTab === "past" ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground")}>
+                Past {pastBookings.length > 0 && `(${pastBookings.length})`}
+              </button>
+            </div>
 
-                  return (
+            {bookingsTab === "pending" ? (
+              pendingBookings.length === 0 ? (
+                <div className="py-12 text-center">
+                  <p className="text-muted-foreground mb-4">No upcoming bookings.</p>
+                  <Link to="/book" onClick={() => setShowPending(false)}>
+                    <Button className="rounded-xl glow">Book a Session</Button>
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-3 pt-2">
+                  {pendingBookings.map((booking) => {
+                    const deletable = canDeleteBooking(booking);
+                    const bookingDt = getBookingDateTime(booking);
+                    const hoursLeft = differenceInHours(bookingDt, new Date());
+
+                    return (
+                      <div
+                        key={booking.id}
+                        className="rounded-xl border border-border bg-secondary/30 p-4"
+                      >
+                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <p className="font-heading font-semibold text-foreground">{booking.activity_name}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {format(parseISO(booking.booking_date), "EEEE, MMMM d, yyyy")} at {booking.booking_time}
+                            </p>
+                            {booking.court_type && (
+                              <p className="text-xs text-muted-foreground mt-0.5">{booking.court_type} court</p>
+                            )}
+                            {booking.discount_type && (
+                              <Badge className={cn(
+                                "mt-1 text-[10px]",
+                                booking.discount_type === "free"
+                                  ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
+                                  : "bg-amber-500/20 text-amber-400 border-amber-500/30"
+                              )}>
+                                {booking.discount_type === "free" ? "FREE" : "50% OFF"}
+                              </Badge>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => startEdit(booking)}
+                              className="gap-1.5"
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                              Edit
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              disabled={!deletable}
+                              onClick={() => handleDelete(booking)}
+                              className="gap-1.5"
+                              title={!deletable ? `Cannot cancel within 2 hours of booking time (${hoursLeft}h left)` : "Cancel booking"}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+
+                        {!deletable && (
+                          <p className="text-xs text-destructive/70 mt-2">
+                            Cannot cancel — less than 2 hours until booking time.
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )
+            ) : (
+              pastBookings.length === 0 ? (
+                <div className="py-12 text-center">
+                  <p className="text-muted-foreground">No past bookings yet.</p>
+                </div>
+              ) : (
+                <div className="space-y-3 pt-2">
+                  {pastBookings.map((booking) => (
                     <div
                       key={booking.id}
                       className="rounded-xl border border-border bg-secondary/30 p-4"
@@ -770,51 +859,20 @@ const ProfilePage = () => {
                           {booking.court_type && (
                             <p className="text-xs text-muted-foreground mt-0.5">{booking.court_type} court</p>
                           )}
-                          {booking.discount_type && (
-                            <Badge className={cn(
-                              "mt-1 text-[10px]",
-                              booking.discount_type === "free"
-                                ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
-                                : "bg-amber-500/20 text-amber-400 border-amber-500/30"
-                            )}>
-                              {booking.discount_type === "free" ? "FREE" : "50% OFF"}
-                            </Badge>
-                          )}
                         </div>
-
-                        <div className="flex items-center gap-2 shrink-0">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => startEdit(booking)}
-                            className="gap-1.5"
-                          >
-                            <Pencil className="h-3.5 w-3.5" />
-                            Edit
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            disabled={!deletable}
-                            onClick={() => handleDelete(booking)}
-                            className="gap-1.5"
-                            title={!deletable ? `Cannot cancel within 2 hours of booking time (${hoursLeft}h left)` : "Cancel booking"}
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                            Cancel
-                          </Button>
-                        </div>
+                        <Badge className={cn(
+                          "text-[10px] shrink-0",
+                          booking.attendance_status === "show"
+                            ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
+                            : "bg-destructive/20 text-destructive border-destructive/30"
+                        )}>
+                          {booking.attendance_status === "show" ? "✓ Attended" : "✗ No Show"}
+                        </Badge>
                       </div>
-
-                      {!deletable && (
-                        <p className="text-xs text-destructive/70 mt-2">
-                          Cannot cancel — less than 2 hours until booking time.
-                        </p>
-                      )}
                     </div>
-                  );
-                })}
-              </div>
+                  ))}
+                </div>
+              )
             )}
           </DialogContent>
         </Dialog>
