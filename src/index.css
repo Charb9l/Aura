@@ -130,7 +130,7 @@
 }
 
 /* Portrait-only overlay for mobile landscape */
-@media screen and (max-width: 932px) and (orientation: landscape) {
+@media screen and (max-width: 639px) and (orientation: landscape) {
   body::after {
     content: "Please rotate your device to portrait mode";
     position: fixed;
