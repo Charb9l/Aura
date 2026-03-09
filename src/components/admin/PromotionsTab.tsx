@@ -42,7 +42,9 @@ interface PriceRule {
   discount_value: number;
   active: boolean;
   created_at: string;
-  clubs: string[]; // club IDs
+  clubs: string[];
+  max_total_uses: number | null;
+  uses_per_customer: number;
 }
 
 interface UserPromotion {
