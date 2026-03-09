@@ -33,25 +33,35 @@ serve(async (req) => {
       throw new Error("Prompt is required");
     }
 
-    // Fetch all bookings data for context
-    const { data: bookings } = await adminClient
-      .from("bookings")
-      .select("*")
-      .order("booking_date", { ascending: false })
-      .limit(500);
+    // Fetch all data sources in parallel
+    const [bookingsRes, clubsRes, pricesRes, profilesRes, usersRes] = await Promise.all([
+      adminClient.from("bookings").select("*").order("booking_date", { ascending: false }).limit(500),
+      adminClient.from("clubs").select("id, name, offerings"),
+      adminClient.from("club_activity_prices").select("club_id, activity_slug, price, price_label"),
+      adminClient.from("profiles").select("user_id, full_name, phone, created_at"),
+      adminClient.auth.admin.listUsers({ perPage: 1000 }),
+    ]);
 
-    const { data: clubs } = await adminClient
-      .from("clubs")
-      .select("id, name, offerings");
+    const bookings = bookingsRes.data || [];
+    const clubs = clubsRes.data || [];
+    const prices = pricesRes.data || [];
+    const profiles = profilesRes.data || [];
+    const authUsers = usersRes.data?.users || [];
 
-    // Fetch actual prices from DB
-    const { data: prices } = await adminClient
-      .from("club_activity_prices")
-      .select("club_id, activity_slug, price, price_label");
+    // Build customer list (merge profiles + auth emails)
+    const customers = profiles.map(p => {
+      const authUser = authUsers.find(u => u.id === p.user_id);
+      return {
+        name: p.full_name || "—",
+        email: authUser?.email || "—",
+        phone: p.phone || "—",
+        signed_up: p.created_at?.slice(0, 10) || "—",
+      };
+    });
 
     // Build club → activities mapping
     const clubActivityMap: Record<string, string[]> = {};
-    clubs?.forEach(c => {
+    clubs.forEach(c => {
       const activities: string[] = [];
       c.offerings.forEach((o: string) => {
         const lower = o.toLowerCase();
@@ -65,8 +75,8 @@ serve(async (req) => {
 
     // Build pricing string from actual DB data
     const pricingLines: string[] = [];
-    prices?.forEach(p => {
-      const club = clubs?.find(c => c.id === p.club_id);
+    prices.forEach(p => {
+      const club = clubs.find(c => c.id === p.club_id);
       const clubName = club?.name || "Unknown";
       const label = p.price_label ? ` (${p.price_label})` : "";
       pricingLines.push(`${clubName} — ${p.activity_slug}${label}: $${p.price}`);
@@ -76,30 +86,26 @@ serve(async (req) => {
     // Helper to resolve price for a booking
     const getBookingRevenue = (b: any): number => {
       if (b.attendance_status !== "show") return 0;
-      
-      // Use stored price first (permanent record, survives club deletion)
       if (b.price != null) {
         const storedBase = Number(b.price);
         if (b.discount_type === "free") return 0;
         if (b.discount_type === "50%") return storedBase * 0.5;
         return storedBase;
       }
-      
-      // Fallback: lookup from prices table (for old bookings without stored price)
       let clubId: string | undefined;
       for (const [cid, acts] of Object.entries(clubActivityMap)) {
         if (acts.includes(b.activity)) { clubId = cid; break; }
       }
       let basePrice = 0;
-      if (prices && clubId) {
-        const match = prices.find(p => 
-          p.club_id === clubId && 
-          p.activity_slug === b.activity && 
+      if (clubId) {
+        const match = prices.find(p =>
+          p.club_id === clubId &&
+          p.activity_slug === b.activity &&
           (b.court_type ? p.price_label === b.court_type : !p.price_label || true)
         );
         if (match) basePrice = Number(match.price);
       }
-      if (!basePrice && prices) {
+      if (!basePrice) {
         const fallback = prices.find(p => p.activity_slug === b.activity && (b.court_type ? p.price_label === b.court_type : true));
         if (fallback) basePrice = Number(fallback.price);
       }
@@ -108,16 +114,16 @@ serve(async (req) => {
       return basePrice;
     };
 
-    const totalBookings = bookings?.length || 0;
-    const dateRange = bookings && bookings.length > 0
+    const totalBookings = bookings.length;
+    const dateRange = bookings.length > 0
       ? `${bookings[bookings.length - 1].booking_date} to ${bookings[0].booking_date}`
       : "no data";
 
-    const activitiesSummary = bookings ? [...new Set(bookings.map(b => b.activity))].join(", ") : "none";
-    const clubsSummary = clubs?.map(c => `${c.name} (offerings: ${c.offerings.join(", ")})`).join("; ") || "none";
+    const activitiesSummary = [...new Set(bookings.map(b => b.activity))].join(", ") || "none";
+    const clubsSummary = clubs.map(c => `${c.name} (offerings: ${c.offerings.join(", ")})`).join("; ") || "none";
 
-    // Compact representation with calculated revenue
-    const bookingsJson = JSON.stringify(bookings?.map(b => ({
+    // Compact bookings
+    const bookingsJson = JSON.stringify(bookings.map(b => ({
       date: b.booking_date,
       time: b.booking_time,
       act: b.activity,
@@ -131,7 +137,9 @@ serve(async (req) => {
       attendance: b.attendance_status || "",
       created_at: b.created_at,
       revenue: getBookingRevenue(b),
-    })) || []);
+    })));
+
+    const customersJson = JSON.stringify(customers);
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
@@ -148,26 +156,36 @@ serve(async (req) => {
 
 TODAY'S DATE: ${todayStr}
 CURRENT CALENDAR MONTH: ${firstOfMonth} to ${lastOfMonth}
-IMPORTANT: When the user says "this month", they mean the FULL calendar month from ${firstOfMonth} to ${lastOfMonth} (inclusive). Include future dates within the month.
+IMPORTANT: When the user says "this month", they mean the FULL calendar month from ${firstOfMonth} to ${lastOfMonth} (inclusive).
 
 DATA CONTEXT:
 - ${totalBookings} bookings spanning ${dateRange}
+- ${customers.length} registered customers
 - Activities: ${activitiesSummary}
 - Clubs: ${clubsSummary}
 
-PRICING (from database — use these exact values):
+PRICING (from database):
 ${pricingStr}
 
 CRITICAL RULES:
 1. Revenue can ONLY come from bookings where attendance="show". Bookings without attendance="show" have $0 revenue.
-2. Each booking already has a pre-calculated "revenue" field — USE IT as-is for revenue calculations.
-3. If the admin asks about revenue, ONLY include rows where attendance="show".
-4. For discount="free", revenue is $0. For discount="50%", revenue is half the club price.
+2. Each booking already has a pre-calculated "revenue" field — USE IT as-is.
+3. For discount="free", revenue is $0. For discount="50%", revenue is half the club price.
 
-BOOKINGS DATA (act=activity slug, act_name=display name, court=court_type, discount=discount_type, attendance=attendance_status, revenue=calculated revenue in $):
+IMPORTANT — DATA RELEVANCE:
+- Determine which data source is relevant to the admin's question.
+- If the question is about CUSTOMERS (how many users, signups, customer list, etc.), use the CUSTOMERS DATA and return customer-relevant columns (name, email, phone, signed_up). Do NOT include booking data.
+- If the question is about BOOKINGS or REVENUE, use the BOOKINGS DATA and return booking-relevant columns (date, time, activity, customer, revenue, etc.).
+- If the question spans both (e.g. "top customers by revenue"), combine both datasets intelligently.
+- Always return ONLY the columns relevant to the question. Do not pad with unrelated data.
+
+CUSTOMERS DATA (${customers.length} registered users):
+${customersJson}
+
+BOOKINGS DATA (act=activity slug, act_name=display name, court=court_type, discount=discount_type, attendance=attendance_status, revenue=$ amount):
 ${bookingsJson}
 
-TASK: The admin asks a question. Use the generate_report tool to return filtered booking-level rows. Always include: date, time, activity, activity_name, customer name, email, phone, court_type, discount_type, attendance_status, status, created_at, and revenue. Sort by date descending.`;
+TASK: Answer the admin's question using generate_report. Pick appropriate columns based on what was asked. Sort sensibly.`;
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
