@@ -43,7 +43,10 @@ export const useCustomerNotifications = () => {
       .channel("customer-notifications")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "customer_notifications" }, (payload) => {
         const n = payload.new as any;
-        setNotifications(prev => [{ ...n, is_read: false }, ...prev]);
+        // Only add if broadcast or targeted at this user
+        if (!n.target_user_id || n.target_user_id === user.id) {
+          setNotifications(prev => [{ ...n, is_read: false }, ...prev]);
+        }
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
