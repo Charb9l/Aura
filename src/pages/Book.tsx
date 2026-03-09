@@ -556,12 +556,12 @@ const BookPage = () => {
                         boxShadow: isSelected ? `0 0 25px hsl(var(--primary) / 0.4)` : undefined,
                       }}
                     >
-                      {/* Inner white hexagon */}
+                      {/* Inner hexagon */}
                       <div
                         className="absolute inset-[2px] flex items-center justify-center"
                         style={{
                           clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
-                          background: "white",
+                          background: "hsl(var(--background))",
                         }}
                       >
                         {a.logo_url ? (
