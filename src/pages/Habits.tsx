@@ -449,7 +449,7 @@ const HabitsPage = () => {
               transition={{ delay: 0.2 }}
               className="w-full overflow-x-auto pb-2 scrollbar-hide"
             >
-              {(() => {
+              <div className="mx-auto flex w-max min-w-full md:min-w-0 md:w-auto md:justify-center gap-2 sm:gap-3 px-1 snap-x snap-mandatory">
                 const defaultBadges: FeatureBadge[] = [
                   { label: "Streaks" },
                   { label: "Badges" },
