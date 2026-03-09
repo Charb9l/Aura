@@ -338,12 +338,16 @@ const PromotionsTab = ({ allUsers, clubs }: Props) => {
         {/* Badge Leaderboard */}
         <TabsContent value="badges" className="space-y-4">
           <div className="flex items-center justify-between flex-wrap gap-3">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                <Input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search by name or email..." className="h-8 pl-9 w-56 bg-secondary border-border text-sm" />
+              </div>
               <Label className="text-sm text-muted-foreground">Show Top</Label>
               <Input type="number" value={topN} onChange={e => setTopN(e.target.value)} className="w-20 h-8" min={1} />
             </div>
             <div className="flex gap-2">
-              <Button size="sm" variant="outline" onClick={() => selectTopN(badgeLeaders)}>
+              <Button size="sm" variant="outline" onClick={() => selectTopN(filteredBadge)}>
                 Select Top {displayN}
               </Button>
               <Button size="sm" onClick={() => { if (promoSelectedUsers.size === 0) { toast.error("Select users first"); return; } setPromoDialogOpen(true); }} disabled={promoSelectedUsers.size === 0} className="gap-2">
