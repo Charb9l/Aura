@@ -445,7 +445,8 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
   const [pageTitle, setPageTitle] = useState("");
   const [pageSubtitle, setPageSubtitle] = useState("");
   const [pageFields, setPageFields] = useState<FormField[]>([]);
-  const [matchCriteria, setMatchCriteria] = useState<{ emoji: string; label: string }[]>([]);
+  const [matchCriteria, setMatchCriteria] = useState<{ emoji: string; label: string; use_gold?: boolean }[]>([]);
+  const [habitsBadges, setHabitsBadges] = useState<{ label: string; use_gold?: boolean }[]>([]);
   const [maxClubsGrid, setMaxClubsGrid] = useState<number>(3);
 
   useEffect(() => {
@@ -477,6 +478,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
       setPageSubtitle(content.subtitle || "");
       setPageFields([...(content.fields || [])]);
       setMatchCriteria([...(content.criteria || [])]);
+      setHabitsBadges([...(content.feature_badges || [])]);
       setMaxClubsGrid(content.max_clubs_grid ?? 3);
     }
     setEditingPage(slug);
@@ -522,6 +524,9 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
     }
     if (slug === "matchmaker") {
       content.criteria = matchCriteria.filter(c => c.label.trim());
+    }
+    if (slug === "habits") {
+      content.feature_badges = habitsBadges.filter(b => b.label.trim());
     }
     saveContent(slug, content);
   };
@@ -775,6 +780,18 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
                         placeholder="e.g. Skill Level"
                         className="h-9 flex-1 bg-background border-border text-sm"
                       />
+                      <button
+                        type="button"
+                        onClick={() => setMatchCriteria(prev => prev.map((cr, idx) => idx === i ? { ...cr, use_gold: !cr.use_gold } : cr))}
+                        className={cn(
+                          "px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border transition-all shrink-0",
+                          c.use_gold
+                            ? "border-amber-400/60 bg-amber-400/15 text-amber-300 shadow-[0_0_12px_hsl(43_96%_56%/0.35)]"
+                            : "border-border text-muted-foreground hover:border-muted-foreground/50"
+                        )}
+                      >
+                        ✦ Gold
+                      </button>
                       <Button
                         type="button"
                         variant="ghost"
@@ -787,6 +804,62 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
                     </div>
                   ))}
                   {matchCriteria.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No criteria yet. Click "Add Criteria" to create one.</p>}
+                </div>
+              </div>
+            )}
+
+            {editingPage === "habits" && (
+              <div className="border-t border-border pt-6">
+                <div className="flex items-center justify-between mb-3">
+                  <Label className="text-sm font-medium text-muted-foreground">Feature Badges</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setHabitsBadges(prev => [...prev, { label: "", use_gold: false }])}
+                    className="gap-1.5 text-xs"
+                  >
+                    <Plus className="h-3.5 w-3.5" /> Add Badge
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mb-3">These appear as styled pills below the subtitle on the habit tracker page.</p>
+                <div className="space-y-3">
+                  {habitsBadges.map((b, i) => (
+                    <div key={i} className="flex items-center gap-2 p-3 rounded-lg border border-border bg-secondary/50">
+                      <div className="flex flex-col gap-1 shrink-0">
+                        <Button type="button" variant="ghost" size="icon" className="h-7 w-7" disabled={i === 0} onClick={() => { const arr = [...habitsBadges]; [arr[i - 1], arr[i]] = [arr[i], arr[i - 1]]; setHabitsBadges(arr); }}><ArrowUp className="h-3.5 w-3.5" /></Button>
+                        <Button type="button" variant="ghost" size="icon" className="h-7 w-7" disabled={i === habitsBadges.length - 1} onClick={() => { const arr = [...habitsBadges]; [arr[i], arr[i + 1]] = [arr[i + 1], arr[i]]; setHabitsBadges(arr); }}><ArrowDown className="h-3.5 w-3.5" /></Button>
+                      </div>
+                      <Input
+                        value={b.label}
+                        onChange={(e) => setHabitsBadges(prev => prev.map((br, idx) => idx === i ? { ...br, label: e.target.value } : br))}
+                        placeholder="e.g. Streaks"
+                        className="h-9 flex-1 bg-background border-border text-sm"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setHabitsBadges(prev => prev.map((br, idx) => idx === i ? { ...br, use_gold: !br.use_gold } : br))}
+                        className={cn(
+                          "px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border transition-all shrink-0",
+                          b.use_gold
+                            ? "border-amber-400/60 bg-amber-400/15 text-amber-300 shadow-[0_0_12px_hsl(43_96%_56%/0.35)]"
+                            : "border-border text-muted-foreground hover:border-muted-foreground/50"
+                        )}
+                      >
+                        ✦ Gold
+                      </button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setHabitsBadges(prev => prev.filter((_, idx) => idx !== i))}
+                        className="shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  {habitsBadges.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No feature badges yet. Click "Add Badge" to create one. Defaults will be used if empty.</p>}
                 </div>
               </div>
             )}

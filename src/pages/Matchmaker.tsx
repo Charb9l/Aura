@@ -63,7 +63,7 @@ const MatchmakerPage = () => {
   const [hasProfile, setHasProfile] = useState<boolean | null>(null);
   const [pageTitle, setPageTitle] = useState("Find Your Match");
   const [pageSubtitle, setPageSubtitle] = useState("Get matched with players who share your sports, skill level, and preferred location. Your next opponent or partner is just a click away.");
-  const [criteria, setCriteria] = useState<{ emoji: string; label: string }[]>([]);
+  const [criteria, setCriteria] = useState<{ emoji: string; label: string; use_gold?: boolean }[]>([]);
 
   // Nudge state
   const { sendNudge, sentNudges } = useNudges();
@@ -170,11 +170,12 @@ const MatchmakerPage = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 max-w-full mx-auto"
+              className="flex items-center justify-start sm:justify-center gap-2 sm:gap-3 max-w-full mx-auto overflow-x-auto pb-2 scrollbar-hide"
             >
               {criteria.map((c, i) => {
+                const goldHue = 43;
                 const hues = [160, 200, 280, 40, 340];
-                const hue = hues[i % hues.length];
+                const hue = c.use_gold ? goldHue : hues[i % hues.length];
 
                 const iconMap: Record<string, LucideIcon> = {
                   skill: Gauge, level: Gauge,
@@ -193,7 +194,7 @@ const MatchmakerPage = () => {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.3 + i * 0.08, type: "spring", stiffness: 200 }}
                     whileHover={{ scale: 1.08, y: -2 }}
-                    className="group relative inline-flex items-center gap-2.5 rounded-2xl px-5 py-3 text-sm font-semibold text-foreground cursor-default overflow-hidden"
+                    className="group relative inline-flex items-center gap-2.5 rounded-2xl px-5 py-3 text-sm font-semibold text-foreground cursor-default overflow-hidden shrink-0"
                     style={{
                       background: `linear-gradient(135deg, hsl(${hue} 50% 15% / 0.6), hsl(${hue} 40% 20% / 0.3))`,
                       border: `1px solid hsl(${hue} 50% 40% / 0.35)`,
@@ -210,7 +211,7 @@ const MatchmakerPage = () => {
                     >
                       <Icon className="h-3.5 w-3.5" />
                     </span>
-                    <span>{c.label}</span>
+                    <span className="whitespace-nowrap">{c.label}</span>
                     <div
                       className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
                       style={{
