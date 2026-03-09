@@ -725,6 +725,21 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
               </div>
             )}
 
+            {editingPage === "book" && (
+              <div className="border-t border-border pt-6">
+                <Label className="text-sm font-medium text-muted-foreground mb-2 block">Max clubs shown as cards</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={20}
+                  value={maxClubsGrid}
+                  onChange={(e) => setMaxClubsGrid(Math.max(1, parseInt(e.target.value) || 1))}
+                  className="h-12 bg-secondary border-border w-32"
+                />
+                <p className="text-xs text-muted-foreground mt-1.5">If more clubs are available for an activity, they'll appear as a dropdown instead of cards.</p>
+              </div>
+            )}
+
             {editingPage === "matchmaker" && (
               <div className="border-t border-border pt-6">
                 <div className="flex items-center justify-between mb-3">
