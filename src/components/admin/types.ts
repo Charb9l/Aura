@@ -86,20 +86,36 @@ export interface ClubActivityPrice {
 
 /**
  * Get booking revenue using DB prices.
- * priceMap keys: "activity_slug" or "activity_slug:label" for basketball.
+ * priceMap keys: "clubId:activity_slug", "clubId:activity_slug:label", or fallback "activity_slug" / "activity_slug:label".
+ * clubActivityMap maps club_id → activity slugs[] to resolve which club a booking belongs to.
  * IMPORTANT: Only bookings with attendance_status === "show" should be
  * passed to this function for revenue calculations.
  */
 export const getBookingRevenue = (
   b: BookingRow,
   priceMap?: Record<string, number>,
+  clubActivityMap?: Record<string, string[]>,
 ): number => {
   if (!priceMap) return 0;
+
+  // Find which club this booking belongs to
+  let clubId: string | undefined;
+  if (clubActivityMap) {
+    for (const [cid, activities] of Object.entries(clubActivityMap)) {
+      if (activities.includes(b.activity)) {
+        clubId = cid;
+        break;
+      }
+    }
+  }
+
   let base = 0;
   if (b.activity === "basketball" && b.court_type) {
-    base = priceMap[`${b.activity}:${b.court_type}`] ?? 0;
+    base = (clubId ? priceMap[`${clubId}:${b.activity}:${b.court_type}`] : undefined)
+      ?? priceMap[`${b.activity}:${b.court_type}`] ?? 0;
   } else {
-    base = priceMap[b.activity] ?? 0;
+    base = (clubId ? priceMap[`${clubId}:${b.activity}`] : undefined)
+      ?? priceMap[b.activity] ?? 0;
   }
   if (b.discount_type === "free") return 0;
   if (b.discount_type === "50%") return base * 0.5;

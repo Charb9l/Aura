@@ -240,8 +240,8 @@ const AdminDashboard = () => {
 
   const todayStr = format(new Date(), "yyyy-MM-dd");
   const todayShowBookings = useMemo(() => showBookings.filter(b => b.booking_date === todayStr), [showBookings, todayStr]);
-  const dailyRevenue = todayShowBookings.reduce((sum, b) => sum + getBookingRevenue(b, priceMap), 0);
-  const totalRevenue = showBookings.reduce((sum, b) => sum + getBookingRevenue(b, priceMap), 0);
+  const dailyRevenue = todayShowBookings.reduce((sum, b) => sum + getBookingRevenue(b, priceMap, clubActivityMap), 0);
+  const totalRevenue = showBookings.reduce((sum, b) => sum + getBookingRevenue(b, priceMap, clubActivityMap), 0);
 
   const applyDashboardFilter = (list: BookingRow[], filterType: string, filterValue: string) => {
     if (filterType === "all" || filterValue === "all") return list;
