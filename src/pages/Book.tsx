@@ -317,6 +317,7 @@ const BookPage = () => {
       phone: profilePhone,
       court_type: selectedActivity === "basketball" ? courtType : null,
       discount_type: discountType,
+      price: currentPrice,
     });
 
     setSubmitting(false);
