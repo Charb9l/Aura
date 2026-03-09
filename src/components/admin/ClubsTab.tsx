@@ -123,6 +123,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
 
   // Offerings Dialog state
   const [showOfferingsDialog, setShowOfferingsDialog] = useState(false);
+  const [showPartnerRequests, setShowPartnerRequests] = useState(false);
   const [offeringsDialogMode, setOfferingsDialogMode] = useState<"list" | "add" | "edit">("list");
   const [addOfferingName, setAddOfferingName] = useState("");
   const [addOfferingSlug, setAddOfferingSlug] = useState("");
