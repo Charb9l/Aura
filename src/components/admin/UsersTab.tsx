@@ -536,7 +536,7 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
 
       {/* Profile Viewer Dialog */}
       <Dialog open={!!viewUser} onOpenChange={(open) => !open && setViewUser(null)}>
-        <DialogContent className="bg-card border-border max-w-2xl w-[66vw] max-h-[85vh] overflow-y-auto">
+        <DialogContent className="bg-card border-border max-w-2xl w-[95vw] sm:w-[66vw] max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-heading text-xl flex items-center gap-3">
               <Eye className="h-5 w-5 text-primary" />
