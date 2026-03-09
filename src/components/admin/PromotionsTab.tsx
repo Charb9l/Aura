@@ -579,6 +579,16 @@ const PromotionsTab = ({ allUsers, clubs }: Props) => {
               </div>
             )}
             <div>
+              <Label className="text-sm">Max Total Uses (customers)</Label>
+              <Input type="number" value={ruleMaxTotalUses} onChange={e => setRuleMaxTotalUses(e.target.value)} placeholder="Leave empty for unlimited" min={1} />
+              <p className="text-xs text-muted-foreground mt-1">First X customers to use this rule. Empty = unlimited.</p>
+            </div>
+            <div>
+              <Label className="text-sm">Uses per Customer</Label>
+              <Input type="number" value={ruleUsesPerCustomer} onChange={e => setRuleUsesPerCustomer(e.target.value)} min={1} />
+              <p className="text-xs text-muted-foreground mt-1">How many times each customer can benefit from this rule.</p>
+            </div>
+            <div>
               <Label className="text-sm mb-2 block">Participating Clubs</Label>
               <Popover>
                 <PopoverTrigger asChild>
