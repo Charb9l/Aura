@@ -873,7 +873,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
               </div>
             )}
 
-            <Button onClick={() => editingPage && handleSavePage(editingPage)} disabled={saving} className="w-full h-12 text-base font-semibold glow">
+            <Button onClick={() => editingPage && handleSavePage(editingPage)} disabled={saving} className="w-full h-10 text-sm font-semibold glow">
               {saving ? "Saving..." : "Save Changes"}
             </Button>
           </div>
