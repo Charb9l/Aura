@@ -544,7 +544,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="customer-vision">
       <div className="mb-8">
-        <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Customer Vision</h1>
+        <h1 className="font-heading text-2xl md:text-4xl font-bold text-foreground mb-2">Customer Vision</h1>
         <p className="text-muted-foreground">Control what your customers see. Edit pages, text, pictures, and content directly.</p>
       </div>
 

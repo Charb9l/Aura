@@ -224,7 +224,7 @@ const HabitsTab = () => {
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="habits">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Habit Tracker</h1>
+          <h1 className="font-heading text-2xl md:text-4xl font-bold text-foreground mb-2">Habit Tracker</h1>
           <p className="text-muted-foreground">Manage badge levels, requirements, and page content.</p>
         </div>
         <div className="flex items-center gap-2">

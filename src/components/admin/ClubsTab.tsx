@@ -590,7 +590,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="clubs">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Clubs & Partners</h1>
+          <h1 className="font-heading text-2xl md:text-4xl font-bold text-foreground mb-2">Clubs & Partners</h1>
           <p className="text-muted-foreground">All signed clubs and partners on the platform.</p>
         </div>
         {isMasterAdmin && (
