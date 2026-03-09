@@ -55,21 +55,37 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
     const fetchPrice = async () => {
       const slug = selectedBooking.activity;
       const courtType = selectedBooking.court_type;
-      let query = supabase.from("club_activity_prices").select("price, price_label").eq("activity_slug", slug);
-      if (courtType) {
-        query = query.eq("price_label", courtType);
+
+      // Find which club this booking belongs to based on offerings
+      let clubId: string | undefined;
+      if (clubs) {
+        for (const club of clubs) {
+          const acts: string[] = [];
+          club.offerings.forEach(o => {
+            const lower = o.toLowerCase();
+            if (lower.includes("basketball")) acts.push("basketball");
+            if (lower.includes("tennis")) acts.push("tennis");
+            if (lower.includes("pilates")) acts.push("pilates");
+            if (lower.includes("yoga") || lower.includes("aerial")) acts.push("aerial-yoga");
+          });
+          if (acts.includes(slug)) { clubId = club.id; break; }
+        }
       }
+
+      let query = supabase.from("club_activity_prices").select("price, price_label").eq("activity_slug", slug);
+      if (clubId) query = query.eq("club_id", clubId);
+      if (courtType) query = query.eq("price_label", courtType);
       const { data } = await query.limit(1).maybeSingle();
       if (data) {
         setBookingPrice({ price: data.price, label: data.price_label });
       } else {
-        // fallback: try without price_label filter
+        // fallback: try without club/label filter
         const { data: fallback } = await supabase.from("club_activity_prices").select("price, price_label").eq("activity_slug", slug).limit(1).maybeSingle();
         setBookingPrice(fallback ? { price: fallback.price, label: fallback.price_label } : null);
       }
     };
     fetchPrice();
-  }, [selectedBooking]);
+  }, [selectedBooking, clubs]);
 
 
   useEffect(() => {

@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/sonner";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+
 
 import AdminNavbar from "@/components/AdminNavbar";
 
@@ -219,13 +219,18 @@ const AdminDashboard = () => {
   useEffect(() => { setBookingFilterValue("all"); }, [bookingFilterType]);
   useEffect(() => { setRevenueFilterValue("all"); }, [revenueFilterType]);
 
-  // Build a price map from activityPrices: key = "slug" or "slug:label"
-  // When multiple locations have different prices, uses the first found
+  // Build a price map from activityPrices with club-specific keys
   const priceMap = useMemo(() => {
     const map: Record<string, number> = {};
     activityPrices.forEach(p => {
-      const key = p.price_label ? `${p.activity_slug}:${p.price_label}` : p.activity_slug;
-      if (!(key in map)) map[key] = Number(p.price);
+      // Club-specific keys (preferred)
+      const clubKey = p.price_label
+        ? `${p.club_id}:${p.activity_slug}:${p.price_label}`
+        : `${p.club_id}:${p.activity_slug}`;
+      if (!(clubKey in map)) map[clubKey] = Number(p.price);
+      // Fallback keys (first price found for activity)
+      const fallbackKey = p.price_label ? `${p.activity_slug}:${p.price_label}` : p.activity_slug;
+      if (!(fallbackKey in map)) map[fallbackKey] = Number(p.price);
     });
     return map;
   }, [activityPrices]);
@@ -235,8 +240,8 @@ const AdminDashboard = () => {
 
   const todayStr = format(new Date(), "yyyy-MM-dd");
   const todayShowBookings = useMemo(() => showBookings.filter(b => b.booking_date === todayStr), [showBookings, todayStr]);
-  const dailyRevenue = todayShowBookings.reduce((sum, b) => sum + getBookingRevenue(b, priceMap), 0);
-  const totalRevenue = showBookings.reduce((sum, b) => sum + getBookingRevenue(b, priceMap), 0);
+  const dailyRevenue = todayShowBookings.reduce((sum, b) => sum + getBookingRevenue(b, priceMap, clubActivityMap), 0);
+  const totalRevenue = showBookings.reduce((sum, b) => sum + getBookingRevenue(b, priceMap, clubActivityMap), 0);
 
   const applyDashboardFilter = (list: BookingRow[], filterType: string, filterValue: string) => {
     if (filterType === "all" || filterValue === "all") return list;
@@ -245,7 +250,7 @@ const AdminDashboard = () => {
     return list;
   };
 
-  const bookingChartData = useMemo(() => {
+  const bookingStats = useMemo(() => {
     const now = new Date();
     let start: Date, end: Date;
     if (bookingRange === "today") { start = startOfDay(now); end = endOfDay(now); }
@@ -255,10 +260,17 @@ const AdminDashboard = () => {
     else { start = startOfDay(now); end = endOfDay(now); }
     let filtered = filteredBookings.filter(b => { const d = parseISO(b.booking_date); return isWithinInterval(d, { start, end }); });
     filtered = applyDashboardFilter(filtered, bookingFilterType, bookingFilterValue);
-    return [{ name: "Bookings", value: filtered.length }];
+    const total = filtered.length;
+    const actMap: Record<string, { name: string; count: number }> = {};
+    filtered.forEach(b => {
+      if (!actMap[b.activity]) actMap[b.activity] = { name: b.activity_name, count: 0 };
+      actMap[b.activity].count++;
+    });
+    const byActivity = Object.entries(actMap).sort((a, b) => b[1].count - a[1].count).map(([slug, v]) => ({ slug, name: v.name, count: v.count }));
+    return { total, byActivity };
   }, [filteredBookings, bookingRange, bookingCustomDate, bookingFilterType, bookingFilterValue, clubActivityMap]);
 
-  const revenueByCategoryFiltered = useMemo(() => {
+  const revenueStats = useMemo(() => {
     const now = new Date();
     let start: Date, end: Date;
     if (revenueRange === "today") { start = startOfDay(now); end = endOfDay(now); }
@@ -267,11 +279,18 @@ const AdminDashboard = () => {
     else if (revenueRange === "custom" && bookingCustomDate) { start = startOfDay(bookingCustomDate); end = endOfDay(bookingCustomDate); }
     else if (revenueRange === "custom-range" && revenueCustomRange.from && revenueCustomRange.to) { start = startOfDay(revenueCustomRange.from); end = endOfDay(revenueCustomRange.to); }
     else { start = startOfDay(now); end = endOfDay(now); }
-    // Revenue only counts "show" bookings
     let filtered = showBookings.filter(b => { const d = parseISO(b.booking_date); return isWithinInterval(d, { start, end }); });
     filtered = applyDashboardFilter(filtered, revenueFilterType, revenueFilterValue);
-    const total = filtered.reduce((sum, b) => sum + getBookingRevenue(b, priceMap), 0);
-    return [{ name: "Revenue", value: total }];
+    const total = filtered.reduce((sum, b) => sum + getBookingRevenue(b, priceMap, clubActivityMap), 0);
+    const actMap: Record<string, { name: string; revenue: number; count: number }> = {};
+    filtered.forEach(b => {
+      const rev = getBookingRevenue(b, priceMap, clubActivityMap);
+      if (!actMap[b.activity]) actMap[b.activity] = { name: b.activity_name, revenue: 0, count: 0 };
+      actMap[b.activity].revenue += rev;
+      actMap[b.activity].count++;
+    });
+    const byActivity = Object.entries(actMap).sort((a, b) => b[1].revenue - a[1].revenue).map(([slug, v]) => ({ slug, name: v.name, revenue: v.revenue, count: v.count }));
+    return { total, byActivity };
   }, [showBookings, revenueRange, bookingCustomDate, revenueCustomRange, revenueFilterType, revenueFilterValue, clubActivityMap, priceMap]);
 
   if (loadingData) {
@@ -354,7 +373,7 @@ const AdminDashboard = () => {
                     const allowed = clubActivityMap[todayRevenueClubFilter] || [];
                     filtered = filtered.filter(b => allowed.includes(b.activity));
                   }
-                  const filteredTotal = filtered.reduce((sum, b) => sum + getBookingRevenue(b, priceMap), 0);
+                  const filteredTotal = filtered.reduce((sum, b) => sum + getBookingRevenue(b, priceMap, clubActivityMap), 0);
                   const getClubForBooking = (b: BookingRow) => {
                     for (const club of clubs) {
                       const acts = clubActivityMap[club.id] || [];
@@ -378,7 +397,7 @@ const AdminDashboard = () => {
                         </TableHeader>
                         <TableBody>
                           {filtered.map(b => {
-                            const rev = getBookingRevenue(b, priceMap);
+                            const rev = getBookingRevenue(b, priceMap, clubActivityMap);
                             return (
                               <TableRow key={b.id}>
                                 <TableCell>
@@ -415,7 +434,10 @@ const AdminDashboard = () => {
             </Dialog>
             <Card className="bg-card border-border mb-6">
               <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <CardTitle className="text-lg">Bookings</CardTitle>
+                <div>
+                  <CardTitle className="text-lg flex items-center gap-2"><CalendarCheck className="h-5 w-5 text-primary" /> Bookings</CardTitle>
+                  <p className="text-3xl font-bold font-heading text-foreground mt-2">{bookingStats.total}</p>
+                </div>
                 <div className="flex items-center gap-2 flex-wrap">
                   {(showActivityFilter || showClubFilter) && (
                     <Select value={bookingFilterType} onValueChange={setBookingFilterType}><SelectTrigger className="w-[120px] h-9 bg-secondary border-border text-sm"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">All</SelectItem>{showActivityFilter && <SelectItem value="activity">Activity</SelectItem>}{showClubFilter && <SelectItem value="club">Club</SelectItem>}</SelectContent></Select>
@@ -425,11 +447,34 @@ const AdminDashboard = () => {
                   <DateRangeFilter value={bookingRange} onChange={setBookingRange} showCustomDate customDate={bookingCustomDate} onCustomDateChange={setBookingCustomDate} />
                 </div>
               </CardHeader>
-              <CardContent className="overflow-x-auto"><ResponsiveContainer width="100%" height={250}><BarChart data={bookingChartData}><CartesianGrid strokeDasharray="3 3" stroke="hsl(240, 6%, 18%)" /><XAxis dataKey="name" tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} /><YAxis allowDecimals={false} tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} /><Tooltip contentStyle={{ background: "hsl(240, 8%, 10%)", border: "1px solid hsl(240, 6%, 18%)", borderRadius: 8, color: "hsl(0, 0%, 95%)" }} /><Bar dataKey="value" name="Bookings" radius={[4, 4, 0, 0]} animationDuration={800} fill={CHART_COLORS[0]} /></BarChart></ResponsiveContainer></CardContent>
+              <CardContent>
+                {bookingStats.byActivity.length === 0 ? (
+                  <p className="text-muted-foreground text-sm text-center py-6">No bookings in this period.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {bookingStats.byActivity.map((item, i) => {
+                      const pct = bookingStats.total > 0 ? (item.count / bookingStats.total) * 100 : 0;
+                      return (
+                        <div key={item.slug} className="flex items-center gap-3">
+                          <span className="text-sm font-medium text-foreground w-32 shrink-0 truncate">{item.name}</span>
+                          <div className="flex-1 h-7 bg-secondary rounded-md overflow-hidden relative">
+                            <div className="h-full rounded-md transition-all duration-500" style={{ width: `${Math.max(pct, 2)}%`, backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }} />
+                          </div>
+                          <span className="text-sm font-bold text-foreground w-10 text-right">{item.count}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
             </Card>
             <Card className="bg-card border-border">
               <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <CardTitle className="text-lg">Revenue</CardTitle>
+                <div>
+                  <CardTitle className="text-lg flex items-center gap-2"><DollarSign className="h-5 w-5 text-primary" /> Revenue</CardTitle>
+                  <p className="text-3xl font-bold font-heading text-foreground mt-2">${revenueStats.total.toLocaleString()}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">From {revenueStats.byActivity.reduce((s, a) => s + a.count, 0)} confirmed bookings</p>
+                </div>
                 <div className="flex items-center gap-2 flex-wrap">
                   {(showActivityFilter || showClubFilter) && (
                     <Select value={revenueFilterType} onValueChange={setRevenueFilterType}><SelectTrigger className="w-[120px] h-9 bg-secondary border-border text-sm"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">All</SelectItem>{showActivityFilter && <SelectItem value="activity">Activity</SelectItem>}{showClubFilter && <SelectItem value="club">Club</SelectItem>}</SelectContent></Select>
@@ -439,7 +484,26 @@ const AdminDashboard = () => {
                   <DateRangeFilter value={revenueRange} onChange={setRevenueRange} showCustomDate customDate={bookingCustomDate} onCustomDateChange={setBookingCustomDate} showCustomRange customRange={revenueCustomRange} onCustomRangeChange={(r) => setRevenueCustomRange({ from: r.from, to: r.to })} />
                 </div>
               </CardHeader>
-              <CardContent className="overflow-x-auto"><ResponsiveContainer width="100%" height={250}><BarChart data={revenueByCategoryFiltered}><CartesianGrid strokeDasharray="3 3" stroke="hsl(240, 6%, 18%)" /><XAxis dataKey="name" tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} /><YAxis tickFormatter={(v: number) => `$${v}`} tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} /><Tooltip contentStyle={{ background: "hsl(240, 8%, 10%)", border: "1px solid hsl(240, 6%, 18%)", borderRadius: 8, color: "hsl(0, 0%, 95%)" }} formatter={(v: number) => [`$${v}`, "Revenue"]} /><Bar dataKey="value" name="Revenue" radius={[4, 4, 0, 0]} animationDuration={800} fill={CHART_COLORS[1]} /></BarChart></ResponsiveContainer></CardContent>
+              <CardContent>
+                {revenueStats.byActivity.length === 0 ? (
+                  <p className="text-muted-foreground text-sm text-center py-6">No revenue in this period.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {revenueStats.byActivity.map((item, i) => {
+                      const pct = revenueStats.total > 0 ? (item.revenue / revenueStats.total) * 100 : 0;
+                      return (
+                        <div key={item.slug} className="flex items-center gap-3">
+                          <span className="text-sm font-medium text-foreground w-32 shrink-0 truncate">{item.name}</span>
+                          <div className="flex-1 h-7 bg-secondary rounded-md overflow-hidden relative">
+                            <div className="h-full rounded-md transition-all duration-500" style={{ width: `${Math.max(pct, 2)}%`, backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }} />
+                          </div>
+                          <span className="text-sm font-bold text-foreground w-20 text-right">${item.revenue.toLocaleString()}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
             </Card>
           </motion.div>
         )}
