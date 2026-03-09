@@ -202,7 +202,7 @@ const Navbar = () => {
           )}
         </div>
 
-        {/* Mobile */}
+        {/* Mobile — only show profile icon, no hamburger (bottom tab bar handles nav) */}
         <div className="flex lg:hidden items-center gap-2">
           {user && (
             <Link to="/profile" className={cn("text-muted-foreground hover:text-foreground transition-colors p-1 relative", showGlow && "text-primary")}>
@@ -210,9 +210,11 @@ const Navbar = () => {
               <AvatarDisplay size="md" />
             </Link>
           )}
-          <button onClick={() => setMobileOpen(!mobileOpen)} className="text-muted-foreground hover:text-foreground transition-colors p-2">
-            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
+          {!user && (
+            <Link to="/auth" className="rounded-full border border-primary/30 p-2 text-primary transition-all hover:bg-primary/5">
+              <LogIn className="h-4 w-4" />
+            </Link>
+          )}
         </div>
       </div>
 
