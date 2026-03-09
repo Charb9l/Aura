@@ -44,6 +44,62 @@ serve(async (req) => {
       .from("clubs")
       .select("id, name, offerings");
 
+    // Fetch actual prices from DB
+    const { data: prices } = await adminClient
+      .from("club_activity_prices")
+      .select("club_id, activity_slug, price, price_label");
+
+    // Build club → activities mapping
+    const clubActivityMap: Record<string, string[]> = {};
+    clubs?.forEach(c => {
+      const activities: string[] = [];
+      c.offerings.forEach((o: string) => {
+        const lower = o.toLowerCase();
+        if (lower.includes("basketball")) activities.push("basketball");
+        if (lower.includes("tennis")) activities.push("tennis");
+        if (lower.includes("pilates")) activities.push("pilates");
+        if (lower.includes("yoga") || lower.includes("aerial")) activities.push("aerial-yoga");
+      });
+      clubActivityMap[c.id] = activities;
+    });
+
+    // Build pricing string from actual DB data
+    const pricingLines: string[] = [];
+    prices?.forEach(p => {
+      const club = clubs?.find(c => c.id === p.club_id);
+      const clubName = club?.name || "Unknown";
+      const label = p.price_label ? ` (${p.price_label})` : "";
+      pricingLines.push(`${clubName} — ${p.activity_slug}${label}: $${p.price}`);
+    });
+    const pricingStr = pricingLines.length > 0 ? pricingLines.join("\n") : "No pricing data available";
+
+    // Helper to resolve price for a booking
+    const getBookingRevenue = (b: any): number => {
+      if (b.attendance_status !== "show") return 0;
+      // Find which club this activity belongs to
+      let clubId: string | undefined;
+      for (const [cid, acts] of Object.entries(clubActivityMap)) {
+        if (acts.includes(b.activity)) { clubId = cid; break; }
+      }
+      let basePrice = 0;
+      if (prices && clubId) {
+        const match = prices.find(p => 
+          p.club_id === clubId && 
+          p.activity_slug === b.activity && 
+          (b.court_type ? p.price_label === b.court_type : !p.price_label || true)
+        );
+        if (match) basePrice = Number(match.price);
+      }
+      if (!basePrice && prices) {
+        // fallback: any price for this activity
+        const fallback = prices.find(p => p.activity_slug === b.activity && (b.court_type ? p.price_label === b.court_type : true));
+        if (fallback) basePrice = Number(fallback.price);
+      }
+      if (b.discount_type === "free") return 0;
+      if (b.discount_type === "50%") return basePrice * 0.5;
+      return basePrice;
+    };
+
     const totalBookings = bookings?.length || 0;
     const dateRange = bookings && bookings.length > 0
       ? `${bookings[bookings.length - 1].booking_date} to ${bookings[0].booking_date}`
@@ -52,7 +108,7 @@ serve(async (req) => {
     const activitiesSummary = bookings ? [...new Set(bookings.map(b => b.activity))].join(", ") : "none";
     const clubsSummary = clubs?.map(c => `${c.name} (offerings: ${c.offerings.join(", ")})`).join("; ") || "none";
 
-    // Compact representation
+    // Compact representation with calculated revenue
     const bookingsJson = JSON.stringify(bookings?.map(b => ({
       date: b.booking_date,
       time: b.booking_time,
@@ -66,6 +122,7 @@ serve(async (req) => {
       discount: b.discount_type || "",
       attendance: b.attendance_status || "",
       created_at: b.created_at,
+      revenue: getBookingRevenue(b),
     })) || []);
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -73,7 +130,7 @@ serve(async (req) => {
 
     const today = new Date();
     const currentYear = today.getUTCFullYear();
-    const currentMonth = today.getUTCMonth(); // 0-indexed
+    const currentMonth = today.getUTCMonth();
     const firstOfMonth = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-01`;
     const lastDay = new Date(currentYear, currentMonth + 1, 0).getUTCDate();
     const lastOfMonth = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
@@ -90,14 +147,19 @@ DATA CONTEXT:
 - Activities: ${activitiesSummary}
 - Clubs: ${clubsSummary}
 
-PRICING: Tennis=$15, Aerial Yoga=$20, Pilates=$20, Basketball Half=$45, Basketball Full=$90. discount "free"→$0, "50%"→half.
+PRICING (from database — use these exact values):
+${pricingStr}
 
-CRITICAL RULE: Revenue can ONLY come from bookings where attendance="show". Bookings without attendance_status="show" have $0 revenue and MUST NOT appear in any revenue report. If the admin asks about revenue, ONLY include rows where attendance="show".
+CRITICAL RULES:
+1. Revenue can ONLY come from bookings where attendance="show". Bookings without attendance="show" have $0 revenue.
+2. Each booking already has a pre-calculated "revenue" field — USE IT as-is for revenue calculations.
+3. If the admin asks about revenue, ONLY include rows where attendance="show".
+4. For discount="free", revenue is $0. For discount="50%", revenue is half the club price.
 
-BOOKINGS DATA (act=activity slug, act_name=display name, court=court_type, discount=discount_type, attendance=attendance_status):
+BOOKINGS DATA (act=activity slug, act_name=display name, court=court_type, discount=discount_type, attendance=attendance_status, revenue=calculated revenue in $):
 ${bookingsJson}
 
-TASK: The admin asks a question. Use the generate_report tool to return filtered booking-level rows. For revenue queries, ONLY include rows where attendance="show". Always include: date, time, activity, activity_name, customer name, email, phone, court_type, discount_type, attendance_status, status, created_at, and calculated revenue (revenue is $0 if attendance!="show"). Sort by date descending.`;
+TASK: The admin asks a question. Use the generate_report tool to return filtered booking-level rows. Always include: date, time, activity, activity_name, customer name, email, phone, court_type, discount_type, attendance_status, status, created_at, and revenue. Sort by date descending.`;
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -166,7 +228,6 @@ TASK: The admin asks a question. Use the generate_report tool to return filtered
 
     const aiData = await aiResponse.json();
     
-    // Extract from tool call response
     const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
     let parsed;
 
@@ -178,7 +239,6 @@ TASK: The admin asks a question. Use the generate_report tool to return filtered
         throw new Error("AI returned an invalid response. Please try rephrasing your question.");
       }
     } else {
-      // Fallback: try content
       let content = aiData.choices?.[0]?.message?.content || "";
       content = content.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
       console.error("No tool call found, raw content:", content.substring(0, 200));

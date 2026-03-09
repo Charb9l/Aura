@@ -434,7 +434,10 @@ const AdminDashboard = () => {
             </Dialog>
             <Card className="bg-card border-border mb-6">
               <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <CardTitle className="text-lg">Bookings</CardTitle>
+                <div>
+                  <CardTitle className="text-lg flex items-center gap-2"><CalendarCheck className="h-5 w-5 text-primary" /> Bookings</CardTitle>
+                  <p className="text-3xl font-bold font-heading text-foreground mt-2">{bookingStats.total}</p>
+                </div>
                 <div className="flex items-center gap-2 flex-wrap">
                   {(showActivityFilter || showClubFilter) && (
                     <Select value={bookingFilterType} onValueChange={setBookingFilterType}><SelectTrigger className="w-[120px] h-9 bg-secondary border-border text-sm"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">All</SelectItem>{showActivityFilter && <SelectItem value="activity">Activity</SelectItem>}{showClubFilter && <SelectItem value="club">Club</SelectItem>}</SelectContent></Select>
@@ -444,11 +447,34 @@ const AdminDashboard = () => {
                   <DateRangeFilter value={bookingRange} onChange={setBookingRange} showCustomDate customDate={bookingCustomDate} onCustomDateChange={setBookingCustomDate} />
                 </div>
               </CardHeader>
-              <CardContent className="overflow-x-auto"><ResponsiveContainer width="100%" height={250}><BarChart data={bookingChartData}><CartesianGrid strokeDasharray="3 3" stroke="hsl(240, 6%, 18%)" /><XAxis dataKey="name" tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} /><YAxis allowDecimals={false} tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} /><Tooltip contentStyle={{ background: "hsl(240, 8%, 10%)", border: "1px solid hsl(240, 6%, 18%)", borderRadius: 8, color: "hsl(0, 0%, 95%)" }} /><Bar dataKey="value" name="Bookings" radius={[4, 4, 0, 0]} animationDuration={800} fill={CHART_COLORS[0]} /></BarChart></ResponsiveContainer></CardContent>
+              <CardContent>
+                {bookingStats.byActivity.length === 0 ? (
+                  <p className="text-muted-foreground text-sm text-center py-6">No bookings in this period.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {bookingStats.byActivity.map((item, i) => {
+                      const pct = bookingStats.total > 0 ? (item.count / bookingStats.total) * 100 : 0;
+                      return (
+                        <div key={item.slug} className="flex items-center gap-3">
+                          <span className="text-sm font-medium text-foreground w-32 shrink-0 truncate">{item.name}</span>
+                          <div className="flex-1 h-7 bg-secondary rounded-md overflow-hidden relative">
+                            <div className="h-full rounded-md transition-all duration-500" style={{ width: `${Math.max(pct, 2)}%`, backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }} />
+                          </div>
+                          <span className="text-sm font-bold text-foreground w-10 text-right">{item.count}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
             </Card>
             <Card className="bg-card border-border">
               <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <CardTitle className="text-lg">Revenue</CardTitle>
+                <div>
+                  <CardTitle className="text-lg flex items-center gap-2"><DollarSign className="h-5 w-5 text-primary" /> Revenue</CardTitle>
+                  <p className="text-3xl font-bold font-heading text-foreground mt-2">${revenueStats.total.toLocaleString()}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">From {revenueStats.byActivity.reduce((s, a) => s + a.count, 0)} confirmed bookings</p>
+                </div>
                 <div className="flex items-center gap-2 flex-wrap">
                   {(showActivityFilter || showClubFilter) && (
                     <Select value={revenueFilterType} onValueChange={setRevenueFilterType}><SelectTrigger className="w-[120px] h-9 bg-secondary border-border text-sm"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">All</SelectItem>{showActivityFilter && <SelectItem value="activity">Activity</SelectItem>}{showClubFilter && <SelectItem value="club">Club</SelectItem>}</SelectContent></Select>
@@ -458,7 +484,26 @@ const AdminDashboard = () => {
                   <DateRangeFilter value={revenueRange} onChange={setRevenueRange} showCustomDate customDate={bookingCustomDate} onCustomDateChange={setBookingCustomDate} showCustomRange customRange={revenueCustomRange} onCustomRangeChange={(r) => setRevenueCustomRange({ from: r.from, to: r.to })} />
                 </div>
               </CardHeader>
-              <CardContent className="overflow-x-auto"><ResponsiveContainer width="100%" height={250}><BarChart data={revenueByCategoryFiltered}><CartesianGrid strokeDasharray="3 3" stroke="hsl(240, 6%, 18%)" /><XAxis dataKey="name" tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} /><YAxis tickFormatter={(v: number) => `$${v}`} tick={{ fill: "hsl(240, 5%, 55%)", fontSize: 12 }} /><Tooltip contentStyle={{ background: "hsl(240, 8%, 10%)", border: "1px solid hsl(240, 6%, 18%)", borderRadius: 8, color: "hsl(0, 0%, 95%)" }} formatter={(v: number) => [`$${v}`, "Revenue"]} /><Bar dataKey="value" name="Revenue" radius={[4, 4, 0, 0]} animationDuration={800} fill={CHART_COLORS[1]} /></BarChart></ResponsiveContainer></CardContent>
+              <CardContent>
+                {revenueStats.byActivity.length === 0 ? (
+                  <p className="text-muted-foreground text-sm text-center py-6">No revenue in this period.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {revenueStats.byActivity.map((item, i) => {
+                      const pct = revenueStats.total > 0 ? (item.revenue / revenueStats.total) * 100 : 0;
+                      return (
+                        <div key={item.slug} className="flex items-center gap-3">
+                          <span className="text-sm font-medium text-foreground w-32 shrink-0 truncate">{item.name}</span>
+                          <div className="flex-1 h-7 bg-secondary rounded-md overflow-hidden relative">
+                            <div className="h-full rounded-md transition-all duration-500" style={{ width: `${Math.max(pct, 2)}%`, backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }} />
+                          </div>
+                          <span className="text-sm font-bold text-foreground w-20 text-right">${item.revenue.toLocaleString()}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
             </Card>
           </motion.div>
         )}
