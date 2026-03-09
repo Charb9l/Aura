@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Trophy, Medal, Award, Gift, Plus, Trash2, Check, X, Users, Star, Search } from "lucide-react";
+import { format } from "date-fns";
+import { Trophy, Medal, Award, Gift, Plus, Trash2, Check, X, Users, Star, Search, CalendarIcon } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -45,6 +47,8 @@ interface PriceRule {
   clubs: string[];
   max_total_uses: number | null;
   uses_per_customer: number;
+  start_date: string | null;
+  end_date: string | null;
 }
 
 interface UserPromotion {
@@ -91,6 +95,8 @@ const PromotionsTab = ({ allUsers, clubs }: Props) => {
   const [ruleSaving, setRuleSaving] = useState(false);
   const [ruleMaxTotalUses, setRuleMaxTotalUses] = useState("");
   const [ruleUsesPerCustomer, setRuleUsesPerCustomer] = useState("1");
+  const [ruleStartDate, setRuleStartDate] = useState<Date | undefined>(undefined);
+  const [ruleEndDate, setRuleEndDate] = useState<Date | undefined>(undefined);
 
   // Top N selector
   const [topN, setTopN] = useState("5");
@@ -204,6 +210,8 @@ const PromotionsTab = ({ allUsers, clubs }: Props) => {
       discount_value: ruleDiscountType === "free" ? 100 : Number(ruleDiscountValue),
       max_total_uses: ruleMaxTotalUses.trim() ? Number(ruleMaxTotalUses) : null,
       uses_per_customer: Number(ruleUsesPerCustomer) || 1,
+      start_date: ruleStartDate ? format(ruleStartDate, "yyyy-MM-dd") : null,
+      end_date: ruleEndDate ? format(ruleEndDate, "yyyy-MM-dd") : null,
     } as any).select().single();
     if (error || !rule) { toast.error("Failed to create rule"); setRuleSaving(false); return; }
     // Add clubs
@@ -247,6 +255,14 @@ const PromotionsTab = ({ allUsers, clubs }: Props) => {
     if (type === "free") return "FREE";
     if (type === "percentage") return `${value}% OFF`;
     return `$${value} OFF`;
+  };
+
+  const getRuleStatus = (rule: PriceRule): { label: string; color: string } => {
+    const today = new Date().toISOString().slice(0, 10);
+    if (!rule.active) return { label: "Disabled", color: "bg-muted text-muted-foreground" };
+    if (rule.end_date && rule.end_date < today) return { label: "Expired", color: "bg-destructive/15 text-destructive" };
+    if (rule.start_date && rule.start_date > today) return { label: "Scheduled", color: "bg-amber-500/15 text-amber-500" };
+    return { label: "Active", color: "bg-emerald-500/15 text-emerald-500" };
   };
 
   const activePromosForUser = (userId: string) => userPromotions.filter(p => p.user_id === userId && p.remaining_uses > 0);
@@ -421,7 +437,7 @@ const PromotionsTab = ({ allUsers, clubs }: Props) => {
         {/* Price Rules */}
         <TabsContent value="rules" className="space-y-4">
           <div className="flex justify-end">
-            <Button onClick={() => { setRuleDialogOpen(true); setRuleName(""); setRuleDiscountType("percentage"); setRuleDiscountValue("50"); setRuleSelectedClubs(new Set(clubs.map(c => c.id))); setRuleMaxTotalUses(""); setRuleUsesPerCustomer("1"); }} className="gap-2">
+            <Button onClick={() => { setRuleDialogOpen(true); setRuleName(""); setRuleDiscountType("percentage"); setRuleDiscountValue("50"); setRuleSelectedClubs(new Set(clubs.map(c => c.id))); setRuleMaxTotalUses(""); setRuleUsesPerCustomer("1"); setRuleStartDate(undefined); setRuleEndDate(undefined); }} className="gap-2">
               <Plus className="h-4 w-4" /> Create Price Rule
             </Button>
           </div>
@@ -434,14 +450,20 @@ const PromotionsTab = ({ allUsers, clubs }: Props) => {
                 <Card key={rule.id} className={cn("bg-card border-border", !rule.active && "opacity-60")}>
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3 flex-wrap">
                         <CardTitle className="text-base font-heading">{rule.name}</CardTitle>
                         <Badge className={cn("text-xs", rule.discount_type === "free" ? "bg-emerald-500/15 text-emerald-500" : rule.discount_type === "percentage" ? "bg-amber-500/15 text-amber-500" : "bg-primary/15 text-primary")}>
                           {formatDiscount(rule.discount_type, rule.discount_value)}
                         </Badge>
+                        {(() => { const s = getRuleStatus(rule); return <Badge className={cn("text-xs", s.color)}>{s.label}</Badge>; })()}
                         <span className="text-xs text-muted-foreground">
                           {rule.max_total_uses ? `${rule.max_total_uses} total uses` : "Unlimited users"} · {rule.uses_per_customer}× per customer
                         </span>
+                        {(rule.start_date || rule.end_date) && (
+                          <span className="text-xs text-muted-foreground">
+                            {rule.start_date ? format(new Date(rule.start_date + "T00:00"), "MMM d, yyyy") : "—"} → {rule.end_date ? format(new Date(rule.end_date + "T00:00"), "MMM d, yyyy") : "No end"}
+                          </span>
+                        )}
                       </div>
                       <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2">
@@ -578,6 +600,36 @@ const PromotionsTab = ({ allUsers, clubs }: Props) => {
                 <Input type="number" value={ruleDiscountValue} onChange={e => setRuleDiscountValue(e.target.value)} min={1} />
               </div>
             )}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-sm mb-1 block">Start Date</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal h-10", !ruleStartDate && "text-muted-foreground")}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {ruleStartDate ? format(ruleStartDate, "MMM d, yyyy") : "Optional"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={ruleStartDate} onSelect={setRuleStartDate} initialFocus className={cn("p-3 pointer-events-auto")} />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div>
+                <Label className="text-sm mb-1 block">End Date</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal h-10", !ruleEndDate && "text-muted-foreground")}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {ruleEndDate ? format(ruleEndDate, "MMM d, yyyy") : "Optional"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={ruleEndDate} onSelect={setRuleEndDate} initialFocus className={cn("p-3 pointer-events-auto")} />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
             <div>
               <Label className="text-sm">Max Total Uses (customers)</Label>
               <Input type="number" value={ruleMaxTotalUses} onChange={e => setRuleMaxTotalUses(e.target.value)} placeholder="Leave empty for unlimited" min={1} />
