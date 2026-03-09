@@ -612,7 +612,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
             </div>
             <div>
               <Label className="text-sm font-medium text-muted-foreground mb-2 block">Hero Title — Line 2 (gradient highlight)</Label>
-              <Input value={heroLine2} onChange={(e) => setHeroLine2(e.target.value)} placeholder="e.g. Your Space." className="h-12 bg-secondary border-border" />
+              <Input value={heroLine2} onChange={(e) => setHeroLine2(e.target.value)} placeholder="e.g. Your Space." className="h-9 bg-secondary border-border text-sm" />
             </div>
 
             {/* Action Buttons */}
