@@ -732,7 +732,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                 </div>
               )}
 
-              <Button onClick={handleSave} disabled={saving || !editName} className="w-full h-12 text-base font-semibold glow">{saving ? "Saving..." : "Save Changes"}</Button>
+              <Button onClick={handleSave} disabled={saving || !editName} className="w-full h-10 text-sm font-semibold glow">{saving ? "Saving..." : "Save Changes"}</Button>
             </div>
           )}
         </DialogContent>
