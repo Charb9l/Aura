@@ -228,7 +228,7 @@ const MatchmakerPage = () => {
 
 
           {user && (
-            <Link to="/profile" className="inline-block mt-6">
+            <Link to="/profile?tab=myplayer" className="inline-block mt-6">
               <Button
                 variant="outline"
                 className="h-10 px-6 text-[10px] uppercase tracking-[0.2em] font-medium border-primary/40 text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-500"
