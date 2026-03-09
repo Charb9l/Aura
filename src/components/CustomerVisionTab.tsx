@@ -180,7 +180,7 @@ const FieldsEditor = ({ fields, onChange, label }: { fields: FormField[]; onChan
               <div className="flex items-center gap-2 ml-auto shrink-0">
                 <Label className="text-xs text-muted-foreground">Required</Label>
                 <Switch checked={field.required} onCheckedChange={(v) => updateField(i, { required: v })} />
-                <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeField(i)} className="shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10">
+                <Button type="button" variant="ghost" size="icon" onClick={() => removeField(i)} className="h-6 w-6 shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10">
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
               </div>
