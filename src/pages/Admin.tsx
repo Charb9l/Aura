@@ -373,7 +373,7 @@ const AdminDashboard = () => {
                     const allowed = clubActivityMap[todayRevenueClubFilter] || [];
                     filtered = filtered.filter(b => allowed.includes(b.activity));
                   }
-                  const filteredTotal = filtered.reduce((sum, b) => sum + getBookingRevenue(b, priceMap), 0);
+                  const filteredTotal = filtered.reduce((sum, b) => sum + getBookingRevenue(b, priceMap, clubActivityMap), 0);
                   const getClubForBooking = (b: BookingRow) => {
                     for (const club of clubs) {
                       const acts = clubActivityMap[club.id] || [];
