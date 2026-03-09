@@ -525,6 +525,9 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
     if (slug === "matchmaker") {
       content.criteria = matchCriteria.filter(c => c.label.trim());
     }
+    if (slug === "habits") {
+      content.feature_badges = habitsBadges.filter(b => b.label.trim());
+    }
     saveContent(slug, content);
   };
 
