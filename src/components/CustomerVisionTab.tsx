@@ -329,7 +329,7 @@ const ActivitiesManager = ({ open, onOpenChange }: { open: boolean; onOpenChange
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="bg-card border-border max-w-2xl w-[66vw] max-h-[80vh] overflow-y-auto">
+      <DialogContent className="bg-card border-border max-w-2xl w-[95vw] sm:w-[66vw] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-heading text-xl flex items-center gap-2">
             <Package className="h-5 w-5 text-primary" />
@@ -544,7 +544,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="customer-vision">
       <div className="mb-8">
-        <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Customer Vision</h1>
+        <h1 className="font-heading text-2xl md:text-4xl font-bold text-foreground mb-2">Customer Vision</h1>
         <p className="text-muted-foreground">Control what your customers see. Edit pages, text, pictures, and content directly.</p>
       </div>
 
@@ -583,7 +583,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
 
       {/* Home Page Editor */}
       <Dialog open={editingPage === "home"} onOpenChange={(o) => !o && setEditingPage(null)}>
-        <DialogContent className="bg-card border-border max-w-2xl w-[66vw] max-h-[80vh] overflow-y-auto">
+        <DialogContent className="bg-card border-border max-w-2xl w-[95vw] sm:w-[66vw] max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-heading text-xl flex items-center gap-2">
               <Eye className="h-5 w-5 text-primary" /> Edit Main Page
@@ -709,7 +709,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
 
       {/* Generic Page Editor (book, academy, clubs, matchmaker, loyalty) */}
       <Dialog open={!!editingPage && editingPage !== "home"} onOpenChange={(o) => !o && setEditingPage(null)}>
-        <DialogContent className="bg-card border-border max-w-2xl w-[66vw] max-h-[80vh] overflow-y-auto">
+        <DialogContent className="bg-card border-border max-w-2xl w-[95vw] sm:w-[66vw] max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-heading text-xl flex items-center gap-2">
               <Eye className="h-5 w-5 text-primary" /> Edit {currentPage?.name}

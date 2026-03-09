@@ -590,7 +590,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="clubs">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h1 className="font-heading text-4xl font-bold text-foreground mb-2">Clubs & Partners</h1>
+          <h1 className="font-heading text-2xl md:text-4xl font-bold text-foreground mb-2">Clubs & Partners</h1>
           <p className="text-muted-foreground">All signed clubs and partners on the platform.</p>
         </div>
         {isMasterAdmin && (
@@ -664,7 +664,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
 
       {/* ═══ Edit Club Dialog ═══ */}
       <Dialog open={!!editClub} onOpenChange={(o) => !o && setEditClub(null)}>
-        <DialogContent className="bg-card border-border max-w-2xl w-[66vw] max-h-[80vh] overflow-y-auto">
+        <DialogContent className="bg-card border-border max-w-2xl w-[95vw] sm:w-[66vw] max-h-[80vh] overflow-y-auto">
           <DialogHeader><DialogTitle className="font-heading flex items-center gap-2"><Building2 className="h-5 w-5 text-primary" /> Edit Club</DialogTitle></DialogHeader>
           {editClub && (
             <div className="space-y-5 pt-2">
@@ -740,7 +740,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
 
       {/* ═══ Add Club Dialog — Order: Name, Description, Activities + Locations, THEN Pictures ═══ */}
       <Dialog open={showAddClub} onOpenChange={setShowAddClub}>
-        <DialogContent className="bg-card border-border max-w-2xl w-[66vw] max-h-[80vh] overflow-y-auto">
+        <DialogContent className="bg-card border-border max-w-2xl w-[95vw] sm:w-[66vw] max-h-[80vh] overflow-y-auto">
           <DialogHeader><DialogTitle className="font-heading text-xl flex items-center gap-2"><Building2 className="h-5 w-5 text-primary" /> Add Club / Partner</DialogTitle></DialogHeader>
           <div className="space-y-5 pt-2">
             {/* Published checkbox */}
@@ -852,7 +852,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
 
       {/* ═══ Pictures Dialog (Club + Academy) ═══ */}
       <Dialog open={!!picturesClub} onOpenChange={(o) => !o && setPicturesClub(null)}>
-        <DialogContent className="bg-card border-border max-w-2xl w-[66vw] max-h-[80vh] overflow-y-auto">
+        <DialogContent className="bg-card border-border max-w-2xl w-[95vw] sm:w-[66vw] max-h-[80vh] overflow-y-auto">
           <DialogHeader><DialogTitle className="font-heading text-xl flex items-center gap-2"><Image className="h-5 w-5 text-primary" /> Pictures — {picturesClub?.name}</DialogTitle></DialogHeader>
 
           {picturesLoading ? (
@@ -956,7 +956,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
 
       {/* ═══ Offerings Dialog ═══ */}
       <Dialog open={showOfferingsDialog} onOpenChange={(o) => { setShowOfferingsDialog(o); if (!o) setOfferingsDialogMode("list"); }}>
-        <DialogContent className="bg-card border-border max-w-2xl w-[66vw] max-h-[80vh] overflow-y-auto">
+        <DialogContent className="bg-card border-border max-w-2xl w-[95vw] sm:w-[66vw] max-h-[80vh] overflow-y-auto">
           <DialogHeader><DialogTitle className="font-heading text-xl flex items-center gap-2"><Image className="h-5 w-5 text-primary" /> {offeringsDialogMode === "list" ? "Activities" : offeringsDialogMode === "add" ? "Add Activity" : "Edit Activity"}</DialogTitle></DialogHeader>
 
           {offeringsDialogMode === "edit" ? (

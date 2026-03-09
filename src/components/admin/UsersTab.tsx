@@ -477,7 +477,7 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
 
       {/* Edit Admin Dialog */}
       <Dialog open={!!editAdmin} onOpenChange={(open) => !open && setEditAdmin(null)}>
-        <DialogContent className="bg-card border-border max-w-2xl w-[66vw]">
+        <DialogContent className="bg-card border-border max-w-2xl w-[95vw] sm:w-[66vw]">
           <DialogHeader><DialogTitle className="font-heading text-xl">Edit Admin — {editAdmin?.full_name || editAdmin?.email}</DialogTitle></DialogHeader>
           <div className="space-y-5 pt-4">
             <div><Label>Full Name</Label><Input value={editAdminName} onChange={(e) => setEditAdminName(e.target.value)} className="h-12 bg-secondary border-border mt-1" /></div>
@@ -510,7 +510,7 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
 
       {/* Former Users Dialog */}
       <Dialog open={formerDialogOpen} onOpenChange={setFormerDialogOpen}>
-        <DialogContent className="bg-card border-border max-w-2xl w-[66vw] min-h-[50vh]">
+        <DialogContent className="bg-card border-border max-w-2xl w-[95vw] sm:w-[66vw] min-h-[50vh]">
           <DialogHeader><DialogTitle className="font-heading text-xl">{formerDialogType === "customer" ? "Customers" : "Club Admins"}</DialogTitle></DialogHeader>
           <div className="flex gap-2 mb-4">
             <Button variant={formerTab === "current" ? "default" : "outline"} size="sm" onClick={() => setFormerTab("current")}>Current</Button>
@@ -536,7 +536,7 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
 
       {/* Profile Viewer Dialog */}
       <Dialog open={!!viewUser} onOpenChange={(open) => !open && setViewUser(null)}>
-        <DialogContent className="bg-card border-border max-w-2xl w-[66vw] max-h-[85vh] overflow-y-auto">
+        <DialogContent className="bg-card border-border max-w-2xl w-[95vw] sm:w-[66vw] max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-heading text-xl flex items-center gap-3">
               <Eye className="h-5 w-5 text-primary" />

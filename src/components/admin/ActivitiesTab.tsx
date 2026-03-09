@@ -135,7 +135,7 @@ const ActivitiesTab = () => {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="activities">
       <div className="flex items-center justify-between mb-2">
-        <h1 className="font-heading text-4xl font-bold text-foreground">Activities</h1>
+        <h1 className="font-heading text-2xl md:text-4xl font-bold text-foreground">Activities</h1>
         {editMode === "list" && (
           <Button onClick={openAdd} className="gap-2 glow"><Plus className="h-4 w-4" /> Add Activity</Button>
         )}
