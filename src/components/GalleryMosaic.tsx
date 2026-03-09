@@ -91,7 +91,7 @@ const GalleryMosaic = ({ images, alt = "Gallery", fallback, className }: Gallery
           >
             <button
               onClick={closeLightbox}
-              className="absolute top-5 right-5 rounded-full bg-secondary/80 p-2.5 text-foreground hover:bg-secondary transition-colors z-10"
+              className="absolute top-5 right-5 rounded-full bg-secondary/80 p-3 text-foreground active:bg-secondary transition-colors z-10"
             >
               <X className="h-5 w-5" />
             </button>
