@@ -119,12 +119,13 @@ const BookPage = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [offRes, clubRes, locRes, contentRes, pricesRes] = await Promise.all([
+      const [offRes, clubRes, locRes, contentRes, pricesRes, heroRes] = await Promise.all([
         supabase.from("offerings").select("*").order("name"),
         supabase.from("clubs").select("id, name, offerings, published, logo_url").order("name"),
         supabase.from("club_locations").select("*").order("name"),
         supabase.from("page_content").select("content").eq("page_slug", "book").single(),
         supabase.from("club_activity_prices").select("*"),
+        supabase.from("hero_pictures").select("id, image_url, display_order").eq("page_slug", "book").order("display_order"),
       ]);
       if (offRes.data) setOfferings(offRes.data as unknown as OfferingData[]);
       if (clubRes.data) setClubs((clubRes.data as any[]).filter(c => c.published !== false));
@@ -135,6 +136,9 @@ const BookPage = () => {
         if (c?.title) setPageTitle(c.title);
         if (c?.subtitle) setPageSubtitle(c.subtitle);
         if (c?.max_clubs_grid != null) setMaxClubsGrid(c.max_clubs_grid);
+      }
+      if (heroRes.data && heroRes.data.length > 0) {
+        setHeroPictures(heroRes.data.map((p: any) => ({ image: p.image_url, alt: "Book" })));
       }
     };
     fetchData();
