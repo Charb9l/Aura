@@ -14,6 +14,7 @@ interface OfferingItem {
 }
 
 const LoyaltyPage = () => {
+  const { user } = useAuth();
   const [title, setTitle] = useState("Book More. Earn More.");
   const [subtitle, setSubtitle] = useState("Every booking earns you a point. Stack them up and unlock exclusive discounts — or go big and play for free.");
   const [offerings, setOfferings] = useState<OfferingItem[]>([]);
