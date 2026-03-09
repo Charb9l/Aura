@@ -6,11 +6,6 @@ import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Link } from "react-router-dom";
-import { Star, Gift, Zap, Trophy, ArrowRight, ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import Navbar from "@/components/Navbar";
-import { supabase } from "@/integrations/supabase/client";
 
 interface OfferingItem {
   id: string;
