@@ -35,15 +35,15 @@ const GalleryMosaic = ({ images, alt = "Gallery", fallback, className }: Gallery
           <>
             <button
               onClick={() => scrollBy("left")}
-              className="absolute left-2 top-1/2 -translate-y-1/2 z-10 rounded-full bg-background/80 backdrop-blur-sm p-2 text-foreground shadow-lg sm:opacity-0 sm:group-hover/strip:opacity-100 transition-opacity hover:bg-background"
+              className="absolute left-2 top-1/2 -translate-y-1/2 z-10 rounded-full bg-background/80 backdrop-blur-sm p-2.5 text-foreground shadow-lg opacity-100 sm:opacity-0 sm:group-hover/strip:opacity-100 transition-opacity active:bg-background"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-5 w-5" />
             </button>
             <button
               onClick={() => scrollBy("right")}
-              className="absolute right-2 top-1/2 -translate-y-1/2 z-10 rounded-full bg-background/80 backdrop-blur-sm p-2 text-foreground shadow-lg sm:opacity-0 sm:group-hover/strip:opacity-100 transition-opacity hover:bg-background"
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-10 rounded-full bg-background/80 backdrop-blur-sm p-2.5 text-foreground shadow-lg opacity-100 sm:opacity-0 sm:group-hover/strip:opacity-100 transition-opacity active:bg-background"
             >
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-5 w-5" />
             </button>
           </>
         )}
@@ -91,7 +91,7 @@ const GalleryMosaic = ({ images, alt = "Gallery", fallback, className }: Gallery
           >
             <button
               onClick={closeLightbox}
-              className="absolute top-5 right-5 rounded-full bg-secondary/80 p-2.5 text-foreground hover:bg-secondary transition-colors z-10"
+              className="absolute top-5 right-5 rounded-full bg-secondary/80 p-3 text-foreground active:bg-secondary transition-colors z-10"
             >
               <X className="h-5 w-5" />
             </button>
@@ -104,13 +104,13 @@ const GalleryMosaic = ({ images, alt = "Gallery", fallback, className }: Gallery
               <>
                 <button
                   onClick={(e) => { e.stopPropagation(); prev(); }}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-secondary/80 p-3 text-foreground hover:bg-secondary transition-colors z-10"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-secondary/80 p-3.5 text-foreground active:bg-secondary transition-colors z-10"
                 >
                   <ChevronLeft className="h-6 w-6" />
                 </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); next(); }}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-secondary/80 p-3 text-foreground hover:bg-secondary transition-colors z-10"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-secondary/80 p-3.5 text-foreground active:bg-secondary transition-colors z-10"
                 >
                   <ChevronRight className="h-6 w-6" />
                 </button>

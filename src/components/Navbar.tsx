@@ -203,19 +203,19 @@ const Navbar = () => {
         </div>
 
         {/* Mobile/Tablet: hamburger + profile */}
-        <div className="flex lg:hidden items-center gap-2">
+        <div className="flex lg:hidden items-center gap-1">
           {user && (
-            <Link to="/profile" className={cn("text-muted-foreground hover:text-foreground transition-colors p-1 relative", showGlow && "text-primary")}>
-              {showGlow && <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-primary animate-ping" />}
+            <Link to="/profile" className={cn("text-muted-foreground active:text-foreground transition-colors p-2 relative min-h-[44px] min-w-[44px] flex items-center justify-center", showGlow && "text-primary")}>
+              {showGlow && <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary animate-ping" />}
               <AvatarDisplay size="md" />
             </Link>
           )}
           {!user && (
-            <Link to="/auth" className="rounded-full border border-primary/30 p-2 text-primary transition-all hover:bg-primary/5">
-              <LogIn className="h-4 w-4" />
+            <Link to="/auth" className="rounded-full border border-primary/30 p-2.5 text-primary transition-all active:bg-primary/5 min-h-[44px] min-w-[44px] flex items-center justify-center">
+              <LogIn className="h-5 w-5" />
             </Link>
           )}
-          <button onClick={() => setMobileOpen(!mobileOpen)} className="p-2 text-muted-foreground hover:text-foreground transition-colors">
+          <button onClick={() => setMobileOpen(!mobileOpen)} className="p-2.5 text-muted-foreground active:text-foreground transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
             {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
