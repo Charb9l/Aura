@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/sonner";
 import Navbar from "@/components/Navbar";
+import MobileBackButton from "@/components/MobileBackButton";
 
 const EXPIRY_MINUTES = 5;
 

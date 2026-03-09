@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/components/ui/sonner";
 import { ShieldCheck, LogIn } from "lucide-react";
+import MobileBackButton from "@/components/MobileBackButton";
 
 const AdminLogin = () => {
   const [email, setEmail] = useState("");

@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import Navbar from "@/components/Navbar";
 import PhoneInput from "@/components/PhoneInput";
 import { useAuth } from "@/contexts/AuthContext";
+import MobileBackButton from "@/components/MobileBackButton";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);

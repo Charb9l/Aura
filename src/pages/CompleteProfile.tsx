@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/sonner";
 import Navbar from "@/components/Navbar";
 import PhoneInput from "@/components/PhoneInput";
+import MobileBackButton from "@/components/MobileBackButton";
 
 const CompleteProfile = () => {
   const { user } = useAuth();

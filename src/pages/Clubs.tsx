@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import Navbar from "@/components/Navbar";
 import GalleryMosaic from "@/components/GalleryMosaic";
 import PartnerRequestForm from "@/components/PartnerRequestForm";
+import MobileBackButton from "@/components/MobileBackButton";
 
 interface Club {
   id: string;

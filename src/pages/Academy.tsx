@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import Navbar from "@/components/Navbar";
 import PhoneInput from "@/components/PhoneInput";
 import ActivityFilter from "@/components/ActivityFilter";
+import MobileBackButton from "@/components/MobileBackButton";
 import GalleryMosaic from "@/components/GalleryMosaic";
 
 interface AcademyClub {
