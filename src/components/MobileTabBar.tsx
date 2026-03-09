@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, CalendarCheck, Users, User, Trophy, LogIn } from "lucide-react";
+import { Home, CalendarCheck, TrendingUp, User, Trophy, LogIn } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,7 +8,7 @@ import { useMediaQuery } from "@/hooks/use-mobile";
 const TABS = [
   { to: "/", label: "Home", icon: Home },
   { to: "/book", label: "Book", icon: CalendarCheck },
-  { to: "/matchmaker", label: "Match", icon: Users },
+  { to: "/habits", label: "Habits", icon: TrendingUp },
   { to: "/loyalty", label: "Loyalty", icon: Trophy },
 ];
 
