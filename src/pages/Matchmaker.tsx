@@ -170,7 +170,7 @@ const MatchmakerPage = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="flex items-center justify-start sm:justify-center gap-2 sm:gap-3 max-w-full mx-auto overflow-x-auto pb-2 scrollbar-hide"
+              className="flex items-stretch justify-center gap-1.5 sm:gap-3 max-w-full mx-auto overflow-x-auto pb-2 scrollbar-hide"
             >
               {criteria.map((c, i) => {
                 const goldHue = 43;
@@ -194,7 +194,7 @@ const MatchmakerPage = () => {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.3 + i * 0.08, type: "spring", stiffness: 200 }}
                     whileHover={{ scale: 1.08, y: -2 }}
-                    className="group relative inline-flex items-center gap-2.5 rounded-2xl px-5 py-3 text-sm font-semibold text-foreground cursor-default overflow-hidden shrink-0"
+                    className="group relative flex flex-col sm:flex-row items-center gap-1 sm:gap-2.5 rounded-xl sm:rounded-2xl px-2.5 py-2 sm:px-5 sm:py-3 text-foreground cursor-default overflow-hidden shrink-0"
                     style={{
                       background: `linear-gradient(135deg, hsl(${hue} 50% 15% / 0.6), hsl(${hue} 40% 20% / 0.3))`,
                       border: `1px solid hsl(${hue} 50% 40% / 0.35)`,
@@ -202,16 +202,16 @@ const MatchmakerPage = () => {
                     }}
                   >
                     <span
-                      className="flex items-center justify-center h-6 w-6 rounded-full"
+                      className="flex items-center justify-center h-5 w-5 sm:h-6 sm:w-6 rounded-full"
                       style={{
                         background: `hsl(${hue} 60% 50% / 0.2)`,
                         color: `hsl(${hue} 70% 65%)`,
                         border: `1px solid hsl(${hue} 60% 50% / 0.3)`,
                       }}
                     >
-                      <Icon className="h-3.5 w-3.5" />
+                      <Icon className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                     </span>
-                    <span className="whitespace-nowrap">{c.label}</span>
+                    <span className="whitespace-nowrap text-[10px] sm:text-sm font-semibold leading-tight text-center">{c.label}</span>
                     <div
                       className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
                       style={{
