@@ -410,13 +410,49 @@ const BookPage = () => {
   return (
     <div className="min-h-screen">
       <Navbar />
-      <div className="container mx-auto px-6 pt-28 pb-16">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="font-heading text-2xl sm:text-4xl md:text-5xl font-bold text-foreground mb-2">{pageTitle}</h1>
-          <p className="text-muted-foreground text-lg mb-6">{pageSubtitle}</p>
-        </motion.div>
 
-        <PagePhotoStrip pageSlug="book" className="mb-10" />
+      {/* Hero section with dynamic grid background */}
+      <section className="relative min-h-[50vh] flex items-center justify-center overflow-hidden">
+        {visibleHeroPics.length > 0 && (
+          <div className={cn("absolute inset-0 grid", getGridLayout(visibleHeroPics.length))}>
+            <AnimatePresence mode="popLayout">
+              {visibleHeroPics.map((pic, i) => (
+                <motion.div
+                  key={`${pic.image}-${i}-${heroCycleIndex}`}
+                  className="relative overflow-hidden"
+                  initial={{ opacity: 0, scale: 1.1 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 1.2, delay: i * 0.08 }}
+                >
+                  <img
+                    src={pic.image}
+                    alt={pic.alt}
+                    className={cn(
+                      "h-full w-full object-cover saturate-[0.3] contrast-[1.1]",
+                      visibleHeroPics.length === 1 && "saturate-[0.4]"
+                    )}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        )}
+
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-background/80" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-background/30" />
+
+        {/* Content */}
+        <div className="relative z-10 container mx-auto px-6 py-32 text-center">
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
+            <h1 className="font-heading text-3xl sm:text-5xl md:text-6xl font-light text-foreground mb-3">{pageTitle}</h1>
+            <p className="text-muted-foreground text-sm sm:text-lg max-w-lg mx-auto">{pageSubtitle}</p>
+          </motion.div>
+        </div>
+      </section>
+
+      <div className="container mx-auto px-6 pb-16">
 
         {/* Rewards Banner */}
         {user && hasRewards && (
