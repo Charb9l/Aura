@@ -446,6 +446,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
   const [pageSubtitle, setPageSubtitle] = useState("");
   const [pageFields, setPageFields] = useState<FormField[]>([]);
   const [matchCriteria, setMatchCriteria] = useState<{ emoji: string; label: string }[]>([]);
+  const [maxClubsGrid, setMaxClubsGrid] = useState<number>(3);
 
   useEffect(() => {
     const fetchAll = async () => {
