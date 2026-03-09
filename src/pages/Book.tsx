@@ -522,7 +522,7 @@ const BookPage = () => {
                 <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={() => setFilterLocation("")}>Clear location</Button>
               )}
             </div>
-            <div className="flex flex-wrap gap-3">
+            <div className="grid grid-cols-5 gap-2 sm:flex sm:flex-wrap sm:gap-3">
               {filteredOfferings.map((a, i) => {
                 const isSelected = selectedActivity === a.slug;
                 const aBrand = makeBrandStyles(a.brand_color);
