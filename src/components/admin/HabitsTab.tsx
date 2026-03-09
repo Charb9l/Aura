@@ -157,7 +157,7 @@ const HabitsTab = () => {
     setLevels(prev => prev.map((l, i) => i === li ? { ...l, [field]: value } : l));
   };
 
-  const updateBadge = (li: number, bi: number, field: keyof BadgeConfig, value: string | number) => {
+  const updateBadge = (li: number, bi: number, field: keyof BadgeConfig, value: string | number | boolean) => {
     setLevels(prev => prev.map((l, i) => i === li ? {
       ...l,
       badges: l.badges.map((b, j) => j === bi ? { ...b, [field]: value } : b),
