@@ -814,10 +814,10 @@ const BookPage = () => {
                 )}>
                   <span className="text-xs uppercase tracking-widest text-muted-foreground font-medium">Total Price</span>
                   {isFree ? (
-                    <div className="flex items-center gap-2">
-                      <span className="font-heading text-lg text-muted-foreground line-through">${currentPrice}</span>
-                      <span className="font-heading text-2xl font-black text-emerald-400 animate-pulse flex items-center gap-1">
-                        <Sparkles className="h-5 w-5" /> FREE!
+                    <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
+                      <span className="font-heading text-base sm:text-lg text-muted-foreground line-through">${currentPrice}</span>
+                      <span className="font-heading text-xl sm:text-2xl font-black text-emerald-400 animate-pulse flex items-center gap-1">
+                        <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" /> FREE!
                       </span>
                     </div>
                   ) : isHalf ? (
