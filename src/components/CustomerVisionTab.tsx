@@ -171,15 +171,24 @@ const FieldsEditor = ({ fields, onChange, label }: { fields: FormField[]; onChan
       </div>
       <div className="space-y-3">
         {fields.map((field, i) => (
-          <div key={i} className="flex items-center gap-2 p-3 rounded-lg border border-border bg-secondary/50">
-            <div className="flex flex-col gap-1 shrink-0">
-              <Button type="button" variant="ghost" size="icon" className="h-7 w-7" disabled={i === 0} onClick={() => { const arr = [...fields]; [arr[i - 1], arr[i]] = [arr[i], arr[i - 1]]; onChange(arr); }}><ArrowUp className="h-3.5 w-3.5" /></Button>
-              <Button type="button" variant="ghost" size="icon" className="h-7 w-7" disabled={i === fields.length - 1} onClick={() => { const arr = [...fields]; [arr[i], arr[i + 1]] = [arr[i + 1], arr[i]]; onChange(arr); }}><ArrowDown className="h-3.5 w-3.5" /></Button>
+          <div key={i} className="p-3 rounded-lg border border-border bg-secondary/50 space-y-2">
+            <div className="flex items-center gap-2">
+              <div className="flex gap-1 shrink-0">
+                <Button type="button" variant="ghost" size="icon" className="h-6 w-6" disabled={i === 0} onClick={() => { const arr = [...fields]; [arr[i - 1], arr[i]] = [arr[i], arr[i - 1]]; onChange(arr); }}><ArrowUp className="h-3 w-3" /></Button>
+                <Button type="button" variant="ghost" size="icon" className="h-6 w-6" disabled={i === fields.length - 1} onClick={() => { const arr = [...fields]; [arr[i], arr[i + 1]] = [arr[i + 1], arr[i]]; onChange(arr); }}><ArrowDown className="h-3 w-3" /></Button>
+              </div>
+              <div className="flex items-center gap-2 ml-auto shrink-0">
+                <Label className="text-xs text-muted-foreground">Required</Label>
+                <Switch checked={field.required} onCheckedChange={(v) => updateField(i, { required: v })} />
+                <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeField(i)} className="shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10">
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </div>
             </div>
-            <div className="flex-1 grid grid-cols-2 gap-2">
-              <Input value={field.label} onChange={(e) => updateField(i, { label: e.target.value })} placeholder="Field label (e.g. Full Name)" className="h-9 bg-background border-border text-sm" />
+            <div className="grid grid-cols-2 gap-2">
+              <Input value={field.label} onChange={(e) => updateField(i, { label: e.target.value })} placeholder="Field label" className="h-8 bg-background border-border text-xs" />
               <Select value={field.type} onValueChange={(v) => updateField(i, { type: v })}>
-                <SelectTrigger className="h-9 bg-background border-border text-sm">
+                <SelectTrigger className="h-8 bg-background border-border text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-card border-border z-50">
@@ -191,13 +200,6 @@ const FieldsEditor = ({ fields, onChange, label }: { fields: FormField[]; onChan
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <Label className="text-xs text-muted-foreground">Required</Label>
-              <Switch checked={field.required} onCheckedChange={(v) => updateField(i, { required: v })} />
-            </div>
-            <Button type="button" variant="ghost" size="icon" onClick={() => removeField(i)} className="shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10">
-              <Trash2 className="h-4 w-4" />
-            </Button>
           </div>
         ))}
         {fields.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No fields. Click "Add Field" to create one.</p>}
