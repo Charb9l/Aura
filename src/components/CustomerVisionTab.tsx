@@ -862,7 +862,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
                   {habitsBadges.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No feature badges yet. Click "Add Badge" to create one. Defaults will be used if empty.</p>}
                 </div>
               </div>
-            )
+            )}
 
             {editingPage && !["loyalty", "habits", "matchmaker"].includes(editingPage) && (
               <div className="border-t border-border pt-6">
