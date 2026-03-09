@@ -64,13 +64,14 @@ export const useRewards = () => {
     });
 
     return clubs.map(club => {
-      const total = Math.max(0, (clubPts[club.id] || 0) + (badgePoints[club.id] || 0) + (adjustments[club.id] || 0));
-      const pos = total % 10;
+      const raw = (clubPts[club.id] || 0) + (badgePoints[club.id] || 0) + (adjustments[club.id] || 0);
+      // Cap at 10 — points don't reset after completing the loyalty track
+      const total = Math.min(10, Math.max(0, raw));
       let reward: "50%" | "free" | null = null;
-      // At exactly 5 (or 15, 25...) the NEXT booking gets 50% off
-      // At exactly 10 (or 20, 30...) the NEXT booking is free
-      if (total > 0 && total % 10 === 0) reward = "free";
-      else if (total >= 5 && total % 10 === 5) reward = "50%";
+      // At exactly 5 the NEXT booking gets 50% off
+      // At exactly 10 the NEXT booking is free
+      if (total === 10) reward = "free";
+      else if (total >= 5) reward = "50%";
 
       return {
         clubId: club.id,

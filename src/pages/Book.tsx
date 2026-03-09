@@ -91,6 +91,8 @@ const BookPage = () => {
   const [profilePhone, setProfilePhone] = useState("");
   // User promotions (admin-assigned)
   const [activePromo, setActivePromo] = useState<{ id: string; discount_type: string; discount_value: number; remaining_uses: number } | null>(null);
+  // Active price rules for the selected club
+  const [activePriceRule, setActivePriceRule] = useState<{ id: string; discount_type: string; discount_value: number } | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -202,6 +204,26 @@ const BookPage = () => {
 
   const resolvedClubId = selectedClub || (matchingClubs.length === 1 ? matchingClubs[0].id : "");
 
+  // Fetch active price rule for selected club
+  useEffect(() => {
+    if (!resolvedClubId) { setActivePriceRule(null); return; }
+    const fetchPriceRule = async () => {
+      const today = new Date().toISOString().slice(0, 10);
+      const { data: ruleClubs } = await supabase.from("price_rule_clubs").select("price_rule_id").eq("club_id", resolvedClubId);
+      if (!ruleClubs || ruleClubs.length === 0) { setActivePriceRule(null); return; }
+      const ruleIds = ruleClubs.map(rc => rc.price_rule_id);
+      const { data: rules } = await supabase.from("price_rules").select("*").in("id", ruleIds).eq("active", true);
+      if (!rules || rules.length === 0) { setActivePriceRule(null); return; }
+      const validRule = (rules as any[]).find(r => {
+        if (r.start_date && r.start_date > today) return false;
+        if (r.end_date && r.end_date < today) return false;
+        return true;
+      });
+      setActivePriceRule(validRule ? { id: validRule.id, discount_type: validRule.discount_type, discount_value: validRule.discount_value } : null);
+    };
+    fetchPriceRule();
+  }, [resolvedClubId]);
+
   // Dynamic brand color from the selected offering
   const selectedOffering = offerings.find(o => o.slug === selectedActivity);
   const brand = makeBrandStyles(selectedOffering?.brand_color);
@@ -244,22 +266,44 @@ const BookPage = () => {
     const offering = offerings.find(o => o.slug === selectedActivity);
     const activityName = offering?.name || selectedActivity;
 
-    // Determine discount: loyalty rewards take priority, then admin promotions
+    // Determine discount: stacking logic
+    // - If loyalty = FREE → overrides everything, price rule NOT consumed
+    // - If loyalty = 50% AND price rule exists → both consumed, result = FREE
+    // - If loyalty = 50% only → 50%
+    // - If price rule only → apply price rule discount
+    // - If admin promo only → apply admin promo
     let discountType: string | null = null;
     const clubReward = resolvedClubId ? getRewardForClub(resolvedClubId) : undefined;
-    if (clubReward?.reward === "free") discountType = "free";
-    else if (clubReward?.reward === "50%") discountType = "50%";
-    else if (activePromo) {
+    let consumePromo = false;
+    let consumePriceRule = false;
+
+    if (clubReward?.reward === "free") {
+      // FREE loyalty overrides everything — price rule NOT consumed
+      discountType = "free";
+    } else if (clubReward?.reward === "50%" && activePriceRule) {
+      // Both loyalty 50% + price rule stack → result is FREE, both consumed
+      discountType = "free";
+      consumePriceRule = true;
+    } else if (clubReward?.reward === "50%") {
+      discountType = "50%";
+    } else if (activePriceRule) {
+      // Price rule only
+      if (activePriceRule.discount_type === "free") discountType = "free";
+      else if (activePriceRule.discount_type === "percentage") {
+        discountType = activePriceRule.discount_value >= 100 ? "free" : "50%";
+      } else {
+        discountType = "50%";
+      }
+      consumePriceRule = true;
+    } else if (activePromo) {
+      // Admin-assigned promotion
       if (activePromo.discount_type === "free") discountType = "free";
-      else if (activePromo.discount_type === "percentage") discountType = `${activePromo.discount_value}%` === "50%" ? "50%" : "free"; // map to existing discount_type format
-      // For simplicity: percentage promos map to 50% if value=50, else "free" if 100
-      if (activePromo.discount_type === "percentage") {
+      else if (activePromo.discount_type === "percentage") {
         discountType = activePromo.discount_value >= 100 ? "free" : "50%";
       } else if (activePromo.discount_type === "fixed") {
-        discountType = "50%"; // fixed amount discounts stored as 50% for display
-      } else if (activePromo.discount_type === "free") {
-        discountType = "free";
+        discountType = "50%";
       }
+      consumePromo = true;
     }
 
     const { error } = await supabase.from("bookings").insert({
@@ -290,8 +334,8 @@ const BookPage = () => {
         },
       });
 
-      // Decrement promo uses if applied
-      if (activePromo && !clubReward) {
+      // Decrement admin promo uses if consumed
+      if (consumePromo && activePromo) {
         const newUses = activePromo.remaining_uses - 1;
         await supabase.from("user_promotions").update({ remaining_uses: newUses } as any).eq("id", activePromo.id);
         if (newUses <= 0) setActivePromo(null);
@@ -677,14 +721,17 @@ const BookPage = () => {
             )}
             {currentPrice !== null && (() => {
               const clubReward = resolvedClubId ? getRewardForClub(resolvedClubId) : undefined;
-              const isFree = clubReward?.reward === "free";
-              const isHalf = clubReward?.reward === "50%";
+              const loyaltyFree = clubReward?.reward === "free";
+              const loyaltyHalf = clubReward?.reward === "50%";
+              // Stacking: loyalty 50% + price rule = FREE
+              const isFree = loyaltyFree || (loyaltyHalf && !!activePriceRule);
+              const isHalf = loyaltyHalf && !activePriceRule;
               const discountedPrice = isHalf ? (currentPrice / 2).toFixed(0) : null;
 
               return (
                 <div className={cn(
                   "flex items-center gap-3 rounded-xl border px-5 py-2.5 backdrop-blur-sm",
-                  isFree ? "border-emerald-500/50 bg-emerald-500/10" : isHalf ? "border-amber-500/50 bg-amber-500/10" : "border-primary/30 bg-primary/5"
+                  isFree ? "border-emerald-500/50 bg-emerald-500/10" : isHalf ? "border-amber-500/50 bg-amber-500/10" : activePriceRule ? "border-amber-500/50 bg-amber-500/10" : "border-primary/30 bg-primary/5"
                 )}>
                   <span className="text-xs uppercase tracking-widest text-muted-foreground font-medium">Total</span>
                   {isFree ? (
@@ -699,6 +746,24 @@ const BookPage = () => {
                       <span className="font-heading text-lg text-muted-foreground line-through">${currentPrice}</span>
                       <span className="font-heading text-2xl font-bold text-amber-400">${discountedPrice}</span>
                       <span className="text-xs font-bold text-amber-400 bg-amber-400/15 rounded-full px-2 py-0.5">50% OFF</span>
+                    </div>
+                  ) : activePriceRule ? (
+                    <div className="flex items-center gap-2">
+                      <span className="font-heading text-lg text-muted-foreground line-through">${currentPrice}</span>
+                      {activePriceRule.discount_type === "free" ? (
+                        <span className="font-heading text-2xl font-black text-emerald-400 animate-pulse flex items-center gap-1">
+                          <Sparkles className="h-5 w-5" /> FREE!
+                        </span>
+                      ) : (
+                        <>
+                          <span className="font-heading text-2xl font-bold text-amber-400">
+                            ${activePriceRule.discount_type === "percentage" ? (currentPrice * (1 - activePriceRule.discount_value / 100)).toFixed(0) : Math.max(0, currentPrice - activePriceRule.discount_value).toFixed(0)}
+                          </span>
+                          <span className="text-xs font-bold text-amber-400 bg-amber-400/15 rounded-full px-2 py-0.5">
+                            {activePriceRule.discount_type === "percentage" ? `${activePriceRule.discount_value}% OFF` : `$${activePriceRule.discount_value} OFF`}
+                          </span>
+                        </>
+                      )}
                     </div>
                   ) : (
                     <span className="font-heading text-2xl font-bold text-primary">${currentPrice}</span>
@@ -745,8 +810,10 @@ const BookPage = () => {
                   <p className="text-sm"><span className="text-muted-foreground">Time:</span> <span className="text-foreground font-medium">{selectedTime}</span></p>
                   {currentPrice !== null && (() => {
                     const clubReward = resolvedClubId ? getRewardForClub(resolvedClubId) : undefined;
-                    const isFree = clubReward?.reward === "free";
-                    const isHalf = clubReward?.reward === "50%";
+                    const loyaltyFree = clubReward?.reward === "free";
+                    const loyaltyHalf = clubReward?.reward === "50%";
+                    const isFree = loyaltyFree || (loyaltyHalf && !!activePriceRule);
+                    const isHalf = loyaltyHalf && !activePriceRule;
                     const discountedPrice = isHalf ? (currentPrice / 2).toFixed(0) : null;
                     return (
                       <p className="text-sm">
@@ -761,6 +828,22 @@ const BookPage = () => {
                             <span className="text-muted-foreground line-through mr-2">${currentPrice}</span>
                             <span className="font-bold text-amber-400">${discountedPrice}</span>
                             <span className="ml-1 text-xs text-amber-400">(50% off)</span>
+                          </>
+                        ) : activePriceRule ? (
+                          <>
+                            <span className="text-muted-foreground line-through mr-2">${currentPrice}</span>
+                            {activePriceRule.discount_type === "free" ? (
+                              <span className="font-black text-emerald-400">FREE! 🎉</span>
+                            ) : (
+                              <>
+                                <span className="font-bold text-amber-400">
+                                  ${activePriceRule.discount_type === "percentage" ? (currentPrice * (1 - activePriceRule.discount_value / 100)).toFixed(0) : Math.max(0, currentPrice - activePriceRule.discount_value).toFixed(0)}
+                                </span>
+                                <span className="ml-1 text-xs text-amber-400">
+                                  ({activePriceRule.discount_type === "percentage" ? `${activePriceRule.discount_value}%` : `$${activePriceRule.discount_value}`} off)
+                                </span>
+                              </>
+                            )}
                           </>
                         ) : (
                           <span className="text-foreground font-bold">${currentPrice}</span>
