@@ -170,7 +170,7 @@ const MatchmakerPage = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="flex items-stretch justify-center gap-1.5 sm:gap-3 max-w-full mx-auto overflow-x-auto pb-2 scrollbar-hide"
+              className="w-full overflow-x-auto pb-2 scrollbar-hide"
             >
               {criteria.map((c, i) => {
                 const goldHue = 43;
