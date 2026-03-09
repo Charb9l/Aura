@@ -867,7 +867,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                 {picLogoPreview ? (
                   <div className="group relative rounded-xl overflow-hidden border border-border bg-card w-28 h-28">
                     <img src={picLogoPreview} alt="Logo" className="w-full h-full object-contain p-2" />
-                    <div className="absolute inset-0 bg-background/0 group-hover:bg-background/60 transition-all flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+                    <div className="absolute inset-0 bg-background/0 sm:group-hover:bg-background/60 transition-all flex items-center justify-center gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
                       <button onClick={() => document.getElementById("pic-logo-input")?.click()} className="rounded-full bg-secondary p-2 text-foreground shadow-lg hover:bg-secondary/80"><Pencil className="h-4 w-4" /></button>
                       <button onClick={handleDeleteLogo} className="rounded-full bg-destructive p-2 text-destructive-foreground shadow-lg hover:bg-destructive/90"><Trash2 className="h-4 w-4" /></button>
                     </div>

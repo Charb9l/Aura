@@ -313,7 +313,7 @@ const NotificationsTab = ({ onUnreadCountChange, onNavigate }: Props) => {
                         </motion.div>
                       )}
                     </div>
-                    <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0 text-muted-foreground hover:text-destructive" onClick={(e) => { e.stopPropagation(); deleteNotification(n.id); }}>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-muted-foreground active:text-destructive sm:hover:text-destructive" onClick={(e) => { e.stopPropagation(); deleteNotification(n.id); }}>
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   </div>
