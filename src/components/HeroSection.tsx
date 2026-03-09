@@ -178,6 +178,9 @@ const HeroSection = () => {
             );
           })}
         </div>
+
+        {/* Featured Partners Strip */}
+        <FeaturedClubsStrip variant="hero" />
       </div>
 
       {/* Scroll indicator */}

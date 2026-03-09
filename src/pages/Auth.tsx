@@ -285,6 +285,8 @@ const Auth = () => {
               {isLogin ? "Sign Up" : "Sign In"}
             </button>
           </p>
+
+          <FeaturedClubsStrip variant="auth" />
         </motion.div>
       </div>
     </div>
