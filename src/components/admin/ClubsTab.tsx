@@ -595,6 +595,9 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
         </div>
         {isMasterAdmin && (
           <div className="flex gap-3">
+            <Button variant="outline" onClick={() => setShowPartnerRequests(true)} className="h-11 px-5 font-semibold gap-2">
+              <Handshake className="h-4 w-4" /> Requests
+            </Button>
             <Button onClick={() => setShowAddClub(true)} className="h-11 px-5 font-semibold glow gap-2">
               <Building2 className="h-4 w-4" /> Add Club
             </Button>
