@@ -536,52 +536,31 @@ const BookPage = () => {
                     transition={{ delay: i * 0.04 }}
                     onClick={() => { setSelectedActivity(a.slug); setSelectedClub(""); setSelectedLocation(""); setCourtType(""); setDate(undefined); setSelectedTime(""); }}
                     className={cn(
-                      "group relative flex flex-col items-center gap-1.5 transition-all duration-300",
+                      "group relative flex flex-col items-center gap-2 transition-all duration-300",
                       isSelected ? "scale-105" : "hover:scale-105"
                     )}
                   >
-                    {/* Hexagonal card */}
+                    {/* Circle image */}
                     <div
                       className={cn(
-                        "relative h-20 w-20 sm:h-[88px] sm:w-[88px] overflow-hidden transition-all duration-300",
+                        "relative h-16 w-16 sm:h-20 sm:w-20 rounded-full overflow-hidden border-2 transition-all duration-300",
                         isSelected
-                          ? "shadow-lg"
+                          ? "border-primary shadow-lg"
                           : "border-border/50 group-hover:border-muted-foreground/40"
                       )}
-                      style={{
-                        clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
-                        background: isSelected
-                          ? `hsl(var(--primary))`
-                          : "hsl(var(--primary) / 0.3)",
-                        boxShadow: isSelected ? `0 0 25px hsl(var(--primary) / 0.4)` : undefined,
-                      }}
+                      style={isSelected ? { boxShadow: `0 0 20px hsl(${c} / 0.4)`, borderColor: `hsl(${c})` } : undefined}
                     >
-                      {/* Inner hexagon */}
-                      <div
-                        className="absolute inset-[2px] flex items-center justify-center"
-                        style={{
-                          clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
-                          background: "hsl(var(--background))",
-                        }}
-                      >
-                        {a.logo_url ? (
-                          <img
-                            src={a.logo_url}
-                            alt=""
-                            className={cn(
-                              "h-10 w-10 sm:h-11 sm:w-11 object-contain transition-all duration-300 invert",
-                              isSelected ? "brightness-110" : "opacity-60 group-hover:opacity-90"
-                            )}
-                          />
-                        ) : (
-                          <span className={cn(
-                            "text-lg font-heading font-bold transition-colors",
-                            isSelected ? "text-foreground" : "text-muted-foreground group-hover:text-foreground"
-                          )}>
-                            {a.name[0]}
-                          </span>
-                        )}
-                      </div>
+                      {a.logo_url ? (
+                        <img
+                          src={a.logo_url}
+                          alt={a.name}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="h-full w-full bg-muted flex items-center justify-center">
+                          <span className="text-lg font-heading font-bold text-muted-foreground">{a.name[0]}</span>
+                        </div>
+                      )}
                     </div>
                     {/* Label */}
                     <span
