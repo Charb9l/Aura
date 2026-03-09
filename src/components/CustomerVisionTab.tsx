@@ -765,45 +765,47 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
                 <p className="text-xs text-muted-foreground mb-3">These appear as styled pills below the subtitle on the matchmaker page.</p>
                 <div className="space-y-3">
                   {matchCriteria.map((c, i) => (
-                    <div key={i} className="flex items-center gap-2 p-3 rounded-lg border border-border bg-secondary/50">
-                      <div className="flex flex-col gap-1 shrink-0">
-                        <Button type="button" variant="ghost" size="icon" className="h-7 w-7" disabled={i === 0} onClick={() => { const arr = [...matchCriteria]; [arr[i - 1], arr[i]] = [arr[i], arr[i - 1]]; setMatchCriteria(arr); }}><ArrowUp className="h-3.5 w-3.5" /></Button>
-                        <Button type="button" variant="ghost" size="icon" className="h-7 w-7" disabled={i === matchCriteria.length - 1} onClick={() => { const arr = [...matchCriteria]; [arr[i], arr[i + 1]] = [arr[i + 1], arr[i]]; setMatchCriteria(arr); }}><ArrowDown className="h-3.5 w-3.5" /></Button>
+                    <div key={i} className="p-2.5 rounded-lg border border-border bg-secondary/50 space-y-2">
+                      <div className="flex items-center gap-1.5">
+                        <Button type="button" variant="ghost" size="icon" className="h-6 w-6" disabled={i === 0} onClick={() => { const arr = [...matchCriteria]; [arr[i - 1], arr[i]] = [arr[i], arr[i - 1]]; setMatchCriteria(arr); }}><ArrowUp className="h-3 w-3" /></Button>
+                        <Button type="button" variant="ghost" size="icon" className="h-6 w-6" disabled={i === matchCriteria.length - 1} onClick={() => { const arr = [...matchCriteria]; [arr[i], arr[i + 1]] = [arr[i + 1], arr[i]]; setMatchCriteria(arr); }}><ArrowDown className="h-3 w-3" /></Button>
+                        <button
+                          type="button"
+                          onClick={() => setMatchCriteria(prev => prev.map((cr, idx) => idx === i ? { ...cr, use_gold: !cr.use_gold } : cr))}
+                          className={cn(
+                            "px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border transition-all shrink-0 ml-auto",
+                            c.use_gold
+                              ? "border-amber-400/60 bg-amber-400/15 text-amber-300 shadow-[0_0_12px_hsl(43_96%_56%/0.35)]"
+                              : "border-border text-muted-foreground hover:border-muted-foreground/50"
+                          )}
+                        >
+                          ✦ Gold
+                        </button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setMatchCriteria(prev => prev.filter((_, idx) => idx !== i))}
+                          className="h-6 w-6 shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
                       </div>
-                      <Input
-                        value={c.emoji}
-                        onChange={(e) => setMatchCriteria(prev => prev.map((cr, idx) => idx === i ? { ...cr, emoji: e.target.value } : cr))}
-                        placeholder="✓"
-                        className="h-9 w-16 bg-background border-border text-sm text-center"
-                        maxLength={4}
-                      />
-                      <Input
-                        value={c.label}
-                        onChange={(e) => setMatchCriteria(prev => prev.map((cr, idx) => idx === i ? { ...cr, label: e.target.value } : cr))}
-                        placeholder="e.g. Skill Level"
-                        className="h-9 flex-1 bg-background border-border text-sm"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setMatchCriteria(prev => prev.map((cr, idx) => idx === i ? { ...cr, use_gold: !cr.use_gold } : cr))}
-                        className={cn(
-                          "px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border transition-all shrink-0",
-                          c.use_gold
-                            ? "border-amber-400/60 bg-amber-400/15 text-amber-300 shadow-[0_0_12px_hsl(43_96%_56%/0.35)]"
-                            : "border-border text-muted-foreground hover:border-muted-foreground/50"
-                        )}
-                      >
-                        ✦ Gold
-                      </button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setMatchCriteria(prev => prev.filter((_, idx) => idx !== i))}
-                        className="shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <div className="flex gap-2">
+                        <Input
+                          value={c.emoji}
+                          onChange={(e) => setMatchCriteria(prev => prev.map((cr, idx) => idx === i ? { ...cr, emoji: e.target.value } : cr))}
+                          placeholder="✓"
+                          className="h-8 w-12 bg-background border-border text-xs text-center"
+                          maxLength={4}
+                        />
+                        <Input
+                          value={c.label}
+                          onChange={(e) => setMatchCriteria(prev => prev.map((cr, idx) => idx === i ? { ...cr, label: e.target.value } : cr))}
+                          placeholder="e.g. Skill Level"
+                          className="h-8 flex-1 bg-background border-border text-xs"
+                        />
+                      </div>
                     </div>
                   ))}
                   {matchCriteria.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No criteria yet. Click "Add Criteria" to create one.</p>}
