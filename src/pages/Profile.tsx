@@ -367,7 +367,7 @@ const ProfilePage = () => {
   });
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pb-20 md:pb-0">
       <Navbar />
       <div className="container mx-auto px-6 pt-28 pb-16">
         {/* Header with Avatar */}
