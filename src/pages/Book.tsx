@@ -83,6 +83,7 @@ const BookPage = () => {
   const [selectedLocation, setSelectedLocation] = useState("");
   const [pageTitle, setPageTitle] = useState("Book a Session");
   const [pageSubtitle, setPageSubtitle] = useState("Select your activity, date and time.");
+  const [maxClubsGrid, setMaxClubsGrid] = useState(3);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const { activeRewards, getRewardForClub, hasRewards } = useRewards();
   // Profile data fetched from DB
