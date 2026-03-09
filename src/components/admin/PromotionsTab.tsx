@@ -257,6 +257,14 @@ const PromotionsTab = ({ allUsers, clubs }: Props) => {
     return `$${value} OFF`;
   };
 
+  const getRuleStatus = (rule: PriceRule): { label: string; color: string } => {
+    const today = new Date().toISOString().slice(0, 10);
+    if (!rule.active) return { label: "Disabled", color: "bg-muted text-muted-foreground" };
+    if (rule.end_date && rule.end_date < today) return { label: "Expired", color: "bg-destructive/15 text-destructive" };
+    if (rule.start_date && rule.start_date > today) return { label: "Scheduled", color: "bg-amber-500/15 text-amber-500" };
+    return { label: "Active", color: "bg-emerald-500/15 text-emerald-500" };
+  };
+
   const activePromosForUser = (userId: string) => userPromotions.filter(p => p.user_id === userId && p.remaining_uses > 0);
 
   if (loading) return <p className="text-muted-foreground text-center py-10">Loading...</p>;
