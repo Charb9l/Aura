@@ -85,6 +85,9 @@ const BookPage = () => {
   const [maxClubsGrid, setMaxClubsGrid] = useState(3);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const { activeRewards, getRewardForClub, hasRewards } = useRewards();
+  // Hero pictures
+  const [heroPictures, setHeroPictures] = useState<{ image: string; alt: string }[]>([]);
+  const [heroCycleIndex, setHeroCycleIndex] = useState(0);
   // Profile data fetched from DB
   const [profileName, setProfileName] = useState("");
   const [profileEmail, setProfileEmail] = useState("");
