@@ -5,6 +5,7 @@ import { Star, Gift, Zap, Trophy, ArrowRight, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface OfferingItem {
   id: string;
@@ -13,6 +14,7 @@ interface OfferingItem {
 }
 
 const LoyaltyPage = () => {
+  const { user } = useAuth();
   const [title, setTitle] = useState("Book More. Earn More.");
   const [subtitle, setSubtitle] = useState("Every booking earns you a point. Stack them up and unlock exclusive discounts — or go big and play for free.");
   const [offerings, setOfferings] = useState<OfferingItem[]>([]);
@@ -248,25 +250,29 @@ const LoyaltyPage = () => {
             <h2 className="font-heading text-3xl md:text-5xl font-light text-foreground mb-4">
               Ready to Start <span className="text-primary italic">Earning</span>?
             </h2>
-            <p className="text-muted-foreground text-sm font-light mb-10 max-w-md mx-auto">
-              Sign up, book your first session, and watch your points grow.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link to="/auth">
-                <Button
-                  variant="outline"
-                  className="h-11 px-8 text-xs uppercase tracking-[0.2em] font-medium border-border/60 text-foreground hover:border-primary/50 hover:text-primary transition-all duration-500"
-                >
-                  Create Account
-                </Button>
-              </Link>
-              <Link to="/book">
-                <Button className="h-11 px-8 text-xs uppercase tracking-[0.2em] font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-500">
-                  Book Now
-                  <ArrowRight className="ml-2 h-3.5 w-3.5" />
-                </Button>
-              </Link>
-            </div>
+            {!user && (
+              <>
+                <p className="text-muted-foreground text-sm font-light mb-10 max-w-md mx-auto">
+                  Sign up, book your first session, and watch your points grow.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <Link to="/auth">
+                    <Button
+                      variant="outline"
+                      className="h-11 px-8 text-xs uppercase tracking-[0.2em] font-medium border-border/60 text-foreground hover:border-primary/50 hover:text-primary transition-all duration-500"
+                    >
+                      Create Account
+                    </Button>
+                  </Link>
+                  <Link to="/book">
+                    <Button className="h-11 px-8 text-xs uppercase tracking-[0.2em] font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-500">
+                      Book Now
+                      <ArrowRight className="ml-2 h-3.5 w-3.5" />
+                    </Button>
+                  </Link>
+                </div>
+              </>
+            )}
           </motion.div>
         </div>
       </section>
