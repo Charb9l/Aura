@@ -91,6 +91,8 @@ const BookPage = () => {
   const [profilePhone, setProfilePhone] = useState("");
   // User promotions (admin-assigned)
   const [activePromo, setActivePromo] = useState<{ id: string; discount_type: string; discount_value: number; remaining_uses: number } | null>(null);
+  // Active price rules for the selected club
+  const [activePriceRule, setActivePriceRule] = useState<{ id: string; discount_type: string; discount_value: number } | null>(null);
 
   useEffect(() => {
     if (!user) return;
