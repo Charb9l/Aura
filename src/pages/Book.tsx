@@ -565,7 +565,7 @@ const BookPage = () => {
                     {/* Label */}
                     <span
                       className={cn(
-                        "text-[10px] sm:text-xs font-medium tracking-wide uppercase transition-colors max-w-[80px] text-center leading-tight",
+                        "text-[9px] sm:text-xs font-medium tracking-wide uppercase transition-colors max-w-[64px] sm:max-w-[80px] text-center leading-tight",
                         isSelected ? "text-foreground" : "text-muted-foreground/70 group-hover:text-muted-foreground"
                       )}
                       style={isSelected ? { color: `hsl(${c})` } : undefined}
