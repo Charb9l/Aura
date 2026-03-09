@@ -600,6 +600,36 @@ const PromotionsTab = ({ allUsers, clubs }: Props) => {
                 <Input type="number" value={ruleDiscountValue} onChange={e => setRuleDiscountValue(e.target.value)} min={1} />
               </div>
             )}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-sm mb-1 block">Start Date</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal h-10", !ruleStartDate && "text-muted-foreground")}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {ruleStartDate ? format(ruleStartDate, "MMM d, yyyy") : "Optional"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={ruleStartDate} onSelect={setRuleStartDate} initialFocus className={cn("p-3 pointer-events-auto")} />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div>
+                <Label className="text-sm mb-1 block">End Date</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal h-10", !ruleEndDate && "text-muted-foreground")}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {ruleEndDate ? format(ruleEndDate, "MMM d, yyyy") : "Optional"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={ruleEndDate} onSelect={setRuleEndDate} initialFocus className={cn("p-3 pointer-events-auto")} />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
             <div>
               <Label className="text-sm">Max Total Uses (customers)</Label>
               <Input type="number" value={ruleMaxTotalUses} onChange={e => setRuleMaxTotalUses(e.target.value)} placeholder="Leave empty for unlimited" min={1} />
