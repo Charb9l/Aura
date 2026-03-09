@@ -171,15 +171,24 @@ const FieldsEditor = ({ fields, onChange, label }: { fields: FormField[]; onChan
       </div>
       <div className="space-y-3">
         {fields.map((field, i) => (
-          <div key={i} className="flex items-center gap-2 p-3 rounded-lg border border-border bg-secondary/50">
-            <div className="flex flex-col gap-1 shrink-0">
-              <Button type="button" variant="ghost" size="icon" className="h-7 w-7" disabled={i === 0} onClick={() => { const arr = [...fields]; [arr[i - 1], arr[i]] = [arr[i], arr[i - 1]]; onChange(arr); }}><ArrowUp className="h-3.5 w-3.5" /></Button>
-              <Button type="button" variant="ghost" size="icon" className="h-7 w-7" disabled={i === fields.length - 1} onClick={() => { const arr = [...fields]; [arr[i], arr[i + 1]] = [arr[i + 1], arr[i]]; onChange(arr); }}><ArrowDown className="h-3.5 w-3.5" /></Button>
+          <div key={i} className="p-3 rounded-lg border border-border bg-secondary/50 space-y-2">
+            <div className="flex items-center gap-2">
+              <div className="flex gap-1 shrink-0">
+                <Button type="button" variant="ghost" size="icon" className="h-6 w-6" disabled={i === 0} onClick={() => { const arr = [...fields]; [arr[i - 1], arr[i]] = [arr[i], arr[i - 1]]; onChange(arr); }}><ArrowUp className="h-3 w-3" /></Button>
+                <Button type="button" variant="ghost" size="icon" className="h-6 w-6" disabled={i === fields.length - 1} onClick={() => { const arr = [...fields]; [arr[i], arr[i + 1]] = [arr[i + 1], arr[i]]; onChange(arr); }}><ArrowDown className="h-3 w-3" /></Button>
+              </div>
+              <div className="flex items-center gap-2 ml-auto shrink-0">
+                <Label className="text-xs text-muted-foreground">Required</Label>
+                <Switch checked={field.required} onCheckedChange={(v) => updateField(i, { required: v })} />
+                <Button type="button" variant="ghost" size="icon" onClick={() => removeField(i)} className="h-6 w-6 shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10">
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </div>
             </div>
-            <div className="flex-1 grid grid-cols-2 gap-2">
-              <Input value={field.label} onChange={(e) => updateField(i, { label: e.target.value })} placeholder="Field label (e.g. Full Name)" className="h-9 bg-background border-border text-sm" />
+            <div className="grid grid-cols-2 gap-2">
+              <Input value={field.label} onChange={(e) => updateField(i, { label: e.target.value })} placeholder="Field label" className="h-8 bg-background border-border text-xs" />
               <Select value={field.type} onValueChange={(v) => updateField(i, { type: v })}>
-                <SelectTrigger className="h-9 bg-background border-border text-sm">
+                <SelectTrigger className="h-8 bg-background border-border text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-card border-border z-50">
@@ -191,13 +200,6 @@ const FieldsEditor = ({ fields, onChange, label }: { fields: FormField[]; onChan
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <Label className="text-xs text-muted-foreground">Required</Label>
-              <Switch checked={field.required} onCheckedChange={(v) => updateField(i, { required: v })} />
-            </div>
-            <Button type="button" variant="ghost" size="icon" onClick={() => removeField(i)} className="shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10">
-              <Trash2 className="h-4 w-4" />
-            </Button>
           </div>
         ))}
         {fields.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No fields. Click "Add Field" to create one.</p>}
@@ -383,11 +385,11 @@ const ActivitiesManager = ({ open, onOpenChange }: { open: boolean; onOpenChange
             </Button>
             <div>
               <Label className="text-sm font-medium text-muted-foreground mb-2 block">Activity Name</Label>
-              <Input value={formName} onChange={(e) => { setFormName(e.target.value); setFormSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")); }} placeholder="e.g. Basketball Court" className="h-12 bg-secondary border-border" />
+              <Input value={formName} onChange={(e) => { setFormName(e.target.value); setFormSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")); }} placeholder="e.g. Basketball Court" className="h-9 bg-secondary border-border text-sm" />
             </div>
             <div>
               <Label className="text-sm font-medium text-muted-foreground mb-2 block">Slug</Label>
-              <Input value={formSlug} onChange={(e) => setFormSlug(e.target.value)} placeholder="e.g. basketball" className="h-12 bg-secondary border-border" />
+              <Input value={formSlug} onChange={(e) => setFormSlug(e.target.value)} placeholder="e.g. basketball" className="h-9 bg-secondary border-border text-sm" />
               <p className="text-xs text-muted-foreground mt-1">Auto-generated from name. Used internally.</p>
             </div>
             <div>
@@ -414,7 +416,7 @@ const ActivitiesManager = ({ open, onOpenChange }: { open: boolean; onOpenChange
                 )}
               </div>
             </div>
-            <Button onClick={handleSave} disabled={formSaving || !formName.trim()} className="w-full h-12 text-base font-semibold glow">
+            <Button onClick={handleSave} disabled={formSaving || !formName.trim()} className="w-full h-10 text-sm font-semibold glow">
               {formSaving ? "Saving..." : editMode === "add" ? "Add Activity" : "Save Changes"}
             </Button>
           </div>
@@ -592,25 +594,25 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
           <div className="space-y-6 pt-2">
             <div>
               <Label className="text-sm font-medium text-muted-foreground mb-2 block">Platform Name (main line in navbar)</Label>
-              <Input value={platformNameLine1} onChange={(e) => setPlatformNameLine1(e.target.value)} placeholder="e.g. ELEVATE" className="h-12 bg-secondary border-border" />
+              <Input value={platformNameLine1} onChange={(e) => setPlatformNameLine1(e.target.value)} placeholder="e.g. ELEVATE" className="h-9 bg-secondary border-border text-sm" />
             </div>
             <div>
               <Label className="text-sm font-medium text-muted-foreground mb-2 block">Platform Subname (smaller text under the name)</Label>
-              <Input value={platformNameLine2} onChange={(e) => setPlatformNameLine2(e.target.value)} placeholder="e.g. Wellness Hub" className="h-12 bg-secondary border-border" />
+              <Input value={platformNameLine2} onChange={(e) => setPlatformNameLine2(e.target.value)} placeholder="e.g. Wellness Hub" className="h-9 bg-secondary border-border text-sm" />
               <p className="text-xs text-muted-foreground mt-1">These appear as the brand in the top-left of the navbar, on both the customer and admin sides.</p>
             </div>
             
             <div>
               <Label className="text-sm font-medium text-muted-foreground mb-2 block">Hero Subtitle (small text above title)</Label>
-              <Input value={heroSubtitle} onChange={(e) => setHeroSubtitle(e.target.value)} placeholder="e.g. Movement & Mindfulness" className="h-12 bg-secondary border-border" />
+              <Input value={heroSubtitle} onChange={(e) => setHeroSubtitle(e.target.value)} placeholder="e.g. Movement & Mindfulness" className="h-9 bg-secondary border-border text-sm" />
             </div>
             <div>
               <Label className="text-sm font-medium text-muted-foreground mb-2 block">Hero Title — Line 1</Label>
-              <Input value={heroLine1} onChange={(e) => setHeroLine1(e.target.value)} placeholder="e.g. Your Journey." className="h-12 bg-secondary border-border" />
+              <Input value={heroLine1} onChange={(e) => setHeroLine1(e.target.value)} placeholder="e.g. Your Journey." className="h-9 bg-secondary border-border text-sm" />
             </div>
             <div>
               <Label className="text-sm font-medium text-muted-foreground mb-2 block">Hero Title — Line 2 (gradient highlight)</Label>
-              <Input value={heroLine2} onChange={(e) => setHeroLine2(e.target.value)} placeholder="e.g. Your Space." className="h-12 bg-secondary border-border" />
+              <Input value={heroLine2} onChange={(e) => setHeroLine2(e.target.value)} placeholder="e.g. Your Space." className="h-9 bg-secondary border-border text-sm" />
             </div>
 
             {/* Action Buttons */}
@@ -621,21 +623,15 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
               </div>
               <div className="space-y-3">
                 {heroButtons.map((btn, i) => (
-                  <div key={i} className="flex items-center gap-2 p-3 rounded-lg border border-border bg-secondary/50">
-                    <div className="flex flex-col gap-1 shrink-0">
-                      <Button type="button" variant="ghost" size="icon" className="h-7 w-7" disabled={i === 0} onClick={() => { const arr = [...heroButtons]; [arr[i - 1], arr[i]] = [arr[i], arr[i - 1]]; setHeroButtons(arr); }}><ArrowUp className="h-3.5 w-3.5" /></Button>
-                      <Button type="button" variant="ghost" size="icon" className="h-7 w-7" disabled={i === heroButtons.length - 1} onClick={() => { const arr = [...heroButtons]; [arr[i], arr[i + 1]] = [arr[i + 1], arr[i]]; setHeroButtons(arr); }}><ArrowDown className="h-3.5 w-3.5" /></Button>
-                    </div>
-                    <div className="flex-1 space-y-2">
-                      <Input value={btn.label} onChange={(e) => updateButton(i, "label", e.target.value)} placeholder="Button label" className="h-9 bg-background border-border text-sm" />
-                      <Input value={btn.to} onChange={(e) => updateButton(i, "to", e.target.value)} placeholder="Link path (e.g. /book)" className="h-9 bg-background border-border text-sm font-mono" />
-                    </div>
-                    <div className="flex flex-col items-center gap-1 shrink-0">
+                  <div key={i} className="p-2.5 rounded-lg border border-border bg-secondary/50 space-y-2">
+                    <div className="flex items-center gap-1.5">
+                      <Button type="button" variant="ghost" size="icon" className="h-6 w-6" disabled={i === 0} onClick={() => { const arr = [...heroButtons]; [arr[i - 1], arr[i]] = [arr[i], arr[i - 1]]; setHeroButtons(arr); }}><ArrowUp className="h-3 w-3" /></Button>
+                      <Button type="button" variant="ghost" size="icon" className="h-6 w-6" disabled={i === heroButtons.length - 1} onClick={() => { const arr = [...heroButtons]; [arr[i], arr[i + 1]] = [arr[i + 1], arr[i]]; setHeroButtons(arr); }}><ArrowDown className="h-3 w-3" /></Button>
                       <button
                         type="button"
                         onClick={() => toggleButtonGlow(i)}
                         className={cn(
-                          "px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border transition-all",
+                          "px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border transition-all ml-auto",
                           btn.glow
                             ? "border-amber-400/60 bg-amber-400/15 text-amber-300 shadow-[0_0_12px_hsl(43_96%_56%/0.35)]"
                             : "border-border text-muted-foreground hover:border-muted-foreground/50"
@@ -643,8 +639,12 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
                       >
                         ✦ Glow
                       </button>
+                      <Button type="button" variant="ghost" size="icon" onClick={() => removeButton(i)} className="h-6 w-6 shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"><Trash2 className="h-3.5 w-3.5" /></Button>
                     </div>
-                    <Button type="button" variant="ghost" size="icon" onClick={() => removeButton(i)} className="shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"><Trash2 className="h-4 w-4" /></Button>
+                    <div className="space-y-1.5">
+                      <Input value={btn.label} onChange={(e) => updateButton(i, "label", e.target.value)} placeholder="Button label" className="h-8 bg-background border-border text-xs" />
+                      <Input value={btn.to} onChange={(e) => updateButton(i, "to", e.target.value)} placeholder="Link path (e.g. /book)" className="h-8 bg-background border-border text-xs font-mono" />
+                    </div>
                   </div>
                 ))}
                 {heroButtons.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No buttons yet.</p>}
@@ -656,10 +656,10 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
               <Label className="text-sm font-medium text-muted-foreground mb-3 block">Navigation Menu Order</Label>
               <div className="space-y-2">
                 {navOrder.map((item, i) => (
-                  <div key={item.to} className="flex items-center gap-2 p-2.5 rounded-lg border border-border bg-secondary/50">
-                    <div className="flex flex-col gap-0.5 shrink-0">
-                      <Button type="button" variant="ghost" size="icon" className="h-6 w-6" disabled={i === 0} onClick={() => { const arr = [...navOrder]; [arr[i - 1], arr[i]] = [arr[i], arr[i - 1]]; setNavOrder(arr); }}><ArrowUp className="h-3 w-3" /></Button>
-                      <Button type="button" variant="ghost" size="icon" className="h-6 w-6" disabled={i === navOrder.length - 1} onClick={() => { const arr = [...navOrder]; [arr[i], arr[i + 1]] = [arr[i + 1], arr[i]]; setNavOrder(arr); }}><ArrowDown className="h-3 w-3" /></Button>
+                  <div key={item.to} className="flex items-center gap-1.5 p-2 rounded-lg border border-border bg-secondary/50">
+                    <div className="flex gap-0.5 shrink-0">
+                      <Button type="button" variant="ghost" size="icon" className="h-5 w-5" disabled={i === 0} onClick={() => { const arr = [...navOrder]; [arr[i - 1], arr[i]] = [arr[i], arr[i - 1]]; setNavOrder(arr); }}><ArrowUp className="h-2.5 w-2.5" /></Button>
+                      <Button type="button" variant="ghost" size="icon" className="h-5 w-5" disabled={i === navOrder.length - 1} onClick={() => { const arr = [...navOrder]; [arr[i], arr[i + 1]] = [arr[i + 1], arr[i]]; setNavOrder(arr); }}><ArrowDown className="h-2.5 w-2.5" /></Button>
                     </div>
                     <Input
                       value={item.label}
@@ -668,9 +668,9 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
                         arr[i] = { ...arr[i], label: e.target.value };
                         setNavOrder(arr);
                       }}
-                      className="flex-1 h-9 bg-background border-border text-sm"
+                      className="flex-1 h-7 bg-background border-border text-xs"
                     />
-                    <span className="text-xs text-muted-foreground font-mono shrink-0">{item.to}</span>
+                    <span className="text-[10px] text-muted-foreground font-mono shrink-0">{item.to}</span>
                   </div>
                 ))}
               </div>
@@ -700,7 +700,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
 
             </div>
 
-            <Button onClick={handleSaveHome} disabled={saving} className="w-full h-12 text-base font-semibold glow">
+            <Button onClick={handleSaveHome} disabled={saving} className="w-full h-10 text-sm font-semibold glow">
               {saving ? "Saving..." : "Save Changes"}
             </Button>
           </div>
@@ -718,11 +718,11 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
           <div className="space-y-6 pt-2">
             <div>
               <Label className="text-sm font-medium text-muted-foreground mb-2 block">Page Title</Label>
-              <Input value={pageTitle} onChange={(e) => setPageTitle(e.target.value)} placeholder="Page title" className="h-12 bg-secondary border-border" />
+              <Input value={pageTitle} onChange={(e) => setPageTitle(e.target.value)} placeholder="Page title" className="h-9 bg-secondary border-border text-sm" />
             </div>
             <div>
               <Label className="text-sm font-medium text-muted-foreground mb-2 block">Subtitle (text under the title)</Label>
-              <Input value={pageSubtitle} onChange={(e) => setPageSubtitle(e.target.value)} placeholder="Subtitle text" className="h-12 bg-secondary border-border" />
+              <Input value={pageSubtitle} onChange={(e) => setPageSubtitle(e.target.value)} placeholder="Subtitle text" className="h-9 bg-secondary border-border text-sm" />
             </div>
 
             {hasFields && (
@@ -740,7 +740,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
                   max={20}
                   value={maxClubsGrid}
                   onChange={(e) => setMaxClubsGrid(Math.max(1, parseInt(e.target.value) || 1))}
-                  className="h-12 bg-secondary border-border w-32"
+                  className="h-9 bg-secondary border-border w-32 text-sm"
                 />
                 <p className="text-xs text-muted-foreground mt-1.5">If more clubs are available for an activity, they'll appear as a dropdown instead of cards.</p>
               </div>
@@ -763,45 +763,47 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
                 <p className="text-xs text-muted-foreground mb-3">These appear as styled pills below the subtitle on the matchmaker page.</p>
                 <div className="space-y-3">
                   {matchCriteria.map((c, i) => (
-                    <div key={i} className="flex items-center gap-2 p-3 rounded-lg border border-border bg-secondary/50">
-                      <div className="flex flex-col gap-1 shrink-0">
-                        <Button type="button" variant="ghost" size="icon" className="h-7 w-7" disabled={i === 0} onClick={() => { const arr = [...matchCriteria]; [arr[i - 1], arr[i]] = [arr[i], arr[i - 1]]; setMatchCriteria(arr); }}><ArrowUp className="h-3.5 w-3.5" /></Button>
-                        <Button type="button" variant="ghost" size="icon" className="h-7 w-7" disabled={i === matchCriteria.length - 1} onClick={() => { const arr = [...matchCriteria]; [arr[i], arr[i + 1]] = [arr[i + 1], arr[i]]; setMatchCriteria(arr); }}><ArrowDown className="h-3.5 w-3.5" /></Button>
+                    <div key={i} className="p-2.5 rounded-lg border border-border bg-secondary/50 space-y-2">
+                      <div className="flex items-center gap-1.5">
+                        <Button type="button" variant="ghost" size="icon" className="h-6 w-6" disabled={i === 0} onClick={() => { const arr = [...matchCriteria]; [arr[i - 1], arr[i]] = [arr[i], arr[i - 1]]; setMatchCriteria(arr); }}><ArrowUp className="h-3 w-3" /></Button>
+                        <Button type="button" variant="ghost" size="icon" className="h-6 w-6" disabled={i === matchCriteria.length - 1} onClick={() => { const arr = [...matchCriteria]; [arr[i], arr[i + 1]] = [arr[i + 1], arr[i]]; setMatchCriteria(arr); }}><ArrowDown className="h-3 w-3" /></Button>
+                        <button
+                          type="button"
+                          onClick={() => setMatchCriteria(prev => prev.map((cr, idx) => idx === i ? { ...cr, use_gold: !cr.use_gold } : cr))}
+                          className={cn(
+                            "px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border transition-all shrink-0 ml-auto",
+                            c.use_gold
+                              ? "border-amber-400/60 bg-amber-400/15 text-amber-300 shadow-[0_0_12px_hsl(43_96%_56%/0.35)]"
+                              : "border-border text-muted-foreground hover:border-muted-foreground/50"
+                          )}
+                        >
+                          ✦ Gold
+                        </button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setMatchCriteria(prev => prev.filter((_, idx) => idx !== i))}
+                          className="h-6 w-6 shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
                       </div>
-                      <Input
-                        value={c.emoji}
-                        onChange={(e) => setMatchCriteria(prev => prev.map((cr, idx) => idx === i ? { ...cr, emoji: e.target.value } : cr))}
-                        placeholder="✓"
-                        className="h-9 w-16 bg-background border-border text-sm text-center"
-                        maxLength={4}
-                      />
-                      <Input
-                        value={c.label}
-                        onChange={(e) => setMatchCriteria(prev => prev.map((cr, idx) => idx === i ? { ...cr, label: e.target.value } : cr))}
-                        placeholder="e.g. Skill Level"
-                        className="h-9 flex-1 bg-background border-border text-sm"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setMatchCriteria(prev => prev.map((cr, idx) => idx === i ? { ...cr, use_gold: !cr.use_gold } : cr))}
-                        className={cn(
-                          "px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border transition-all shrink-0",
-                          c.use_gold
-                            ? "border-amber-400/60 bg-amber-400/15 text-amber-300 shadow-[0_0_12px_hsl(43_96%_56%/0.35)]"
-                            : "border-border text-muted-foreground hover:border-muted-foreground/50"
-                        )}
-                      >
-                        ✦ Gold
-                      </button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setMatchCriteria(prev => prev.filter((_, idx) => idx !== i))}
-                        className="shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <div className="flex gap-2">
+                        <Input
+                          value={c.emoji}
+                          onChange={(e) => setMatchCriteria(prev => prev.map((cr, idx) => idx === i ? { ...cr, emoji: e.target.value } : cr))}
+                          placeholder="✓"
+                          className="h-8 w-12 bg-background border-border text-xs text-center"
+                          maxLength={4}
+                        />
+                        <Input
+                          value={c.label}
+                          onChange={(e) => setMatchCriteria(prev => prev.map((cr, idx) => idx === i ? { ...cr, label: e.target.value } : cr))}
+                          placeholder="e.g. Skill Level"
+                          className="h-8 flex-1 bg-background border-border text-xs"
+                        />
+                      </div>
                     </div>
                   ))}
                   {matchCriteria.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No criteria yet. Click "Add Criteria" to create one.</p>}
@@ -826,38 +828,38 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
                 <p className="text-xs text-muted-foreground mb-3">These appear as styled pills below the subtitle on the habit tracker page.</p>
                 <div className="space-y-3">
                   {habitsBadges.map((b, i) => (
-                    <div key={i} className="flex items-center gap-2 p-3 rounded-lg border border-border bg-secondary/50">
-                      <div className="flex flex-col gap-1 shrink-0">
-                        <Button type="button" variant="ghost" size="icon" className="h-7 w-7" disabled={i === 0} onClick={() => { const arr = [...habitsBadges]; [arr[i - 1], arr[i]] = [arr[i], arr[i - 1]]; setHabitsBadges(arr); }}><ArrowUp className="h-3.5 w-3.5" /></Button>
-                        <Button type="button" variant="ghost" size="icon" className="h-7 w-7" disabled={i === habitsBadges.length - 1} onClick={() => { const arr = [...habitsBadges]; [arr[i], arr[i + 1]] = [arr[i + 1], arr[i]]; setHabitsBadges(arr); }}><ArrowDown className="h-3.5 w-3.5" /></Button>
+                    <div key={i} className="p-2.5 rounded-lg border border-border bg-secondary/50 space-y-2">
+                      <div className="flex items-center gap-1.5">
+                        <Button type="button" variant="ghost" size="icon" className="h-6 w-6" disabled={i === 0} onClick={() => { const arr = [...habitsBadges]; [arr[i - 1], arr[i]] = [arr[i], arr[i - 1]]; setHabitsBadges(arr); }}><ArrowUp className="h-3 w-3" /></Button>
+                        <Button type="button" variant="ghost" size="icon" className="h-6 w-6" disabled={i === habitsBadges.length - 1} onClick={() => { const arr = [...habitsBadges]; [arr[i], arr[i + 1]] = [arr[i + 1], arr[i]]; setHabitsBadges(arr); }}><ArrowDown className="h-3 w-3" /></Button>
+                        <button
+                          type="button"
+                          onClick={() => setHabitsBadges(prev => prev.map((br, idx) => idx === i ? { ...br, use_gold: !br.use_gold } : br))}
+                          className={cn(
+                            "px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border transition-all shrink-0 ml-auto",
+                            b.use_gold
+                              ? "border-amber-400/60 bg-amber-400/15 text-amber-300 shadow-[0_0_12px_hsl(43_96%_56%/0.35)]"
+                              : "border-border text-muted-foreground hover:border-muted-foreground/50"
+                          )}
+                        >
+                          ✦ Gold
+                        </button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setHabitsBadges(prev => prev.filter((_, idx) => idx !== i))}
+                          className="h-6 w-6 shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
                       </div>
                       <Input
                         value={b.label}
                         onChange={(e) => setHabitsBadges(prev => prev.map((br, idx) => idx === i ? { ...br, label: e.target.value } : br))}
                         placeholder="e.g. Streaks"
-                        className="h-9 flex-1 bg-background border-border text-sm"
+                        className="h-8 bg-background border-border text-xs"
                       />
-                      <button
-                        type="button"
-                        onClick={() => setHabitsBadges(prev => prev.map((br, idx) => idx === i ? { ...br, use_gold: !br.use_gold } : br))}
-                        className={cn(
-                          "px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border transition-all shrink-0",
-                          b.use_gold
-                            ? "border-amber-400/60 bg-amber-400/15 text-amber-300 shadow-[0_0_12px_hsl(43_96%_56%/0.35)]"
-                            : "border-border text-muted-foreground hover:border-muted-foreground/50"
-                        )}
-                      >
-                        ✦ Gold
-                      </button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setHabitsBadges(prev => prev.filter((_, idx) => idx !== i))}
-                        className="shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
                     </div>
                   ))}
                   {habitsBadges.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No feature badges yet. Click "Add Badge" to create one. Defaults will be used if empty.</p>}
@@ -871,7 +873,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
               </div>
             )}
 
-            <Button onClick={() => editingPage && handleSavePage(editingPage)} disabled={saving} className="w-full h-12 text-base font-semibold glow">
+            <Button onClick={() => editingPage && handleSavePage(editingPage)} disabled={saving} className="w-full h-10 text-sm font-semibold glow">
               {saving ? "Saving..." : "Save Changes"}
             </Button>
           </div>

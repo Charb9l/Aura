@@ -668,7 +668,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
           <DialogHeader><DialogTitle className="font-heading flex items-center gap-2"><Building2 className="h-5 w-5 text-primary" /> Edit Club</DialogTitle></DialogHeader>
           {editClub && (
             <div className="space-y-5 pt-2">
-              <div><Label className="text-sm font-medium text-muted-foreground mb-2 block">Club Name</Label><Input value={editName} onChange={(e) => setEditName(e.target.value)} className="h-12 bg-secondary border-border" /></div>
+              <div><Label className="text-sm font-medium text-muted-foreground mb-2 block">Club Name</Label><Input value={editName} onChange={(e) => setEditName(e.target.value)} className="h-9 bg-secondary border-border text-sm" /></div>
               <div><Label className="text-sm font-medium text-muted-foreground mb-2 block">Description</Label><Textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} className="bg-secondary border-border min-h-[100px]" placeholder="Brief description..." /></div>
               <div>
                 <Label className="text-sm font-medium text-muted-foreground mb-2 block">Activities</Label>
@@ -732,7 +732,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                 </div>
               )}
 
-              <Button onClick={handleSave} disabled={saving || !editName} className="w-full h-12 text-base font-semibold glow">{saving ? "Saving..." : "Save Changes"}</Button>
+              <Button onClick={handleSave} disabled={saving || !editName} className="w-full h-10 text-sm font-semibold glow">{saving ? "Saving..." : "Save Changes"}</Button>
             </div>
           )}
         </DialogContent>
@@ -750,7 +750,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
               <span className="text-xs text-muted-foreground">(visible to customers)</span>
             </label>
             {/* 1. Name */}
-            <div><Label className="text-sm font-medium text-muted-foreground mb-2 block">Club Name</Label><Input value={addClubName} onChange={(e) => setAddClubName(e.target.value)} placeholder="Enter club name" className="h-12 bg-secondary border-border" /></div>
+            <div><Label className="text-sm font-medium text-muted-foreground mb-2 block">Club Name</Label><Input value={addClubName} onChange={(e) => setAddClubName(e.target.value)} placeholder="Enter club name" className="h-9 bg-secondary border-border text-sm" /></div>
 
             {/* 2. Description */}
             <div><Label className="text-sm font-medium text-muted-foreground mb-2 block">Description</Label><Textarea value={addClubDescription} onChange={(e) => setAddClubDescription(e.target.value)} className="bg-secondary border-border min-h-[100px]" placeholder="Brief description..." /></div>
@@ -845,7 +845,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
               {addClubHasAcademy && renderAddAcademyPicturesSection()}
             </div>
 
-            <Button onClick={handleAddClub} disabled={addClubSaving || !addClubName.trim()} className="w-full h-12 text-base font-semibold glow"><Building2 className="h-4 w-4 mr-2" />{addClubSaving ? "Adding..." : "Add Club"}</Button>
+            <Button onClick={handleAddClub} disabled={addClubSaving || !addClubName.trim()} className="w-full h-10 text-sm font-semibold glow"><Building2 className="h-4 w-4 mr-2" />{addClubSaving ? "Adding..." : "Add Club"}</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -962,8 +962,8 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
           {offeringsDialogMode === "edit" ? (
             <div className="space-y-5 pt-2">
               <Button variant="ghost" size="sm" onClick={() => { setOfferingsDialogMode("list"); setEditOfferingId(null); setEditOfferingLogoFile(null); setEditOfferingLogoPreview(null); }} className="gap-1 -ml-2 mb-1">← Back to list</Button>
-              <div><Label className="text-sm font-medium text-muted-foreground mb-2 block">Activity Name</Label><Input value={editOfferingName} onChange={(e) => { setEditOfferingName(e.target.value); setEditOfferingSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")); }} placeholder="e.g. Basketball Court" className="h-12 bg-secondary border-border" /></div>
-              <div><Label className="text-sm font-medium text-muted-foreground mb-2 block">Slug</Label><Input value={editOfferingSlug} onChange={(e) => setEditOfferingSlug(e.target.value)} placeholder="e.g. basketball" className="h-12 bg-secondary border-border" /><p className="text-xs text-muted-foreground mt-1">Auto-generated from name.</p></div>
+              <div><Label className="text-sm font-medium text-muted-foreground mb-2 block">Activity Name</Label><Input value={editOfferingName} onChange={(e) => { setEditOfferingName(e.target.value); setEditOfferingSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")); }} placeholder="e.g. Basketball Court" className="h-9 bg-secondary border-border text-sm" /></div>
+              <div><Label className="text-sm font-medium text-muted-foreground mb-2 block">Slug</Label><Input value={editOfferingSlug} onChange={(e) => setEditOfferingSlug(e.target.value)} placeholder="e.g. basketball" className="h-9 bg-secondary border-border text-sm" /><p className="text-xs text-muted-foreground mt-1">Auto-generated from name.</p></div>
               <div>
                 <Label className="text-sm font-medium text-muted-foreground mb-2 block">Activity Image</Label>
                 <div onDragOver={(e) => { e.preventDefault(); setEditOfferingDragging(true); }} onDragLeave={() => setEditOfferingDragging(false)} onDrop={(e) => { e.preventDefault(); setEditOfferingDragging(false); const file = e.dataTransfer.files[0]; if (file) handleEditOfferingFileSelect(file); }} className={cn("relative border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer", editOfferingDragging ? "border-primary bg-primary/5" : "border-border hover:border-muted-foreground/50")} onClick={() => document.getElementById("edit-offering-logo-input")?.click()}>
@@ -971,18 +971,18 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
                   {editOfferingLogoPreview ? (<div className="flex flex-col items-center gap-3"><div className="h-32 w-32 rounded-xl overflow-hidden bg-secondary"><img src={editOfferingLogoPreview} alt="Activity preview" className="h-full w-full object-cover" /></div><p className="text-xs text-muted-foreground">Click or drag to replace</p></div>) : (<div className="flex flex-col items-center gap-2 py-4"><Upload className="h-8 w-8 text-muted-foreground" /><p className="text-sm text-muted-foreground">Drag & drop or click to upload</p></div>)}
                 </div>
               </div>
-              <Button onClick={handleEditOfferingSave} disabled={editOfferingSaving || !editOfferingName.trim()} className="w-full h-12 text-base font-semibold glow">{editOfferingSaving ? "Saving..." : "Save Changes"}</Button>
+              <Button onClick={handleEditOfferingSave} disabled={editOfferingSaving || !editOfferingName.trim()} className="w-full h-10 text-sm font-semibold glow">{editOfferingSaving ? "Saving..." : "Save Changes"}</Button>
             </div>
           ) : offeringsDialogMode === "list" ? (
             <div className="space-y-4 pt-2">
               {offerings.length === 0 ? (<p className="text-center text-muted-foreground py-8">No activities yet.</p>) : (<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">{offerings.map((o) => (<div key={o.id} onClick={() => openEditOffering(o)} className="flex items-center gap-4 rounded-xl border border-border bg-secondary/50 p-4 cursor-pointer hover:border-primary/50 hover:bg-secondary transition-all"><div className="h-16 w-16 rounded-lg overflow-hidden bg-secondary shrink-0">{o.logo_url ? <img src={o.logo_url} alt={o.name} className="h-full w-full object-cover" /> : <div className="h-full w-full flex items-center justify-center text-muted-foreground"><Image className="h-6 w-6" /></div>}</div><div className="flex-1 min-w-0"><p className="font-medium text-foreground">{o.name}</p><p className="text-xs text-muted-foreground">{o.slug}</p></div><Pencil className="h-4 w-4 text-muted-foreground shrink-0" /></div>))}</div>)}
-              <Button onClick={() => setOfferingsDialogMode("add")} className="w-full h-12 text-base font-semibold glow gap-2"><Image className="h-4 w-4" /> Add Activity</Button>
+              <Button onClick={() => setOfferingsDialogMode("add")} className="w-full h-10 text-sm font-semibold glow gap-2"><Image className="h-4 w-4" /> Add Activity</Button>
             </div>
           ) : (
             <div className="space-y-5 pt-2">
               <Button variant="ghost" size="sm" onClick={() => setOfferingsDialogMode("list")} className="gap-1 -ml-2 mb-1">← Back to list</Button>
-              <div><Label className="text-sm font-medium text-muted-foreground mb-2 block">Activity Name</Label><Input value={addOfferingName} onChange={(e) => { setAddOfferingName(e.target.value); setAddOfferingSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")); }} placeholder="e.g. Basketball Court" className="h-12 bg-secondary border-border" /></div>
-              <div><Label className="text-sm font-medium text-muted-foreground mb-2 block">Slug (URL-friendly ID)</Label><Input value={addOfferingSlug} onChange={(e) => setAddOfferingSlug(e.target.value)} placeholder="e.g. basketball" className="h-12 bg-secondary border-border" /><p className="text-xs text-muted-foreground mt-1">Auto-generated from name.</p></div>
+              <div><Label className="text-sm font-medium text-muted-foreground mb-2 block">Activity Name</Label><Input value={addOfferingName} onChange={(e) => { setAddOfferingName(e.target.value); setAddOfferingSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")); }} placeholder="e.g. Basketball Court" className="h-9 bg-secondary border-border text-sm" /></div>
+              <div><Label className="text-sm font-medium text-muted-foreground mb-2 block">Slug (URL-friendly ID)</Label><Input value={addOfferingSlug} onChange={(e) => setAddOfferingSlug(e.target.value)} placeholder="e.g. basketball" className="h-9 bg-secondary border-border text-sm" /><p className="text-xs text-muted-foreground mt-1">Auto-generated from name.</p></div>
               <div>
                 <Label className="text-sm font-medium text-muted-foreground mb-2 block">Activity Image</Label>
                 <div onDragOver={(e) => { e.preventDefault(); setAddOfferingDragging(true); }} onDragLeave={() => setAddOfferingDragging(false)} onDrop={(e) => { e.preventDefault(); setAddOfferingDragging(false); const file = e.dataTransfer.files[0]; if (file) handleAddOfferingFileSelect(file); }} className={cn("relative border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer", addOfferingDragging ? "border-primary bg-primary/5" : "border-border hover:border-muted-foreground/50")} onClick={() => document.getElementById("add-offering-logo-input")?.click()}>
