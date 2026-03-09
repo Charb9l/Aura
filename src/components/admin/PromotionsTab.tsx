@@ -246,7 +246,10 @@ const PromotionsTab = ({ allUsers, clubs }: Props) => {
 
   if (loading) return <p className="text-muted-foreground text-center py-10">Loading...</p>;
 
-  const currentList = subTab === "loyalty" ? loyaltyLeaders : badgeLeaders;
+  const q = searchQuery.toLowerCase();
+  const filteredLoyalty = q ? loyaltyLeaders.filter(e => e.full_name.toLowerCase().includes(q) || e.email.toLowerCase().includes(q)) : loyaltyLeaders;
+  const filteredBadge = q ? badgeLeaders.filter(e => e.full_name.toLowerCase().includes(q) || e.email.toLowerCase().includes(q)) : badgeLeaders;
+  const currentList = subTab === "loyalty" ? filteredLoyalty : filteredBadge;
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="promotions">
