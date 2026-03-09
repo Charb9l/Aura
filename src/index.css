@@ -78,17 +78,24 @@
   }
 }
 
-/* Lock to portrait on mobile */
-@media screen and (max-width: 768px) and (orientation: landscape) {
-  html {
-    transform: rotate(-90deg);
-    transform-origin: left top;
-    width: 100vh;
-    height: 100vw;
-    overflow-x: hidden;
-    position: absolute;
-    top: 100%;
-    left: 0;
+/* Portrait-only overlay for mobile landscape */
+@media screen and (max-width: 932px) and (orientation: landscape) {
+  body::after {
+    content: "Please rotate your device to portrait mode";
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: hsl(0 0% 4%);
+    color: hsl(0 0% 70%);
+    font-family: var(--font-body);
+    font-size: 1rem;
+    font-weight: 400;
+    letter-spacing: 0.05em;
+    text-align: center;
+    padding: 2rem;
   }
 }
 
