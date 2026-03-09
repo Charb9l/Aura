@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Trophy, Medal, Award, Gift, Plus, Trash2, Check, X, Users, Star, Search } from "lucide-react";
+import { format } from "date-fns";
+import { Trophy, Medal, Award, Gift, Plus, Trash2, Check, X, Users, Star, Search, CalendarIcon } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
