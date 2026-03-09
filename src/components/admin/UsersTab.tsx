@@ -480,15 +480,15 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
         <DialogContent className="bg-card border-border max-w-2xl w-[95vw] sm:w-[66vw]">
           <DialogHeader><DialogTitle className="font-heading text-xl">Edit Admin — {editAdmin?.full_name || editAdmin?.email}</DialogTitle></DialogHeader>
           <div className="space-y-5 pt-4">
-            <div><Label>Full Name</Label><Input value={editAdminName} onChange={(e) => setEditAdminName(e.target.value)} className="h-12 bg-secondary border-border mt-1" /></div>
+            <div><Label>Full Name</Label><Input value={editAdminName} onChange={(e) => setEditAdminName(e.target.value)} className="h-9 bg-secondary border-border mt-1 text-sm" /></div>
             <div className="grid md:grid-cols-2 gap-4">
-              <div><Label>Email</Label><Input type="email" value={editAdminEmail} onChange={(e) => setEditAdminEmail(e.target.value)} className="h-12 bg-secondary border-border mt-1" /></div>
+              <div><Label>Email</Label><Input type="email" value={editAdminEmail} onChange={(e) => setEditAdminEmail(e.target.value)} className="h-9 bg-secondary border-border mt-1 text-sm" /></div>
               <div><Label>Phone</Label><PhoneInput value={editAdminPhone} onChange={setEditAdminPhone} className="mt-1" /></div>
             </div>
-            <div><Label>New Password <span className="text-xs text-muted-foreground">(leave empty to keep)</span></Label><Input type="password" placeholder="••••••••" value={editAdminPassword} onChange={(e) => setEditAdminPassword(e.target.value)} className="h-12 bg-secondary border-border mt-1" /></div>
-            <div><Label>Assigned Club</Label><Select value={editAdminClubId} onValueChange={setEditAdminClubId}><SelectTrigger className="h-12 bg-secondary border-border mt-1"><SelectValue placeholder="All Clubs (Master Admin)" /></SelectTrigger><SelectContent className="bg-card border-border z-50"><SelectItem value="none">All Clubs (Master Admin)</SelectItem>{clubs.sort((a, b) => a.name.localeCompare(b.name)).map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent></Select></div>
-            <Button onClick={handleSaveAdmin} disabled={editAdminSaving} className="w-full h-12 text-base font-semibold glow">{editAdminSaving ? "Saving..." : "Save Changes"}</Button>
-            <Button variant="destructive" onClick={handleDeleteAdmin} disabled={editAdminSaving} className="w-full h-12 text-base font-semibold"><Trash2 className="h-4 w-4 mr-2" /> Delete Admin</Button>
+            <div><Label>New Password <span className="text-xs text-muted-foreground">(leave empty to keep)</span></Label><Input type="password" placeholder="••••••••" value={editAdminPassword} onChange={(e) => setEditAdminPassword(e.target.value)} className="h-9 bg-secondary border-border mt-1 text-sm" /></div>
+            <div><Label>Assigned Club</Label><Select value={editAdminClubId} onValueChange={setEditAdminClubId}><SelectTrigger className="h-9 bg-secondary border-border mt-1 text-sm"><SelectValue placeholder="All Clubs (Master Admin)" /></SelectTrigger><SelectContent className="bg-card border-border z-50"><SelectItem value="none">All Clubs (Master Admin)</SelectItem>{clubs.sort((a, b) => a.name.localeCompare(b.name)).map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent></Select></div>
+            <Button onClick={handleSaveAdmin} disabled={editAdminSaving} className="w-full h-10 text-sm font-semibold glow">{editAdminSaving ? "Saving..." : "Save Changes"}</Button>
+            <Button variant="destructive" onClick={handleDeleteAdmin} disabled={editAdminSaving} className="w-full h-10 text-sm font-semibold"><Trash2 className="h-4 w-4 mr-2" /> Delete Admin</Button>
           </div>
         </DialogContent>
       </Dialog>
