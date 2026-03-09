@@ -569,7 +569,7 @@ const BookPage = () => {
                             src={a.logo_url}
                             alt=""
                             className={cn(
-                              "h-10 w-10 sm:h-11 sm:w-11 object-contain transition-all duration-300",
+                              "h-10 w-10 sm:h-11 sm:w-11 object-contain transition-all duration-300 invert",
                               isSelected ? "brightness-110" : "opacity-60 group-hover:opacity-90"
                             )}
                           />
