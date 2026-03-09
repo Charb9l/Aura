@@ -865,7 +865,7 @@ const BookPage = () => {
                       )}
                     </div>
                   ) : (
-                    <span className="font-heading text-2xl font-bold text-primary">${currentPrice}</span>
+                    <span className="font-heading text-xl sm:text-2xl font-bold text-primary">${currentPrice}</span>
                   )}
                 </div>
               );
