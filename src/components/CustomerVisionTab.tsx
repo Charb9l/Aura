@@ -656,10 +656,10 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
               <Label className="text-sm font-medium text-muted-foreground mb-3 block">Navigation Menu Order</Label>
               <div className="space-y-2">
                 {navOrder.map((item, i) => (
-                  <div key={item.to} className="flex items-center gap-2 p-2.5 rounded-lg border border-border bg-secondary/50">
-                    <div className="flex flex-col gap-0.5 shrink-0">
-                      <Button type="button" variant="ghost" size="icon" className="h-6 w-6" disabled={i === 0} onClick={() => { const arr = [...navOrder]; [arr[i - 1], arr[i]] = [arr[i], arr[i - 1]]; setNavOrder(arr); }}><ArrowUp className="h-3 w-3" /></Button>
-                      <Button type="button" variant="ghost" size="icon" className="h-6 w-6" disabled={i === navOrder.length - 1} onClick={() => { const arr = [...navOrder]; [arr[i], arr[i + 1]] = [arr[i + 1], arr[i]]; setNavOrder(arr); }}><ArrowDown className="h-3 w-3" /></Button>
+                  <div key={item.to} className="flex items-center gap-1.5 p-2 rounded-lg border border-border bg-secondary/50">
+                    <div className="flex gap-0.5 shrink-0">
+                      <Button type="button" variant="ghost" size="icon" className="h-5 w-5" disabled={i === 0} onClick={() => { const arr = [...navOrder]; [arr[i - 1], arr[i]] = [arr[i], arr[i - 1]]; setNavOrder(arr); }}><ArrowUp className="h-2.5 w-2.5" /></Button>
+                      <Button type="button" variant="ghost" size="icon" className="h-5 w-5" disabled={i === navOrder.length - 1} onClick={() => { const arr = [...navOrder]; [arr[i], arr[i + 1]] = [arr[i + 1], arr[i]]; setNavOrder(arr); }}><ArrowDown className="h-2.5 w-2.5" /></Button>
                     </div>
                     <Input
                       value={item.label}
@@ -668,9 +668,9 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
                         arr[i] = { ...arr[i], label: e.target.value };
                         setNavOrder(arr);
                       }}
-                      className="flex-1 h-9 bg-background border-border text-sm"
+                      className="flex-1 h-7 bg-background border-border text-xs"
                     />
-                    <span className="text-xs text-muted-foreground font-mono shrink-0">{item.to}</span>
+                    <span className="text-[10px] text-muted-foreground font-mono shrink-0">{item.to}</span>
                   </div>
                 ))}
               </div>
