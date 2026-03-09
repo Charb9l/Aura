@@ -522,7 +522,7 @@ const BookPage = () => {
                 <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={() => setFilterLocation("")}>Clear location</Button>
               )}
             </div>
-            <div className="flex flex-wrap gap-3">
+            <div className="grid grid-cols-5 gap-2 sm:flex sm:flex-wrap sm:gap-3">
               {filteredOfferings.map((a, i) => {
                 const isSelected = selectedActivity === a.slug;
                 const aBrand = makeBrandStyles(a.brand_color);
@@ -543,7 +543,7 @@ const BookPage = () => {
                     {/* Circle image */}
                     <div
                       className={cn(
-                        "relative h-16 w-16 sm:h-20 sm:w-20 rounded-full overflow-hidden border-2 transition-all duration-300",
+                        "relative h-14 w-14 sm:h-20 sm:w-20 rounded-full overflow-hidden border-2 transition-all duration-300",
                         isSelected
                           ? "border-primary shadow-lg"
                           : "border-border/50 group-hover:border-muted-foreground/40"
@@ -565,7 +565,7 @@ const BookPage = () => {
                     {/* Label */}
                     <span
                       className={cn(
-                        "text-[10px] sm:text-xs font-medium tracking-wide uppercase transition-colors max-w-[80px] text-center leading-tight",
+                        "text-[9px] sm:text-xs font-medium tracking-wide uppercase transition-colors max-w-[64px] sm:max-w-[80px] text-center leading-tight",
                         isSelected ? "text-foreground" : "text-muted-foreground/70 group-hover:text-muted-foreground"
                       )}
                       style={isSelected ? { color: `hsl(${c})` } : undefined}
