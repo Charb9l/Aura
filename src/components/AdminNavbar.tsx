@@ -195,7 +195,7 @@ const AdminNavbar = ({ activeTab, onTabChange, assignedClubId, notificationCount
                 animate={{ x: 0 }}
                 exit={{ x: -280 }}
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="fixed top-0 left-0 bottom-0 z-50 w-[280px] flex flex-col border-r border-border/60 bg-background"
+                className="fixed top-0 left-0 bottom-0 z-50 w-[280px] flex flex-col border-r border-border/60 bg-background pt-[env(safe-area-inset-top)]"
               >
                 {/* Header */}
                 <div className="flex items-center justify-between h-14 px-5 border-b border-border/60 shrink-0">
