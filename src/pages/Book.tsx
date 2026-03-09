@@ -821,10 +821,12 @@ const BookPage = () => {
                       </span>
                     </div>
                   ) : isHalf ? (
-                    <div className="flex items-center gap-2">
-                      <span className="font-heading text-lg text-muted-foreground line-through">${currentPrice}</span>
-                      <span className="font-heading text-2xl font-bold text-amber-400">${discountedPrice}</span>
-                      <span className="text-xs font-bold text-amber-400 bg-amber-400/15 rounded-full px-2 py-0.5">50% OFF</span>
+                    <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
+                      <span className="font-heading text-base sm:text-lg text-muted-foreground line-through">${currentPrice}</span>
+                      <div className="flex items-center gap-1">
+                        <span className="font-heading text-xl sm:text-2xl font-bold text-amber-400">${discountedPrice}</span>
+                        <span className="text-xs font-bold text-amber-400 bg-amber-400/15 rounded-full px-2 py-0.5">50% OFF</span>
+                      </div>
                     </div>
                   ) : activePriceRule ? (
                     <div className="flex items-center gap-2">
