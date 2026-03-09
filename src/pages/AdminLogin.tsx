@@ -124,7 +124,7 @@ const AdminLogin = () => {
                 disabled={submitting}
                 className="w-full h-12 text-base font-semibold glow gap-2"
               >
-                <LogIn className="h-4 w-4" />
+                {submitting ? <Spinner size="sm" /> : <LogIn className="h-4 w-4" />}
                 {submitting ? "Signing in..." : "Sign In"}
               </Button>
             </form>
