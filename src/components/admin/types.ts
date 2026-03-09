@@ -14,6 +14,7 @@ export interface BookingRow {
   discount_type?: string | null;
   attendance_status?: string | null;
   created_by?: string | null;
+  price?: number | null;
 }
 
 export interface ProfileRow {
@@ -85,20 +86,26 @@ export interface ClubActivityPrice {
 }
 
 /**
- * Get booking revenue using DB prices.
- * priceMap keys: "clubId:activity_slug", "clubId:activity_slug:label", or fallback "activity_slug" / "activity_slug:label".
- * clubActivityMap maps club_id → activity slugs[] to resolve which club a booking belongs to.
- * IMPORTANT: Only bookings with attendance_status === "show" should be
- * passed to this function for revenue calculations.
+ * Get booking revenue.
+ * Uses stored price on the booking first (permanent record).
+ * Falls back to priceMap lookup (for old bookings without stored price).
  */
 export const getBookingRevenue = (
   b: BookingRow,
   priceMap?: Record<string, number>,
   clubActivityMap?: Record<string, string[]>,
 ): number => {
+  // If booking has a stored price, use it directly
+  if (b.price != null) {
+    const storedBase = Number(b.price);
+    if (b.discount_type === "free") return 0;
+    if (b.discount_type === "50%") return storedBase * 0.5;
+    return storedBase;
+  }
+
+  // Fallback: lookup from priceMap (for old bookings)
   if (!priceMap) return 0;
 
-  // Find which club this booking belongs to
   let clubId: string | undefined;
   if (clubActivityMap) {
     for (const [cid, activities] of Object.entries(clubActivityMap)) {

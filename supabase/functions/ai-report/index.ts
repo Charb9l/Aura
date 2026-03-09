@@ -76,7 +76,16 @@ serve(async (req) => {
     // Helper to resolve price for a booking
     const getBookingRevenue = (b: any): number => {
       if (b.attendance_status !== "show") return 0;
-      // Find which club this activity belongs to
+      
+      // Use stored price first (permanent record, survives club deletion)
+      if (b.price != null) {
+        const storedBase = Number(b.price);
+        if (b.discount_type === "free") return 0;
+        if (b.discount_type === "50%") return storedBase * 0.5;
+        return storedBase;
+      }
+      
+      // Fallback: lookup from prices table (for old bookings without stored price)
       let clubId: string | undefined;
       for (const [cid, acts] of Object.entries(clubActivityMap)) {
         if (acts.includes(b.activity)) { clubId = cid; break; }
@@ -91,7 +100,6 @@ serve(async (req) => {
         if (match) basePrice = Number(match.price);
       }
       if (!basePrice && prices) {
-        // fallback: any price for this activity
         const fallback = prices.find(p => p.activity_slug === b.activity && (b.court_type ? p.price_label === b.court_type : true));
         if (fallback) basePrice = Number(fallback.price);
       }
