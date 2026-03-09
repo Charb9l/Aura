@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useRef } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, parseISO, differenceInHours, startOfDay } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
