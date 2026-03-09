@@ -389,7 +389,7 @@ const ActivitiesManager = ({ open, onOpenChange }: { open: boolean; onOpenChange
             </div>
             <div>
               <Label className="text-sm font-medium text-muted-foreground mb-2 block">Slug</Label>
-              <Input value={formSlug} onChange={(e) => setFormSlug(e.target.value)} placeholder="e.g. basketball" className="h-12 bg-secondary border-border" />
+              <Input value={formSlug} onChange={(e) => setFormSlug(e.target.value)} placeholder="e.g. basketball" className="h-9 bg-secondary border-border text-sm" />
               <p className="text-xs text-muted-foreground mt-1">Auto-generated from name. Used internally.</p>
             </div>
             <div>
