@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { useProfileComplete } from "@/hooks/useProfileComplete";
+import MobileTabBar from "@/components/MobileTabBar";
 import Index from "./pages/Index";
 import BookPage from "./pages/Book";
 import AcademyPage from "./pages/Academy";
@@ -64,6 +65,7 @@ const App = () => (
               <Route path="/complete-profile" element={<CompleteProfilePage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <MobileTabBar />
           </ProfileGuard>
         </AuthProvider>
       </BrowserRouter>
