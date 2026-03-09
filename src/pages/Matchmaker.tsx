@@ -223,6 +223,7 @@ const MatchmakerPage = () => {
                   );
                 })}
               </div>
+            </motion.div>
           )}
 
 
