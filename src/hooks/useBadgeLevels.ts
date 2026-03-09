@@ -95,7 +95,7 @@ export const useBadgeLevels = (bookings: BookingLike[]) => {
       ).length;
     }
 
-    // Fallback to hardcoded
+    // Fallback to hardcoded 5 levels
     const n = completedBookings.length;
     const u = uniqueActivities;
     const ls = streakData.longestStreak;
@@ -103,10 +103,12 @@ export const useBadgeLevels = (bookings: BookingLike[]) => {
     const e = eveningCount;
     const a = afternoonCount;
     const ws = wellness;
-    const l1 = [n>=1, n>=3, u>=2, m>=3, e>=3, ls>=2, n>=5, ws>=30].every(Boolean);
-    const l2 = [n>=10, u>=3, ls>=4, m>=5, e>=5, n>=20, a>=5, ws>=60].every(Boolean);
-    const l3 = [n>=50, u>=5, ls>=8, m>=10, e>=10, n>=100, ls>=12, ws>=100].every(Boolean);
-    return (l1 ? 1 : 0) + (l2 ? 1 : 0) + (l3 ? 1 : 0);
+    const l1 = [n>=1, n>=3, u>=2, m>=3, e>=3, ls>=2, n>=5, ws>=20].every(Boolean);
+    const l2 = [n>=10, u>=3, ls>=4, m>=5, e>=5, n>=15, a>=5, ws>=40].every(Boolean);
+    const l3 = [n>=30, u>=4, ls>=6, m>=8, e>=8, n>=50, a>=8, ws>=60].every(Boolean);
+    const l4 = [n>=75, u>=5, ls>=10, m>=15, e>=15, n>=100, a>=12, ws>=80].every(Boolean);
+    const l5 = [n>=150, u>=7, ls>=16, m>=25, e>=25, n>=200, a>=20, ws>=100].every(Boolean);
+    return (l1 ? 1 : 0) + (l2 ? 1 : 0) + (l3 ? 1 : 0) + (l4 ? 1 : 0) + (l5 ? 1 : 0);
   }, [cmsLevels, metricsMap, completedBookings, uniqueActivities, streakData, morningCount, eveningCount, afternoonCount, wellness]);
 
   return { completedLevelCount };
