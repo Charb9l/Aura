@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import Navbar from "@/components/Navbar";
 import ActivityFilter from "@/components/ActivityFilter";
 import { useRewards } from "@/hooks/useRewards";
+import { Spinner } from "@/components/ui/spinner";
 
 interface OfferingData {
   id: string;
@@ -804,7 +805,8 @@ const BookPage = () => {
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-5">
             {user ? (
-              <Button type="submit" disabled={!selectedActivity || !date || !selectedTime || (selectedActivity === "basketball" && !courtType) || (matchingClubs.length > 1 && !selectedClub) || !selectedLocation || submitting} className="h-14 px-10 text-lg font-bold rounded-xl glow">
+              <Button type="submit" disabled={!selectedActivity || !date || !selectedTime || (selectedActivity === "basketball" && !courtType) || (matchingClubs.length > 1 && !selectedClub) || !selectedLocation || submitting} className="h-14 px-10 text-lg font-bold rounded-xl glow gap-2">
+                {submitting && <Spinner size="sm" />}
                 {submitting ? "Booking..." : "Confirm Booking"}
               </Button>
             ) : (

@@ -12,6 +12,7 @@ import Navbar from "@/components/Navbar";
 import PhoneInput from "@/components/PhoneInput";
 import { useAuth } from "@/contexts/AuthContext";
 import MobileBackButton from "@/components/MobileBackButton";
+import { Spinner } from "@/components/ui/spinner";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -141,7 +142,8 @@ const Auth = () => {
                 className="h-12 bg-secondary border-border"
               />
             </div>
-            <Button type="submit" disabled={loading} className="w-full h-12 text-base font-bold rounded-xl glow">
+            <Button type="submit" disabled={loading} className="w-full h-12 text-base font-bold rounded-xl glow gap-2">
+              {loading && <Spinner size="sm" />}
               {loading ? "Sending..." : "Send Reset Link"}
             </Button>
           </form>
@@ -232,8 +234,9 @@ const Auth = () => {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full h-12 text-base font-bold rounded-xl glow"
+              className="w-full h-12 text-base font-bold rounded-xl glow gap-2"
             >
+              {loading && <Spinner size="sm" />}
               {loading
                 ? "Please wait..."
                 : isLogin

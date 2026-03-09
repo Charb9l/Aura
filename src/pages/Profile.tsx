@@ -23,6 +23,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import { findMatchingClubForBooking } from "@/lib/loyalty-club-match";
+import { Spinner } from "@/components/ui/spinner";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Booking {
   id: string;
@@ -401,7 +403,7 @@ const ProfilePage = () => {
             </button>
             {uploadingAvatar && (
               <div className="absolute inset-0 rounded-full bg-background/70 flex items-center justify-center">
-                <span className="text-xs text-muted-foreground animate-pulse">...</span>
+                <Spinner size="sm" className="text-primary" />
               </div>
             )}
           </div>

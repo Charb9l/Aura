@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Spinner, PageLoader } from "@/components/ui/spinner";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Flame, Trophy, Target, TrendingUp, Zap, Star, Sun, Moon, Clock, Sparkles, Gift, ChevronDown, Shield, Award, Crown } from "lucide-react";
 import { format, parseISO, startOfWeek, subWeeks, differenceInDays } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -441,10 +443,23 @@ const HabitsPage = () => {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen">
+      <div className="min-h-screen pb-20 md:pb-0">
         <Navbar />
-        <div className="flex items-center justify-center min-h-screen">
-          <p className="text-muted-foreground">Loading your habits...</p>
+        <div className="container mx-auto px-4 sm:px-6 pt-24 sm:pt-28 pb-20">
+          <div className="text-center mb-8">
+            <Skeleton className="h-10 w-48 mx-auto mb-4" />
+            <Skeleton className="h-4 w-72 mx-auto" />
+          </div>
+          <div className="space-y-4">
+            <Skeleton className="h-32 w-full rounded-xl" />
+            <Skeleton className="h-48 w-full rounded-xl" />
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-24 rounded-xl" />)}
+            </div>
+          </div>
+          <div className="flex items-center justify-center py-12">
+            <Spinner size="lg" className="text-primary" />
+          </div>
         </div>
       </div>
     );

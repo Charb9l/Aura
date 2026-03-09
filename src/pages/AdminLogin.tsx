@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/components/ui/sonner";
 import { ShieldCheck, LogIn } from "lucide-react";
 import MobileBackButton from "@/components/MobileBackButton";
+import { Spinner } from "@/components/ui/spinner";
 
 const AdminLogin = () => {
   const [email, setEmail] = useState("");
@@ -124,7 +125,7 @@ const AdminLogin = () => {
                 disabled={submitting}
                 className="w-full h-12 text-base font-semibold glow gap-2"
               >
-                <LogIn className="h-4 w-4" />
+                {submitting ? <Spinner size="sm" /> : <LogIn className="h-4 w-4" />}
                 {submitting ? "Signing in..." : "Sign In"}
               </Button>
             </form>
