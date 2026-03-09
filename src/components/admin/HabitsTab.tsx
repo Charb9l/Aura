@@ -296,6 +296,18 @@ const HabitsTab = () => {
                         <Input type="number" min={1} value={badge.target} onChange={e => updateBadge(li, bi, "target", parseInt(e.target.value) || 1)} className="h-8 text-xs" />
                       </div>
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => updateBadge(li, bi, "use_gold", !badge.use_gold)}
+                      className={cn(
+                        "px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border transition-all shrink-0 mt-4",
+                        badge.use_gold
+                          ? "border-amber-400/60 bg-amber-400/15 text-amber-300 shadow-[0_0_12px_hsl(43_96%_56%/0.35)]"
+                          : "border-border text-muted-foreground hover:border-muted-foreground/50"
+                      )}
+                    >
+                      ✦ Gold
+                    </button>
                     <Button variant="ghost" size="icon" onClick={() => removeBadge(li, bi)} className="text-destructive hover:text-destructive h-8 w-8 mt-4">
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
