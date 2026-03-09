@@ -155,6 +155,7 @@ const PromotionsTab = ({ allUsers, clubs }: Props) => {
   };
 
   const displayN = parseInt(topN) || 5;
+  const [searchQuery, setSearchQuery] = useState("");
 
   const toggleUser = (userId: string) => {
     setPromoSelectedUsers(prev => {
