@@ -664,7 +664,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
 
       {/* ═══ Edit Club Dialog ═══ */}
       <Dialog open={!!editClub} onOpenChange={(o) => !o && setEditClub(null)}>
-        <DialogContent className="bg-card border-border max-w-2xl w-[66vw] max-h-[80vh] overflow-y-auto">
+        <DialogContent className="bg-card border-border max-w-2xl w-[95vw] sm:w-[66vw] max-h-[80vh] overflow-y-auto">
           <DialogHeader><DialogTitle className="font-heading flex items-center gap-2"><Building2 className="h-5 w-5 text-primary" /> Edit Club</DialogTitle></DialogHeader>
           {editClub && (
             <div className="space-y-5 pt-2">
