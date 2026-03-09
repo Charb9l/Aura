@@ -250,7 +250,7 @@ const AdminDashboard = () => {
     return list;
   };
 
-  const bookingChartData = useMemo(() => {
+  const bookingStats = useMemo(() => {
     const now = new Date();
     let start: Date, end: Date;
     if (bookingRange === "today") { start = startOfDay(now); end = endOfDay(now); }
@@ -260,10 +260,17 @@ const AdminDashboard = () => {
     else { start = startOfDay(now); end = endOfDay(now); }
     let filtered = filteredBookings.filter(b => { const d = parseISO(b.booking_date); return isWithinInterval(d, { start, end }); });
     filtered = applyDashboardFilter(filtered, bookingFilterType, bookingFilterValue);
-    return [{ name: "Bookings", value: filtered.length }];
+    const total = filtered.length;
+    const actMap: Record<string, { name: string; count: number }> = {};
+    filtered.forEach(b => {
+      if (!actMap[b.activity]) actMap[b.activity] = { name: b.activity_name, count: 0 };
+      actMap[b.activity].count++;
+    });
+    const byActivity = Object.entries(actMap).sort((a, b) => b[1].count - a[1].count).map(([slug, v]) => ({ slug, name: v.name, count: v.count }));
+    return { total, byActivity };
   }, [filteredBookings, bookingRange, bookingCustomDate, bookingFilterType, bookingFilterValue, clubActivityMap]);
 
-  const revenueByCategoryFiltered = useMemo(() => {
+  const revenueStats = useMemo(() => {
     const now = new Date();
     let start: Date, end: Date;
     if (revenueRange === "today") { start = startOfDay(now); end = endOfDay(now); }
@@ -272,11 +279,18 @@ const AdminDashboard = () => {
     else if (revenueRange === "custom" && bookingCustomDate) { start = startOfDay(bookingCustomDate); end = endOfDay(bookingCustomDate); }
     else if (revenueRange === "custom-range" && revenueCustomRange.from && revenueCustomRange.to) { start = startOfDay(revenueCustomRange.from); end = endOfDay(revenueCustomRange.to); }
     else { start = startOfDay(now); end = endOfDay(now); }
-    // Revenue only counts "show" bookings
     let filtered = showBookings.filter(b => { const d = parseISO(b.booking_date); return isWithinInterval(d, { start, end }); });
     filtered = applyDashboardFilter(filtered, revenueFilterType, revenueFilterValue);
-    const total = filtered.reduce((sum, b) => sum + getBookingRevenue(b, priceMap), 0);
-    return [{ name: "Revenue", value: total }];
+    const total = filtered.reduce((sum, b) => sum + getBookingRevenue(b, priceMap, clubActivityMap), 0);
+    const actMap: Record<string, { name: string; revenue: number; count: number }> = {};
+    filtered.forEach(b => {
+      const rev = getBookingRevenue(b, priceMap, clubActivityMap);
+      if (!actMap[b.activity]) actMap[b.activity] = { name: b.activity_name, revenue: 0, count: 0 };
+      actMap[b.activity].revenue += rev;
+      actMap[b.activity].count++;
+    });
+    const byActivity = Object.entries(actMap).sort((a, b) => b[1].revenue - a[1].revenue).map(([slug, v]) => ({ slug, name: v.name, revenue: v.revenue, count: v.count }));
+    return { total, byActivity };
   }, [showBookings, revenueRange, bookingCustomDate, revenueCustomRange, revenueFilterType, revenueFilterValue, clubActivityMap, priceMap]);
 
   if (loadingData) {
