@@ -403,7 +403,7 @@ const ProfilePage = () => {
             </button>
             {uploadingAvatar && (
               <div className="absolute inset-0 rounded-full bg-background/70 flex items-center justify-center">
-                <span className="text-xs text-muted-foreground animate-pulse">...</span>
+                <Spinner size="sm" className="text-primary" />
               </div>
             )}
           </div>
