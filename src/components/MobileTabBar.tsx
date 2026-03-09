@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, CalendarCheck, Users, User, Trophy, LogIn } from "lucide-react";
+import { Home, CalendarCheck, TrendingUp, User, Trophy, LogIn } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
