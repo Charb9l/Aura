@@ -81,6 +81,12 @@
     width: 100%;
   }
 
+  /* Allow horizontal scroll for table containers */
+  .overflow-x-auto,
+  [class*="overflow-x-auto"] {
+    overflow-x: auto !important;
+  }
+
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
     font-weight: 400;
