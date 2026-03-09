@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Trophy, Medal, Award, Gift, Plus, Trash2, Check, X, Users, Star } from "lucide-react";
+import { Trophy, Medal, Award, Gift, Plus, Trash2, Check, X, Users, Star, Search } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -155,6 +155,7 @@ const PromotionsTab = ({ allUsers, clubs }: Props) => {
   };
 
   const displayN = parseInt(topN) || 5;
+  const [searchQuery, setSearchQuery] = useState("");
 
   const toggleUser = (userId: string) => {
     setPromoSelectedUsers(prev => {
@@ -245,7 +246,10 @@ const PromotionsTab = ({ allUsers, clubs }: Props) => {
 
   if (loading) return <p className="text-muted-foreground text-center py-10">Loading...</p>;
 
-  const currentList = subTab === "loyalty" ? loyaltyLeaders : badgeLeaders;
+  const q = searchQuery.toLowerCase();
+  const filteredLoyalty = q ? loyaltyLeaders.filter(e => e.full_name.toLowerCase().includes(q) || e.email.toLowerCase().includes(q)) : loyaltyLeaders;
+  const filteredBadge = q ? badgeLeaders.filter(e => e.full_name.toLowerCase().includes(q) || e.email.toLowerCase().includes(q)) : badgeLeaders;
+  const currentList = subTab === "loyalty" ? filteredLoyalty : filteredBadge;
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="promotions">
@@ -266,12 +270,16 @@ const PromotionsTab = ({ allUsers, clubs }: Props) => {
         {/* Loyalty Leaderboard */}
         <TabsContent value="loyalty" className="space-y-4">
           <div className="flex items-center justify-between flex-wrap gap-3">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                <Input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search by name or email..." className="h-8 pl-9 w-56 bg-secondary border-border text-sm" />
+              </div>
               <Label className="text-sm text-muted-foreground">Show Top</Label>
               <Input type="number" value={topN} onChange={e => setTopN(e.target.value)} className="w-20 h-8" min={1} />
             </div>
             <div className="flex gap-2">
-              <Button size="sm" variant="outline" onClick={() => selectTopN(loyaltyLeaders)}>
+              <Button size="sm" variant="outline" onClick={() => selectTopN(filteredLoyalty)}>
                 Select Top {displayN}
               </Button>
               <Button size="sm" onClick={() => { if (promoSelectedUsers.size === 0) { toast.error("Select users first"); return; } setPromoDialogOpen(true); }} disabled={promoSelectedUsers.size === 0} className="gap-2">
@@ -293,7 +301,7 @@ const PromotionsTab = ({ allUsers, clubs }: Props) => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {loyaltyLeaders.slice(0, displayN).map((entry, i) => (
+                  {filteredLoyalty.slice(0, displayN).map((entry, i) => (
                     <TableRow key={entry.user_id} className={cn(i < 3 && "bg-primary/5")}>
                       <TableCell>
                         <Checkbox checked={promoSelectedUsers.has(entry.user_id)} onCheckedChange={() => toggleUser(entry.user_id)} />
@@ -330,12 +338,16 @@ const PromotionsTab = ({ allUsers, clubs }: Props) => {
         {/* Badge Leaderboard */}
         <TabsContent value="badges" className="space-y-4">
           <div className="flex items-center justify-between flex-wrap gap-3">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                <Input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search by name or email..." className="h-8 pl-9 w-56 bg-secondary border-border text-sm" />
+              </div>
               <Label className="text-sm text-muted-foreground">Show Top</Label>
               <Input type="number" value={topN} onChange={e => setTopN(e.target.value)} className="w-20 h-8" min={1} />
             </div>
             <div className="flex gap-2">
-              <Button size="sm" variant="outline" onClick={() => selectTopN(badgeLeaders)}>
+              <Button size="sm" variant="outline" onClick={() => selectTopN(filteredBadge)}>
                 Select Top {displayN}
               </Button>
               <Button size="sm" onClick={() => { if (promoSelectedUsers.size === 0) { toast.error("Select users first"); return; } setPromoDialogOpen(true); }} disabled={promoSelectedUsers.size === 0} className="gap-2">
@@ -358,7 +370,7 @@ const PromotionsTab = ({ allUsers, clubs }: Props) => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {badgeLeaders.slice(0, displayN).map((entry, i) => (
+                  {filteredBadge.slice(0, displayN).map((entry, i) => (
                     <TableRow key={entry.user_id} className={cn(i < 3 && "bg-primary/5")}>
                       <TableCell>
                         <Checkbox checked={promoSelectedUsers.has(entry.user_id)} onCheckedChange={() => toggleUser(entry.user_id)} />
