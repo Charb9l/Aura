@@ -202,6 +202,8 @@ const PromotionsTab = ({ allUsers, clubs }: Props) => {
       name: ruleName,
       discount_type: ruleDiscountType,
       discount_value: ruleDiscountType === "free" ? 100 : Number(ruleDiscountValue),
+      max_total_uses: ruleMaxTotalUses.trim() ? Number(ruleMaxTotalUses) : null,
+      uses_per_customer: Number(ruleUsesPerCustomer) || 1,
     } as any).select().single();
     if (error || !rule) { toast.error("Failed to create rule"); setRuleSaving(false); return; }
     // Add clubs
