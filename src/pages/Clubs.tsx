@@ -53,6 +53,7 @@ const ClubsPage = () => {
   const [selectedClub, setSelectedClub] = useState<Club | null>(null);
   const [clubPictures, setClubPictures] = useState<ClubPicture[]>([]);
   const [picturesLoading, setPicturesLoading] = useState(false);
+  const [showPartnerForm, setShowPartnerForm] = useState(false);
   const navigate = useNavigate();
 
   // Hero grid pictures
