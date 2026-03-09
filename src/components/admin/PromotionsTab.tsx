@@ -421,7 +421,7 @@ const PromotionsTab = ({ allUsers, clubs }: Props) => {
         {/* Price Rules */}
         <TabsContent value="rules" className="space-y-4">
           <div className="flex justify-end">
-            <Button onClick={() => { setRuleDialogOpen(true); setRuleName(""); setRuleDiscountType("percentage"); setRuleDiscountValue("50"); setRuleSelectedClubs(new Set(clubs.map(c => c.id))); }} className="gap-2">
+            <Button onClick={() => { setRuleDialogOpen(true); setRuleName(""); setRuleDiscountType("percentage"); setRuleDiscountValue("50"); setRuleSelectedClubs(new Set(clubs.map(c => c.id))); setRuleMaxTotalUses(""); setRuleUsesPerCustomer("1"); }} className="gap-2">
               <Plus className="h-4 w-4" /> Create Price Rule
             </Button>
           </div>
