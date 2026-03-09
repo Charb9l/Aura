@@ -170,7 +170,7 @@ const MatchmakerPage = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 max-w-full mx-auto"
+              className="flex items-center justify-start sm:justify-center gap-2 sm:gap-3 max-w-full mx-auto overflow-x-auto pb-2 scrollbar-hide"
             >
               {criteria.map((c, i) => {
                 const hues = [160, 200, 280, 40, 340];
