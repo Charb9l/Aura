@@ -35,9 +35,11 @@ interface Props {
   allUsers?: UserWithEmail[];
   initialDate?: string | null;
   onInitialDateHandled?: () => void;
+  priceMap?: Record<string, number>;
+  clubActivityMap?: Record<string, string[]>;
 }
 
-const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, onUpdateBooking, onAddBooking, allUsers, initialDate, onInitialDateHandled }: Props) => {
+const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, onUpdateBooking, onAddBooking, allUsers, initialDate, onInitialDateHandled, priceMap, clubActivityMap }: Props) => {
   const [selectedDate, setSelectedDate] = useState<Date>(initialDate ? parseISO(initialDate) : new Date());
   const [selectedBooking, setSelectedBooking] = useState<BookingRow | null>(null);
   const [bookingPrice, setBookingPrice] = useState<{ price: number; label: string | null } | null>(null);
@@ -290,7 +292,23 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
                       <TableCell className="text-sm text-foreground">{entry.booking_time}</TableCell>
                       <TableCell className="text-sm text-foreground">{(entry as any).court_type || "—"}</TableCell>
                       <TableCell className="text-sm text-foreground">
-                        {(entry as any).price != null ? `$${(entry as any).price}` : "—"}
+                        {(() => {
+                          const b = entry as unknown as BookingRow;
+                          const basePrice = b.price != null ? Number(b.price) : (() => {
+                            if (!priceMap) return 0;
+                            let cid: string | undefined;
+                            if (clubActivityMap) {
+                              for (const [id, acts] of Object.entries(clubActivityMap)) {
+                                if (acts.includes(b.activity)) { cid = id; break; }
+                              }
+                            }
+                            if (b.activity === "basketball" && b.court_type) {
+                              return (cid ? priceMap[`${cid}:${b.activity}:${b.court_type}`] : undefined) ?? priceMap[`${b.activity}:${b.court_type}`] ?? 0;
+                            }
+                            return (cid ? priceMap[`${cid}:${b.activity}`] : undefined) ?? priceMap[b.activity] ?? 0;
+                          })();
+                          return basePrice > 0 ? `$${basePrice}` : "—";
+                        })()}
                       </TableCell>
                       <TableCell className="text-sm text-foreground">
                         {(entry as any).discount_type === "free" ? (
@@ -300,8 +318,8 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
                         ) : "—"}
                       </TableCell>
                       <TableCell className="text-sm font-semibold text-foreground">
-                        {entry.status_label === "show" || entry.status_label === "pending"
-                          ? `$${getBookingRevenue(entry as unknown as BookingRow).toFixed(0)}`
+                        {entry.status_label === "show"
+                          ? `$${getBookingRevenue(entry as unknown as BookingRow, priceMap, clubActivityMap).toFixed(0)}`
                           : "—"}
                       </TableCell>
                       <TableCell className="text-sm text-foreground">

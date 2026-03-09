@@ -527,7 +527,7 @@ const AdminDashboard = () => {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="bookings">
             <h1 className="font-heading text-2xl md:text-4xl font-bold text-foreground mb-2">Bookings</h1>
             <p className="text-muted-foreground mb-8">View daily bookings by time slot.</p>
-            <BookingsCalendarTab bookings={myClubId ? filteredBookings : bookings} clubs={clubs} isMasterAdmin={!myClubId} onDeleteBooking={(id) => setBookings(prev => prev.filter(b => b.id !== id))} onUpdateBooking={(id, updates) => setBookings(prev => prev.map(b => b.id === id ? { ...b, ...updates } : b))} onAddBooking={(b) => setBookings(prev => [b, ...prev])} allUsers={allUsers} initialDate={pendingBookingDate} onInitialDateHandled={() => setPendingBookingDate(null)} />
+            <BookingsCalendarTab bookings={myClubId ? filteredBookings : bookings} clubs={clubs} isMasterAdmin={!myClubId} onDeleteBooking={(id) => setBookings(prev => prev.filter(b => b.id !== id))} onUpdateBooking={(id, updates) => setBookings(prev => prev.map(b => b.id === id ? { ...b, ...updates } : b))} onAddBooking={(b) => setBookings(prev => [b, ...prev])} allUsers={allUsers} initialDate={pendingBookingDate} onInitialDateHandled={() => setPendingBookingDate(null)} priceMap={priceMap} clubActivityMap={clubActivityMap} />
           </motion.div>
         )}
 
