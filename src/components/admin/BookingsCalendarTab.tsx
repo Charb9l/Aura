@@ -253,6 +253,10 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
                     <TableHead>Activity</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Time</TableHead>
+                    <TableHead>Court</TableHead>
+                    <TableHead>Price</TableHead>
+                    <TableHead>Discount</TableHead>
+                    <TableHead>Revenue</TableHead>
                     <TableHead>Added By</TableHead>
                     <TableHead>Added At</TableHead>
                     <TableHead>Status</TableHead>
