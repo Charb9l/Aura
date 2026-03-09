@@ -14,6 +14,7 @@ export interface BookingRow {
   discount_type?: string | null;
   attendance_status?: string | null;
   created_by?: string | null;
+  price?: number | null;
 }
 
 export interface ProfileRow {
