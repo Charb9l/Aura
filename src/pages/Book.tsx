@@ -266,22 +266,44 @@ const BookPage = () => {
     const offering = offerings.find(o => o.slug === selectedActivity);
     const activityName = offering?.name || selectedActivity;
 
-    // Determine discount: loyalty rewards take priority, then admin promotions
+    // Determine discount: stacking logic
+    // - If loyalty = FREE → overrides everything, price rule NOT consumed
+    // - If loyalty = 50% AND price rule exists → both consumed, result = FREE
+    // - If loyalty = 50% only → 50%
+    // - If price rule only → apply price rule discount
+    // - If admin promo only → apply admin promo
     let discountType: string | null = null;
     const clubReward = resolvedClubId ? getRewardForClub(resolvedClubId) : undefined;
-    if (clubReward?.reward === "free") discountType = "free";
-    else if (clubReward?.reward === "50%") discountType = "50%";
-    else if (activePromo) {
+    let consumePromo = false;
+    let consumePriceRule = false;
+
+    if (clubReward?.reward === "free") {
+      // FREE loyalty overrides everything — price rule NOT consumed
+      discountType = "free";
+    } else if (clubReward?.reward === "50%" && activePriceRule) {
+      // Both loyalty 50% + price rule stack → result is FREE, both consumed
+      discountType = "free";
+      consumePriceRule = true;
+    } else if (clubReward?.reward === "50%") {
+      discountType = "50%";
+    } else if (activePriceRule) {
+      // Price rule only
+      if (activePriceRule.discount_type === "free") discountType = "free";
+      else if (activePriceRule.discount_type === "percentage") {
+        discountType = activePriceRule.discount_value >= 100 ? "free" : "50%";
+      } else {
+        discountType = "50%";
+      }
+      consumePriceRule = true;
+    } else if (activePromo) {
+      // Admin-assigned promotion
       if (activePromo.discount_type === "free") discountType = "free";
-      else if (activePromo.discount_type === "percentage") discountType = `${activePromo.discount_value}%` === "50%" ? "50%" : "free"; // map to existing discount_type format
-      // For simplicity: percentage promos map to 50% if value=50, else "free" if 100
-      if (activePromo.discount_type === "percentage") {
+      else if (activePromo.discount_type === "percentage") {
         discountType = activePromo.discount_value >= 100 ? "free" : "50%";
       } else if (activePromo.discount_type === "fixed") {
-        discountType = "50%"; // fixed amount discounts stored as 50% for display
-      } else if (activePromo.discount_type === "free") {
-        discountType = "free";
+        discountType = "50%";
       }
+      consumePromo = true;
     }
 
     const { error } = await supabase.from("bookings").insert({
@@ -312,8 +334,8 @@ const BookPage = () => {
         },
       });
 
-      // Decrement promo uses if applied
-      if (activePromo && !clubReward) {
+      // Decrement admin promo uses if consumed
+      if (consumePromo && activePromo) {
         const newUses = activePromo.remaining_uses - 1;
         await supabase.from("user_promotions").update({ remaining_uses: newUses } as any).eq("id", activePromo.id);
         if (newUses <= 0) setActivePromo(null);
