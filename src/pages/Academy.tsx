@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import Navbar from "@/components/Navbar";
 import PhoneInput from "@/components/PhoneInput";
 import ActivityFilter from "@/components/ActivityFilter";
+import MobileBackButton from "@/components/MobileBackButton";
 import GalleryMosaic from "@/components/GalleryMosaic";
 
 interface AcademyClub {
@@ -346,6 +347,7 @@ const AcademyPage = () => {
       </section>
 
       <div className="container mx-auto px-6 pb-16">
+        <MobileBackButton fallbackPath="/" />
         {/* Filters */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-3 flex-wrap py-5">
           {academyOfferings.length > 0 && (

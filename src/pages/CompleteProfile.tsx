@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/sonner";
 import Navbar from "@/components/Navbar";
 import PhoneInput from "@/components/PhoneInput";
+import MobileBackButton from "@/components/MobileBackButton";
 
 const CompleteProfile = () => {
   const { user } = useAuth();
@@ -52,6 +53,7 @@ const CompleteProfile = () => {
           animate={{ opacity: 1, y: 0 }}
           className="w-full max-w-md space-y-8"
         >
+          <MobileBackButton fallbackPath="/" />
           <div className="text-center">
             <h1 className="font-heading text-3xl font-bold text-foreground">Complete Your Profile</h1>
             <p className="mt-2 text-muted-foreground">

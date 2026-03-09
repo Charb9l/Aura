@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo, useRef } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
+import MobileBackButton from "@/components/MobileBackButton";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, parseISO, differenceInHours, startOfDay } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
@@ -371,6 +372,7 @@ const ProfilePage = () => {
     <div className="min-h-screen pb-20 md:pb-0">
       <Navbar />
       <div className="container mx-auto px-6 pt-28 pb-16">
+        <MobileBackButton fallbackPath="/" />
         {/* Header with Avatar */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-10 flex items-center gap-4 sm:gap-5">
           {/* Avatar */}

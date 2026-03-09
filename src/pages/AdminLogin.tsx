@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/components/ui/sonner";
 import { ShieldCheck, LogIn } from "lucide-react";
+import MobileBackButton from "@/components/MobileBackButton";
 
 const AdminLogin = () => {
   const [email, setEmail] = useState("");
@@ -62,7 +63,10 @@ const AdminLogin = () => {
   if (user && isAdmin) return null;
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-6">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6">
+      <div className="w-full max-w-md mb-2">
+        <MobileBackButton fallbackPath="/" />
+      </div>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

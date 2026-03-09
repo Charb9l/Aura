@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import Navbar from "@/components/Navbar";
 import GalleryMosaic from "@/components/GalleryMosaic";
 import PartnerRequestForm from "@/components/PartnerRequestForm";
+import MobileBackButton from "@/components/MobileBackButton";
 
 interface Club {
   id: string;
@@ -164,7 +165,7 @@ const ClubsPage = () => {
       </section>
 
       <div className="container mx-auto px-6 pb-16">
-
+        <MobileBackButton fallbackPath="/" />
 
         {loading ? (
           <p className="text-muted-foreground text-center py-20">Loading...</p>

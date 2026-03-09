@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import Navbar from "@/components/Navbar";
 import PhoneInput from "@/components/PhoneInput";
 import { useAuth } from "@/contexts/AuthContext";
+import MobileBackButton from "@/components/MobileBackButton";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -153,6 +154,7 @@ const Auth = () => {
           animate={{ opacity: 1, y: 0 }}
           className="w-full max-w-md space-y-8"
         >
+          <MobileBackButton fallbackPath="/" />
           <div className="text-center">
             <h1 className="font-heading text-3xl font-bold text-foreground">
               {isLogin ? "Welcome Back" : "Create Account"}
