@@ -20,16 +20,10 @@ const MobileTabBar = () => {
   // Only show on small mobile phones, and not on admin pages
   if (!isSmallMobile || location.pathname.startsWith("/admin")) return null;
 
-  const profileTab = user
-    ? { to: "/profile", label: "Profile", icon: User }
-    : { to: "/auth", label: "Login", icon: LogIn };
-
-  const allTabs = [...TABS, profileTab];
-
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background/95 backdrop-blur-md pb-[env(safe-area-inset-bottom)]">
       <div className="flex items-center justify-around h-14">
-        {allTabs.map((tab) => {
+        {TABS.map((tab) => {
           const isActive = tab.to === "/"
             ? location.pathname === "/"
             : location.pathname.startsWith(tab.to);
