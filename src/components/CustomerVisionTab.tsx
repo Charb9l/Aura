@@ -718,7 +718,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
           <div className="space-y-6 pt-2">
             <div>
               <Label className="text-sm font-medium text-muted-foreground mb-2 block">Page Title</Label>
-              <Input value={pageTitle} onChange={(e) => setPageTitle(e.target.value)} placeholder="Page title" className="h-12 bg-secondary border-border" />
+              <Input value={pageTitle} onChange={(e) => setPageTitle(e.target.value)} placeholder="Page title" className="h-9 bg-secondary border-border text-sm" />
             </div>
             <div>
               <Label className="text-sm font-medium text-muted-foreground mb-2 block">Subtitle (text under the title)</Label>
