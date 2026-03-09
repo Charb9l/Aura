@@ -976,7 +976,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
           ) : offeringsDialogMode === "list" ? (
             <div className="space-y-4 pt-2">
               {offerings.length === 0 ? (<p className="text-center text-muted-foreground py-8">No activities yet.</p>) : (<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">{offerings.map((o) => (<div key={o.id} onClick={() => openEditOffering(o)} className="flex items-center gap-4 rounded-xl border border-border bg-secondary/50 p-4 cursor-pointer hover:border-primary/50 hover:bg-secondary transition-all"><div className="h-16 w-16 rounded-lg overflow-hidden bg-secondary shrink-0">{o.logo_url ? <img src={o.logo_url} alt={o.name} className="h-full w-full object-cover" /> : <div className="h-full w-full flex items-center justify-center text-muted-foreground"><Image className="h-6 w-6" /></div>}</div><div className="flex-1 min-w-0"><p className="font-medium text-foreground">{o.name}</p><p className="text-xs text-muted-foreground">{o.slug}</p></div><Pencil className="h-4 w-4 text-muted-foreground shrink-0" /></div>))}</div>)}
-              <Button onClick={() => setOfferingsDialogMode("add")} className="w-full h-12 text-base font-semibold glow gap-2"><Image className="h-4 w-4" /> Add Activity</Button>
+              <Button onClick={() => setOfferingsDialogMode("add")} className="w-full h-10 text-sm font-semibold glow gap-2"><Image className="h-4 w-4" /> Add Activity</Button>
             </div>
           ) : (
             <div className="space-y-5 pt-2">
