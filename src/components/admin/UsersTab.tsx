@@ -466,11 +466,11 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
         <DialogContent className="bg-card border-border">
           <DialogHeader><DialogTitle className="font-heading">Edit Customer — {editUser?.full_name || editUser?.email}</DialogTitle></DialogHeader>
           <div className="space-y-4 pt-2">
-            <div><Label>Full Name</Label><Input value={editName} onChange={(e) => setEditName(e.target.value)} className="h-12 bg-secondary border-border mt-1" /></div>
-            <div><Label>Email</Label><Input type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} className="h-12 bg-secondary border-border mt-1" /></div>
+            <div><Label>Full Name</Label><Input value={editName} onChange={(e) => setEditName(e.target.value)} className="h-9 bg-secondary border-border mt-1 text-sm" /></div>
+            <div><Label>Email</Label><Input type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} className="h-9 bg-secondary border-border mt-1 text-sm" /></div>
             <div><Label>Phone</Label><PhoneInput value={editPhone} onChange={setEditPhone} className="mt-1" /></div>
-            <div><Label>New Password <span className="text-xs text-muted-foreground">(leave empty to keep)</span></Label><Input type="password" placeholder="••••••••" value={editPassword} onChange={(e) => setEditPassword(e.target.value)} className="h-12 bg-secondary border-border mt-1" /></div>
-            <Button onClick={handleSaveUser} disabled={editSaving} className="w-full h-12 text-base font-semibold glow">{editSaving ? "Saving..." : "Save Changes"}</Button>
+            <div><Label>New Password <span className="text-xs text-muted-foreground">(leave empty to keep)</span></Label><Input type="password" placeholder="••••••••" value={editPassword} onChange={(e) => setEditPassword(e.target.value)} className="h-9 bg-secondary border-border mt-1 text-sm" /></div>
+            <Button onClick={handleSaveUser} disabled={editSaving} className="w-full h-10 text-sm font-semibold glow">{editSaving ? "Saving..." : "Save Changes"}</Button>
           </div>
         </DialogContent>
       </Dialog>
