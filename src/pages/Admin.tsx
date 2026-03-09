@@ -425,6 +425,7 @@ const AdminDashboard = () => {
                           })}
                         </TableBody>
                       </Table>
+                      </div>
                       <div className="flex justify-end pt-3 border-t border-border">
                         <p className="font-heading font-bold text-lg text-foreground">Total: ${filteredTotal.toLocaleString()}</p>
                       </div>
