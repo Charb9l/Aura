@@ -250,25 +250,29 @@ const LoyaltyPage = () => {
             <h2 className="font-heading text-3xl md:text-5xl font-light text-foreground mb-4">
               Ready to Start <span className="text-primary italic">Earning</span>?
             </h2>
-            <p className="text-muted-foreground text-sm font-light mb-10 max-w-md mx-auto">
-              Sign up, book your first session, and watch your points grow.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link to="/auth">
-                <Button
-                  variant="outline"
-                  className="h-11 px-8 text-xs uppercase tracking-[0.2em] font-medium border-border/60 text-foreground hover:border-primary/50 hover:text-primary transition-all duration-500"
-                >
-                  Create Account
-                </Button>
-              </Link>
-              <Link to="/book">
-                <Button className="h-11 px-8 text-xs uppercase tracking-[0.2em] font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-500">
-                  Book Now
-                  <ArrowRight className="ml-2 h-3.5 w-3.5" />
-                </Button>
-              </Link>
-            </div>
+            {!user && (
+              <>
+                <p className="text-muted-foreground text-sm font-light mb-10 max-w-md mx-auto">
+                  Sign up, book your first session, and watch your points grow.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <Link to="/auth">
+                    <Button
+                      variant="outline"
+                      className="h-11 px-8 text-xs uppercase tracking-[0.2em] font-medium border-border/60 text-foreground hover:border-primary/50 hover:text-primary transition-all duration-500"
+                    >
+                      Create Account
+                    </Button>
+                  </Link>
+                  <Link to="/book">
+                    <Button className="h-11 px-8 text-xs uppercase tracking-[0.2em] font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-500">
+                      Book Now
+                      <ArrowRight className="ml-2 h-3.5 w-3.5" />
+                    </Button>
+                  </Link>
+                </div>
+              </>
+            )}
           </motion.div>
         </div>
       </section>
