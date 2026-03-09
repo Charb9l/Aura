@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   LogOut, LayoutDashboard, Users, Settings, Tag, CalendarCheck,
-  Building2, GraduationCap, Gamepad2, TrendingUp, PanelLeftClose, PanelLeft, FileBarChart, Package, Menu, X, Bell, Zap,
+  Building2, GraduationCap, Gamepad2, TrendingUp, PanelLeftClose, PanelLeft, FileBarChart, Package, Menu, X, Bell, Zap, Star,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -27,6 +27,7 @@ const BASE_MENU_ITEMS = [
   { label: "AI Matchmaker", icon: Gamepad2, tab: "matchmaker" },
   { label: "Bookings", icon: CalendarCheck, tab: "bookings" },
   { label: "Clubs & Partners", icon: Building2, tab: "clubs" },
+  { label: "Featured Clubs", icon: Star, tab: "featured" },
   { label: "Habit Tracker", icon: TrendingUp, tab: "habits" },
   { label: "Promotions", icon: Tag, tab: "promotions" },
   { label: "Reports", icon: FileBarChart, tab: "reports" },

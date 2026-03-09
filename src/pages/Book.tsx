@@ -17,6 +17,7 @@ import Navbar from "@/components/Navbar";
 import ActivityFilter from "@/components/ActivityFilter";
 import { useRewards } from "@/hooks/useRewards";
 import { Spinner } from "@/components/ui/spinner";
+import FeaturedClubsStrip from "@/components/FeaturedClubsStrip";
 
 interface OfferingData {
   id: string;
@@ -468,6 +469,7 @@ const BookPage = () => {
       </section>
 
       <div className="container mx-auto px-6 pb-16">
+        <FeaturedClubsStrip variant="compact" className="mb-6" />
 
         {/* Rewards Banner */}
         {user && hasRewards && (

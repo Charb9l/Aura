@@ -453,6 +453,41 @@ export type Database = {
         }
         Relationships: []
       }
+      featured_clubs: {
+        Row: {
+          active: boolean
+          club_id: string
+          created_at: string
+          display_order: number
+          featured_image_url: string
+          id: string
+        }
+        Insert: {
+          active?: boolean
+          club_id: string
+          created_at?: string
+          display_order?: number
+          featured_image_url: string
+          id?: string
+        }
+        Update: {
+          active?: boolean
+          club_id?: string
+          created_at?: string
+          display_order?: number
+          featured_image_url?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "featured_clubs_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: true
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       former_users: {
         Row: {
           club_id: string | null

@@ -13,6 +13,7 @@ import PhoneInput from "@/components/PhoneInput";
 import { useAuth } from "@/contexts/AuthContext";
 import MobileBackButton from "@/components/MobileBackButton";
 import { Spinner } from "@/components/ui/spinner";
+import FeaturedClubsStrip from "@/components/FeaturedClubsStrip";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -284,6 +285,8 @@ const Auth = () => {
               {isLogin ? "Sign Up" : "Sign In"}
             </button>
           </p>
+
+          <FeaturedClubsStrip variant="auth" />
         </motion.div>
       </div>
     </div>

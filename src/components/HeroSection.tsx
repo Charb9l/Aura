@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
+import FeaturedClubsStrip from "@/components/FeaturedClubsStrip";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -177,6 +178,9 @@ const HeroSection = () => {
             );
           })}
         </div>
+
+        {/* Featured Partners Strip */}
+        <FeaturedClubsStrip variant="hero" />
       </div>
 
       {/* Scroll indicator */}
