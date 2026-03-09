@@ -12,6 +12,7 @@ import Navbar from "@/components/Navbar";
 import PhoneInput from "@/components/PhoneInput";
 import { useAuth } from "@/contexts/AuthContext";
 import MobileBackButton from "@/components/MobileBackButton";
+import { Spinner } from "@/components/ui/spinner";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
