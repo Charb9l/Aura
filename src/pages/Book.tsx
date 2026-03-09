@@ -810,8 +810,10 @@ const BookPage = () => {
                   <p className="text-sm"><span className="text-muted-foreground">Time:</span> <span className="text-foreground font-medium">{selectedTime}</span></p>
                   {currentPrice !== null && (() => {
                     const clubReward = resolvedClubId ? getRewardForClub(resolvedClubId) : undefined;
-                    const isFree = clubReward?.reward === "free";
-                    const isHalf = clubReward?.reward === "50%";
+                    const loyaltyFree = clubReward?.reward === "free";
+                    const loyaltyHalf = clubReward?.reward === "50%";
+                    const isFree = loyaltyFree || (loyaltyHalf && !!activePriceRule);
+                    const isHalf = loyaltyHalf && !activePriceRule;
                     const discountedPrice = isHalf ? (currentPrice / 2).toFixed(0) : null;
                     return (
                       <p className="text-sm">
@@ -826,6 +828,22 @@ const BookPage = () => {
                             <span className="text-muted-foreground line-through mr-2">${currentPrice}</span>
                             <span className="font-bold text-amber-400">${discountedPrice}</span>
                             <span className="ml-1 text-xs text-amber-400">(50% off)</span>
+                          </>
+                        ) : activePriceRule ? (
+                          <>
+                            <span className="text-muted-foreground line-through mr-2">${currentPrice}</span>
+                            {activePriceRule.discount_type === "free" ? (
+                              <span className="font-black text-emerald-400">FREE! 🎉</span>
+                            ) : (
+                              <>
+                                <span className="font-bold text-amber-400">
+                                  ${activePriceRule.discount_type === "percentage" ? (currentPrice * (1 - activePriceRule.discount_value / 100)).toFixed(0) : Math.max(0, currentPrice - activePriceRule.discount_value).toFixed(0)}
+                                </span>
+                                <span className="ml-1 text-xs text-amber-400">
+                                  ({activePriceRule.discount_type === "percentage" ? `${activePriceRule.discount_value}%` : `$${activePriceRule.discount_value}`} off)
+                                </span>
+                              </>
+                            )}
                           </>
                         ) : (
                           <span className="text-foreground font-bold">${currentPrice}</span>
