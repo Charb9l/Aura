@@ -104,9 +104,9 @@ const Navbar = () => {
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="fixed top-0 left-0 right-0 z-50 glass"
+      className="fixed top-0 left-0 right-0 z-50 glass pt-[env(safe-area-inset-top)]"
     >
-      <div className="container mx-auto flex items-center justify-between px-8 py-5">
+      <div className="container mx-auto flex items-center justify-between px-4 sm:px-8 py-3 sm:py-5">
         {/* Logo */}
         <Link to="/" className="font-heading tracking-tight text-foreground shrink-0">
           <span className="text-2xl font-light">{platformName.line1}</span>
