@@ -385,6 +385,7 @@ const AdminDashboard = () => {
                     <p className="text-muted-foreground text-center py-8">No confirmed bookings with attendance today.</p>
                   ) : (
                     <>
+                      <div className="overflow-x-auto">
                       <Table>
                         <TableHeader>
                           <TableRow>
