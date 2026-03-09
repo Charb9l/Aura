@@ -739,7 +739,7 @@ const BookPage = () => {
             </div>
           </motion.div>
 
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 sm:gap-5">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-4 sm:gap-5">
             {user ? (
               <Button type="submit" disabled={!selectedActivity || !date || !selectedTime || (selectedActivity === "basketball" && !courtType) || (matchingClubs.length > 1 && !selectedClub) || !selectedLocation || submitting} className="h-14 px-10 text-lg font-bold rounded-xl glow">
                 {submitting ? "Booking..." : "Confirm Booking"}
@@ -753,15 +753,15 @@ const BookPage = () => {
               const clubReward = resolvedClubId ? getRewardForClub(resolvedClubId) : undefined;
               const loyaltyFree = clubReward?.reward === "free";
               const loyaltyHalf = clubReward?.reward === "50%";
-              // Stacking: loyalty 50% + price rule = FREE
               const isFree = loyaltyFree || (loyaltyHalf && !!activePriceRule);
               const isHalf = loyaltyHalf && !activePriceRule;
+              const hasPromoDiscount = !isFree && !isHalf && (!!activePriceRule || !!activePromo);
               const discountedPrice = isHalf ? (currentPrice / 2).toFixed(0) : null;
 
               return (
                 <div className={cn(
-                  "flex items-center gap-3 rounded-xl border px-5 py-2.5 backdrop-blur-sm",
-                  isFree ? "border-emerald-500/50 bg-emerald-500/10" : isHalf ? "border-amber-500/50 bg-amber-500/10" : activePriceRule ? "border-amber-500/50 bg-amber-500/10" : "border-primary/30 bg-primary/5"
+                  "flex items-center justify-center gap-3 rounded-xl border px-5 py-2.5 backdrop-blur-sm",
+                  isFree ? "border-emerald-500/50 bg-emerald-500/10" : (isHalf || hasPromoDiscount) ? "border-amber-500/50 bg-amber-500/10" : "border-primary/30 bg-primary/5"
                 )}>
                   <span className="text-xs uppercase tracking-widest text-muted-foreground font-medium">Total</span>
                   {isFree ? (
@@ -795,13 +795,30 @@ const BookPage = () => {
                         </>
                       )}
                     </div>
+                  ) : activePromo ? (
+                    <div className="flex items-center gap-2">
+                      <span className="font-heading text-lg text-muted-foreground line-through">${currentPrice}</span>
+                      {activePromo.discount_type === "free" ? (
+                        <span className="font-heading text-2xl font-black text-emerald-400 animate-pulse flex items-center gap-1">
+                          <Sparkles className="h-5 w-5" /> FREE!
+                        </span>
+                      ) : (
+                        <>
+                          <span className="font-heading text-2xl font-bold text-amber-400">
+                            ${(currentPrice * (1 - activePromo.discount_value / 100)).toFixed(0)}
+                          </span>
+                          <span className="text-xs font-bold text-amber-400 bg-amber-400/15 rounded-full px-2 py-0.5">
+                            {activePromo.discount_value}% OFF
+                          </span>
+                        </>
+                      )}
+                    </div>
                   ) : (
                     <span className="font-heading text-2xl font-bold text-primary">${currentPrice}</span>
                   )}
                 </div>
               );
             })()}
-
           </motion.div>
 
           {/* Confirmation Dialog */}
