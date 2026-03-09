@@ -95,6 +95,8 @@ const PromotionsTab = ({ allUsers, clubs }: Props) => {
   const [ruleSaving, setRuleSaving] = useState(false);
   const [ruleMaxTotalUses, setRuleMaxTotalUses] = useState("");
   const [ruleUsesPerCustomer, setRuleUsesPerCustomer] = useState("1");
+  const [ruleStartDate, setRuleStartDate] = useState<Date | undefined>(undefined);
+  const [ruleEndDate, setRuleEndDate] = useState<Date | undefined>(undefined);
 
   // Top N selector
   const [topN, setTopN] = useState("5");
