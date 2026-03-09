@@ -571,31 +571,50 @@ const PromotionsTab = ({ allUsers, clubs }: Props) => {
             )}
             <div>
               <Label className="text-sm mb-2 block">Participating Clubs</Label>
-              <div className="flex flex-wrap gap-2">
-                {clubs.map(club => {
-                  const selected = ruleSelectedClubs.has(club.id);
-                  return (
-                    <button
-                      key={club.id}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-2 h-9 text-sm">
+                    <Users className="h-3.5 w-3.5" />
+                    {ruleSelectedClubs.size === clubs.length ? "All Clubs" : `${ruleSelectedClubs.size} of ${clubs.length} Clubs`}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-60 p-3 bg-card border-border" align="start">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs font-medium text-muted-foreground">Select Clubs</p>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 text-xs px-2 text-muted-foreground"
                       onClick={() => {
-                        setRuleSelectedClubs(prev => {
-                          const next = new Set(prev);
-                          if (next.has(club.id)) next.delete(club.id);
-                          else next.add(club.id);
-                          return next;
-                        });
+                        if (ruleSelectedClubs.size === clubs.length) {
+                          setRuleSelectedClubs(new Set());
+                        } else {
+                          setRuleSelectedClubs(new Set(clubs.map(c => c.id)));
+                        }
                       }}
-                      className={cn(
-                        "px-3 py-1.5 rounded-lg text-xs font-medium transition-all border",
-                        selected ? "bg-primary/10 text-primary border-primary/30" : "bg-secondary text-muted-foreground border-border"
-                      )}
                     >
-                      {selected && <Check className="h-3 w-3 inline mr-1" />}
-                      {club.name}
-                    </button>
-                  );
-                })}
-              </div>
+                      {ruleSelectedClubs.size === clubs.length ? "Untick All" : "Tick All"}
+                    </Button>
+                  </div>
+                  <div className="space-y-1.5 max-h-52 overflow-y-auto">
+                    {clubs.map(club => {
+                      const selected = ruleSelectedClubs.has(club.id);
+                      return (
+                        <label key={club.id} className="flex items-center gap-2.5 cursor-pointer rounded-lg px-2 py-1.5 hover:bg-secondary transition-colors">
+                          <Checkbox checked={selected} onCheckedChange={() => {
+                            setRuleSelectedClubs(prev => {
+                              const next = new Set(prev);
+                              if (next.has(club.id)) next.delete(club.id); else next.add(club.id);
+                              return next;
+                            });
+                          }} />
+                          <span className="text-sm text-foreground">{club.name}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
           <DialogFooter>
