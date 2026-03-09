@@ -477,6 +477,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
       setPageSubtitle(content.subtitle || "");
       setPageFields([...(content.fields || [])]);
       setMatchCriteria([...(content.criteria || [])]);
+      setMaxClubsGrid(content.max_clubs_grid ?? 3);
     }
     setEditingPage(slug);
   };
