@@ -22,7 +22,7 @@ const MobileTabBar = () => {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background/95 backdrop-blur-md pb-[env(safe-area-inset-bottom)]">
-      <div className="flex items-center justify-around h-14">
+      <div className="flex items-center justify-around h-16">
         {TABS.map((tab) => {
           const isActive = tab.to === "/"
             ? location.pathname === "/"

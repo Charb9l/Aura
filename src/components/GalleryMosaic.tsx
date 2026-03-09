@@ -104,13 +104,13 @@ const GalleryMosaic = ({ images, alt = "Gallery", fallback, className }: Gallery
               <>
                 <button
                   onClick={(e) => { e.stopPropagation(); prev(); }}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-secondary/80 p-3 text-foreground hover:bg-secondary transition-colors z-10"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-secondary/80 p-3.5 text-foreground active:bg-secondary transition-colors z-10"
                 >
                   <ChevronLeft className="h-6 w-6" />
                 </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); next(); }}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-secondary/80 p-3 text-foreground hover:bg-secondary transition-colors z-10"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-secondary/80 p-3.5 text-foreground active:bg-secondary transition-colors z-10"
                 >
                   <ChevronRight className="h-6 w-6" />
                 </button>

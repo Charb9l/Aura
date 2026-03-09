@@ -262,7 +262,7 @@ const SettingsTab = () => {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="h-8 w-8 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                         onClick={() => { setEditingLocationId(loc.id); setEditingLocationName(loc.name); }}
                       >
                         <Pencil className="h-3.5 w-3.5" />
@@ -270,7 +270,7 @@ const SettingsTab = () => {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="h-8 w-8 text-destructive opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                         onClick={() => handleDeleteLocation(loc.id, loc.name)}
                       >
                         <Trash2 className="h-3.5 w-3.5" />

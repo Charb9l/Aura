@@ -142,3 +142,34 @@
     border-color: hsl(43 30% 58% / 0.3);
   }
 }
+
+/* ─── Touch-friendly: minimum 44×44px hit areas on touch devices ─── */
+@media (pointer: coarse) {
+  /* Ensure all interactive elements have minimum touch target */
+  a, button, [role="button"], input[type="checkbox"], input[type="radio"],
+  select, .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Icon-only buttons: pad them to 44px without changing visual size */
+  button:has(> svg:only-child),
+  a:has(> svg:only-child) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Tab bar items already sized correctly */
+  nav a, nav button {
+    min-height: 44px;
+  }
+
+  /* Convert hover opacity reveals to always-visible on touch */
+  .group-hover\:opacity-100,
+  .sm\:group-hover\/strip\:opacity-100 {
+    opacity: 1 !important;
+  }
+}
