@@ -445,7 +445,8 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
   const [pageTitle, setPageTitle] = useState("");
   const [pageSubtitle, setPageSubtitle] = useState("");
   const [pageFields, setPageFields] = useState<FormField[]>([]);
-  const [matchCriteria, setMatchCriteria] = useState<{ emoji: string; label: string }[]>([]);
+  const [matchCriteria, setMatchCriteria] = useState<{ emoji: string; label: string; use_gold?: boolean }[]>([]);
+  const [habitsBadges, setHabitsBadges] = useState<{ label: string; use_gold?: boolean }[]>([]);
   const [maxClubsGrid, setMaxClubsGrid] = useState<number>(3);
 
   useEffect(() => {
