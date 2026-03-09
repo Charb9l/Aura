@@ -469,6 +469,7 @@ const BookPage = () => {
       </section>
 
       <div className="container mx-auto px-6 pb-16">
+        <FeaturedClubsStrip variant="compact" className="mb-6" />
 
         {/* Rewards Banner */}
         {user && hasRewards && (
