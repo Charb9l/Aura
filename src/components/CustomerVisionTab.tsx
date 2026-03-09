@@ -446,6 +446,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
   const [pageSubtitle, setPageSubtitle] = useState("");
   const [pageFields, setPageFields] = useState<FormField[]>([]);
   const [matchCriteria, setMatchCriteria] = useState<{ emoji: string; label: string }[]>([]);
+  const [maxClubsGrid, setMaxClubsGrid] = useState<number>(3);
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -476,6 +477,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
       setPageSubtitle(content.subtitle || "");
       setPageFields([...(content.fields || [])]);
       setMatchCriteria([...(content.criteria || [])]);
+      setMaxClubsGrid(content.max_clubs_grid ?? 3);
     }
     setEditingPage(slug);
   };
@@ -514,6 +516,9 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
     const content: any = { title: pageTitle, subtitle: pageSubtitle };
     if (slug === "book" || slug === "academy") {
       content.fields = pageFields.filter(f => f.label.trim());
+    }
+    if (slug === "book") {
+      content.max_clubs_grid = maxClubsGrid;
     }
     if (slug === "matchmaker") {
       content.criteria = matchCriteria.filter(c => c.label.trim());
@@ -717,6 +722,21 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
             {hasFields && (
               <div className="border-t border-border pt-6">
                 <FieldsEditor fields={pageFields} onChange={setPageFields} label={fieldsLabel} />
+              </div>
+            )}
+
+            {editingPage === "book" && (
+              <div className="border-t border-border pt-6">
+                <Label className="text-sm font-medium text-muted-foreground mb-2 block">Max clubs shown as cards</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={20}
+                  value={maxClubsGrid}
+                  onChange={(e) => setMaxClubsGrid(Math.max(1, parseInt(e.target.value) || 1))}
+                  className="h-12 bg-secondary border-border w-32"
+                />
+                <p className="text-xs text-muted-foreground mt-1.5">If more clubs are available for an activity, they'll appear as a dropdown instead of cards.</p>
               </div>
             )}
 
