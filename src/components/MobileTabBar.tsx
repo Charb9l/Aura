@@ -1,20 +1,19 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, CalendarCheck, TrendingUp, User, Trophy, LogIn } from "lucide-react";
+import { Home, CalendarCheck, Users, TrendingUp, Trophy } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/contexts/AuthContext";
 import { useMediaQuery } from "@/hooks/use-mobile";
 
 const TABS = [
   { to: "/", label: "Home", icon: Home },
   { to: "/book", label: "Book", icon: CalendarCheck },
+  { to: "/matchmaker", label: "Match", icon: Users },
   { to: "/habits", label: "Habits", icon: TrendingUp },
   { to: "/loyalty", label: "Loyalty", icon: Trophy },
 ];
 
 const MobileTabBar = () => {
   const location = useLocation();
-  const { user } = useAuth();
   // Only show on small phones (< 640px), not tablets
   const isSmallMobile = useMediaQuery("(max-width: 639px)");
 
