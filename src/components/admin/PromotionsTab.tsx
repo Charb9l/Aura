@@ -47,6 +47,8 @@ interface PriceRule {
   clubs: string[];
   max_total_uses: number | null;
   uses_per_customer: number;
+  start_date: string | null;
+  end_date: string | null;
 }
 
 interface UserPromotion {
