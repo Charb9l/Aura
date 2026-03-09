@@ -835,7 +835,9 @@ export type Database = {
           discount_type: string
           discount_value: number
           id: string
+          max_total_uses: number | null
           name: string
+          uses_per_customer: number
         }
         Insert: {
           active?: boolean
@@ -843,7 +845,9 @@ export type Database = {
           discount_type: string
           discount_value?: number
           id?: string
+          max_total_uses?: number | null
           name: string
+          uses_per_customer?: number
         }
         Update: {
           active?: boolean
@@ -851,7 +855,9 @@ export type Database = {
           discount_type?: string
           discount_value?: number
           id?: string
+          max_total_uses?: number | null
           name?: string
+          uses_per_customer?: number
         }
         Relationships: []
       }

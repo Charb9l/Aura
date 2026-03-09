@@ -42,7 +42,9 @@ interface PriceRule {
   discount_value: number;
   active: boolean;
   created_at: string;
-  clubs: string[]; // club IDs
+  clubs: string[];
+  max_total_uses: number | null;
+  uses_per_customer: number;
 }
 
 interface UserPromotion {
@@ -87,6 +89,8 @@ const PromotionsTab = ({ allUsers, clubs }: Props) => {
   const [ruleDiscountValue, setRuleDiscountValue] = useState("50");
   const [ruleSelectedClubs, setRuleSelectedClubs] = useState<Set<string>>(new Set());
   const [ruleSaving, setRuleSaving] = useState(false);
+  const [ruleMaxTotalUses, setRuleMaxTotalUses] = useState("");
+  const [ruleUsesPerCustomer, setRuleUsesPerCustomer] = useState("1");
 
   // Top N selector
   const [topN, setTopN] = useState("5");
@@ -198,6 +202,8 @@ const PromotionsTab = ({ allUsers, clubs }: Props) => {
       name: ruleName,
       discount_type: ruleDiscountType,
       discount_value: ruleDiscountType === "free" ? 100 : Number(ruleDiscountValue),
+      max_total_uses: ruleMaxTotalUses.trim() ? Number(ruleMaxTotalUses) : null,
+      uses_per_customer: Number(ruleUsesPerCustomer) || 1,
     } as any).select().single();
     if (error || !rule) { toast.error("Failed to create rule"); setRuleSaving(false); return; }
     // Add clubs
@@ -415,7 +421,7 @@ const PromotionsTab = ({ allUsers, clubs }: Props) => {
         {/* Price Rules */}
         <TabsContent value="rules" className="space-y-4">
           <div className="flex justify-end">
-            <Button onClick={() => { setRuleDialogOpen(true); setRuleName(""); setRuleDiscountType("percentage"); setRuleDiscountValue("50"); setRuleSelectedClubs(new Set(clubs.map(c => c.id))); }} className="gap-2">
+            <Button onClick={() => { setRuleDialogOpen(true); setRuleName(""); setRuleDiscountType("percentage"); setRuleDiscountValue("50"); setRuleSelectedClubs(new Set(clubs.map(c => c.id))); setRuleMaxTotalUses(""); setRuleUsesPerCustomer("1"); }} className="gap-2">
               <Plus className="h-4 w-4" /> Create Price Rule
             </Button>
           </div>
@@ -433,6 +439,9 @@ const PromotionsTab = ({ allUsers, clubs }: Props) => {
                         <Badge className={cn("text-xs", rule.discount_type === "free" ? "bg-emerald-500/15 text-emerald-500" : rule.discount_type === "percentage" ? "bg-amber-500/15 text-amber-500" : "bg-primary/15 text-primary")}>
                           {formatDiscount(rule.discount_type, rule.discount_value)}
                         </Badge>
+                        <span className="text-xs text-muted-foreground">
+                          {rule.max_total_uses ? `${rule.max_total_uses} total uses` : "Unlimited users"} · {rule.uses_per_customer}× per customer
+                        </span>
                       </div>
                       <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2">
@@ -569,6 +578,16 @@ const PromotionsTab = ({ allUsers, clubs }: Props) => {
                 <Input type="number" value={ruleDiscountValue} onChange={e => setRuleDiscountValue(e.target.value)} min={1} />
               </div>
             )}
+            <div>
+              <Label className="text-sm">Max Total Uses (customers)</Label>
+              <Input type="number" value={ruleMaxTotalUses} onChange={e => setRuleMaxTotalUses(e.target.value)} placeholder="Leave empty for unlimited" min={1} />
+              <p className="text-xs text-muted-foreground mt-1">First X customers to use this rule. Empty = unlimited.</p>
+            </div>
+            <div>
+              <Label className="text-sm">Uses per Customer</Label>
+              <Input type="number" value={ruleUsesPerCustomer} onChange={e => setRuleUsesPerCustomer(e.target.value)} min={1} />
+              <p className="text-xs text-muted-foreground mt-1">How many times each customer can benefit from this rule.</p>
+            </div>
             <div>
               <Label className="text-sm mb-2 block">Participating Clubs</Label>
               <Popover>
