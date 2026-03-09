@@ -551,7 +551,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
         {addAcademyBubblePreview ? (
           <div className="group relative rounded-lg overflow-hidden border border-border bg-card w-40 aspect-video">
             <img src={addAcademyBubblePreview} alt="Bubble" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-background/0 group-hover:bg-background/60 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+            <div className="absolute inset-0 bg-background/0 sm:group-hover:bg-background/60 transition-all flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
               <button type="button" onClick={() => { setAddAcademyBubbleFile(null); setAddAcademyBubblePreview(null); }} className="rounded-full bg-destructive p-2 text-destructive-foreground shadow-lg hover:bg-destructive/90"><Trash2 className="h-4 w-4" /></button>
             </div>
           </div>
