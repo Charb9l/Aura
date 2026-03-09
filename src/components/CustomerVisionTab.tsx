@@ -740,7 +740,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
                   max={20}
                   value={maxClubsGrid}
                   onChange={(e) => setMaxClubsGrid(Math.max(1, parseInt(e.target.value) || 1))}
-                  className="h-12 bg-secondary border-border w-32"
+                  className="h-9 bg-secondary border-border w-32 text-sm"
                 />
                 <p className="text-xs text-muted-foreground mt-1.5">If more clubs are available for an activity, they'll appear as a dropdown instead of cards.</p>
               </div>
