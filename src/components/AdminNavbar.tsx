@@ -27,6 +27,7 @@ const BASE_MENU_ITEMS = [
   { label: "AI Matchmaker", icon: Gamepad2, tab: "matchmaker" },
   { label: "Bookings", icon: CalendarCheck, tab: "bookings" },
   { label: "Clubs & Partners", icon: Building2, tab: "clubs" },
+  { label: "Featured Clubs", icon: Star, tab: "featured" },
   { label: "Habit Tracker", icon: TrendingUp, tab: "habits" },
   { label: "Promotions", icon: Tag, tab: "promotions" },
   { label: "Reports", icon: FileBarChart, tab: "reports" },
