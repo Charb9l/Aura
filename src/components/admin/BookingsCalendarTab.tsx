@@ -288,6 +288,22 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
                       <TableCell><Badge variant="secondary" className="text-xs">{entry.activity_name}</Badge></TableCell>
                       <TableCell className="text-sm text-foreground">{entry.booking_date}</TableCell>
                       <TableCell className="text-sm text-foreground">{entry.booking_time}</TableCell>
+                      <TableCell className="text-sm text-foreground">{(entry as any).court_type || "—"}</TableCell>
+                      <TableCell className="text-sm text-foreground">
+                        {(entry as any).price != null ? `$${(entry as any).price}` : "—"}
+                      </TableCell>
+                      <TableCell className="text-sm text-foreground">
+                        {(entry as any).discount_type === "free" ? (
+                          <Badge className="text-xs bg-emerald-500/20 text-emerald-400 border-emerald-500/30">FREE</Badge>
+                        ) : (entry as any).discount_type === "50%" ? (
+                          <Badge className="text-xs bg-amber-500/20 text-amber-400 border-amber-500/30">50% OFF</Badge>
+                        ) : "—"}
+                      </TableCell>
+                      <TableCell className="text-sm font-semibold text-foreground">
+                        {entry.status_label === "show" || entry.status_label === "pending"
+                          ? `$${getBookingRevenue(entry as unknown as BookingRow).toFixed(0)}`
+                          : "—"}
+                      </TableCell>
                       <TableCell className="text-sm text-foreground">
                         {entry.created_by ? getAdminName(entry.created_by) : <span className="text-muted-foreground">Self</span>}
                       </TableCell>
