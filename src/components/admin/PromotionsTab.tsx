@@ -312,7 +312,7 @@ const PromotionsTab = ({ allUsers, clubs }: Props) => {
           </div>
 
           <Card className="bg-card border-border">
-            <CardContent className="p-0">
+            <CardContent className="p-0 overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -380,7 +380,7 @@ const PromotionsTab = ({ allUsers, clubs }: Props) => {
           </div>
 
           <Card className="bg-card border-border">
-            <CardContent className="p-0">
+            <CardContent className="p-0 overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>

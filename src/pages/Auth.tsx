@@ -115,7 +115,7 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pb-20 md:pb-0">
       <Navbar />
 
       {/* Forgot Password Dialog — 2/3 screen */}

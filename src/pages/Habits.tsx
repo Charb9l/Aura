@@ -457,9 +457,9 @@ const HabitsPage = () => {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pb-20 md:pb-0">
       <Navbar />
-      <div className="container mx-auto px-6 pt-28 pb-20">
+      <div className="container mx-auto px-4 sm:px-6 pt-24 sm:pt-28 pb-20">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           {/* Header */}
           <div className="text-center mb-6">

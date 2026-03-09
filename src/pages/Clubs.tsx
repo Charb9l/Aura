@@ -109,7 +109,7 @@ const ClubsPage = () => {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pb-20 md:pb-0">
       <Navbar />
 
       {/* Hero section with dynamic grid background */}

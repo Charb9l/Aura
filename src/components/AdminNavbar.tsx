@@ -170,7 +170,7 @@ const AdminNavbar = ({ activeTab, onTabChange, assignedClubId, notificationCount
     return (
       <>
         {/* Fixed top bar */}
-        <div className="fixed top-0 left-0 right-0 z-50 h-14 flex items-center justify-between px-4 border-b border-border/60 bg-background">
+        <div className="fixed top-0 left-0 right-0 z-50 h-14 flex items-center justify-between px-4 border-b border-border/60 bg-background pt-[env(safe-area-inset-top)]">
           <button onClick={() => setMobileOpen(true)} className="flex items-center justify-center rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
             <Menu className="h-5 w-5" />
           </button>
@@ -195,7 +195,7 @@ const AdminNavbar = ({ activeTab, onTabChange, assignedClubId, notificationCount
                 animate={{ x: 0 }}
                 exit={{ x: -280 }}
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="fixed top-0 left-0 bottom-0 z-50 w-[280px] flex flex-col border-r border-border/60 bg-background"
+                className="fixed top-0 left-0 bottom-0 z-50 w-[280px] flex flex-col border-r border-border/60 bg-background pt-[env(safe-area-inset-top)]"
               >
                 {/* Header */}
                 <div className="flex items-center justify-between h-14 px-5 border-b border-border/60 shrink-0">

@@ -247,6 +247,7 @@ const PartnerRequestsDialog = ({ open, onOpenChange }: Props) => {
             ) : requests.length === 0 ? (
               <p className="text-center text-muted-foreground py-12">No partner requests yet.</p>
             ) : (
+              <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -295,6 +296,7 @@ const PartnerRequestsDialog = ({ open, onOpenChange }: Props) => {
                   ))}
                 </TableBody>
               </Table>
+              </div>
             )}
           </>
         )}
