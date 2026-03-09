@@ -503,7 +503,7 @@ const HabitsPage = () => {
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.3 + i * 0.08, type: "spring", stiffness: 200 }}
                         whileHover={{ scale: 1.04, y: -2 }}
-                        className="group snap-start relative flex flex-col lg:flex-row items-center gap-1 lg:gap-2.5 rounded-xl lg:rounded-2xl px-2 py-1.5 lg:px-5 lg:py-3 text-foreground cursor-default overflow-hidden shrink-0 min-w-[78px] lg:min-w-0"
+                        className="group relative flex flex-col lg:flex-row items-center gap-1 lg:gap-2.5 rounded-xl lg:rounded-2xl px-2 py-1.5 lg:px-5 lg:py-3 text-foreground cursor-default overflow-hidden min-w-[60px] lg:min-w-0"
                         style={{
                           background: `linear-gradient(135deg, hsl(${hue} 50% 15% / 0.6), hsl(${hue} 40% 20% / 0.3))`,
                           border: `1px solid hsl(${hue} 50% 40% / 0.35)`,
