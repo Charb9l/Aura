@@ -89,6 +89,8 @@ const PromotionsTab = ({ allUsers, clubs }: Props) => {
   const [ruleDiscountValue, setRuleDiscountValue] = useState("50");
   const [ruleSelectedClubs, setRuleSelectedClubs] = useState<Set<string>>(new Set());
   const [ruleSaving, setRuleSaving] = useState(false);
+  const [ruleMaxTotalUses, setRuleMaxTotalUses] = useState("");
+  const [ruleUsesPerCustomer, setRuleUsesPerCustomer] = useState("1");
 
   // Top N selector
   const [topN, setTopN] = useState("5");
