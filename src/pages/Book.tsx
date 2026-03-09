@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import Navbar from "@/components/Navbar";
 import ActivityFilter from "@/components/ActivityFilter";
 import { useRewards } from "@/hooks/useRewards";
+import { Spinner } from "@/components/ui/spinner";
 
 interface OfferingData {
   id: string;
