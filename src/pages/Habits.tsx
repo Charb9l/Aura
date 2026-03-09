@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Spinner, PageLoader } from "@/components/ui/spinner";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Flame, Trophy, Target, TrendingUp, Zap, Star, Sun, Moon, Clock, Sparkles, Gift, ChevronDown, Shield, Award, Crown } from "lucide-react";
 import { format, parseISO, startOfWeek, subWeeks, differenceInDays } from "date-fns";
 import { cn } from "@/lib/utils";
