@@ -845,7 +845,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
               {addClubHasAcademy && renderAddAcademyPicturesSection()}
             </div>
 
-            <Button onClick={handleAddClub} disabled={addClubSaving || !addClubName.trim()} className="w-full h-12 text-base font-semibold glow"><Building2 className="h-4 w-4 mr-2" />{addClubSaving ? "Adding..." : "Add Club"}</Button>
+            <Button onClick={handleAddClub} disabled={addClubSaving || !addClubName.trim()} className="w-full h-10 text-sm font-semibold glow"><Building2 className="h-4 w-4 mr-2" />{addClubSaving ? "Adding..." : "Add Club"}</Button>
           </div>
         </DialogContent>
       </Dialog>
