@@ -32,10 +32,16 @@ interface BadgeDef {
   target: number;
 }
 
+interface FeatureBadge {
+  label: string;
+  use_gold?: boolean;
+}
+
 interface PageContent {
   title?: string;
   subtitle?: string;
   badge_levels?: CmsBadgeLevel[];
+  feature_badges?: FeatureBadge[];
 }
 
 interface CmsBadgeConfig {
