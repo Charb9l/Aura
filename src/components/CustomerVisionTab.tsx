@@ -416,7 +416,7 @@ const ActivitiesManager = ({ open, onOpenChange }: { open: boolean; onOpenChange
                 )}
               </div>
             </div>
-            <Button onClick={handleSave} disabled={formSaving || !formName.trim()} className="w-full h-12 text-base font-semibold glow">
+            <Button onClick={handleSave} disabled={formSaving || !formName.trim()} className="w-full h-10 text-sm font-semibold glow">
               {formSaving ? "Saving..." : editMode === "add" ? "Add Activity" : "Save Changes"}
             </Button>
           </div>
