@@ -48,6 +48,7 @@ interface BadgeConfig {
   description: string;
   metric: string;
   target: number;
+  use_gold?: boolean;
 }
 
 interface LevelConfig {
