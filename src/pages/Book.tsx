@@ -788,7 +788,7 @@ const BookPage = () => {
             </div>
           </motion.div>
 
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-4 sm:gap-5">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-5">
             {user ? (
               <Button type="submit" disabled={!selectedActivity || !date || !selectedTime || (selectedActivity === "basketball" && !courtType) || (matchingClubs.length > 1 && !selectedClub) || !selectedLocation || submitting} className="h-14 px-10 text-lg font-bold rounded-xl glow">
                 {submitting ? "Booking..." : "Confirm Booking"}
@@ -809,22 +809,24 @@ const BookPage = () => {
 
               return (
                 <div className={cn(
-                  "flex items-center justify-center gap-3 rounded-xl border px-5 py-2.5 backdrop-blur-sm",
+                  "flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 rounded-xl border px-4 sm:px-5 py-3 sm:py-2.5 backdrop-blur-sm order-first sm:order-last",
                   isFree ? "border-emerald-500/50 bg-emerald-500/10" : (isHalf || hasPromoDiscount) ? "border-amber-500/50 bg-amber-500/10" : "border-primary/30 bg-primary/5"
                 )}>
-                  <span className="text-xs uppercase tracking-widest text-muted-foreground font-medium">Total</span>
+                  <span className="text-xs uppercase tracking-widest text-muted-foreground font-medium">Total Price</span>
                   {isFree ? (
-                    <div className="flex items-center gap-2">
-                      <span className="font-heading text-lg text-muted-foreground line-through">${currentPrice}</span>
-                      <span className="font-heading text-2xl font-black text-emerald-400 animate-pulse flex items-center gap-1">
-                        <Sparkles className="h-5 w-5" /> FREE!
+                    <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
+                      <span className="font-heading text-base sm:text-lg text-muted-foreground line-through">${currentPrice}</span>
+                      <span className="font-heading text-xl sm:text-2xl font-black text-emerald-400 animate-pulse flex items-center gap-1">
+                        <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" /> FREE!
                       </span>
                     </div>
                   ) : isHalf ? (
-                    <div className="flex items-center gap-2">
-                      <span className="font-heading text-lg text-muted-foreground line-through">${currentPrice}</span>
-                      <span className="font-heading text-2xl font-bold text-amber-400">${discountedPrice}</span>
-                      <span className="text-xs font-bold text-amber-400 bg-amber-400/15 rounded-full px-2 py-0.5">50% OFF</span>
+                    <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
+                      <span className="font-heading text-base sm:text-lg text-muted-foreground line-through">${currentPrice}</span>
+                      <div className="flex items-center gap-1">
+                        <span className="font-heading text-xl sm:text-2xl font-bold text-amber-400">${discountedPrice}</span>
+                        <span className="text-xs font-bold text-amber-400 bg-amber-400/15 rounded-full px-2 py-0.5">50% OFF</span>
+                      </div>
                     </div>
                   ) : activePriceRule ? (
                     <div className="flex items-center gap-2">
@@ -863,7 +865,7 @@ const BookPage = () => {
                       )}
                     </div>
                   ) : (
-                    <span className="font-heading text-2xl font-bold text-primary">${currentPrice}</span>
+                    <span className="font-heading text-xl sm:text-2xl font-bold text-primary">${currentPrice}</span>
                   )}
                 </div>
               );
