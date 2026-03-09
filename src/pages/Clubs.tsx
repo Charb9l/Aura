@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Building2, ArrowRight } from "lucide-react";
+import { Building2, ArrowRight, Handshake } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { cn } from "@/lib/utils";
 import Navbar from "@/components/Navbar";
 import GalleryMosaic from "@/components/GalleryMosaic";
+import PartnerRequestForm from "@/components/PartnerRequestForm";
 
 interface Club {
   id: string;
@@ -52,6 +53,7 @@ const ClubsPage = () => {
   const [selectedClub, setSelectedClub] = useState<Club | null>(null);
   const [clubPictures, setClubPictures] = useState<ClubPicture[]>([]);
   const [picturesLoading, setPicturesLoading] = useState(false);
+  const [showPartnerForm, setShowPartnerForm] = useState(false);
   const navigate = useNavigate();
 
   // Hero grid pictures
@@ -149,7 +151,14 @@ const ClubsPage = () => {
               <Building2 className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
               <h1 className="font-heading text-3xl sm:text-5xl md:text-6xl font-light text-foreground">{pageTitle}</h1>
             </div>
-            <p className="text-muted-foreground text-sm sm:text-lg max-w-lg mx-auto">{pageSubtitle}</p>
+            <p className="text-muted-foreground text-sm sm:text-lg max-w-lg mx-auto mb-6">{pageSubtitle}</p>
+            <Button
+              onClick={() => setShowPartnerForm(true)}
+              variant="outline"
+              className="h-11 px-6 text-xs uppercase tracking-[0.15em] font-medium border-primary/40 text-primary hover:bg-primary/10 transition-all gap-2"
+            >
+              <Handshake className="h-4 w-4" /> Become a Partner
+            </Button>
           </motion.div>
         </div>
       </section>
@@ -248,6 +257,7 @@ const ClubsPage = () => {
           )}
         </DialogContent>
       </Dialog>
+      <PartnerRequestForm open={showPartnerForm} onOpenChange={setShowPartnerForm} />
     </div>
   );
 };

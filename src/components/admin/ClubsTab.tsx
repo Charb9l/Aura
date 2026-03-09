@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react"; // admin clubs
 import { motion } from "framer-motion";
-import { Building2, Pencil, Trash2, Upload, X, Image, GraduationCap, MapPin, Plus, Search, Eye, EyeOff } from "lucide-react";
+import { Building2, Pencil, Trash2, Upload, X, Image, GraduationCap, MapPin, Plus, Search, Eye, EyeOff, Handshake } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ClubRow, OfferingRow, ClubActivityPrice } from "./types";
 import { useLocations } from "@/hooks/useLocations";
 import AdminFinderInput from "./AdminFinderInput";
+import PartnerRequestsDialog from "./PartnerRequestsDialog";
 
 /** Map offering name to booking activity slug */
 const offeringToSlug = (name: string): string | null => {
@@ -122,6 +123,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
 
   // Offerings Dialog state
   const [showOfferingsDialog, setShowOfferingsDialog] = useState(false);
+  const [showPartnerRequests, setShowPartnerRequests] = useState(false);
   const [offeringsDialogMode, setOfferingsDialogMode] = useState<"list" | "add" | "edit">("list");
   const [addOfferingName, setAddOfferingName] = useState("");
   const [addOfferingSlug, setAddOfferingSlug] = useState("");
@@ -593,6 +595,9 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
         </div>
         {isMasterAdmin && (
           <div className="flex gap-3">
+            <Button variant="outline" onClick={() => setShowPartnerRequests(true)} className="h-11 px-5 font-semibold gap-2">
+              <Handshake className="h-4 w-4" /> Requests
+            </Button>
             <Button onClick={() => setShowAddClub(true)} className="h-11 px-5 font-semibold glow gap-2">
               <Building2 className="h-4 w-4" /> Add Club
             </Button>
@@ -990,6 +995,8 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
           )}
         </DialogContent>
       </Dialog>
+
+      <PartnerRequestsDialog open={showPartnerRequests} onOpenChange={setShowPartnerRequests} />
     </motion.div>
   );
 };
