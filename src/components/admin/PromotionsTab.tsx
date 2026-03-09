@@ -370,7 +370,7 @@ const PromotionsTab = ({ allUsers, clubs }: Props) => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {badgeLeaders.slice(0, displayN).map((entry, i) => (
+                  {filteredBadge.slice(0, displayN).map((entry, i) => (
                     <TableRow key={entry.user_id} className={cn(i < 3 && "bg-primary/5")}>
                       <TableCell>
                         <Checkbox checked={promoSelectedUsers.has(entry.user_id)} onCheckedChange={() => toggleUser(entry.user_id)} />
