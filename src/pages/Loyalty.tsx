@@ -195,7 +195,7 @@ const LoyaltyPage = () => {
 
       {/* Activities marquee — sleek */}
       {offerings.length > 0 && (
-        <section className="border-t border-border/50 py-12 overflow-hidden">
+        <section className="border-t border-border/50 py-12 overflow-hidden max-w-full">
           <div className="container mx-auto px-6 mb-8">
             <div className="flex items-center gap-4">
               <div className="h-px flex-1 bg-gradient-to-r from-primary/30 to-transparent" />
