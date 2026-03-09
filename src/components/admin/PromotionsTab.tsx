@@ -450,14 +450,20 @@ const PromotionsTab = ({ allUsers, clubs }: Props) => {
                 <Card key={rule.id} className={cn("bg-card border-border", !rule.active && "opacity-60")}>
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3 flex-wrap">
                         <CardTitle className="text-base font-heading">{rule.name}</CardTitle>
                         <Badge className={cn("text-xs", rule.discount_type === "free" ? "bg-emerald-500/15 text-emerald-500" : rule.discount_type === "percentage" ? "bg-amber-500/15 text-amber-500" : "bg-primary/15 text-primary")}>
                           {formatDiscount(rule.discount_type, rule.discount_value)}
                         </Badge>
+                        {(() => { const s = getRuleStatus(rule); return <Badge className={cn("text-xs", s.color)}>{s.label}</Badge>; })()}
                         <span className="text-xs text-muted-foreground">
                           {rule.max_total_uses ? `${rule.max_total_uses} total uses` : "Unlimited users"} · {rule.uses_per_customer}× per customer
                         </span>
+                        {(rule.start_date || rule.end_date) && (
+                          <span className="text-xs text-muted-foreground">
+                            {rule.start_date ? format(new Date(rule.start_date + "T00:00"), "MMM d, yyyy") : "—"} → {rule.end_date ? format(new Date(rule.end_date + "T00:00"), "MMM d, yyyy") : "No end"}
+                          </span>
+                        )}
                       </div>
                       <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2">
