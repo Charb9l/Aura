@@ -156,6 +156,22 @@ const BookPage = () => {
     fetchData();
   }, []);
 
+  // Hero picture cycling
+  useEffect(() => {
+    if (heroPictures.length <= 9) return;
+    const timer = setInterval(() => {
+      setHeroCycleIndex(prev => (prev + 1) % heroPictures.length);
+    }, CYCLE_INTERVAL);
+    return () => clearInterval(timer);
+  }, [heroPictures.length]);
+
+  const visibleHeroPics = useMemo(() => {
+    if (heroPictures.length === 0) return [];
+    if (heroPictures.length <= 9) return heroPictures;
+    const windowSize = 6;
+    return Array.from({ length: windowSize }, (_, i) => heroPictures[(heroCycleIndex + i) % heroPictures.length]);
+  }, [heroPictures, heroCycleIndex]);
+
   const availableFilterLocations = useMemo(() => {
     const sportFiltered = filterSlugs.length > 0 ? offerings.filter(o => filterSlugs.includes(o.slug)) : offerings;
     const sportKeywords = sportFiltered.flatMap(o => activityOfferingKeywords[o.slug] || [o.slug]);
