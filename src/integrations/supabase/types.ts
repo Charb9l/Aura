@@ -699,6 +699,51 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_requests: {
+        Row: {
+          admin_notes: string | null
+          club_location: string
+          club_name: string
+          contact_name: string
+          contact_role: string
+          created_at: string
+          description: string
+          email: string
+          id: string
+          message: string
+          phone: string
+          status: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          club_location: string
+          club_name: string
+          contact_name: string
+          contact_role?: string
+          created_at?: string
+          description?: string
+          email: string
+          id?: string
+          message?: string
+          phone: string
+          status?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          club_location?: string
+          club_name?: string
+          contact_name?: string
+          contact_role?: string
+          created_at?: string
+          description?: string
+          email?: string
+          id?: string
+          message?: string
+          phone?: string
+          status?: string
+        }
+        Relationships: []
+      }
       player_levels: {
         Row: {
           created_at: string
