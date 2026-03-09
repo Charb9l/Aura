@@ -142,7 +142,8 @@ const Auth = () => {
                 className="h-12 bg-secondary border-border"
               />
             </div>
-            <Button type="submit" disabled={loading} className="w-full h-12 text-base font-bold rounded-xl glow">
+            <Button type="submit" disabled={loading} className="w-full h-12 text-base font-bold rounded-xl glow gap-2">
+              {loading && <Spinner size="sm" />}
               {loading ? "Sending..." : "Send Reset Link"}
             </Button>
           </form>
