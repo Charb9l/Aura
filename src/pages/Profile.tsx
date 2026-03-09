@@ -177,7 +177,9 @@ const ProfilePage = () => {
     fetchData();
   }, [user]);
 
-  // Pending bookings = future bookings that are confirmed
+  const [bookingsTab, setBookingsTab] = useState<"pending" | "past">("pending");
+
+  // Pending bookings = confirmed, no attendance status
   const pendingBookings = useMemo(() => {
     return bookings.filter(b => {
       return b.status === "confirmed" && !b.attendance_status;
@@ -185,6 +187,15 @@ const ProfilePage = () => {
       const dtA = getBookingDateTime(a);
       const dtB = getBookingDateTime(b);
       return dtA.getTime() - dtB.getTime();
+    });
+  }, [bookings]);
+
+  // Past bookings = those with an attendance status
+  const pastBookings = useMemo(() => {
+    return bookings.filter(b => !!b.attendance_status).sort((a, b) => {
+      const dtA = getBookingDateTime(a);
+      const dtB = getBookingDateTime(b);
+      return dtB.getTime() - dtA.getTime(); // newest first
     });
   }, [bookings]);
 
