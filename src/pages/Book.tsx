@@ -15,7 +15,6 @@ import { toast } from "@/components/ui/sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import Navbar from "@/components/Navbar";
 import ActivityFilter from "@/components/ActivityFilter";
-import PagePhotoStrip from "@/components/PagePhotoStrip";
 import { useRewards } from "@/hooks/useRewards";
 
 interface OfferingData {
@@ -60,6 +59,18 @@ const makeBrandStyles = (brandColor: string | null | undefined) => {
   };
 };
 
+const CYCLE_INTERVAL = 4000;
+
+const getGridLayout = (count: number) => {
+  if (count === 1) return "grid-cols-1";
+  if (count === 2) return "grid-cols-2";
+  if (count === 3) return "grid-cols-3";
+  if (count === 4) return "grid-cols-2 md:grid-cols-4";
+  if (count <= 6) return "grid-cols-3 grid-rows-2";
+  if (count <= 9) return "grid-cols-3 grid-rows-3";
+  return "grid-cols-3 md:grid-cols-6";
+};
+
 const BookPage = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
@@ -86,6 +97,9 @@ const BookPage = () => {
   const [maxClubsGrid, setMaxClubsGrid] = useState(3);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const { activeRewards, getRewardForClub, hasRewards } = useRewards();
+  // Hero pictures
+  const [heroPictures, setHeroPictures] = useState<{ image: string; alt: string }[]>([]);
+  const [heroCycleIndex, setHeroCycleIndex] = useState(0);
   // Profile data fetched from DB
   const [profileName, setProfileName] = useState("");
   const [profileEmail, setProfileEmail] = useState("");
@@ -117,12 +131,13 @@ const BookPage = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [offRes, clubRes, locRes, contentRes, pricesRes] = await Promise.all([
+      const [offRes, clubRes, locRes, contentRes, pricesRes, heroRes] = await Promise.all([
         supabase.from("offerings").select("*").order("name"),
         supabase.from("clubs").select("id, name, offerings, published, logo_url").order("name"),
         supabase.from("club_locations").select("*").order("name"),
         supabase.from("page_content").select("content").eq("page_slug", "book").single(),
         supabase.from("club_activity_prices").select("*"),
+        supabase.from("hero_pictures").select("id, image_url, display_order").eq("page_slug", "book").order("display_order"),
       ]);
       if (offRes.data) setOfferings(offRes.data as unknown as OfferingData[]);
       if (clubRes.data) setClubs((clubRes.data as any[]).filter(c => c.published !== false));
@@ -134,9 +149,28 @@ const BookPage = () => {
         if (c?.subtitle) setPageSubtitle(c.subtitle);
         if (c?.max_clubs_grid != null) setMaxClubsGrid(c.max_clubs_grid);
       }
+      if (heroRes.data && heroRes.data.length > 0) {
+        setHeroPictures(heroRes.data.map((p: any) => ({ image: p.image_url, alt: "Book" })));
+      }
     };
     fetchData();
   }, []);
+
+  // Hero picture cycling
+  useEffect(() => {
+    if (heroPictures.length <= 9) return;
+    const timer = setInterval(() => {
+      setHeroCycleIndex(prev => (prev + 1) % heroPictures.length);
+    }, CYCLE_INTERVAL);
+    return () => clearInterval(timer);
+  }, [heroPictures.length]);
+
+  const visibleHeroPics = useMemo(() => {
+    if (heroPictures.length === 0) return [];
+    if (heroPictures.length <= 9) return heroPictures;
+    const windowSize = 6;
+    return Array.from({ length: windowSize }, (_, i) => heroPictures[(heroCycleIndex + i) % heroPictures.length]);
+  }, [heroPictures, heroCycleIndex]);
 
   const availableFilterLocations = useMemo(() => {
     const sportFiltered = filterSlugs.length > 0 ? offerings.filter(o => filterSlugs.includes(o.slug)) : offerings;
@@ -376,13 +410,49 @@ const BookPage = () => {
   return (
     <div className="min-h-screen">
       <Navbar />
-      <div className="container mx-auto px-6 pt-28 pb-16">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="font-heading text-2xl sm:text-4xl md:text-5xl font-bold text-foreground mb-2">{pageTitle}</h1>
-          <p className="text-muted-foreground text-lg mb-6">{pageSubtitle}</p>
-        </motion.div>
 
-        <PagePhotoStrip pageSlug="book" className="mb-10" />
+      {/* Hero section with dynamic grid background */}
+      <section className="relative min-h-[50vh] flex items-center justify-center overflow-hidden">
+        {visibleHeroPics.length > 0 && (
+          <div className={cn("absolute inset-0 grid", getGridLayout(visibleHeroPics.length))}>
+            <AnimatePresence mode="popLayout">
+              {visibleHeroPics.map((pic, i) => (
+                <motion.div
+                  key={`${pic.image}-${i}-${heroCycleIndex}`}
+                  className="relative overflow-hidden"
+                  initial={{ opacity: 0, scale: 1.1 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 1.2, delay: i * 0.08 }}
+                >
+                  <img
+                    src={pic.image}
+                    alt={pic.alt}
+                    className={cn(
+                      "h-full w-full object-cover saturate-[0.3] contrast-[1.1]",
+                      visibleHeroPics.length === 1 && "saturate-[0.4]"
+                    )}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        )}
+
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-background/80" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-background/30" />
+
+        {/* Content */}
+        <div className="relative z-10 container mx-auto px-6 py-32 text-center">
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
+            <h1 className="font-heading text-3xl sm:text-5xl md:text-6xl font-light text-foreground mb-3">{pageTitle}</h1>
+            <p className="text-muted-foreground text-sm sm:text-lg max-w-lg mx-auto">{pageSubtitle}</p>
+          </motion.div>
+        </div>
+      </section>
+
+      <div className="container mx-auto px-6 pb-16">
 
         {/* Rewards Banner */}
         {user && hasRewards && (
@@ -486,12 +556,12 @@ const BookPage = () => {
                         boxShadow: isSelected ? `0 0 25px hsl(var(--primary) / 0.4)` : undefined,
                       }}
                     >
-                      {/* Inner white hexagon */}
+                      {/* Inner hexagon */}
                       <div
                         className="absolute inset-[2px] flex items-center justify-center"
                         style={{
                           clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
-                          background: "white",
+                          background: "hsl(var(--background))",
                         }}
                       >
                         {a.logo_url ? (
@@ -499,7 +569,7 @@ const BookPage = () => {
                             src={a.logo_url}
                             alt=""
                             className={cn(
-                              "h-10 w-10 sm:h-11 sm:w-11 object-contain transition-all duration-300",
+                              "h-10 w-10 sm:h-11 sm:w-11 object-contain transition-all duration-300 invert",
                               isSelected ? "brightness-110" : "opacity-60 group-hover:opacity-90"
                             )}
                           />
