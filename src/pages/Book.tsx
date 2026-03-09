@@ -721,14 +721,17 @@ const BookPage = () => {
             )}
             {currentPrice !== null && (() => {
               const clubReward = resolvedClubId ? getRewardForClub(resolvedClubId) : undefined;
-              const isFree = clubReward?.reward === "free";
-              const isHalf = clubReward?.reward === "50%";
+              const loyaltyFree = clubReward?.reward === "free";
+              const loyaltyHalf = clubReward?.reward === "50%";
+              // Stacking: loyalty 50% + price rule = FREE
+              const isFree = loyaltyFree || (loyaltyHalf && !!activePriceRule);
+              const isHalf = loyaltyHalf && !activePriceRule;
               const discountedPrice = isHalf ? (currentPrice / 2).toFixed(0) : null;
 
               return (
                 <div className={cn(
                   "flex items-center gap-3 rounded-xl border px-5 py-2.5 backdrop-blur-sm",
-                  isFree ? "border-emerald-500/50 bg-emerald-500/10" : isHalf ? "border-amber-500/50 bg-amber-500/10" : "border-primary/30 bg-primary/5"
+                  isFree ? "border-emerald-500/50 bg-emerald-500/10" : isHalf ? "border-amber-500/50 bg-amber-500/10" : activePriceRule ? "border-amber-500/50 bg-amber-500/10" : "border-primary/30 bg-primary/5"
                 )}>
                   <span className="text-xs uppercase tracking-widest text-muted-foreground font-medium">Total</span>
                   {isFree ? (
@@ -743,6 +746,24 @@ const BookPage = () => {
                       <span className="font-heading text-lg text-muted-foreground line-through">${currentPrice}</span>
                       <span className="font-heading text-2xl font-bold text-amber-400">${discountedPrice}</span>
                       <span className="text-xs font-bold text-amber-400 bg-amber-400/15 rounded-full px-2 py-0.5">50% OFF</span>
+                    </div>
+                  ) : activePriceRule ? (
+                    <div className="flex items-center gap-2">
+                      <span className="font-heading text-lg text-muted-foreground line-through">${currentPrice}</span>
+                      {activePriceRule.discount_type === "free" ? (
+                        <span className="font-heading text-2xl font-black text-emerald-400 animate-pulse flex items-center gap-1">
+                          <Sparkles className="h-5 w-5" /> FREE!
+                        </span>
+                      ) : (
+                        <>
+                          <span className="font-heading text-2xl font-bold text-amber-400">
+                            ${activePriceRule.discount_type === "percentage" ? (currentPrice * (1 - activePriceRule.discount_value / 100)).toFixed(0) : Math.max(0, currentPrice - activePriceRule.discount_value).toFixed(0)}
+                          </span>
+                          <span className="text-xs font-bold text-amber-400 bg-amber-400/15 rounded-full px-2 py-0.5">
+                            {activePriceRule.discount_type === "percentage" ? `${activePriceRule.discount_value}% OFF` : `$${activePriceRule.discount_value} OFF`}
+                          </span>
+                        </>
+                      )}
                     </div>
                   ) : (
                     <span className="font-heading text-2xl font-bold text-primary">${currentPrice}</span>
