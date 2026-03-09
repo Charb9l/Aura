@@ -604,7 +604,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
             
             <div>
               <Label className="text-sm font-medium text-muted-foreground mb-2 block">Hero Subtitle (small text above title)</Label>
-              <Input value={heroSubtitle} onChange={(e) => setHeroSubtitle(e.target.value)} placeholder="e.g. Movement & Mindfulness" className="h-12 bg-secondary border-border" />
+              <Input value={heroSubtitle} onChange={(e) => setHeroSubtitle(e.target.value)} placeholder="e.g. Movement & Mindfulness" className="h-9 bg-secondary border-border text-sm" />
             </div>
             <div>
               <Label className="text-sm font-medium text-muted-foreground mb-2 block">Hero Title — Line 1</Label>
