@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Building2, ArrowRight } from "lucide-react";
+import { Building2, ArrowRight, Handshake } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { cn } from "@/lib/utils";
 import Navbar from "@/components/Navbar";
 import GalleryMosaic from "@/components/GalleryMosaic";
+import PartnerRequestForm from "@/components/PartnerRequestForm";
 
 interface Club {
   id: string;
