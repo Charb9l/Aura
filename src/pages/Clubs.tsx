@@ -257,6 +257,7 @@ const ClubsPage = () => {
           )}
         </DialogContent>
       </Dialog>
+      <PartnerRequestForm open={showPartnerForm} onOpenChange={setShowPartnerForm} />
     </div>
   );
 };
