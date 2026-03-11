@@ -49,6 +49,66 @@ export type Database = {
           },
         ]
       }
+      academy_registrations: {
+        Row: {
+          age: number | null
+          club_id: string
+          club_name: string
+          created_at: string
+          email: string
+          experience: string | null
+          full_name: string
+          id: string
+          location_id: string | null
+          location_name: string | null
+          phone: string
+          status: string
+        }
+        Insert: {
+          age?: number | null
+          club_id: string
+          club_name: string
+          created_at?: string
+          email: string
+          experience?: string | null
+          full_name: string
+          id?: string
+          location_id?: string | null
+          location_name?: string | null
+          phone: string
+          status?: string
+        }
+        Update: {
+          age?: number | null
+          club_id?: string
+          club_name?: string
+          created_at?: string
+          email?: string
+          experience?: string | null
+          full_name?: string
+          id?: string
+          location_id?: string | null
+          location_name?: string | null
+          phone?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_registrations_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "academy_registrations_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "club_locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admin_notifications: {
         Row: {
           body: string
