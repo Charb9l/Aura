@@ -17,6 +17,7 @@ import { ClubRow, OfferingRow, ClubActivityPrice } from "./types";
 import { useLocations } from "@/hooks/useLocations";
 import AdminFinderInput from "./AdminFinderInput";
 import PartnerRequestsDialog from "./PartnerRequestsDialog";
+import AcademyRegistrationsDialog from "./AcademyRegistrationsDialog";
 
 /** Map offering name to booking activity slug */
 const offeringToSlug = (name: string): string | null => {
