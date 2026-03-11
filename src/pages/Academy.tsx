@@ -528,10 +528,10 @@ const AcademyPage = () => {
                 </div>
                 <Button
                   type="submit"
-                  disabled={!name || !email || !isValidEmail(email) || !phone || !age || !experience || (needsLocation && !selectedLocationId)}
+                  disabled={submitting || !name || !email || !isValidEmail(email) || !phone || !age || !experience || (needsLocation && !selectedLocationId)}
                   className="h-12 px-8 text-base font-bold rounded-xl glow w-full"
                 >
-                  Submit Application
+                  {submitting ? "Submitting..." : "Submit Application"}
                 </Button>
               </form>
             </div>
