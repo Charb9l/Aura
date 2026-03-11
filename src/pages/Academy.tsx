@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { GraduationCap, CheckCircle2, ChevronLeft, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -281,8 +282,32 @@ const AcademyPage = () => {
     setSelectedLocationId("");
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!selectedClub || submitting) return;
+    setSubmitting(true);
+
+    const selectedLoc = selectedClubLocations.find(l => l.id === selectedLocationId);
+
+    const { error } = await supabase.from("academy_registrations").insert({
+      club_id: selectedClub.id,
+      club_name: selectedClub.name,
+      location_id: selectedLocationId || null,
+      location_name: selectedLoc ? `${selectedLoc.name} — ${selectedLoc.location}` : null,
+      full_name: name,
+      email,
+      phone,
+      age: age ? parseInt(age) : null,
+      experience: experience || null,
+    } as any);
+
+    setSubmitting(false);
+    if (error) {
+      toast.error("Failed to submit. Please try again.");
+      return;
+    }
     setSubmitted(true);
   };
 
@@ -503,10 +528,10 @@ const AcademyPage = () => {
                 </div>
                 <Button
                   type="submit"
-                  disabled={!name || !email || !isValidEmail(email) || !phone || !age || !experience || (needsLocation && !selectedLocationId)}
+                  disabled={submitting || !name || !email || !isValidEmail(email) || !phone || !age || !experience || (needsLocation && !selectedLocationId)}
                   className="h-12 px-8 text-base font-bold rounded-xl glow w-full"
                 >
-                  Submit Application
+                  {submitting ? "Submitting..." : "Submit Application"}
                 </Button>
               </form>
             </div>

@@ -17,6 +17,7 @@ import { ClubRow, OfferingRow, ClubActivityPrice } from "./types";
 import { useLocations } from "@/hooks/useLocations";
 import AdminFinderInput from "./AdminFinderInput";
 import PartnerRequestsDialog from "./PartnerRequestsDialog";
+import AcademyRegistrationsDialog from "./AcademyRegistrationsDialog";
 
 /** Map offering name to booking activity slug */
 const offeringToSlug = (name: string): string | null => {
@@ -124,6 +125,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
   // Offerings Dialog state
   const [showOfferingsDialog, setShowOfferingsDialog] = useState(false);
   const [showPartnerRequests, setShowPartnerRequests] = useState(false);
+  const [showAcademyRegistrations, setShowAcademyRegistrations] = useState(false);
   const [offeringsDialogMode, setOfferingsDialogMode] = useState<"list" | "add" | "edit">("list");
   const [addOfferingName, setAddOfferingName] = useState("");
   const [addOfferingSlug, setAddOfferingSlug] = useState("");
@@ -595,6 +597,9 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
         </div>
         {isMasterAdmin && (
           <div className="flex gap-3">
+            <Button variant="outline" onClick={() => setShowAcademyRegistrations(true)} className="h-11 px-5 font-semibold gap-2">
+              <GraduationCap className="h-4 w-4" /> Registrations
+            </Button>
             <Button variant="outline" onClick={() => setShowPartnerRequests(true)} className="h-11 px-5 font-semibold gap-2">
               <Handshake className="h-4 w-4" /> Requests
             </Button>
@@ -997,6 +1002,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
       </Dialog>
 
       <PartnerRequestsDialog open={showPartnerRequests} onOpenChange={setShowPartnerRequests} />
+      <AcademyRegistrationsDialog open={showAcademyRegistrations} onOpenChange={setShowAcademyRegistrations} />
     </motion.div>
   );
 };
