@@ -1002,6 +1002,7 @@ const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
       </Dialog>
 
       <PartnerRequestsDialog open={showPartnerRequests} onOpenChange={setShowPartnerRequests} />
+      <AcademyRegistrationsDialog open={showAcademyRegistrations} onOpenChange={setShowAcademyRegistrations} />
     </motion.div>
   );
 };
