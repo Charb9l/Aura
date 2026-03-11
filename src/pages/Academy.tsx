@@ -281,8 +281,32 @@ const AcademyPage = () => {
     setSelectedLocationId("");
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!selectedClub || submitting) return;
+    setSubmitting(true);
+
+    const selectedLoc = selectedClubLocations.find(l => l.id === selectedLocationId);
+
+    const { error } = await supabase.from("academy_registrations").insert({
+      club_id: selectedClub.id,
+      club_name: selectedClub.name,
+      location_id: selectedLocationId || null,
+      location_name: selectedLoc ? `${selectedLoc.name} — ${selectedLoc.location}` : null,
+      full_name: name,
+      email,
+      phone,
+      age: age ? parseInt(age) : null,
+      experience: experience || null,
+    } as any);
+
+    setSubmitting(false);
+    if (error) {
+      toast.error("Failed to submit. Please try again.");
+      return;
+    }
     setSubmitted(true);
   };
 
