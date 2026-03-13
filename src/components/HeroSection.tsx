@@ -19,10 +19,10 @@ const fallbackPanels = [
 ];
 
 const defaultActions = [
-  { to: "/book", label: "Book a Session", delay: 0.4 },
-  { to: "/academy", label: "Join Our Academies", delay: 0.5 },
-  { to: "/clubs", label: "Clubs & Partners", delay: 0.6 },
-  { to: "/loyalty", label: "Loyalty Program", delay: 0.7 },
+  { to: "/book", label: "Book", icon: "calendar", delay: 0.4 },
+  { to: "/academy", label: "Academies", icon: "graduation", delay: 0.5 },
+  { to: "/clubs", label: "Clubs", icon: "users", delay: 0.6 },
+  { to: "/loyalty", label: "Loyalty", icon: "star", delay: 0.7 },
 ];
 
 interface HeroContent {
