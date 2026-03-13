@@ -30,6 +30,13 @@ const PartnerRequestForm = ({ open, onOpenChange }: Props) => {
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [locations, setLocations] = useState<{ id: string; name: string }[]>([]);
+
+  useEffect(() => {
+    supabase.from("locations").select("id, name").order("name").then(({ data }) => {
+      if (data) setLocations(data);
+    });
+  }, []);
 
   const canSubmit =
     clubName.trim().length > 0 &&
