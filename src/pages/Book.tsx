@@ -301,10 +301,13 @@ const BookPage = () => {
         setBookedSlots([]);
         return;
       }
+      const offering = offerings.find(o => o.slug === selectedActivity);
+      const activityName = offering?.name || selectedActivity;
       const { data } = await supabase.rpc("get_booked_slots", {
         _activity: selectedActivity,
         _booking_date: format(date, "yyyy-MM-dd"),
-      });
+        _activity_name: activityName,
+      } as any);
       setBookedSlots((data as string[]) || []);
     };
     fetchBookedSlots();
