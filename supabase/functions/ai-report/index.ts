@@ -34,12 +34,19 @@ serve(async (req) => {
     }
 
     // Fetch all data sources in parallel
-    const [bookingsRes, clubsRes, pricesRes, profilesRes, usersRes] = await Promise.all([
+    const [bookingsRes, clubsRes, pricesRes, profilesRes, usersRes, nudgesRes, academyRegsRes, workoutBuddiesRes, offeringsRes, locationsRes, formerUsersRes, promotionsRes] = await Promise.all([
       adminClient.from("bookings").select("*").order("booking_date", { ascending: false }).limit(500),
-      adminClient.from("clubs").select("id, name, offerings"),
+      adminClient.from("clubs").select("id, name, offerings, has_academy, published"),
       adminClient.from("club_activity_prices").select("club_id, activity_slug, price, price_label"),
-      adminClient.from("profiles").select("user_id, full_name, phone, created_at"),
+      adminClient.from("profiles").select("user_id, full_name, phone, created_at, suspended"),
       adminClient.auth.admin.listUsers({ perPage: 1000 }),
+      adminClient.from("nudges").select("id, sender_id, receiver_id, sport_id, status, created_at, responded_at").order("created_at", { ascending: false }).limit(500),
+      adminClient.from("academy_registrations").select("*").order("created_at", { ascending: false }).limit(500),
+      adminClient.from("workout_buddies").select("id, user_id_1, user_id_2, sport_id, created_at").order("created_at", { ascending: false }).limit(500),
+      adminClient.from("offerings").select("id, name, slug"),
+      adminClient.from("locations").select("id, name"),
+      adminClient.from("former_users").select("*").order("ended_at", { ascending: false }).limit(200),
+      adminClient.from("user_promotions").select("*").order("created_at", { ascending: false }).limit(500),
     ]);
 
     const bookings = bookingsRes.data || [];
@@ -47,6 +54,13 @@ serve(async (req) => {
     const prices = pricesRes.data || [];
     const profiles = profilesRes.data || [];
     const authUsers = usersRes.data?.users || [];
+    const nudges = nudgesRes.data || [];
+    const academyRegs = academyRegsRes.data || [];
+    const workoutBuddies = workoutBuddiesRes.data || [];
+    const offerings = offeringsRes.data || [];
+    const locations = locationsRes.data || [];
+    const formerUsers = formerUsersRes.data || [];
+    const promotions = promotionsRes.data || [];
 
     // Build customer list (merge profiles + auth emails)
     const customers = profiles.map(p => {
