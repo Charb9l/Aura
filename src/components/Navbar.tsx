@@ -64,8 +64,16 @@ const Navbar = () => {
     supabase.from("page_content").select("content").eq("page_slug", "home").single().then(({ data }) => {
       if (data) {
         const content = data.content as any;
-        const routes = new Set<string>((content?.hero_buttons || []).filter((b: any) => b.glow).map((b: any) => b.to));
-        setGlowRoutes(routes);
+        // Nav glow: prefer nav_order glow, fall back to hero_buttons glow for backward compat
+        const navGlowRoutes = new Set<string>();
+        if (content?.nav_order?.length) {
+          (content.nav_order as any[]).forEach((n: any) => { if (n.glow) navGlowRoutes.add(n.to); });
+        }
+        // Fallback: if no nav-level glows defined, use hero button glows
+        if (navGlowRoutes.size === 0) {
+          (content?.hero_buttons || []).filter((b: any) => b.glow).forEach((b: any) => navGlowRoutes.add(b.to));
+        }
+        setGlowRoutes(navGlowRoutes);
         if (content?.nav_order?.length) setNavLinks(content.nav_order);
         if (content?.platform_name_line1) {
           setPlatformName({ line1: content.platform_name_line1, line2: content.platform_name_line2 || "" });

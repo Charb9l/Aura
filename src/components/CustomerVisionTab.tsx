@@ -15,7 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface HeroButton { to: string; label: string; glow?: boolean; }
 interface FormField { key: string; label: string; type: string; required: boolean; }
-interface NavItem { to: string; label: string; }
+interface NavItem { to: string; label: string; glow?: boolean; }
 
 const DEFAULT_NAV_ORDER: NavItem[] = [
   { to: "/", label: "Home" },
@@ -670,6 +670,22 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
                       }}
                       className="flex-1 h-7 bg-background border-border text-xs"
                     />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const arr = [...navOrder];
+                        arr[i] = { ...arr[i], glow: !arr[i].glow };
+                        setNavOrder(arr);
+                      }}
+                      className={cn(
+                        "px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border transition-all shrink-0",
+                        item.glow
+                          ? "border-amber-400/60 bg-amber-400/15 text-amber-300 shadow-[0_0_12px_hsl(43_96%_56%/0.35)]"
+                          : "border-border text-muted-foreground hover:border-muted-foreground/50"
+                      )}
+                    >
+                      ✦ Glow
+                    </button>
                     <span className="text-[10px] text-muted-foreground font-mono shrink-0">{item.to}</span>
                   </div>
                 ))}
