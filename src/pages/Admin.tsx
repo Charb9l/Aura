@@ -135,6 +135,7 @@ const AdminDashboard = () => {
       if (mcRes.data?.club_id) setMyClubId(mcRes.data.club_id);
       if (pricesRes.data) setActivityPrices(pricesRes.data as unknown as ClubActivityPrice[]);
       if (typeof nRes.count === "number") setNotificationCount(nRes.count);
+      if (typeof regRes.count === "number") setAcademyRegCount(regRes.count);
       setLoadingData(false);
     };
     fetchData();
