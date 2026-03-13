@@ -104,7 +104,7 @@ const HeroSection = () => {
     <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
       {/* Background: dynamic photo grid */}
       {pictures.length > 0 && (
-        <div className={cn("absolute inset-0 grid", layout.cols, layout.rows)}>
+        <div className={cn("absolute inset-0 grid pointer-events-none", layout.cols, layout.rows)}>
           <AnimatePresence mode="popLayout">
             {pictures.map((panel, i) => (
               <motion.div
