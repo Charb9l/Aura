@@ -216,7 +216,7 @@ const AdminDashboard = () => {
   const [revenueRange, setRevenueRange] = useState<string>("today");
   const [showTodayRevenue, setShowTodayRevenue] = useState(false);
   const [todayRevenueClubFilter, setTodayRevenueClubFilter] = useState<string>("all");
-  const [bookingCustomDate, setBookingCustomDate] = useState<Date | undefined>(new Date());
+  const [bookingCustomRange, setBookingCustomRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: subDays(new Date(), 6), to: new Date() });
   const [revenueCustomRange, setRevenueCustomRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: subDays(new Date(), 6), to: new Date() });
   const [bookingFilterType, setBookingFilterType] = useState<string>("all");
   const [bookingFilterValue, setBookingFilterValue] = useState<string>("all");
@@ -273,7 +273,7 @@ const AdminDashboard = () => {
     if (bookingRange === "today") { start = startOfDay(now); end = endOfDay(now); }
     else if (bookingRange === "weekly") { start = startOfWeek(now, { weekStartsOn: 1 }); end = endOfDay(now); }
     else if (bookingRange === "monthly") { start = startOfMonth(now); end = endOfMonth(now); }
-    else if (bookingRange === "custom" && bookingCustomDate) { start = startOfDay(bookingCustomDate); end = endOfDay(bookingCustomDate); }
+    else if (bookingRange === "custom" && bookingCustomRange.from && bookingCustomRange.to) { start = startOfDay(bookingCustomRange.from); end = endOfDay(bookingCustomRange.to); }
     else { start = startOfDay(now); end = endOfDay(now); }
     let filtered = filteredBookings.filter(b => { const d = parseISO(b.booking_date); return isWithinInterval(d, { start, end }); });
     filtered = applyDashboardFilter(filtered, bookingFilterType, bookingFilterValue);
@@ -285,7 +285,7 @@ const AdminDashboard = () => {
     });
     const byActivity = Object.entries(actMap).sort((a, b) => b[1].count - a[1].count).map(([slug, v]) => ({ slug, name: v.name, count: v.count }));
     return { total, byActivity };
-  }, [filteredBookings, bookingRange, bookingCustomDate, bookingFilterType, bookingFilterValue, clubActivityMap]);
+  }, [filteredBookings, bookingRange, bookingCustomRange, bookingFilterType, bookingFilterValue, clubActivityMap]);
 
   const revenueStats = useMemo(() => {
     const now = new Date();
@@ -293,8 +293,7 @@ const AdminDashboard = () => {
     if (revenueRange === "today") { start = startOfDay(now); end = endOfDay(now); }
     else if (revenueRange === "weekly") { start = startOfWeek(now, { weekStartsOn: 1 }); end = endOfDay(now); }
     else if (revenueRange === "monthly") { start = startOfMonth(now); end = endOfMonth(now); }
-    else if (revenueRange === "custom" && bookingCustomDate) { start = startOfDay(bookingCustomDate); end = endOfDay(bookingCustomDate); }
-    else if (revenueRange === "custom-range" && revenueCustomRange.from && revenueCustomRange.to) { start = startOfDay(revenueCustomRange.from); end = endOfDay(revenueCustomRange.to); }
+    else if (revenueRange === "custom" && revenueCustomRange.from && revenueCustomRange.to) { start = startOfDay(revenueCustomRange.from); end = endOfDay(revenueCustomRange.to); }
     else { start = startOfDay(now); end = endOfDay(now); }
     let filtered = showBookings.filter(b => { const d = parseISO(b.booking_date); return isWithinInterval(d, { start, end }); });
     filtered = applyDashboardFilter(filtered, revenueFilterType, revenueFilterValue);
@@ -308,7 +307,7 @@ const AdminDashboard = () => {
     });
     const byActivity = Object.entries(actMap).sort((a, b) => b[1].revenue - a[1].revenue).map(([slug, v]) => ({ slug, name: v.name, revenue: v.revenue, count: v.count }));
     return { total, byActivity };
-  }, [showBookings, revenueRange, bookingCustomDate, revenueCustomRange, revenueFilterType, revenueFilterValue, clubActivityMap, priceMap]);
+  }, [showBookings, revenueRange, revenueCustomRange, revenueFilterType, revenueFilterValue, clubActivityMap, priceMap]);
 
   if (loadingData) {
     return (
@@ -319,28 +318,19 @@ const AdminDashboard = () => {
     );
   }
 
-  const DateRangeFilter = ({ value, onChange, showCustomDate, customDate, onCustomDateChange, showCustomRange, customRange, onCustomRangeChange }: {
+  const DateRangeFilter = ({ value, onChange, customRange, onCustomRangeChange }: {
     value: string; onChange: (v: string) => void;
-    showCustomDate?: boolean; customDate?: Date; onCustomDateChange?: (d: Date | undefined) => void;
-    showCustomRange?: boolean; customRange?: { from?: Date; to?: Date }; onCustomRangeChange?: (r: { from?: Date; to?: Date }) => void;
+    customRange?: { from?: Date; to?: Date }; onCustomRangeChange?: (r: { from?: Date; to?: Date }) => void;
   }) => {
-    const [customDateOpen, setCustomDateOpen] = useState(false);
     const [fromOpen, setFromOpen] = useState(false);
     const [toOpen, setToOpen] = useState(false);
-    const handleRangeChange = (v: string) => { onChange(v); if (v === "custom") { onCustomDateChange?.(undefined); setTimeout(() => setCustomDateOpen(true), 100); } };
     return (
       <div className="flex items-center gap-2 flex-wrap">
-        <Select value={value} onValueChange={handleRangeChange}>
+        <Select value={value} onValueChange={onChange}>
           <SelectTrigger className="w-[140px] h-9 bg-secondary border-border text-sm"><SelectValue /></SelectTrigger>
-          <SelectContent><SelectItem value="today">Today</SelectItem><SelectItem value="weekly">This Week</SelectItem><SelectItem value="monthly">This Month</SelectItem>{showCustomDate && <SelectItem value="custom">Custom Date</SelectItem>}{showCustomRange && <SelectItem value="custom-range">Custom Range</SelectItem>}</SelectContent>
+          <SelectContent><SelectItem value="today">Today</SelectItem><SelectItem value="weekly">This Week</SelectItem><SelectItem value="monthly">This Month</SelectItem><SelectItem value="custom">Custom</SelectItem></SelectContent>
         </Select>
-        {showCustomDate && value === "custom" && (
-          <Popover open={customDateOpen} onOpenChange={setCustomDateOpen}>
-            <PopoverTrigger asChild><Button variant="outline" size="sm" className={cn("h-9 text-sm", !customDate && "text-muted-foreground")}><CalendarCheck className="h-3.5 w-3.5 mr-1.5" />{customDate ? format(customDate, "MMM dd, yyyy") : "Pick date"}</Button></PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={customDate} onSelect={(d) => { onCustomDateChange?.(d); setCustomDateOpen(false); }} initialFocus className={cn("p-3 pointer-events-auto")} /></PopoverContent>
-          </Popover>
-        )}
-        {showCustomRange && value === "custom-range" && (
+        {value === "custom" && (
           <div className="flex items-center gap-1.5">
             <Popover open={fromOpen} onOpenChange={setFromOpen}><PopoverTrigger asChild><Button variant="outline" size="sm" className={cn("h-9 text-sm", !customRange?.from && "text-muted-foreground")}>{customRange?.from ? format(customRange.from, "MMM dd") : "From"}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={customRange?.from} onSelect={(d) => { onCustomRangeChange?.({ ...customRange, from: d }); setFromOpen(false); }} initialFocus className={cn("p-3 pointer-events-auto")} /></PopoverContent></Popover>
             <span className="text-muted-foreground text-xs">→</span>
@@ -463,7 +453,7 @@ const AdminDashboard = () => {
                   )}
                   {bookingFilterType === "activity" && <Select value={bookingFilterValue} onValueChange={setBookingFilterValue}><SelectTrigger className="w-[150px] h-9 bg-secondary border-border text-sm"><SelectValue placeholder="All Activities" /></SelectTrigger><SelectContent><SelectItem value="all">All Activities</SelectItem>{myClubActivities.map(c => <SelectItem key={c.key} value={c.key}>{c.label}</SelectItem>)}</SelectContent></Select>}
                   {bookingFilterType === "club" && showClubFilter && <Select value={bookingFilterValue} onValueChange={setBookingFilterValue}><SelectTrigger className="w-[180px] h-9 bg-secondary border-border text-sm"><SelectValue placeholder="All Clubs" /></SelectTrigger><SelectContent><SelectItem value="all">All Clubs</SelectItem>{clubs.sort((a, b) => a.name.localeCompare(b.name)).map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent></Select>}
-                  <DateRangeFilter value={bookingRange} onChange={setBookingRange} showCustomDate customDate={bookingCustomDate} onCustomDateChange={setBookingCustomDate} />
+                  <DateRangeFilter value={bookingRange} onChange={setBookingRange} customRange={bookingCustomRange} onCustomRangeChange={(r) => setBookingCustomRange({ from: r.from, to: r.to })} />
                 </div>
               </CardHeader>
               <CardContent>
@@ -500,7 +490,7 @@ const AdminDashboard = () => {
                   )}
                   {revenueFilterType === "activity" && <Select value={revenueFilterValue} onValueChange={setRevenueFilterValue}><SelectTrigger className="w-[150px] h-9 bg-secondary border-border text-sm"><SelectValue placeholder="All Activities" /></SelectTrigger><SelectContent><SelectItem value="all">All Activities</SelectItem>{myClubActivities.map(c => <SelectItem key={c.key} value={c.key}>{c.label}</SelectItem>)}</SelectContent></Select>}
                   {revenueFilterType === "club" && showClubFilter && <Select value={revenueFilterValue} onValueChange={setRevenueFilterValue}><SelectTrigger className="w-[180px] h-9 bg-secondary border-border text-sm"><SelectValue placeholder="All Clubs" /></SelectTrigger><SelectContent><SelectItem value="all">All Clubs</SelectItem>{clubs.slice().sort((a, b) => a.name.localeCompare(b.name)).map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent></Select>}
-                  <DateRangeFilter value={revenueRange} onChange={setRevenueRange} showCustomDate customDate={bookingCustomDate} onCustomDateChange={setBookingCustomDate} showCustomRange customRange={revenueCustomRange} onCustomRangeChange={(r) => setRevenueCustomRange({ from: r.from, to: r.to })} />
+                  <DateRangeFilter value={revenueRange} onChange={setRevenueRange} customRange={revenueCustomRange} onCustomRangeChange={(r) => setRevenueCustomRange({ from: r.from, to: r.to })} />
                 </div>
               </CardHeader>
               <CardContent>
