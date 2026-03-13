@@ -15,7 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface HeroButton { to: string; label: string; glow?: boolean; }
 interface FormField { key: string; label: string; type: string; required: boolean; }
-interface NavItem { to: string; label: string; }
+interface NavItem { to: string; label: string; glow?: boolean; }
 
 const DEFAULT_NAV_ORDER: NavItem[] = [
   { to: "/", label: "Home" },
