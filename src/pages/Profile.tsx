@@ -4,6 +4,7 @@ import MobileBackButton from "@/components/MobileBackButton";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, parseISO, differenceInHours, startOfDay } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePlayerProfileComplete } from "@/hooks/usePlayerProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { useAvatar, getInitials } from "@/hooks/useAvatar";
 import { useBadgeLevels } from "@/hooks/useBadgeLevels";
