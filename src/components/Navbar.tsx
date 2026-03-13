@@ -223,7 +223,8 @@ const Navbar = () => {
               <LogIn className="h-5 w-5" />
             </Link>
           )}
-          <button onClick={() => setMobileOpen(!mobileOpen)} className="p-2.5 text-muted-foreground active:text-foreground transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
+          {/* Hamburger only on tablet (sm+), hidden on small phones where bottom bar has it */}
+          <button onClick={() => setMobileOpen(!mobileOpen)} className="hidden sm:flex p-2.5 text-muted-foreground active:text-foreground transition-colors min-h-[44px] min-w-[44px] items-center justify-center">
             {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
