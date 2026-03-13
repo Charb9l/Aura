@@ -285,7 +285,7 @@ const AdminDashboard = () => {
     });
     const byActivity = Object.entries(actMap).sort((a, b) => b[1].count - a[1].count).map(([slug, v]) => ({ slug, name: v.name, count: v.count }));
     return { total, byActivity };
-  }, [filteredBookings, bookingRange, bookingCustomDate, bookingFilterType, bookingFilterValue, clubActivityMap]);
+  }, [filteredBookings, bookingRange, bookingCustomRange, bookingFilterType, bookingFilterValue, clubActivityMap]);
 
   const revenueStats = useMemo(() => {
     const now = new Date();
