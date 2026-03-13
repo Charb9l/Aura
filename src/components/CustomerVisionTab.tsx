@@ -922,6 +922,63 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
               </div>
             )}
 
+            {editingPage === "loyalty" && (
+              <div className="border-t border-border pt-6 space-y-5">
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground mb-2 block">Top Tagline (above title)</Label>
+                  <Input value={loyaltyTagline} onChange={(e) => setLoyaltyTagline(e.target.value)} placeholder="Summit Rewards Program" className="h-9 bg-secondary border-border text-sm" />
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground mb-3 block">How It Works — Section Title</Label>
+                  <Input value={loyaltySectionHow} onChange={(e) => setLoyaltySectionHow(e.target.value)} className="h-9 bg-secondary border-border text-sm" />
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground mb-3 block">Steps (3 cards)</Label>
+                  <div className="space-y-3">
+                    {loyaltySteps.map((step, i) => (
+                      <div key={i} className="p-3 rounded-lg border border-border bg-secondary/50 space-y-2">
+                        <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Step {i + 1}</p>
+                        <Input value={step.title} onChange={(e) => setLoyaltySteps(prev => prev.map((s, idx) => idx === i ? { ...s, title: e.target.value } : s))} placeholder="Step title" className="h-8 bg-background border-border text-xs" />
+                        <Input value={step.desc} onChange={(e) => setLoyaltySteps(prev => prev.map((s, idx) => idx === i ? { ...s, desc: e.target.value } : s))} placeholder="Step description" className="h-8 bg-background border-border text-xs" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground mb-3 block">Journey Section Title</Label>
+                  <Input value={loyaltySectionJourney} onChange={(e) => setLoyaltySectionJourney(e.target.value)} className="h-9 bg-secondary border-border text-sm" />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground mb-2 block">5-Point Milestone Label</Label>
+                    <Input value={loyaltyMilestone5} onChange={(e) => setLoyaltyMilestone5(e.target.value)} className="h-9 bg-secondary border-border text-sm" />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground mb-2 block">10-Point Milestone Label</Label>
+                    <Input value={loyaltyMilestone10} onChange={(e) => setLoyaltyMilestone10(e.target.value)} className="h-9 bg-secondary border-border text-sm" />
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground mb-3 block">Activities Section Title</Label>
+                  <Input value={loyaltySectionActivities} onChange={(e) => setLoyaltySectionActivities(e.target.value)} className="h-9 bg-secondary border-border text-sm" />
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground mb-3 block">CTA Section</Label>
+                  <div className="space-y-2">
+                    <Input value={loyaltyCtaTagline} onChange={(e) => setLoyaltyCtaTagline(e.target.value)} placeholder="Begin Today" className="h-9 bg-secondary border-border text-sm" />
+                    <Input value={loyaltyCtaHeading} onChange={(e) => setLoyaltyCtaHeading(e.target.value)} placeholder="Ready to Start Earning?" className="h-9 bg-secondary border-border text-sm" />
+                    <Input value={loyaltyCtaSubtitle} onChange={(e) => setLoyaltyCtaSubtitle(e.target.value)} placeholder="Sign up, book your first session..." className="h-9 bg-secondary border-border text-sm" />
+                  </div>
+                </div>
+              </div>
+            )}
+
             {editingPage && !["loyalty", "habits", "matchmaker"].includes(editingPage) && (
               <div className="border-t border-border pt-6">
                 <PagePicturesManager pageSlug={editingPage} />
