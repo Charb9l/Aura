@@ -216,7 +216,7 @@ const AdminDashboard = () => {
   const [revenueRange, setRevenueRange] = useState<string>("today");
   const [showTodayRevenue, setShowTodayRevenue] = useState(false);
   const [todayRevenueClubFilter, setTodayRevenueClubFilter] = useState<string>("all");
-  const [bookingCustomDate, setBookingCustomDate] = useState<Date | undefined>(new Date());
+  const [bookingCustomRange, setBookingCustomRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: subDays(new Date(), 6), to: new Date() });
   const [revenueCustomRange, setRevenueCustomRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: subDays(new Date(), 6), to: new Date() });
   const [bookingFilterType, setBookingFilterType] = useState<string>("all");
   const [bookingFilterValue, setBookingFilterValue] = useState<string>("all");
