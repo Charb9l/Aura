@@ -550,6 +550,7 @@ const AdminDashboard = () => {
             onNavigate={(tab, ctx) => {
               if (ctx?.userId) setPendingViewUserId(ctx.userId);
               if (ctx?.bookingDate) setPendingBookingDate(ctx.bookingDate);
+              if (ctx?.openRegistrations) setPendingOpenRegistrations(true);
               setActiveTab(tab);
             }}
           />
