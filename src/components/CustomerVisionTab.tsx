@@ -493,6 +493,22 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
       setMatchCriteria([...(content.criteria || [])]);
       setHabitsBadges([...(content.feature_badges || [])]);
       setMaxClubsGrid(content.max_clubs_grid ?? 3);
+      if (slug === "loyalty") {
+        setLoyaltyTagline(content.tagline || "Summit Rewards Program");
+        setLoyaltySteps(content.steps?.length ? [...content.steps] : [
+          { title: "BOOK & EARN", desc: "Every session booked through the app earns you 1 point for that activity." },
+          { title: "5 PTS → 50% OFF", desc: "Reach 5 points in any activity and your next booking is half price." },
+          { title: "10 PTS → FREE", desc: "Save up to 10 points and get a completely free booking — any activity." },
+        ]);
+        setLoyaltySectionHow(content.section_how || "How It Works");
+        setLoyaltySectionJourney(content.section_journey || "Your Journey");
+        setLoyaltySectionActivities(content.section_activities || "Every Activity Counts");
+        setLoyaltyCtaTagline(content.cta_tagline || "Begin Today");
+        setLoyaltyCtaHeading(content.cta_heading || "Ready to Start Earning?");
+        setLoyaltyCtaSubtitle(content.cta_subtitle || "Sign up, book your first session, and watch your points grow.");
+        setLoyaltyMilestone5(content.milestone_5 || "50% Off");
+        setLoyaltyMilestone10(content.milestone_10 || "Free Session");
+      }
     }
     setEditingPage(slug);
   };
