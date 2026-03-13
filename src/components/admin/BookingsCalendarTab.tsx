@@ -359,18 +359,21 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
         </Card>
       ) : (
         <>
-          <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6">
-            <Card className="bg-card border-border self-start">
-              <CardContent className="p-4">
-                <Calendar mode="single" selected={selectedDate} onSelect={(d) => d && setSelectedDate(d)} className={cn("p-3 pointer-events-auto")} />
-              </CardContent>
-            </Card>
-
             <Card className="bg-card border-border">
               <CardHeader className="pb-4">
                 <CardTitle className="font-heading text-lg flex items-center gap-2">
                   <Clock className="h-5 w-5 text-primary" />
                   {format(selectedDate, "EEEE, MMMM d, yyyy")}
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 ml-1">
+                        <CalendarCheck className="h-4 w-4 text-muted-foreground" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar mode="single" selected={selectedDate} onSelect={(d) => { if (d) setSelectedDate(d); }} className={cn("p-3 pointer-events-auto")} />
+                    </PopoverContent>
+                  </Popover>
                 </CardTitle>
                 <p className="text-sm text-muted-foreground">{dayBookings.length} booking{dayBookings.length !== 1 ? "s" : ""} this day</p>
               </CardHeader>
