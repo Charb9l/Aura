@@ -153,6 +153,18 @@ export const useNudges = () => {
 
   useEffect(() => { fetchNudges(); }, [fetchNudges]);
 
+  // Realtime subscription for nudges
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel('nudges-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'nudges', filter: `receiver_id=eq.${user.id}` }, () => fetchNudges())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'nudges', filter: `sender_id=eq.${user.id}` }, () => fetchNudges())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'workout_buddies' }, () => fetchNudges())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, fetchNudges]);
+
   const sendNudge = async (receiverId: string, sportId: string) => {
     if (!user) return false;
     const { error } = await supabase.from("nudges").insert({
