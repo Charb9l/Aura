@@ -137,13 +137,16 @@ const PartnerRequestForm = ({ open, onOpenChange }: Props) => {
                 <Label className="text-sm font-medium text-muted-foreground mb-1.5 flex items-center gap-1.5">
                   <MapPin className="h-3.5 w-3.5" /> Location *
                 </Label>
-                <Input
-                  value={clubLocation}
-                  onChange={(e) => setClubLocation(e.target.value)}
-                  placeholder="e.g. Beirut, Hamra"
-                  maxLength={200}
-                  className="h-11 bg-secondary border-border"
-                />
+                <Select value={clubLocation} onValueChange={setClubLocation}>
+                  <SelectTrigger className="h-11 bg-secondary border-border">
+                    <SelectValue placeholder="Select a location" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {locations.map(loc => (
+                      <SelectItem key={loc.id} value={loc.name}>{loc.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Contact Role */}
