@@ -234,7 +234,7 @@ const ClubsPage = () => {
                 <h2 className="font-heading text-xl sm:text-2xl font-bold text-foreground flex-1">{selectedClub.name}</h2>
                 <Button
                   onClick={() => {
-                    const activity = clubActivityMap[selectedClub.name];
+                    const activity = deriveActivitySlug(selectedClub.offerings);
                     if (activity) navigate(`/book?activity=${activity}`);
                   }}
                   className="gap-2 glow shrink-0 self-start sm:self-auto"
