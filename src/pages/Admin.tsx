@@ -308,7 +308,7 @@ const AdminDashboard = () => {
     });
     const byActivity = Object.entries(actMap).sort((a, b) => b[1].revenue - a[1].revenue).map(([slug, v]) => ({ slug, name: v.name, revenue: v.revenue, count: v.count }));
     return { total, byActivity };
-  }, [showBookings, revenueRange, bookingCustomDate, revenueCustomRange, revenueFilterType, revenueFilterValue, clubActivityMap, priceMap]);
+  }, [showBookings, revenueRange, revenueCustomRange, revenueFilterType, revenueFilterValue, clubActivityMap, priceMap]);
 
   if (loadingData) {
     return (
