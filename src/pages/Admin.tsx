@@ -273,7 +273,7 @@ const AdminDashboard = () => {
     if (bookingRange === "today") { start = startOfDay(now); end = endOfDay(now); }
     else if (bookingRange === "weekly") { start = startOfWeek(now, { weekStartsOn: 1 }); end = endOfDay(now); }
     else if (bookingRange === "monthly") { start = startOfMonth(now); end = endOfMonth(now); }
-    else if (bookingRange === "custom" && bookingCustomDate) { start = startOfDay(bookingCustomDate); end = endOfDay(bookingCustomDate); }
+    else if (bookingRange === "custom" && bookingCustomRange.from && bookingCustomRange.to) { start = startOfDay(bookingCustomRange.from); end = endOfDay(bookingCustomRange.to); }
     else { start = startOfDay(now); end = endOfDay(now); }
     let filtered = filteredBookings.filter(b => { const d = parseISO(b.booking_date); return isWithinInterval(d, { start, end }); });
     filtered = applyDashboardFilter(filtered, bookingFilterType, bookingFilterValue);
