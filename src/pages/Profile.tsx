@@ -4,6 +4,7 @@ import MobileBackButton from "@/components/MobileBackButton";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, parseISO, differenceInHours, startOfDay } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePlayerProfileComplete } from "@/hooks/usePlayerProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { useAvatar, getInitials } from "@/hooks/useAvatar";
 import { useBadgeLevels } from "@/hooks/useBadgeLevels";
@@ -72,6 +73,7 @@ const canDeleteBooking = (booking: Booking): boolean => {
 
 const ProfilePage = () => {
   const { user, loading } = useAuth();
+  const { isComplete: playerComplete } = usePlayerProfileComplete();
   const navigate = useNavigate();
   const { avatarUrl, setAvatarUrl } = useAvatar();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -465,15 +467,24 @@ const ProfilePage = () => {
           {/* MyPlayer */}
           <button
             onClick={() => setShowMyPlayer(true)}
-            className="group relative rounded-2xl border border-border bg-card p-4 sm:p-5 text-left transition-all hover:border-primary/40 hover:shadow-[0_0_20px_hsl(var(--primary)/0.1)]"
+            className={cn(
+              "group relative rounded-2xl border bg-card p-4 sm:p-5 text-left transition-all hover:border-primary/40 hover:shadow-[0_0_20px_hsl(var(--primary)/0.1)]",
+              playerComplete === false ? "border-primary/50 animate-pulse shadow-[0_0_15px_hsl(var(--primary)/0.3)]" : "border-border"
+            )}
           >
             <div className="flex items-center justify-between mb-3">
-              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+              <div className={cn("h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors", playerComplete === false && "animate-pulse")}>
                 <Gamepad2 className="h-5 w-5 text-primary" />
               </div>
+              {playerComplete === false && (
+                <>
+                  <span className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-primary animate-ping" />
+                  <span className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-primary" />
+                </>
+              )}
             </div>
             <p className="font-heading font-bold text-sm text-foreground">MyPlayer</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Sport profile</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{playerComplete === false ? "Set up now!" : "Sport profile"}</p>
           </button>
 
           {/* Notifications */}
