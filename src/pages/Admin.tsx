@@ -141,6 +141,18 @@ const AdminDashboard = () => {
     fetchData();
   }, []);
 
+  // Realtime: update academy registration count on new registrations
+  useEffect(() => {
+    const channel = supabase
+      .channel("academy-reg-count")
+      .on("postgres_changes", { event: "*", schema: "public", table: "academy_registrations" }, async () => {
+        const { count } = await supabase.from("academy_registrations").select("id", { count: "exact", head: true }).eq("status", "pending");
+        if (typeof count === "number") setAcademyRegCount(count);
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
+
   const openEditDialog = (u: UserWithEmail) => { setEditUser(u); setEditName(u.full_name || ""); setEditEmail(u.email); setEditPhone(u.phone || ""); setEditPassword(""); };
 
   const handleSaveUser = async () => {
