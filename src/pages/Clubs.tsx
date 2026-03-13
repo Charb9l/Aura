@@ -28,10 +28,19 @@ interface ClubPicture {
   display_order: number;
 }
 
-const clubActivityMap: Record<string, string> = {
-  "Beirut Basketball Club": "basketball",
-  "Hardcourt Dbayeh Tennis Academy": "tennis",
-  "En Forme": "pilates",
+/** Derive an activity slug from a club's offerings by fuzzy-matching known slugs */
+const activityKeywords: Record<string, string[]> = {
+  basketball: ["basketball"],
+  tennis: ["tennis"],
+  pilates: ["pilates"],
+  "aerial-yoga": ["yoga", "aerial"],
+};
+
+const deriveActivitySlug = (offerings: string[]): string | null => {
+  for (const [slug, keywords] of Object.entries(activityKeywords)) {
+    if (offerings.some(o => keywords.some(k => o.toLowerCase().includes(k)))) return slug;
+  }
+  return null;
 };
 
 const CYCLE_INTERVAL = 4000;
@@ -225,7 +234,7 @@ const ClubsPage = () => {
                 <h2 className="font-heading text-xl sm:text-2xl font-bold text-foreground flex-1">{selectedClub.name}</h2>
                 <Button
                   onClick={() => {
-                    const activity = clubActivityMap[selectedClub.name];
+                    const activity = deriveActivitySlug(selectedClub.offerings);
                     if (activity) navigate(`/book?activity=${activity}`);
                   }}
                   className="gap-2 glow shrink-0 self-start sm:self-auto"

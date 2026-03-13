@@ -301,10 +301,13 @@ const BookPage = () => {
         setBookedSlots([]);
         return;
       }
+      const offering = offerings.find(o => o.slug === selectedActivity);
+      const activityName = offering?.name || selectedActivity;
       const { data } = await supabase.rpc("get_booked_slots", {
         _activity: selectedActivity,
         _booking_date: format(date, "yyyy-MM-dd"),
-      });
+        _activity_name: activityName,
+      } as any);
       setBookedSlots((data as string[]) || []);
     };
     fetchBookedSlots();
@@ -393,6 +396,18 @@ const BookPage = () => {
         await supabase.from("user_promotions").update({ remaining_uses: newUses } as any).eq("id", activePromo.id);
         if (newUses <= 0) setActivePromo(null);
         else setActivePromo({ ...activePromo, remaining_uses: newUses });
+      }
+
+      // Deduct loyalty points when a loyalty reward is consumed
+      if (clubReward?.reward && resolvedClubId) {
+        const pointsToDeduct = clubReward.reward === "free" ? -10 : -5;
+        await supabase.from("loyalty_point_adjustments").insert({
+          user_id: user.id,
+          club_id: resolvedClubId,
+          points: pointsToDeduct,
+          reason: `Loyalty reward redeemed (${clubReward.reward === "free" ? "Free session" : "50% off"})`,
+          adjusted_by: user.id,
+        } as any);
       }
 
       setSubmitted(true);
