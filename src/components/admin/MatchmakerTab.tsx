@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { Gamepad2, Flame, Target, Clock, MapPin } from "lucide-react";
+import PageCmsSection from "./PageCmsSection";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -137,6 +138,8 @@ const MatchmakerTab = () => {
       <p className="text-muted-foreground mb-8">
         Configure the matchmaker page content and player profile options.
       </p>
+
+      <PageCmsSection pageSlug="matchmaker" pageName="AI Matchmaker" showMatchCriteria />
 
       <h2 className="font-heading text-2xl font-bold text-foreground mb-4">MyPlayer Config</h2>
       <p className="text-muted-foreground mb-6">

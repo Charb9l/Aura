@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import PageCmsSection from "./PageCmsSection";
 import { format, isSameDay, parseISO } from "date-fns";
 import { CalendarCheck, Clock, User, Mail, Phone, MapPin, FileText, Trash2, CheckCircle, XCircle, Search, GraduationCap, Eye, DollarSign } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -196,6 +197,7 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
 
   return (
     <div className="space-y-6">
+      <PageCmsSection pageSlug="book" pageName="Book a Session" showPictures showFields fieldsLabel="Booking Detail Fields" showMaxClubsGrid />
       {/* Controls row */}
       <div className="flex items-center gap-4 flex-wrap">
         {isMasterAdmin && clubs && clubs.length > 0 && (

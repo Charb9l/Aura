@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import PageCmsSection from "./PageCmsSection";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -234,6 +235,8 @@ const HabitsTab = () => {
           </Button>
         </div>
       </div>
+
+      <PageCmsSection pageSlug="habits" pageName="Habit Tracker" showHabitsBadges />
 
       <div className="space-y-6">
         {levels.map((level, li) => {
