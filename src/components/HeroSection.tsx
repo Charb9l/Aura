@@ -151,9 +151,16 @@ const HeroSection = () => {
           </h1>
         </motion.div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 w-full max-w-3xl">
+        <div className="grid grid-cols-4 gap-2 w-full max-w-xs lg:max-w-md mx-auto">
           {actions.map((action) => {
             const hasGlow = (action as any).glow;
+            const iconMap: Record<string, React.ReactNode> = {
+              calendar: <CalendarDays className="h-4 w-4" />,
+              graduation: <GraduationCap className="h-4 w-4" />,
+              users: <Users className="h-4 w-4" />,
+              star: <Star className="h-4 w-4" />,
+            };
+            const icon = iconMap[(action as any).icon] || null;
             return (
               <motion.div
                 key={action.to}
@@ -164,19 +171,19 @@ const HeroSection = () => {
                 <Link
                   to={action.to}
                   className={cn(
-                    "group relative flex flex-col items-center justify-center text-center rounded-sm aspect-square p-3 text-[9px] font-medium uppercase tracking-[0.2em] transition-all duration-500 overflow-hidden",
-                    "border border-primary/10 bg-primary/[0.03] hover:bg-primary/[0.08] hover:border-primary/30",
-                    hasGlow ? "text-primary" : "text-foreground/70 hover:text-foreground"
+                    "group relative flex flex-col items-center justify-center text-center rounded-sm aspect-square p-2 transition-all duration-500 overflow-hidden",
+                    "border border-primary/20 bg-primary/[0.06] hover:bg-primary/[0.12] hover:border-primary/40",
+                    hasGlow ? "text-primary" : "text-foreground/80 hover:text-primary"
                   )}
                 >
                   {/* Corner accents */}
-                  <span className="absolute top-0 left-0 w-3 h-[1px] bg-gradient-to-r from-primary/40 to-transparent" />
-                  <span className="absolute top-0 left-0 h-3 w-[1px] bg-gradient-to-b from-primary/40 to-transparent" />
-                  <span className="absolute bottom-0 right-0 w-3 h-[1px] bg-gradient-to-l from-primary/40 to-transparent" />
-                  <span className="absolute bottom-0 right-0 h-3 w-[1px] bg-gradient-to-t from-primary/40 to-transparent" />
+                  <span className="absolute top-0 left-0 w-2.5 h-[1px] bg-gradient-to-r from-primary/50 to-transparent" />
+                  <span className="absolute top-0 left-0 h-2.5 w-[1px] bg-gradient-to-b from-primary/50 to-transparent" />
+                  <span className="absolute bottom-0 right-0 w-2.5 h-[1px] bg-gradient-to-l from-primary/50 to-transparent" />
+                  <span className="absolute bottom-0 right-0 h-2.5 w-[1px] bg-gradient-to-t from-primary/50 to-transparent" />
 
-                  <span className="leading-tight">{action.label}</span>
-                  <ArrowRight className="h-3 w-3 mt-2 opacity-20 group-hover:opacity-70 group-hover:translate-x-0.5 transition-all duration-300" />
+                  <span className="mb-1.5 opacity-60 group-hover:opacity-100 transition-opacity">{icon}</span>
+                  <span className="text-[8px] font-medium uppercase tracking-[0.2em] leading-tight">{action.label}</span>
                 </Link>
               </motion.div>
             );
