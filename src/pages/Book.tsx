@@ -430,7 +430,7 @@ const BookPage = () => {
       {/* Hero section with dynamic grid background */}
       <section className="relative min-h-[50vh] flex items-center justify-center overflow-hidden">
         {visibleHeroPics.length > 0 && (
-          <div className={cn("absolute inset-0 grid", getGridLayout(visibleHeroPics.length))}>
+          <div className={cn("absolute inset-0 grid pointer-events-none", getGridLayout(visibleHeroPics.length))}>
             <AnimatePresence mode="popLayout">
               {visibleHeroPics.map((pic, i) => (
                 <motion.div
@@ -456,8 +456,8 @@ const BookPage = () => {
         )}
 
         {/* Overlay */}
-        <div className="absolute inset-0 bg-background/80" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-background/30" />
+        <div className="absolute inset-0 bg-background/80 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-background/30 pointer-events-none" />
 
         {/* Content */}
         <div className="relative z-10 container mx-auto px-6 py-32 text-center">
