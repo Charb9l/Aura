@@ -27,6 +27,8 @@ const TYPE_CONFIG: Record<string, { icon: typeof Bell; color: string; label: str
   unmarked_booking: { icon: AlertTriangle, color: "text-amber-400", label: "Unmarked" },
   daily_report: { icon: BarChart3, color: "text-emerald-400", label: "Daily Report" },
   booking_cancelled: { icon: XCircle, color: "text-destructive", label: "Cancelled" },
+  academy_registration: { icon: GraduationCap, color: "text-purple-400", label: "Academy" },
+  partner_request: { icon: Handshake, color: "text-teal-400", label: "Partner" },
 };
 
 interface Props {
