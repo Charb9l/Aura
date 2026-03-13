@@ -43,9 +43,10 @@ interface AdminNavbarProps {
   onTabChange: (tab: string) => void;
   assignedClubId?: string | null;
   notificationCount?: number;
+  academyRegCount?: number;
 }
 
-const AdminNavbar = ({ activeTab, onTabChange, assignedClubId, notificationCount = 0 }: AdminNavbarProps) => {
+const AdminNavbar = ({ activeTab, onTabChange, assignedClubId, notificationCount = 0, academyRegCount = 0 }: AdminNavbarProps) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -148,6 +149,12 @@ const AdminNavbar = ({ activeTab, onTabChange, assignedClubId, notificationCount
         {item.tab === "notifications" && notificationCount > 0 && (
           <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold px-1.5">
             {notificationCount > 99 ? "99+" : notificationCount}
+          </span>
+        )}
+        {item.tab === "clubs" && academyRegCount > 0 && (
+          <span className="ml-auto relative flex h-5 min-w-5 items-center justify-center rounded-full bg-purple-500 text-white text-[10px] font-bold px-1.5">
+            {academyRegCount > 99 ? "99+" : academyRegCount}
+            <span className="absolute inset-0 rounded-full bg-purple-500 animate-ping opacity-40" />
           </span>
         )}
       </button>

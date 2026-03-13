@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Bell, CheckCheck, Trash2, UserPlus, AlertTriangle, BarChart3, XCircle, Download, MailOpen, Mail, ExternalLink } from "lucide-react";
+import { Bell, CheckCheck, Trash2, UserPlus, AlertTriangle, BarChart3, XCircle, Download, MailOpen, Mail, ExternalLink, GraduationCap, Handshake } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,11 +27,13 @@ const TYPE_CONFIG: Record<string, { icon: typeof Bell; color: string; label: str
   unmarked_booking: { icon: AlertTriangle, color: "text-amber-400", label: "Unmarked" },
   daily_report: { icon: BarChart3, color: "text-emerald-400", label: "Daily Report" },
   booking_cancelled: { icon: XCircle, color: "text-destructive", label: "Cancelled" },
+  academy_registration: { icon: GraduationCap, color: "text-purple-400", label: "Academy" },
+  partner_request: { icon: Handshake, color: "text-teal-400", label: "Partner" },
 };
 
 interface Props {
   onUnreadCountChange?: (count: number) => void;
-  onNavigate?: (tab: string, context?: { userId?: string; bookingDate?: string }) => void;
+  onNavigate?: (tab: string, context?: { userId?: string; bookingDate?: string; openRegistrations?: boolean }) => void;
 }
 
 const NotificationsTab = ({ onUnreadCountChange, onNavigate }: Props) => {
@@ -307,6 +309,16 @@ const NotificationsTab = ({ onUnreadCountChange, onNavigate }: Props) => {
                             {n.type === "daily_report" && n.metadata?.csv_data && (
                               <Button variant="outline" size="sm" className="gap-2" onClick={(e) => { e.stopPropagation(); handleDownloadCSV(n); }}>
                                 <Download className="h-3.5 w-3.5" /> Download CSV
+                              </Button>
+                            )}
+                            {n.type === "academy_registration" && (
+                              <Button variant="outline" size="sm" className="gap-1.5" onClick={(e) => { e.stopPropagation(); onNavigate?.("clubs", { openRegistrations: true }); }}>
+                                <ExternalLink className="h-3.5 w-3.5" /> View Registrations
+                              </Button>
+                            )}
+                            {n.type === "partner_request" && (
+                              <Button variant="outline" size="sm" className="gap-1.5" onClick={(e) => { e.stopPropagation(); onNavigate?.("clubs"); }}>
+                                <ExternalLink className="h-3.5 w-3.5" /> View Partners
                               </Button>
                             )}
                           </div>

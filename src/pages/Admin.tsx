@@ -50,6 +50,8 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [pendingViewUserId, setPendingViewUserId] = useState<string | null>(null);
   const [pendingBookingDate, setPendingBookingDate] = useState<string | null>(null);
+  const [pendingOpenRegistrations, setPendingOpenRegistrations] = useState(false);
+  const [academyRegCount, setAcademyRegCount] = useState(0);
 
   const [editUser, setEditUser] = useState<UserWithEmail | null>(null);
   const [editName, setEditName] = useState("");
@@ -114,7 +116,7 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [bRes, pRes, uRes, aRes, cRes, mcRes, pricesRes, nRes] = await Promise.all([
+      const [bRes, pRes, uRes, aRes, cRes, mcRes, pricesRes, nRes, regRes] = await Promise.all([
         supabase.from("bookings").select("*").order("created_at", { ascending: false }),
         supabase.from("profiles").select("*").order("created_at", { ascending: false }),
         supabase.functions.invoke("admin-users", { body: { action: "list" } }),
@@ -123,6 +125,7 @@ const AdminDashboard = () => {
         supabase.functions.invoke("admin-users", { body: { action: "my-club" } }),
         supabase.from("club_activity_prices").select("*"),
         supabase.from("admin_notifications").select("id", { count: "exact", head: true }).eq("is_read", false),
+        supabase.from("academy_registrations").select("id", { count: "exact", head: true }).eq("status", "pending"),
       ]);
       if (bRes.data) setBookings(bRes.data);
       if (pRes.data) setProfiles(pRes.data);
@@ -132,9 +135,22 @@ const AdminDashboard = () => {
       if (mcRes.data?.club_id) setMyClubId(mcRes.data.club_id);
       if (pricesRes.data) setActivityPrices(pricesRes.data as unknown as ClubActivityPrice[]);
       if (typeof nRes.count === "number") setNotificationCount(nRes.count);
+      if (typeof regRes.count === "number") setAcademyRegCount(regRes.count);
       setLoadingData(false);
     };
     fetchData();
+  }, []);
+
+  // Realtime: update academy registration count on new registrations
+  useEffect(() => {
+    const channel = supabase
+      .channel("academy-reg-count")
+      .on("postgres_changes", { event: "*", schema: "public", table: "academy_registrations" }, async () => {
+        const { count } = await supabase.from("academy_registrations").select("id", { count: "exact", head: true }).eq("status", "pending");
+        if (typeof count === "number") setAcademyRegCount(count);
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   const openEditDialog = (u: UserWithEmail) => { setEditUser(u); setEditName(u.full_name || ""); setEditEmail(u.email); setEditPhone(u.phone || ""); setEditPassword(""); };
@@ -297,7 +313,7 @@ const AdminDashboard = () => {
   if (loadingData) {
     return (
       <div className="min-h-screen flex">
-        <AdminNavbar activeTab={activeTab} onTabChange={setActiveTab} assignedClubId={myClubId} notificationCount={notificationCount} />
+        <AdminNavbar activeTab={activeTab} onTabChange={setActiveTab} assignedClubId={myClubId} notificationCount={notificationCount} academyRegCount={academyRegCount} />
         <div className="flex-1 md:ml-60 mt-14 md:mt-0 flex items-center justify-center"><p className="text-muted-foreground text-sm">Loading...</p></div>
       </div>
     );
@@ -337,7 +353,7 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen flex bg-background">
-      <AdminNavbar activeTab={activeTab} onTabChange={setActiveTab} assignedClubId={myClubId} notificationCount={notificationCount} />
+      <AdminNavbar activeTab={activeTab} onTabChange={setActiveTab} assignedClubId={myClubId} notificationCount={notificationCount} academyRegCount={academyRegCount} />
       <div className="flex-1 md:ml-60 px-4 md:px-10 pt-[72px] md:pt-8 pb-16 overflow-y-auto h-screen">
 
         {activeTab === "overview" && (
@@ -534,7 +550,7 @@ const AdminDashboard = () => {
           </motion.div>
         )}
 
-        {activeTab === "clubs" && <ClubsTab isMasterAdmin={!myClubId} />}
+        {activeTab === "clubs" && <ClubsTab isMasterAdmin={!myClubId} openRegistrations={pendingOpenRegistrations} onRegistrationsOpened={() => setPendingOpenRegistrations(false)} />}
         {activeTab === "featured" && <FeaturedClubsTab />}
         {activeTab === "matchmaker" && <MatchmakerTab />}
         {activeTab === "settings" && <SettingsTab />}
@@ -546,6 +562,7 @@ const AdminDashboard = () => {
             onNavigate={(tab, ctx) => {
               if (ctx?.userId) setPendingViewUserId(ctx.userId);
               if (ctx?.bookingDate) setPendingBookingDate(ctx.bookingDate);
+              if (ctx?.openRegistrations) setPendingOpenRegistrations(true);
               setActiveTab(tab);
             }}
           />
