@@ -398,6 +398,18 @@ const BookPage = () => {
         else setActivePromo({ ...activePromo, remaining_uses: newUses });
       }
 
+      // Deduct loyalty points when a loyalty reward is consumed
+      if (clubReward?.reward && resolvedClubId) {
+        const pointsToDeduct = clubReward.reward === "free" ? -10 : -5;
+        await supabase.from("loyalty_point_adjustments").insert({
+          user_id: user.id,
+          club_id: resolvedClubId,
+          points: pointsToDeduct,
+          reason: `Loyalty reward redeemed (${clubReward.reward === "free" ? "Free session" : "50% off"})`,
+          adjusted_by: user.id,
+        } as any);
+      }
+
       setSubmitted(true);
     }
   };
