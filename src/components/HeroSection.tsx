@@ -151,7 +151,7 @@ const HeroSection = () => {
           </h1>
         </motion.div>
 
-        <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center justify-center gap-4 w-full max-w-4xl">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 w-full max-w-4xl">
           {actions.map((action) => {
             const hasGlow = (action as any).glow;
             return (
@@ -160,19 +160,18 @@ const HeroSection = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: action.delay }}
-                className="w-full sm:w-[calc(50%-0.5rem)]"
               >
                 <Link
                   to={action.to}
                   className={cn(
-                    "group flex items-center justify-between glass-card rounded-sm px-8 py-6 text-xs font-medium uppercase tracking-[0.15em] transition-all duration-300",
+                    "group flex flex-col items-center justify-center text-center glass-card rounded-sm aspect-square p-4 text-[10px] font-medium uppercase tracking-[0.15em] transition-all duration-300",
                     hasGlow
                       ? "border-primary/30 text-primary hover:bg-primary/5"
                       : "text-foreground/80 hover:text-foreground hover:bg-muted/30"
                   )}
                 >
                   <span>{action.label}</span>
-                  <ArrowRight className="h-3.5 w-3.5 opacity-30 group-hover:opacity-80 group-hover:translate-x-1 transition-all" />
+                  <ArrowRight className="h-3.5 w-3.5 mt-3 opacity-30 group-hover:opacity-80 group-hover:translate-y-1 transition-all" />
                 </Link>
               </motion.div>
             );
