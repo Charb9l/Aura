@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Building2, User, Mail, Phone, MapPin, FileText, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import PhoneInput from "@/components/PhoneInput";
@@ -29,6 +30,13 @@ const PartnerRequestForm = ({ open, onOpenChange }: Props) => {
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [locations, setLocations] = useState<{ id: string; name: string }[]>([]);
+
+  useEffect(() => {
+    supabase.from("locations").select("id, name").order("name").then(({ data }) => {
+      if (data) setLocations(data);
+    });
+  }, []);
 
   const canSubmit =
     clubName.trim().length > 0 &&
@@ -129,13 +137,16 @@ const PartnerRequestForm = ({ open, onOpenChange }: Props) => {
                 <Label className="text-sm font-medium text-muted-foreground mb-1.5 flex items-center gap-1.5">
                   <MapPin className="h-3.5 w-3.5" /> Location *
                 </Label>
-                <Input
-                  value={clubLocation}
-                  onChange={(e) => setClubLocation(e.target.value)}
-                  placeholder="e.g. Beirut, Hamra"
-                  maxLength={200}
-                  className="h-11 bg-secondary border-border"
-                />
+                <Select value={clubLocation} onValueChange={setClubLocation}>
+                  <SelectTrigger className="h-11 bg-secondary border-border">
+                    <SelectValue placeholder="Select a location" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {locations.map(loc => (
+                      <SelectItem key={loc.id} value={loc.name}>{loc.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Contact Role */}
