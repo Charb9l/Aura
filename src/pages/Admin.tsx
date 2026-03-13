@@ -116,7 +116,7 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [bRes, pRes, uRes, aRes, cRes, mcRes, pricesRes, nRes] = await Promise.all([
+      const [bRes, pRes, uRes, aRes, cRes, mcRes, pricesRes, nRes, regRes] = await Promise.all([
         supabase.from("bookings").select("*").order("created_at", { ascending: false }),
         supabase.from("profiles").select("*").order("created_at", { ascending: false }),
         supabase.functions.invoke("admin-users", { body: { action: "list" } }),
@@ -125,6 +125,7 @@ const AdminDashboard = () => {
         supabase.functions.invoke("admin-users", { body: { action: "my-club" } }),
         supabase.from("club_activity_prices").select("*"),
         supabase.from("admin_notifications").select("id", { count: "exact", head: true }).eq("is_read", false),
+        supabase.from("academy_registrations").select("id", { count: "exact", head: true }).eq("status", "pending"),
       ]);
       if (bRes.data) setBookings(bRes.data);
       if (pRes.data) setProfiles(pRes.data);
