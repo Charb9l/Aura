@@ -311,6 +311,16 @@ const NotificationsTab = ({ onUnreadCountChange, onNavigate }: Props) => {
                                 <Download className="h-3.5 w-3.5" /> Download CSV
                               </Button>
                             )}
+                            {n.type === "academy_registration" && (
+                              <Button variant="outline" size="sm" className="gap-1.5" onClick={(e) => { e.stopPropagation(); onNavigate?.("clubs", { openRegistrations: true }); }}>
+                                <ExternalLink className="h-3.5 w-3.5" /> View Registrations
+                              </Button>
+                            )}
+                            {n.type === "partner_request" && (
+                              <Button variant="outline" size="sm" className="gap-1.5" onClick={(e) => { e.stopPropagation(); onNavigate?.("clubs"); }}>
+                                <ExternalLink className="h-3.5 w-3.5" /> View Partners
+                              </Button>
+                            )}
                           </div>
                         </motion.div>
                       )}
