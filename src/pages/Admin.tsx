@@ -50,6 +50,8 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [pendingViewUserId, setPendingViewUserId] = useState<string | null>(null);
   const [pendingBookingDate, setPendingBookingDate] = useState<string | null>(null);
+  const [pendingOpenRegistrations, setPendingOpenRegistrations] = useState(false);
+  const [academyRegCount, setAcademyRegCount] = useState(0);
 
   const [editUser, setEditUser] = useState<UserWithEmail | null>(null);
   const [editName, setEditName] = useState("");
