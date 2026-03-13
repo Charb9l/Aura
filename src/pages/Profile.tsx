@@ -73,6 +73,7 @@ const canDeleteBooking = (booking: Booking): boolean => {
 
 const ProfilePage = () => {
   const { user, loading } = useAuth();
+  const { isComplete: playerComplete } = usePlayerProfileComplete();
   const navigate = useNavigate();
   const { avatarUrl, setAvatarUrl } = useAvatar();
   const fileInputRef = useRef<HTMLInputElement>(null);
