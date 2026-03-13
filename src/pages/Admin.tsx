@@ -538,7 +538,7 @@ const AdminDashboard = () => {
           </motion.div>
         )}
 
-        {activeTab === "clubs" && <ClubsTab isMasterAdmin={!myClubId} />}
+        {activeTab === "clubs" && <ClubsTab isMasterAdmin={!myClubId} openRegistrations={pendingOpenRegistrations} onRegistrationsOpened={() => setPendingOpenRegistrations(false)} />}
         {activeTab === "featured" && <FeaturedClubsTab />}
         {activeTab === "matchmaker" && <MatchmakerTab />}
         {activeTab === "settings" && <SettingsTab />}
