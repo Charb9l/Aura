@@ -301,7 +301,7 @@ const AdminDashboard = () => {
   if (loadingData) {
     return (
       <div className="min-h-screen flex">
-        <AdminNavbar activeTab={activeTab} onTabChange={setActiveTab} assignedClubId={myClubId} notificationCount={notificationCount} />
+        <AdminNavbar activeTab={activeTab} onTabChange={setActiveTab} assignedClubId={myClubId} notificationCount={notificationCount} academyRegCount={academyRegCount} />
         <div className="flex-1 md:ml-60 mt-14 md:mt-0 flex items-center justify-center"><p className="text-muted-foreground text-sm">Loading...</p></div>
       </div>
     );
