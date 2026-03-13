@@ -618,6 +618,9 @@ const ClubsTab = ({ isMasterAdmin, openRegistrations, onRegistrationsOpened }: {
           </div>
         )}
       </div>
+
+      <PageCmsSection pageSlug="clubs" pageName="Clubs & Partners" showPictures />
+      <PageCmsSection pageSlug="academy" pageName="Academies" showPictures showFields fieldsLabel="Personal Information Fields" />
       <div className="flex items-center gap-3 mb-4 flex-wrap">
         <AdminFinderInput value={clubSearch} onChange={setClubSearch} placeholder="Search clubs..." className="max-w-xs" suggestions={clubs.map(c => ({ label: c.name, sub: c.has_academy ? "Academy" : undefined }))} />
         <label className="flex items-center gap-2 cursor-pointer text-sm text-muted-foreground hover:text-foreground transition-colors">
