@@ -14,8 +14,9 @@ const EXAMPLE_PROMPTS = [
   "How many bookings did I get this month?",
   "Show me revenue breakdown by activity for the last 30 days",
   "List the top 10 customers by number of bookings",
-  "How many no-shows happened last week?",
-  "Compare bookings between basketball and tennis this year",
+  "How many nudges were made and what's their status?",
+  "Show all academy registrations and their statuses",
+  "How many new users signed up this month?",
 ];
 
 type Mode = "ai" | "manual";

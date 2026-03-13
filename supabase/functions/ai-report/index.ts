@@ -34,12 +34,19 @@ serve(async (req) => {
     }
 
     // Fetch all data sources in parallel
-    const [bookingsRes, clubsRes, pricesRes, profilesRes, usersRes] = await Promise.all([
+    const [bookingsRes, clubsRes, pricesRes, profilesRes, usersRes, nudgesRes, academyRegsRes, workoutBuddiesRes, offeringsRes, locationsRes, formerUsersRes, promotionsRes] = await Promise.all([
       adminClient.from("bookings").select("*").order("booking_date", { ascending: false }).limit(500),
-      adminClient.from("clubs").select("id, name, offerings"),
+      adminClient.from("clubs").select("id, name, offerings, has_academy, published"),
       adminClient.from("club_activity_prices").select("club_id, activity_slug, price, price_label"),
-      adminClient.from("profiles").select("user_id, full_name, phone, created_at"),
+      adminClient.from("profiles").select("user_id, full_name, phone, created_at, suspended"),
       adminClient.auth.admin.listUsers({ perPage: 1000 }),
+      adminClient.from("nudges").select("id, sender_id, receiver_id, sport_id, status, created_at, responded_at").order("created_at", { ascending: false }).limit(500),
+      adminClient.from("academy_registrations").select("*").order("created_at", { ascending: false }).limit(500),
+      adminClient.from("workout_buddies").select("id, user_id_1, user_id_2, sport_id, created_at").order("created_at", { ascending: false }).limit(500),
+      adminClient.from("offerings").select("id, name, slug"),
+      adminClient.from("locations").select("id, name"),
+      adminClient.from("former_users").select("*").order("ended_at", { ascending: false }).limit(200),
+      adminClient.from("user_promotions").select("*").order("created_at", { ascending: false }).limit(500),
     ]);
 
     const bookings = bookingsRes.data || [];
@@ -47,6 +54,13 @@ serve(async (req) => {
     const prices = pricesRes.data || [];
     const profiles = profilesRes.data || [];
     const authUsers = usersRes.data?.users || [];
+    const nudges = nudgesRes.data || [];
+    const academyRegs = academyRegsRes.data || [];
+    const workoutBuddies = workoutBuddiesRes.data || [];
+    const offerings = offeringsRes.data || [];
+    const locations = locationsRes.data || [];
+    const formerUsers = formerUsersRes.data || [];
+    const promotions = promotionsRes.data || [];
 
     // Build customer list (merge profiles + auth emails)
     const customers = profiles.map(p => {
@@ -141,6 +155,67 @@ serve(async (req) => {
 
     const customersJson = JSON.stringify(customers);
 
+    // Build offering lookup
+    const offeringMap: Record<string, string> = {};
+    offerings.forEach(o => { offeringMap[o.id] = o.name; });
+
+    // Build profile lookup for nudges
+    const profileMap: Record<string, string> = {};
+    profiles.forEach(p => { profileMap[p.user_id] = p.full_name || "Unknown"; });
+
+    // Nudges data
+    const nudgesJson = JSON.stringify(nudges.map(n => ({
+      sender: profileMap[n.sender_id] || n.sender_id,
+      receiver: profileMap[n.receiver_id] || n.receiver_id,
+      sport: offeringMap[n.sport_id] || n.sport_id,
+      status: n.status,
+      created: n.created_at?.slice(0, 10) || "",
+      responded: n.responded_at?.slice(0, 10) || "",
+    })));
+
+    // Academy registrations data
+    const academyRegsJson = JSON.stringify(academyRegs.map(r => ({
+      name: r.full_name,
+      email: r.email,
+      phone: r.phone,
+      club: r.club_name,
+      location: r.location_name || "",
+      age: r.age ?? "",
+      experience: r.experience || "",
+      status: r.status,
+      date: r.created_at?.slice(0, 10) || "",
+    })));
+
+    // Workout buddies data
+    const buddiesJson = JSON.stringify(workoutBuddies.map(wb => ({
+      user1: profileMap[wb.user_id_1] || wb.user_id_1,
+      user2: profileMap[wb.user_id_2] || wb.user_id_2,
+      sport: offeringMap[wb.sport_id] || wb.sport_id,
+      created: wb.created_at?.slice(0, 10) || "",
+    })));
+
+    // Former users data
+    const formerUsersJson = JSON.stringify(formerUsers.map(fu => ({
+      name: fu.full_name || "",
+      email: fu.email,
+      phone: fu.phone || "",
+      type: fu.user_type,
+      club: fu.club_name || "",
+      reason: fu.reason || "",
+      started: fu.started_at?.slice(0, 10) || "",
+      ended: fu.ended_at?.slice(0, 10) || "",
+    })));
+
+    // Promotions data
+    const promotionsJson = JSON.stringify(promotions.map(p => ({
+      user: profileMap[p.user_id] || p.user_id,
+      type: p.discount_type,
+      value: p.discount_value,
+      remaining: p.remaining_uses,
+      source: p.source,
+      created: p.created_at?.slice(0, 10) || "",
+    })));
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -152,15 +227,20 @@ serve(async (req) => {
     const lastOfMonth = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
     const todayStr = today.toISOString().slice(0, 10);
 
-    const systemPrompt = `You are a data analyst for Elevate Wellness Hub, a multi-sport booking platform in Lebanon.
+    const systemPrompt = `You are a data analyst for a multi-sport booking and community platform in Lebanon.
 
 TODAY'S DATE: ${todayStr}
 CURRENT CALENDAR MONTH: ${firstOfMonth} to ${lastOfMonth}
 IMPORTANT: When the user says "this month", they mean the FULL calendar month from ${firstOfMonth} to ${lastOfMonth} (inclusive).
 
-DATA CONTEXT:
+DATA OVERVIEW:
 - ${totalBookings} bookings spanning ${dateRange}
-- ${customers.length} registered customers
+- ${customers.length} registered customers (${profiles.filter(p => p.suspended).length} suspended)
+- ${nudges.length} nudges total
+- ${academyRegs.length} academy registrations
+- ${workoutBuddies.length} workout buddy pairs
+- ${formerUsers.length} former users
+- ${promotions.length} active promotions
 - Activities: ${activitiesSummary}
 - Clubs: ${clubsSummary}
 
@@ -173,17 +253,37 @@ CRITICAL RULES:
 3. For discount="free", revenue is $0. For discount="50%", revenue is half the club price.
 
 IMPORTANT — DATA RELEVANCE:
-- Determine which data source is relevant to the admin's question.
-- If the question is about CUSTOMERS (how many users, signups, customer list, etc.), use the CUSTOMERS DATA and return customer-relevant columns (name, email, phone, signed_up). Do NOT include booking data.
-- If the question is about BOOKINGS or REVENUE, use the BOOKINGS DATA and return booking-relevant columns (date, time, activity, customer, revenue, etc.).
-- If the question spans both (e.g. "top customers by revenue"), combine both datasets intelligently.
-- Always return ONLY the columns relevant to the question. Do not pad with unrelated data.
+- Determine which data source(s) are relevant to the admin's question.
+- CUSTOMERS: use CUSTOMERS DATA for user counts, signups, customer lists, etc.
+- BOOKINGS/REVENUE: use BOOKINGS DATA for booking counts, revenue, financial reports.
+- NUDGES: use NUDGES DATA for nudge counts, statuses, interactions between users.
+- ACADEMY: use ACADEMY REGISTRATIONS for enrollment data, academy signups.
+- BUDDIES: use WORKOUT BUDDIES for buddy pair data.
+- FORMER USERS: use FORMER USERS DATA for churn, departed users.
+- PROMOTIONS: use PROMOTIONS DATA for discount/promo usage.
+- If the question spans multiple datasets, combine them intelligently.
+- Always return ONLY the columns relevant to the question.
 
 CUSTOMERS DATA (${customers.length} registered users):
 ${customersJson}
 
 BOOKINGS DATA (act=activity slug, act_name=display name, court=court_type, discount=discount_type, attendance=attendance_status, revenue=$ amount):
 ${bookingsJson}
+
+NUDGES DATA (${nudges.length} nudges — status: pending/accepted/declined):
+${nudgesJson}
+
+ACADEMY REGISTRATIONS (${academyRegs.length} registrations — status: pending/contacted/enrolled/declined):
+${academyRegsJson}
+
+WORKOUT BUDDIES (${workoutBuddies.length} pairs):
+${buddiesJson}
+
+FORMER USERS (${formerUsers.length} departed users):
+${formerUsersJson}
+
+PROMOTIONS (${promotions.length} user promotions):
+${promotionsJson}
 
 TASK: Answer the admin's question using generate_report. Pick appropriate columns based on what was asked. Sort sensibly.`;
 
