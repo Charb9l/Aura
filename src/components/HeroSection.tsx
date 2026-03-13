@@ -130,8 +130,8 @@ const HeroSection = () => {
       )}
 
       {/* Overlay — deep obsidian fade */}
-      <div className="absolute inset-0 bg-background/80" />
-      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-background/30" />
+      <div className="absolute inset-0 bg-background/80 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-background/30 pointer-events-none" />
 
       {/* Content */}
       <div className="relative z-10 container mx-auto px-6 flex flex-col items-center text-center gap-16">
@@ -154,13 +154,14 @@ const HeroSection = () => {
         <div className="grid grid-cols-4 gap-2 w-full max-w-xs lg:max-w-md mx-auto">
           {actions.map((action) => {
             const hasGlow = (action as any).glow;
-            const iconMap: Record<string, React.ReactNode> = {
-              calendar: <CalendarDays className="h-4 w-4" />,
-              graduation: <GraduationCap className="h-4 w-4" />,
-              users: <Users className="h-4 w-4" />,
-              star: <Star className="h-4 w-4" />,
+            // Map icon by route path for both default and DB-sourced buttons
+            const routeIconMap: Record<string, React.ReactNode> = {
+              "/book": <CalendarDays className="h-4 w-4" />,
+              "/academy": <GraduationCap className="h-4 w-4" />,
+              "/clubs": <Users className="h-4 w-4" />,
+              "/loyalty": <Star className="h-4 w-4" />,
             };
-            const icon = iconMap[(action as any).icon] || null;
+            const icon = routeIconMap[action.to] || (action as any).icon ? routeIconMap[action.to] : null;
             return (
               <motion.div
                 key={action.to}
