@@ -54,7 +54,7 @@ const DropZone = ({ id, dragging, setDragging, onFiles, uploading, hint, multipl
 );
 
 // (ActivityLocationsEditor removed — locations are now per-club)
-const ClubsTab = ({ isMasterAdmin }: { isMasterAdmin: boolean }) => {
+const ClubsTab = ({ isMasterAdmin, openRegistrations, onRegistrationsOpened }: { isMasterAdmin: boolean; openRegistrations?: boolean; onRegistrationsOpened?: () => void }) => {
   const { locations: locationsList } = useLocations();
   const [clubs, setClubs] = useState<ClubRow[]>([]);
   const [loading, setLoading] = useState(true);
