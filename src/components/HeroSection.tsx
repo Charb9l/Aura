@@ -151,7 +151,7 @@ const HeroSection = () => {
           </h1>
         </motion.div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 w-full max-w-4xl">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 w-full max-w-3xl">
           {actions.map((action) => {
             const hasGlow = (action as any).glow;
             return (
@@ -164,14 +164,19 @@ const HeroSection = () => {
                 <Link
                   to={action.to}
                   className={cn(
-                    "group flex flex-col items-center justify-center text-center glass-card rounded-sm aspect-square p-4 text-[10px] font-medium uppercase tracking-[0.15em] transition-all duration-300",
-                    hasGlow
-                      ? "border-primary/30 text-primary hover:bg-primary/5"
-                      : "text-foreground/80 hover:text-foreground hover:bg-muted/30"
+                    "group relative flex flex-col items-center justify-center text-center rounded-sm aspect-square p-3 text-[9px] font-medium uppercase tracking-[0.2em] transition-all duration-500 overflow-hidden",
+                    "border border-primary/10 bg-primary/[0.03] hover:bg-primary/[0.08] hover:border-primary/30",
+                    hasGlow ? "text-primary" : "text-foreground/70 hover:text-foreground"
                   )}
                 >
-                  <span>{action.label}</span>
-                  <ArrowRight className="h-3.5 w-3.5 mt-3 opacity-30 group-hover:opacity-80 group-hover:translate-y-1 transition-all" />
+                  {/* Corner accents */}
+                  <span className="absolute top-0 left-0 w-3 h-[1px] bg-gradient-to-r from-primary/40 to-transparent" />
+                  <span className="absolute top-0 left-0 h-3 w-[1px] bg-gradient-to-b from-primary/40 to-transparent" />
+                  <span className="absolute bottom-0 right-0 w-3 h-[1px] bg-gradient-to-l from-primary/40 to-transparent" />
+                  <span className="absolute bottom-0 right-0 h-3 w-[1px] bg-gradient-to-t from-primary/40 to-transparent" />
+
+                  <span className="leading-tight">{action.label}</span>
+                  <ArrowRight className="h-3 w-3 mt-2 opacity-20 group-hover:opacity-70 group-hover:translate-x-0.5 transition-all duration-300" />
                 </Link>
               </motion.div>
             );
