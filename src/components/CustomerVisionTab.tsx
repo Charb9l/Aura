@@ -558,6 +558,18 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
     if (slug === "habits") {
       content.feature_badges = habitsBadges.filter(b => b.label.trim());
     }
+    if (slug === "loyalty") {
+      content.tagline = loyaltyTagline;
+      content.steps = loyaltySteps;
+      content.section_how = loyaltySectionHow;
+      content.section_journey = loyaltySectionJourney;
+      content.section_activities = loyaltySectionActivities;
+      content.cta_tagline = loyaltyCtaTagline;
+      content.cta_heading = loyaltyCtaHeading;
+      content.cta_subtitle = loyaltyCtaSubtitle;
+      content.milestone_5 = loyaltyMilestone5;
+      content.milestone_10 = loyaltyMilestone10;
+    }
     saveContent(slug, content);
   };
 
