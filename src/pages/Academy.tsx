@@ -356,8 +356,8 @@ const AcademyPage = () => {
         )}
 
         {/* Overlay */}
-        <div className="absolute inset-0 bg-background/80" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-background/30" />
+        <div className="absolute inset-0 bg-background/80 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-background/30 pointer-events-none" />
 
         {/* Content */}
         <div className="relative z-10 container mx-auto px-6 py-20 text-center">
