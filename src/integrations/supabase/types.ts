@@ -1169,10 +1169,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      get_booked_slots: {
-        Args: { _activity: string; _booking_date: string }
-        Returns: string[]
-      }
+      get_booked_slots:
+        | {
+            Args: { _activity: string; _booking_date: string }
+            Returns: string[]
+          }
+        | {
+            Args: {
+              _activity: string
+              _activity_name?: string
+              _booking_date: string
+            }
+            Returns: string[]
+          }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
