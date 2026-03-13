@@ -126,6 +126,14 @@ const ClubsTab = ({ isMasterAdmin, openRegistrations, onRegistrationsOpened }: {
   const [showOfferingsDialog, setShowOfferingsDialog] = useState(false);
   const [showPartnerRequests, setShowPartnerRequests] = useState(false);
   const [showAcademyRegistrations, setShowAcademyRegistrations] = useState(false);
+
+  // Open registrations from external navigation (e.g. notification click)
+  useEffect(() => {
+    if (openRegistrations) {
+      setShowAcademyRegistrations(true);
+      onRegistrationsOpened?.();
+    }
+  }, [openRegistrations, onRegistrationsOpened]);
   const [offeringsDialogMode, setOfferingsDialogMode] = useState<"list" | "add" | "edit">("list");
   const [addOfferingName, setAddOfferingName] = useState("");
   const [addOfferingSlug, setAddOfferingSlug] = useState("");
