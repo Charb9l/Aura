@@ -417,7 +417,6 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
                 </div>
               </CardContent>
             </Card>
-          </div>
         </>
       )}
 
