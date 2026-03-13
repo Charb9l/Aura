@@ -33,7 +33,7 @@ const TYPE_CONFIG: Record<string, { icon: typeof Bell; color: string; label: str
 
 interface Props {
   onUnreadCountChange?: (count: number) => void;
-  onNavigate?: (tab: string, context?: { userId?: string; bookingDate?: string }) => void;
+  onNavigate?: (tab: string, context?: { userId?: string; bookingDate?: string; openRegistrations?: boolean }) => void;
 }
 
 const NotificationsTab = ({ onUnreadCountChange, onNavigate }: Props) => {
