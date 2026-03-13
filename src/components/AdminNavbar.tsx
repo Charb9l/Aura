@@ -151,6 +151,12 @@ const AdminNavbar = ({ activeTab, onTabChange, assignedClubId, notificationCount
             {notificationCount > 99 ? "99+" : notificationCount}
           </span>
         )}
+        {item.tab === "clubs" && academyRegCount > 0 && (
+          <span className="ml-auto relative flex h-5 min-w-5 items-center justify-center rounded-full bg-purple-500 text-white text-[10px] font-bold px-1.5">
+            {academyRegCount > 99 ? "99+" : academyRegCount}
+            <span className="absolute inset-0 rounded-full bg-purple-500 animate-ping opacity-40" />
+          </span>
+        )}
       </button>
     );
 
