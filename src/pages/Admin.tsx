@@ -294,7 +294,6 @@ const AdminDashboard = () => {
     else if (revenueRange === "weekly") { start = startOfWeek(now, { weekStartsOn: 1 }); end = endOfDay(now); }
     else if (revenueRange === "monthly") { start = startOfMonth(now); end = endOfMonth(now); }
     else if (revenueRange === "custom" && revenueCustomRange.from && revenueCustomRange.to) { start = startOfDay(revenueCustomRange.from); end = endOfDay(revenueCustomRange.to); }
-    else if (revenueRange === "custom-range" && revenueCustomRange.from && revenueCustomRange.to) { start = startOfDay(revenueCustomRange.from); end = endOfDay(revenueCustomRange.to); }
     else { start = startOfDay(now); end = endOfDay(now); }
     let filtered = showBookings.filter(b => { const d = parseISO(b.booking_date); return isWithinInterval(d, { start, end }); });
     filtered = applyDashboardFilter(filtered, revenueFilterType, revenueFilterValue);
