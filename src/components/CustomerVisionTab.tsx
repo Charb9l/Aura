@@ -446,6 +446,22 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
   const [habitsBadges, setHabitsBadges] = useState<{ label: string; use_gold?: boolean }[]>([]);
   const [maxClubsGrid, setMaxClubsGrid] = useState<number>(3);
 
+  // Loyalty-specific state
+  const [loyaltyTagline, setLoyaltyTagline] = useState("");
+  const [loyaltySteps, setLoyaltySteps] = useState<{ title: string; desc: string }[]>([
+    { title: "BOOK & EARN", desc: "Every session booked through the app earns you 1 point for that activity." },
+    { title: "5 PTS → 50% OFF", desc: "Reach 5 points in any activity and your next booking is half price." },
+    { title: "10 PTS → FREE", desc: "Save up to 10 points and get a completely free booking — any activity." },
+  ]);
+  const [loyaltySectionHow, setLoyaltySectionHow] = useState("How It Works");
+  const [loyaltySectionJourney, setLoyaltySectionJourney] = useState("Your Journey");
+  const [loyaltySectionActivities, setLoyaltySectionActivities] = useState("Every Activity Counts");
+  const [loyaltyCtaTagline, setLoyaltyCtaTagline] = useState("Begin Today");
+  const [loyaltyCtaHeading, setLoyaltyCtaHeading] = useState("Ready to Start Earning?");
+  const [loyaltyCtaSubtitle, setLoyaltyCtaSubtitle] = useState("Sign up, book your first session, and watch your points grow.");
+  const [loyaltyMilestone5, setLoyaltyMilestone5] = useState("50% Off");
+  const [loyaltyMilestone10, setLoyaltyMilestone10] = useState("Free Session");
+
   useEffect(() => {
     const fetchAll = async () => {
       const { data } = await supabase.from("page_content").select("*");
@@ -477,6 +493,22 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
       setMatchCriteria([...(content.criteria || [])]);
       setHabitsBadges([...(content.feature_badges || [])]);
       setMaxClubsGrid(content.max_clubs_grid ?? 3);
+      if (slug === "loyalty") {
+        setLoyaltyTagline(content.tagline || "Summit Rewards Program");
+        setLoyaltySteps(content.steps?.length ? [...content.steps] : [
+          { title: "BOOK & EARN", desc: "Every session booked through the app earns you 1 point for that activity." },
+          { title: "5 PTS → 50% OFF", desc: "Reach 5 points in any activity and your next booking is half price." },
+          { title: "10 PTS → FREE", desc: "Save up to 10 points and get a completely free booking — any activity." },
+        ]);
+        setLoyaltySectionHow(content.section_how || "How It Works");
+        setLoyaltySectionJourney(content.section_journey || "Your Journey");
+        setLoyaltySectionActivities(content.section_activities || "Every Activity Counts");
+        setLoyaltyCtaTagline(content.cta_tagline || "Begin Today");
+        setLoyaltyCtaHeading(content.cta_heading || "Ready to Start Earning?");
+        setLoyaltyCtaSubtitle(content.cta_subtitle || "Sign up, book your first session, and watch your points grow.");
+        setLoyaltyMilestone5(content.milestone_5 || "50% Off");
+        setLoyaltyMilestone10(content.milestone_10 || "Free Session");
+      }
     }
     setEditingPage(slug);
   };
@@ -525,6 +557,18 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
     }
     if (slug === "habits") {
       content.feature_badges = habitsBadges.filter(b => b.label.trim());
+    }
+    if (slug === "loyalty") {
+      content.tagline = loyaltyTagline;
+      content.steps = loyaltySteps;
+      content.section_how = loyaltySectionHow;
+      content.section_journey = loyaltySectionJourney;
+      content.section_activities = loyaltySectionActivities;
+      content.cta_tagline = loyaltyCtaTagline;
+      content.cta_heading = loyaltyCtaHeading;
+      content.cta_subtitle = loyaltyCtaSubtitle;
+      content.milestone_5 = loyaltyMilestone5;
+      content.milestone_10 = loyaltyMilestone10;
     }
     saveContent(slug, content);
   };
@@ -874,6 +918,63 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
                     </div>
                   ))}
                   {habitsBadges.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No feature badges yet. Click "Add Badge" to create one. Defaults will be used if empty.</p>}
+                </div>
+              </div>
+            )}
+
+            {editingPage === "loyalty" && (
+              <div className="border-t border-border pt-6 space-y-5">
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground mb-2 block">Top Tagline (above title)</Label>
+                  <Input value={loyaltyTagline} onChange={(e) => setLoyaltyTagline(e.target.value)} placeholder="Summit Rewards Program" className="h-9 bg-secondary border-border text-sm" />
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground mb-3 block">How It Works — Section Title</Label>
+                  <Input value={loyaltySectionHow} onChange={(e) => setLoyaltySectionHow(e.target.value)} className="h-9 bg-secondary border-border text-sm" />
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground mb-3 block">Steps (3 cards)</Label>
+                  <div className="space-y-3">
+                    {loyaltySteps.map((step, i) => (
+                      <div key={i} className="p-3 rounded-lg border border-border bg-secondary/50 space-y-2">
+                        <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Step {i + 1}</p>
+                        <Input value={step.title} onChange={(e) => setLoyaltySteps(prev => prev.map((s, idx) => idx === i ? { ...s, title: e.target.value } : s))} placeholder="Step title" className="h-8 bg-background border-border text-xs" />
+                        <Input value={step.desc} onChange={(e) => setLoyaltySteps(prev => prev.map((s, idx) => idx === i ? { ...s, desc: e.target.value } : s))} placeholder="Step description" className="h-8 bg-background border-border text-xs" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground mb-3 block">Journey Section Title</Label>
+                  <Input value={loyaltySectionJourney} onChange={(e) => setLoyaltySectionJourney(e.target.value)} className="h-9 bg-secondary border-border text-sm" />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground mb-2 block">5-Point Milestone Label</Label>
+                    <Input value={loyaltyMilestone5} onChange={(e) => setLoyaltyMilestone5(e.target.value)} className="h-9 bg-secondary border-border text-sm" />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground mb-2 block">10-Point Milestone Label</Label>
+                    <Input value={loyaltyMilestone10} onChange={(e) => setLoyaltyMilestone10(e.target.value)} className="h-9 bg-secondary border-border text-sm" />
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground mb-3 block">Activities Section Title</Label>
+                  <Input value={loyaltySectionActivities} onChange={(e) => setLoyaltySectionActivities(e.target.value)} className="h-9 bg-secondary border-border text-sm" />
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground mb-3 block">CTA Section</Label>
+                  <div className="space-y-2">
+                    <Input value={loyaltyCtaTagline} onChange={(e) => setLoyaltyCtaTagline(e.target.value)} placeholder="Begin Today" className="h-9 bg-secondary border-border text-sm" />
+                    <Input value={loyaltyCtaHeading} onChange={(e) => setLoyaltyCtaHeading(e.target.value)} placeholder="Ready to Start Earning?" className="h-9 bg-secondary border-border text-sm" />
+                    <Input value={loyaltyCtaSubtitle} onChange={(e) => setLoyaltyCtaSubtitle(e.target.value)} placeholder="Sign up, book your first session..." className="h-9 bg-secondary border-border text-sm" />
+                  </div>
                 </div>
               </div>
             )}

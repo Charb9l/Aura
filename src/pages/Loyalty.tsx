@@ -13,10 +13,28 @@ interface OfferingItem {
   logo_url: string | null;
 }
 
+const DEFAULT_STEPS = [
+  { title: "BOOK & EARN", desc: "Every session booked through the app earns you 1 point for that activity." },
+  { title: "5 PTS → 50% OFF", desc: "Reach 5 points in any activity and your next booking is half price." },
+  { title: "10 PTS → FREE", desc: "Save up to 10 points and get a completely free booking — any activity." },
+];
+
+const STEP_ICONS = [<Star className="h-5 w-5" />, <Gift className="h-5 w-5" />, <Zap className="h-5 w-5" />];
+
 const LoyaltyPage = () => {
   const { user } = useAuth();
   const [title, setTitle] = useState("Book More. Earn More.");
   const [subtitle, setSubtitle] = useState("Every booking earns you a point. Stack them up and unlock exclusive discounts — or go big and play for free.");
+  const [tagline, setTagline] = useState("Summit Rewards Program");
+  const [steps, setSteps] = useState(DEFAULT_STEPS);
+  const [sectionHow, setSectionHow] = useState("How It Works");
+  const [sectionJourney, setSectionJourney] = useState("Your Journey");
+  const [sectionActivities, setSectionActivities] = useState("Every Activity Counts");
+  const [ctaTagline, setCtaTagline] = useState("Begin Today");
+  const [ctaHeading, setCtaHeading] = useState("Ready to Start Earning?");
+  const [ctaSubtitle, setCtaSubtitle] = useState("Sign up, book your first session, and watch your points grow.");
+  const [milestone5, setMilestone5] = useState("50% Off");
+  const [milestone10, setMilestone10] = useState("Free Session");
   const [offerings, setOfferings] = useState<OfferingItem[]>([]);
 
   useEffect(() => {
@@ -29,23 +47,27 @@ const LoyaltyPage = () => {
         const c = contentRes.data.content as any;
         if (c.title) setTitle(c.title);
         if (c.subtitle) setSubtitle(c.subtitle);
+        if (c.tagline) setTagline(c.tagline);
+        if (c.steps?.length) setSteps(c.steps);
+        if (c.section_how) setSectionHow(c.section_how);
+        if (c.section_journey) setSectionJourney(c.section_journey);
+        if (c.section_activities) setSectionActivities(c.section_activities);
+        if (c.cta_tagline) setCtaTagline(c.cta_tagline);
+        if (c.cta_heading) setCtaHeading(c.cta_heading);
+        if (c.cta_subtitle) setCtaSubtitle(c.cta_subtitle);
+        if (c.milestone_5) setMilestone5(c.milestone_5);
+        if (c.milestone_10) setMilestone10(c.milestone_10);
       }
       if (offeringsRes.data) setOfferings(offeringsRes.data);
     };
     fetchData();
   }, []);
 
-  const steps = [
-    { icon: <Star className="h-5 w-5" />, number: "01", title: "BOOK & EARN", desc: "Every session booked through the app earns you 1 point for that activity." },
-    { icon: <Gift className="h-5 w-5" />, number: "02", title: "5 PTS → 50% OFF", desc: "Reach 5 points in any activity and your next booking is half price." },
-    { icon: <Zap className="h-5 w-5" />, number: "03", title: "10 PTS → FREE", desc: "Save up to 10 points and get a completely free booking — any activity." },
-  ];
-
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0">
       <Navbar />
 
-      {/* Hero — cinematic, angular */}
+      {/* Hero */}
       <section className="relative pt-28 pb-12 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-20 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
@@ -60,7 +82,7 @@ const LoyaltyPage = () => {
           >
             <div className="flex-1 text-center md:text-left">
               <span className="inline-block text-[10px] uppercase tracking-[0.35em] text-primary font-medium mb-4">
-                Summit Rewards Program
+                {tagline}
               </span>
               <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl font-light text-foreground leading-[0.95]">
                 {title.split(". ").length > 1 ? (
@@ -90,7 +112,7 @@ const LoyaltyPage = () => {
         </div>
       </section>
 
-      {/* How it works — editorial grid */}
+      {/* How it works */}
       <section className="border-t border-border/50">
         <div className="container mx-auto px-6">
           <div className="py-10">
@@ -101,14 +123,14 @@ const LoyaltyPage = () => {
               className="flex items-center gap-4 mb-8"
             >
               <div className="h-px flex-1 bg-gradient-to-r from-primary/30 to-transparent" />
-              <span className="text-[10px] uppercase tracking-[0.4em] text-primary font-medium whitespace-nowrap">How It Works</span>
+              <span className="text-[10px] uppercase tracking-[0.4em] text-primary font-medium whitespace-nowrap">{sectionHow}</span>
               <div className="h-px flex-1 bg-gradient-to-l from-primary/30 to-transparent" />
             </motion.div>
 
             <div className="grid md:grid-cols-3 gap-0 md:divide-x md:divide-border/30">
               {steps.map((step, i) => (
                 <motion.div
-                  key={step.title}
+                  key={i}
                   initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
@@ -116,9 +138,9 @@ const LoyaltyPage = () => {
                   className="relative px-8 py-6 group"
                 >
                   <div className="flex items-start gap-4 mb-5">
-                    <span className="text-3xl font-heading font-light text-primary/30 leading-none">{step.number}</span>
+                    <span className="text-3xl font-heading font-light text-primary/30 leading-none">{String(i + 1).padStart(2, "0")}</span>
                     <div className="w-8 h-8 border border-primary/30 flex items-center justify-center text-primary mt-1 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-500">
-                      {step.icon}
+                      {STEP_ICONS[i] || <Star className="h-5 w-5" />}
                     </div>
                   </div>
                   <h3 className="text-xs uppercase tracking-[0.25em] font-medium text-foreground mb-3">{step.title}</h3>
@@ -130,7 +152,7 @@ const LoyaltyPage = () => {
         </div>
       </section>
 
-      {/* Progress tracker — sharp, linear */}
+      {/* Progress tracker */}
       <section className="border-t border-border/50">
         <div className="container mx-auto px-6 py-12">
           <motion.div
@@ -140,12 +162,11 @@ const LoyaltyPage = () => {
           >
             <div className="flex items-center gap-4 mb-8">
               <div className="h-px flex-1 bg-gradient-to-r from-primary/30 to-transparent" />
-              <span className="text-[10px] uppercase tracking-[0.4em] text-primary font-medium whitespace-nowrap">Your Journey</span>
+              <span className="text-[10px] uppercase tracking-[0.4em] text-primary font-medium whitespace-nowrap">{sectionJourney}</span>
               <div className="h-px flex-1 bg-gradient-to-l from-primary/30 to-transparent" />
             </div>
 
             <div className="max-w-4xl mx-auto">
-              {/* Milestone bar */}
               <div className="relative">
                 <div className="flex items-center justify-between mb-3">
                   {Array.from({ length: 10 }, (_, i) => {
@@ -171,7 +192,6 @@ const LoyaltyPage = () => {
                   })}
                 </div>
 
-                {/* Track line */}
                 <div className="h-[2px] bg-border/40 relative">
                   <motion.div
                     initial={{ width: 0 }}
@@ -184,8 +204,8 @@ const LoyaltyPage = () => {
 
                 <div className="flex justify-between mt-3">
                   <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/50">Start</span>
-                  <span className="text-[10px] uppercase tracking-[0.2em] text-primary/80">50% Off</span>
-                  <span className="text-[10px] uppercase tracking-[0.2em] text-primary font-medium">Free Session</span>
+                  <span className="text-[10px] uppercase tracking-[0.2em] text-primary/80">{milestone5}</span>
+                  <span className="text-[10px] uppercase tracking-[0.2em] text-primary font-medium">{milestone10}</span>
                 </div>
               </div>
             </div>
@@ -193,13 +213,13 @@ const LoyaltyPage = () => {
         </div>
       </section>
 
-      {/* Activities marquee — sleek */}
+      {/* Activities marquee */}
       {offerings.length > 0 && (
         <section className="border-t border-border/50 py-12 overflow-hidden max-w-full">
           <div className="container mx-auto px-6 mb-8">
             <div className="flex items-center gap-4">
               <div className="h-px flex-1 bg-gradient-to-r from-primary/30 to-transparent" />
-              <span className="text-[10px] uppercase tracking-[0.4em] text-primary font-medium whitespace-nowrap">Every Activity Counts</span>
+              <span className="text-[10px] uppercase tracking-[0.4em] text-primary font-medium whitespace-nowrap">{sectionActivities}</span>
               <div className="h-px flex-1 bg-gradient-to-l from-primary/30 to-transparent" />
             </div>
           </div>
@@ -238,7 +258,7 @@ const LoyaltyPage = () => {
         </section>
       )}
 
-      {/* CTA — minimal, sharp */}
+      {/* CTA */}
       <section className="border-t border-border/50">
         <div className="container mx-auto px-6 py-14 text-center">
           <motion.div
@@ -246,14 +266,21 @@ const LoyaltyPage = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <span className="text-[10px] uppercase tracking-[0.4em] text-primary font-medium mb-6 inline-block">Begin Today</span>
+            <span className="text-[10px] uppercase tracking-[0.4em] text-primary font-medium mb-6 inline-block">{ctaTagline}</span>
             <h2 className="font-heading text-3xl md:text-5xl font-light text-foreground mb-4">
-              Ready to Start <span className="text-primary italic">Earning</span>?
+              {ctaHeading.includes(" ") ? (
+                <>
+                  {ctaHeading.split(" ").slice(0, -1).join(" ")}{" "}
+                  <span className="text-primary italic">{ctaHeading.split(" ").slice(-1)}</span>
+                </>
+              ) : (
+                ctaHeading
+              )}
             </h2>
             {!user && (
               <>
                 <p className="text-muted-foreground text-sm font-light mb-10 max-w-md mx-auto">
-                  Sign up, book your first session, and watch your points grow.
+                  {ctaSubtitle}
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                   <Link to="/auth">
