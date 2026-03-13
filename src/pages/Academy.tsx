@@ -330,7 +330,7 @@ const AcademyPage = () => {
       {/* Hero section with dynamic grid background */}
       <section className="relative min-h-[38vh] flex items-center justify-center overflow-hidden">
         {visibleHeroPics.length > 0 && (
-          <div className={cn("absolute inset-0 grid", getGridLayout(visibleHeroPics.length))}>
+          <div className={cn("absolute inset-0 grid pointer-events-none", getGridLayout(visibleHeroPics.length))}>
             <AnimatePresence mode="popLayout">
               {visibleHeroPics.map((pic, i) => (
                 <motion.div
