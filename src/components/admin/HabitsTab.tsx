@@ -236,6 +236,8 @@ const HabitsTab = () => {
         </div>
       </div>
 
+      <PageCmsSection pageSlug="habits" pageName="Habit Tracker" showHabitsBadges />
+
       <div className="space-y-6">
         {levels.map((level, li) => {
           const colors = LEVEL_COLORS[li % LEVEL_COLORS.length];

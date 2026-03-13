@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from "react"; // admin clubs
+import { useState, useEffect, useMemo } from "react";
+import PageCmsSection from "./PageCmsSection";
 import { motion } from "framer-motion";
 import { Building2, Pencil, Trash2, Upload, X, Image, GraduationCap, MapPin, Plus, Search, Eye, EyeOff, Handshake } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
