@@ -306,7 +306,7 @@ const LoyaltyPage = () => {
 
       <footer className="border-t border-border/30 py-10">
         <div className="container mx-auto px-6 text-center text-[11px] uppercase tracking-[0.25em] text-muted-foreground/40">
-          © {new Date().getFullYear()} Summit. All rights reserved.
+          © {new Date().getFullYear()} All rights reserved.
         </div>
       </footer>
     </div>

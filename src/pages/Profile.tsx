@@ -497,13 +497,9 @@ const ProfilePage = () => {
                 <Bell className="h-5 w-5 text-primary" />
               </div>
               {customerNotifCount > 0 && (
-                <>
-                  <Badge className="bg-primary text-primary-foreground text-xs px-2 py-0.5 animate-pulse">
-                    {customerNotifCount}
-                  </Badge>
-                  <span className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-primary animate-ping" />
-                  <span className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-primary" />
-                </>
+                <Badge className="bg-primary text-primary-foreground text-xs px-2 py-0.5 animate-pulse">
+                  {customerNotifCount}
+                </Badge>
               )}
             </div>
             <p className="font-heading font-bold text-sm text-foreground">Notifications</p>
