@@ -18,6 +18,7 @@ import AdminPage from "./pages/Admin";
 import AdminLoginPage from "./pages/AdminLogin";
 import MatchmakerPage from "./pages/Matchmaker";
 import HabitsPage from "./pages/Habits";
+import CommunityPage from "./pages/Community";
 import CompleteProfilePage from "./pages/CompleteProfile";
 import NotFound from "./pages/NotFound";
 
@@ -51,6 +52,7 @@ const App = () => (
           <ProfileGuard>
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/community" element={<CommunityPage />} />
               <Route path="/matchmaker" element={<MatchmakerPage />} />
               <Route path="/habits" element={<HabitsPage />} />
               <Route path="/book" element={<BookPage />} />
