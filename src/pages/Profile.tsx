@@ -92,6 +92,9 @@ const ProfilePage = () => {
   const [showBadgeReward, setShowBadgeReward] = useState(false);
   const [selectedClubForPoint, setSelectedClubForPoint] = useState<string>("");
   const [assigningPoint, setAssigningPoint] = useState(false);
+  const [showWelcomeBonus, setShowWelcomeBonus] = useState(false);
+  const [welcomeClub, setWelcomeClub] = useState("");
+  const [assigningWelcome, setAssigningWelcome] = useState(false);
   const [viewNudge, setViewNudge] = useState<any | null>(null);
   const [respondingNudge, setRespondingNudge] = useState(false);
   const [showNudges, setShowNudges] = useState(false);
@@ -101,6 +104,8 @@ const ProfilePage = () => {
   const [buddySportFilter, setBuddySportFilter] = useState<string>("");
   const [badgeFirstClicked, setBadgeFirstClicked] = useState(() => localStorage.getItem("badge_first_click_seen") === "true");
   const [showNotifications, setShowNotifications] = useState(false);
+  // One-time welcome bonus banner: show only if never dismissed/completed
+  const [welcomeBonusDismissed, setWelcomeBonusDismissed] = useState(() => localStorage.getItem("welcome_bonus_seen") === "true");
   const customerNotifCount = useCustomerNotificationCount();
   const badgeEmailSentRef = useRef<Set<number>>(new Set());
 
@@ -304,6 +309,41 @@ const ProfilePage = () => {
     return null;
   }, [assignedLevels, completedBadgeLevels]);
 
+  // Auto-grant welcome bonus when both photo + MyPlayer are complete
+  const welcomeBonusGrantedRef = useRef(false);
+  useEffect(() => {
+    if (welcomeBonusDismissed) return;
+    if (!user || !avatarUrl || playerComplete !== true) return;
+    if (welcomeBonusGrantedRef.current) return;
+    welcomeBonusGrantedRef.current = true;
+    // Both done — mark as seen so banner disappears forever
+    setWelcomeBonusDismissed(true);
+    localStorage.setItem("welcome_bonus_seen", "true");
+    toast.success("🎉 Welcome bonus unlocked! Choose a club for your free loyalty point!");
+    setShowWelcomeBonus(true);
+  }, [avatarUrl, playerComplete, welcomeBonusDismissed, user]);
+
+  const handleWelcomeBonusAssign = async () => {
+    if (!welcomeClub || !user) return;
+    setAssigningWelcome(true);
+    const { error } = await supabase.from("loyalty_point_adjustments").insert({
+      user_id: user.id,
+      club_id: welcomeClub,
+      points: 1,
+      reason: "Welcome bonus: profile photo + MyPlayer setup",
+    });
+    setAssigningWelcome(false);
+    if (error) {
+      toast.error("Failed to assign point: " + error.message);
+    } else {
+      const clubName = clubs.find(c => c.id === welcomeClub)?.name;
+      toast.success(`+1 loyalty point added to ${clubName}!`);
+      setLoyaltyAdjustments(prev => ({ ...prev, [welcomeClub]: (prev[welcomeClub] || 0) + 1 }));
+      setShowWelcomeBonus(false);
+      setWelcomeClub("");
+    }
+  };
+
   if (loading || loadingData) {
     return (
       <div className="min-h-screen">
@@ -416,6 +456,46 @@ const ProfilePage = () => {
             <p className="text-muted-foreground text-lg">Your activity hub & loyalty progress.</p>
           </div>
         </motion.div>
+
+        {/* One-time welcome bonus banner */}
+        <AnimatePresence>
+          {!welcomeBonusDismissed && (!avatarUrl || playerComplete === false) && (
+            <motion.div
+              initial={{ opacity: 0, y: -10, height: 0 }}
+              animate={{ opacity: 1, y: 0, height: "auto" }}
+              exit={{ opacity: 0, y: -10, height: 0 }}
+              className="mb-6 rounded-2xl border border-primary/40 bg-primary/5 p-4 sm:p-5 relative overflow-hidden"
+            >
+              <div className="flex items-start gap-3">
+                <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center shrink-0">
+                  <Gift className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-heading font-bold text-sm text-foreground mb-1">Welcome Bonus 🎉</h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Upload a profile photo and set up your MyPlayer profile to earn <span className="font-bold text-primary">+1 free loyalty point</span> — redeemable at any club!
+                  </p>
+                  <div className="flex items-center gap-3 mt-2.5">
+                    <span className={cn("text-xs font-medium flex items-center gap-1", avatarUrl ? "text-primary" : "text-muted-foreground")}>
+                      {avatarUrl ? <Check className="h-3.5 w-3.5" /> : <Camera className="h-3.5 w-3.5" />}
+                      Photo
+                    </span>
+                    <span className={cn("text-xs font-medium flex items-center gap-1", playerComplete ? "text-primary" : "text-muted-foreground")}>
+                      {playerComplete ? <Check className="h-3.5 w-3.5" /> : <Gamepad2 className="h-3.5 w-3.5" />}
+                      MyPlayer
+                    </span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => { setWelcomeBonusDismissed(true); localStorage.setItem("welcome_bonus_seen", "true"); }}
+                  className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                >
+                  <XIcon className="h-4 w-4" />
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Quick Action Cards */}
         <motion.div
@@ -995,6 +1075,37 @@ const ProfilePage = () => {
               </Select>
               <Button onClick={handleAssignPoint} disabled={!selectedClubForPoint || assigningPoint} className="w-full h-12 font-bold glow">
                 {assigningPoint ? "Assigning..." : "Add +1 Point"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Welcome Bonus Dialog */}
+        <Dialog open={showWelcomeBonus} onOpenChange={setShowWelcomeBonus}>
+          <DialogContent className="bg-card border-border max-w-md">
+            <DialogHeader>
+              <DialogTitle className="font-heading text-xl flex items-center gap-2">
+                <Gift className="h-5 w-5 text-primary" /> Welcome Bonus 🎉
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 pt-2">
+              <p className="text-sm text-muted-foreground">
+                You completed your profile setup! Choose a club to receive your <span className="font-bold text-primary">+1 free loyalty point</span>:
+              </p>
+              <Select value={welcomeClub} onValueChange={setWelcomeClub}>
+                <SelectTrigger className="h-12 bg-secondary border-border">
+                  <SelectValue placeholder="Select a club..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {clubs.map(club => (
+                    <SelectItem key={club.id} value={club.id}>
+                      {club.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button onClick={handleWelcomeBonusAssign} disabled={!welcomeClub || assigningWelcome} className="w-full h-12 font-bold glow">
+                {assigningWelcome ? "Assigning..." : "Claim +1 Point"}
               </Button>
             </div>
           </DialogContent>
