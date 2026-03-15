@@ -101,6 +101,8 @@ const ProfilePage = () => {
   const [buddySportFilter, setBuddySportFilter] = useState<string>("");
   const [badgeFirstClicked, setBadgeFirstClicked] = useState(() => localStorage.getItem("badge_first_click_seen") === "true");
   const [showNotifications, setShowNotifications] = useState(false);
+  // One-time welcome bonus banner: show only if never dismissed/completed
+  const [welcomeBonusDismissed, setWelcomeBonusDismissed] = useState(() => localStorage.getItem("welcome_bonus_seen") === "true");
   const customerNotifCount = useCustomerNotificationCount();
   const badgeEmailSentRef = useRef<Set<number>>(new Set());
 
