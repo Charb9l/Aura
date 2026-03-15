@@ -419,6 +419,46 @@ const ProfilePage = () => {
           </div>
         </motion.div>
 
+        {/* One-time welcome bonus banner */}
+        <AnimatePresence>
+          {!welcomeBonusDismissed && (!avatarUrl || playerComplete === false) && (
+            <motion.div
+              initial={{ opacity: 0, y: -10, height: 0 }}
+              animate={{ opacity: 1, y: 0, height: "auto" }}
+              exit={{ opacity: 0, y: -10, height: 0 }}
+              className="mb-6 rounded-2xl border border-primary/40 bg-primary/5 p-4 sm:p-5 relative overflow-hidden"
+            >
+              <div className="flex items-start gap-3">
+                <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center shrink-0">
+                  <Gift className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-heading font-bold text-sm text-foreground mb-1">Welcome Bonus 🎉</h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Upload a profile photo and set up your MyPlayer profile to earn <span className="font-bold text-primary">+1 free loyalty point</span> — redeemable at any club!
+                  </p>
+                  <div className="flex items-center gap-3 mt-2.5">
+                    <span className={cn("text-xs font-medium flex items-center gap-1", avatarUrl ? "text-primary" : "text-muted-foreground")}>
+                      {avatarUrl ? <Check className="h-3.5 w-3.5" /> : <Camera className="h-3.5 w-3.5" />}
+                      Photo
+                    </span>
+                    <span className={cn("text-xs font-medium flex items-center gap-1", playerComplete ? "text-primary" : "text-muted-foreground")}>
+                      {playerComplete ? <Check className="h-3.5 w-3.5" /> : <Gamepad2 className="h-3.5 w-3.5" />}
+                      MyPlayer
+                    </span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => { setWelcomeBonusDismissed(true); localStorage.setItem("welcome_bonus_seen", "true"); }}
+                  className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                >
+                  <XIcon className="h-4 w-4" />
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Quick Action Cards */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
