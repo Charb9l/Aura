@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Eye, Pencil, Plus, Trash2, Upload, ArrowUp, ArrowDown, Package, Image as ImageIcon } from "lucide-react";
+import { Eye, Pencil, Plus, Trash2, Upload, ArrowUp, ArrowDown, Package, Image as ImageIcon, Star } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
