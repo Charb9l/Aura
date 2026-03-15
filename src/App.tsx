@@ -52,6 +52,7 @@ const App = () => (
           <ProfileGuard>
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/community" element={<CommunityPage />} />
               <Route path="/matchmaker" element={<MatchmakerPage />} />
               <Route path="/habits" element={<HabitsPage />} />
               <Route path="/book" element={<BookPage />} />
