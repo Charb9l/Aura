@@ -298,7 +298,7 @@ const ProfilePage = () => {
 
   // Find next unassigned level number
   const nextUnassignedLevel = useMemo(() => {
-    for (let i = 1; i <= 3; i++) {
+    for (let i = 1; i <= 5; i++) {
       if (!assignedLevels.has(i) && i <= completedBadgeLevels) return i;
     }
     return null;
