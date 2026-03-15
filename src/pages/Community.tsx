@@ -103,7 +103,7 @@ const Community = () => (
   <div className="min-h-screen pb-24 md:pb-0">
     <Navbar />
     <div className="px-4 pt-4 sm:hidden">
-      <MobileBackButton fallback="/" />
+      <MobileBackButton fallbackPath="/" />
     </div>
 
     <div className="max-w-lg mx-auto px-4 pt-6 pb-8">
