@@ -798,7 +798,7 @@ const BookPage = () => {
                     )}
                     style={date ? brand.glowSm : undefined}
                   >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    <CalendarClock className="mr-2 h-4 w-4" />
                     {date ? format(date, "PPP") : "Pick a date"}
                   </Button>
                 </PopoverTrigger>
