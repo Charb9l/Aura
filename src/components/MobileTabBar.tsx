@@ -77,7 +77,7 @@ const MobileTabBar = () => {
                   transition={{ type: "spring", stiffness: 400, damping: 30 }}
                 />
               )}
-              <Menu className="h-5 w-5" />
+              <LayoutGrid className="h-5 w-5" />
               <span className="text-[10px] font-medium">More</span>
             </button>
           </SheetTrigger>
