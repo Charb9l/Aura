@@ -9,10 +9,10 @@ import { useAdminRole } from "@/hooks/useAdminRole";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const TABS = [
-  { to: "/", label: "Home", icon: Home },
-  { to: "/book", label: "Book", icon: CalendarCheck },
-  { to: "/clubs", label: "Clubs", icon: Building2 },
-  { to: "/academy", label: "Academies", icon: GraduationCap },
+  { to: "/", label: "Home", icon: Compass },
+  { to: "/book", label: "Book", icon: CalendarClock },
+  { to: "/clubs", label: "Clubs", icon: MapPinned },
+  { to: "/academy", label: "Academies", icon: Award },
 ];
 
 const MORE_LINKS = [
