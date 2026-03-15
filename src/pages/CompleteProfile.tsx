@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,8 +12,13 @@ import PhoneInput from "@/components/PhoneInput";
 import MobileBackButton from "@/components/MobileBackButton";
 
 const CompleteProfile = () => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
+
+  // Redirect unauthenticated users to login
+  useEffect(() => {
+    if (!loading && !user) navigate("/auth", { replace: true });
+  }, [user, loading, navigate]);
   const [fullName, setFullName] = useState(user?.user_metadata?.full_name || user?.user_metadata?.name || "");
   const [phone, setPhone] = useState("");
   const [saving, setSaving] = useState(false);

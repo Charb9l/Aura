@@ -72,7 +72,7 @@ const MobileTabBar = () => {
             >
               {isMenuActive && (
                 <motion.div
-                  layoutId="tab-indicator"
+                  layoutId="tab-indicator-more"
                   className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-[2px] rounded-full bg-primary"
                   transition={{ type: "spring", stiffness: 400, damping: 30 }}
                 />
