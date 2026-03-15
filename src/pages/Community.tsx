@@ -112,22 +112,45 @@ const Community = () => {
 
   useEffect(() => {
     const slugs = FEATURES.map((f) => f.pageSlug);
-    supabase
-      .from("hero_pictures")
-      .select("image_url, page_slug, display_order")
-      .in("page_slug", slugs)
-      .order("display_order")
-      .then(({ data }) => {
-        if (!data) return;
-        const map: Record<string, string> = {};
-        // Pick the first image per slug
-        for (const row of data) {
-          if (!map[row.page_slug]) {
-            map[row.page_slug] = row.image_url;
+
+    // First try to get admin-selected hero images from page_content
+    const fetchHeroImages = async () => {
+      const { data: contentData } = await supabase
+        .from("page_content")
+        .select("page_slug, content")
+        .in("page_slug", slugs);
+
+      const map: Record<string, string> = {};
+      if (contentData) {
+        for (const row of contentData) {
+          const content = row.content as any;
+          if (content?.hero_image_url) {
+            map[row.page_slug] = content.hero_image_url;
           }
         }
-        setBgImages(map);
-      });
+      }
+
+      // For pages without a selected hero, fall back to first hero_picture
+      const missingSlugs = slugs.filter((s) => !map[s]);
+      if (missingSlugs.length > 0) {
+        const { data: picData } = await supabase
+          .from("hero_pictures")
+          .select("image_url, page_slug, display_order")
+          .in("page_slug", missingSlugs)
+          .order("display_order");
+        if (picData) {
+          for (const row of picData) {
+            if (!map[row.page_slug]) {
+              map[row.page_slug] = row.image_url;
+            }
+          }
+        }
+      }
+
+      setBgImages(map);
+    };
+
+    fetchHeroImages();
   }, []);
 
   return (

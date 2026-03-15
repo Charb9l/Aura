@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Eye, Plus, Trash2, ArrowUp, ArrowDown, Upload, ChevronDown, ChevronRight } from "lucide-react";
+import { Eye, Plus, Trash2, ArrowUp, ArrowDown, Upload, ChevronDown, ChevronRight, Star } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,14 +22,33 @@ export const PagePicturesManager = ({ pageSlug }: { pageSlug: string }) => {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [dragging, setDragging] = useState(false);
+  const [heroUrl, setHeroUrl] = useState<string | null>(null);
 
-  useEffect(() => { fetchPictures(); }, [pageSlug]);
+  useEffect(() => { fetchPictures(); fetchHero(); }, [pageSlug]);
 
   const fetchPictures = async () => {
     setLoading(true);
     const { data } = await supabase.from("hero_pictures").select("*").eq("page_slug", pageSlug).order("display_order");
     setPictures((data as any[]) || []);
     setLoading(false);
+  };
+
+  const fetchHero = async () => {
+    const { data } = await supabase.from("page_content").select("content").eq("page_slug", pageSlug).maybeSingle();
+    const content = (data?.content as any) || {};
+    setHeroUrl(content.hero_image_url || null);
+  };
+
+  const setAsHero = async (pic: PictureRow) => {
+    const { data: existing } = await supabase.from("page_content").select("content, id").eq("page_slug", pageSlug).maybeSingle();
+    const content = { ...((existing?.content as any) || {}), hero_image_url: pic.image_url };
+    if (existing) {
+      await supabase.from("page_content").update({ content: content as any, updated_at: new Date().toISOString() }).eq("id", existing.id);
+    } else {
+      await supabase.from("page_content").insert({ page_slug: pageSlug, content: content as any });
+    }
+    setHeroUrl(pic.image_url);
+    toast.success("Hero photo set!");
   };
 
   const handleFiles = async (files: FileList | File[]) => {
@@ -59,6 +78,7 @@ export const PagePicturesManager = ({ pageSlug }: { pageSlug: string }) => {
     await supabase.storage.from("hero-pictures").remove([fileName]);
     await supabase.from("hero_pictures").delete().eq("id", pic.id);
     setPictures(prev => prev.filter(p => p.id !== pic.id));
+    if (heroUrl === pic.image_url) setHeroUrl(null);
     toast.success("Picture removed");
   };
 
@@ -87,16 +107,30 @@ export const PagePicturesManager = ({ pageSlug }: { pageSlug: string }) => {
         <p className="text-center text-muted-foreground py-4 text-sm">No pictures yet for this page.</p>
       ) : (
         <div className="grid grid-cols-3 gap-3">
-          {pictures.map((pic) => (
-            <div key={pic.id} className="group relative rounded-lg overflow-hidden border border-border bg-card aspect-video">
-              <img src={pic.image_url} alt="Page picture" className="w-full h-full object-cover" loading="lazy" />
-              <div className="absolute inset-0 bg-background/0 group-hover:bg-background/60 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
-                <button onClick={(e) => { e.stopPropagation(); handleDelete(pic); }} className="rounded-full bg-destructive p-2 text-destructive-foreground shadow-lg hover:bg-destructive/90 transition-all">
-                  <Trash2 className="h-4 w-4" />
-                </button>
+          {pictures.map((pic) => {
+            const isHero = heroUrl === pic.image_url;
+            return (
+              <div key={pic.id} className={cn("group relative rounded-lg overflow-hidden border bg-card aspect-video", isHero ? "border-primary ring-2 ring-primary/30" : "border-border")}>
+                <img src={pic.image_url} alt="Page picture" className="w-full h-full object-cover" loading="lazy" />
+                {isHero && (
+                  <div className="absolute top-1.5 left-1.5 z-10 flex items-center gap-1 rounded bg-primary/90 px-1.5 py-0.5">
+                    <Star className="h-3 w-3 text-primary-foreground fill-primary-foreground" />
+                    <span className="text-[9px] font-bold text-primary-foreground uppercase tracking-wider">Hero</span>
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-background/0 group-hover:bg-background/60 transition-all flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+                  {!isHero && (
+                    <button onClick={(e) => { e.stopPropagation(); setAsHero(pic); }} className="rounded-full bg-primary p-2 text-primary-foreground shadow-lg hover:bg-primary/90 transition-all" title="Set as Hero Photo">
+                      <Star className="h-4 w-4" />
+                    </button>
+                  )}
+                  <button onClick={(e) => { e.stopPropagation(); handleDelete(pic); }} className="rounded-full bg-destructive p-2 text-destructive-foreground shadow-lg hover:bg-destructive/90 transition-all">
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
