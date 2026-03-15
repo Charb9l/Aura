@@ -319,9 +319,30 @@ const ProfilePage = () => {
     // Both done — mark as seen so banner disappears forever
     setWelcomeBonusDismissed(true);
     localStorage.setItem("welcome_bonus_seen", "true");
-    toast.success("🎉 Welcome bonus unlocked! You earned +1 free loyalty point. Choose a club to apply it to!");
-    setShowBadgeReward(true);
+    toast.success("🎉 Welcome bonus unlocked! Choose a club for your free loyalty point!");
+    setShowWelcomeBonus(true);
   }, [avatarUrl, playerComplete, welcomeBonusDismissed, user]);
+
+  const handleWelcomeBonusAssign = async () => {
+    if (!welcomeClub || !user) return;
+    setAssigningWelcome(true);
+    const { error } = await supabase.from("loyalty_point_adjustments").insert({
+      user_id: user.id,
+      club_id: welcomeClub,
+      points: 1,
+      reason: "Welcome bonus: profile photo + MyPlayer setup",
+    });
+    setAssigningWelcome(false);
+    if (error) {
+      toast.error("Failed to assign point: " + error.message);
+    } else {
+      const clubName = clubs.find(c => c.id === welcomeClub)?.name;
+      toast.success(`+1 loyalty point added to ${clubName}!`);
+      setLoyaltyAdjustments(prev => ({ ...prev, [welcomeClub]: (prev[welcomeClub] || 0) + 1 }));
+      setShowWelcomeBonus(false);
+      setWelcomeClub("");
+    }
+  };
 
   if (loading || loadingData) {
     return (
