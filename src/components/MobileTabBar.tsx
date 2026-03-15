@@ -1,36 +1,74 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Compass, CalendarClock, MapPinned, Award, LayoutGrid, X, LogOut, LogIn, ShieldCheck, TrendingUp, Users, Trophy } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { LogOut, LogIn, ShieldCheck } from "lucide-react";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
-const TABS = [
-  { to: "/", label: "Home", icon: Compass },
-  { to: "/book", label: "Book", icon: CalendarClock },
-  { to: "/clubs", label: "Clubs", icon: MapPinned },
-  { to: "/academy", label: "Academies", icon: Award },
-];
+/* ── Custom SVG icons for an elite feel ── */
+const IconHome = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 10.5L12 3l9 7.5" />
+    <path d="M5 10v9a1 1 0 001 1h3v-5a1 1 0 011-1h4a1 1 0 011 1v5h3a1 1 0 001-1v-9" />
+  </svg>
+);
 
-const MORE_LINKS = [
-  { to: "/habits", label: "AI Habit Tracker", icon: TrendingUp },
-  { to: "/matchmaker", label: "AI Matchmaker", icon: Users },
-  { to: "/loyalty", label: "Loyalty", icon: Trophy },
+const IconBook = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="4" width="18" height="18" rx="2" />
+    <path d="M3 10h18" />
+    <path d="M8 2v4M16 2v4" />
+    <path d="M9 15l2 2 4-4" />
+  </svg>
+);
+
+const IconCommunity = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="3" width="8" height="8" rx="1.5" />
+    <rect x="13" y="3" width="8" height="8" rx="1.5" />
+    <rect x="3" y="13" width="8" height="8" rx="1.5" />
+    <rect x="13" y="13" width="8" height="8" rx="1.5" />
+  </svg>
+);
+
+const IconMatchmaker = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="9" cy="8" r="4" />
+    <circle cx="15" cy="8" r="4" />
+    <path d="M4 21c0-4 2.5-7 5.5-7" />
+    <path d="M20 21c0-4-2.5-7-5.5-7" />
+    <path d="M10.5 16l1.5-1.5L13.5 16" />
+  </svg>
+);
+
+const IconHabits = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 18l4-8 4 6 3-10 4 5h3" />
+    <circle cx="8" cy="10" r="1.5" fill="currentColor" fillOpacity="0.25" />
+    <circle cx="12" cy="16" r="1.5" fill="currentColor" fillOpacity="0.25" />
+    <circle cx="15" cy="6" r="1.5" fill="currentColor" fillOpacity="0.25" />
+    <path d="M20 3l1-1M21 5h2M20 7l1 1" strokeWidth="1.2" />
+  </svg>
+);
+
+const TABS = [
+  { to: "/", label: "Home", Icon: IconHome },
+  { to: "/book", label: "Book", Icon: IconBook },
+  { to: "/community", label: "Community", Icon: IconCommunity },
+  { to: "/matchmaker", label: "Match", Icon: IconMatchmaker },
+  { to: "/habits", label: "Habits", Icon: IconHabits },
 ];
 
 const MobileTabBar = () => {
   const location = useLocation();
   const isSmallMobile = useMediaQuery("(max-width: 639px)");
-  const [menuOpen, setMenuOpen] = useState(false);
   const { user, signOut } = useAuth();
   const { isAdmin } = useAdminRole();
 
   if (!isSmallMobile || location.pathname.startsWith("/admin")) return null;
-
-  const isMenuActive = MORE_LINKS.some((l) => location.pathname.startsWith(l.to));
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background/95 backdrop-blur-md pb-[env(safe-area-inset-bottom)]">
@@ -55,96 +93,11 @@ const MobileTabBar = () => {
                   transition={{ type: "spring", stiffness: 400, damping: 30 }}
                 />
               )}
-              <tab.icon className="h-5 w-5" />
+              <tab.Icon className="h-5 w-5" />
               <span className="text-[10px] font-medium">{tab.label}</span>
             </Link>
           );
         })}
-
-        {/* Hamburger menu */}
-        <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
-          <SheetTrigger asChild>
-            <button
-              className={cn(
-                "flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-colors relative",
-                isMenuActive ? "text-primary" : "text-muted-foreground"
-              )}
-            >
-              {isMenuActive && (
-                <motion.div
-                  layoutId="tab-indicator-more"
-                  className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-[2px] rounded-full bg-primary"
-                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                />
-              )}
-              <LayoutGrid className="h-5 w-5" />
-              <span className="text-[10px] font-medium">More</span>
-            </button>
-          </SheetTrigger>
-          <SheetContent side="bottom" className="rounded-t-2xl pb-[env(safe-area-inset-bottom)]">
-            <div className="flex flex-col gap-1 py-4">
-              {MORE_LINKS.map((link) => {
-                const isActive = location.pathname.startsWith(link.to);
-                return (
-                  <Link
-                    key={link.to}
-                    to={link.to}
-                    onClick={() => setMenuOpen(false)}
-                    className={cn(
-                      "flex items-center gap-3 py-3 px-4 rounded-lg text-sm font-light uppercase tracking-[0.1em] transition-colors",
-                      isActive ? "text-foreground bg-muted/40" : "text-muted-foreground hover:text-foreground hover:bg-muted/20"
-                    )}
-                  >
-                    <link.icon className="h-4 w-4" />
-                    {link.label}
-                  </Link>
-                );
-              })}
-
-              <div className="border-t border-border my-2" />
-
-              {isAdmin && (
-                <Link
-                  to="/admin-login"
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-3 py-3 px-4 rounded-lg text-sm font-light uppercase tracking-[0.1em] text-muted-foreground hover:text-foreground hover:bg-muted/20 transition-colors"
-                >
-                  <ShieldCheck className="h-4 w-4" />
-                  Admin
-                </Link>
-              )}
-
-              {user ? (
-                <button
-                  onClick={async () => { await signOut(); setMenuOpen(false); }}
-                  className="flex items-center gap-3 py-3 px-4 rounded-lg text-sm font-light uppercase tracking-[0.1em] text-muted-foreground hover:text-foreground hover:bg-muted/20 transition-colors w-full text-left"
-                >
-                  <LogOut className="h-4 w-4" />
-                  Sign Out
-                </button>
-              ) : (
-                <>
-                  <Link
-                    to="/auth"
-                    onClick={() => setMenuOpen(false)}
-                    className="flex items-center gap-3 py-3 px-4 rounded-lg text-sm font-light uppercase tracking-[0.1em] text-primary hover:text-foreground hover:bg-muted/20 transition-colors"
-                  >
-                    <LogIn className="h-4 w-4" />
-                    Login / Sign Up
-                  </Link>
-                  <Link
-                    to="/admin-login"
-                    onClick={() => setMenuOpen(false)}
-                    className="flex items-center gap-3 py-3 px-4 rounded-lg text-sm font-light uppercase tracking-[0.1em] text-muted-foreground hover:text-foreground hover:bg-muted/20 transition-colors"
-                  >
-                    <ShieldCheck className="h-4 w-4" />
-                    Admin
-                  </Link>
-                </>
-              )}
-            </div>
-          </SheetContent>
-        </Sheet>
       </div>
     </nav>
   );

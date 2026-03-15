@@ -18,6 +18,7 @@ import AdminPage from "./pages/Admin";
 import AdminLoginPage from "./pages/AdminLogin";
 import MatchmakerPage from "./pages/Matchmaker";
 import HabitsPage from "./pages/Habits";
+import CommunityPage from "./pages/Community";
 import CompleteProfilePage from "./pages/CompleteProfile";
 import NotFound from "./pages/NotFound";
 
