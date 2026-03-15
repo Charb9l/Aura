@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, CalendarCheck, Building2, GraduationCap, Menu, X, LogOut, LogIn, ShieldCheck, TrendingUp, Users, Trophy } from "lucide-react";
+import { Compass, CalendarClock, MapPinned, Award, LayoutGrid, X, LogOut, LogIn, ShieldCheck, TrendingUp, Users, Trophy } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/hooks/use-mobile";
