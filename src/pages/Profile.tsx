@@ -1080,6 +1080,37 @@ const ProfilePage = () => {
           </DialogContent>
         </Dialog>
 
+        {/* Welcome Bonus Dialog */}
+        <Dialog open={showWelcomeBonus} onOpenChange={setShowWelcomeBonus}>
+          <DialogContent className="bg-card border-border max-w-md">
+            <DialogHeader>
+              <DialogTitle className="font-heading text-xl flex items-center gap-2">
+                <Gift className="h-5 w-5 text-primary" /> Welcome Bonus 🎉
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 pt-2">
+              <p className="text-sm text-muted-foreground">
+                You completed your profile setup! Choose a club to receive your <span className="font-bold text-primary">+1 free loyalty point</span>:
+              </p>
+              <Select value={welcomeClub} onValueChange={setWelcomeClub}>
+                <SelectTrigger className="h-12 bg-secondary border-border">
+                  <SelectValue placeholder="Select a club..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {clubs.map(club => (
+                    <SelectItem key={club.id} value={club.id}>
+                      {club.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button onClick={handleWelcomeBonusAssign} disabled={!welcomeClub || assigningWelcome} className="w-full h-12 font-bold glow">
+                {assigningWelcome ? "Assigning..." : "Claim +1 Point"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         {/* Loyalty Trackers */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
