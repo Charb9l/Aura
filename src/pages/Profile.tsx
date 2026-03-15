@@ -306,6 +306,18 @@ const ProfilePage = () => {
     return null;
   }, [assignedLevels, completedBadgeLevels]);
 
+  // Auto-grant welcome bonus when both photo + MyPlayer are complete
+  useEffect(() => {
+    if (welcomeBonusDismissed) return;
+    if (!user || !avatarUrl || playerComplete !== true) return;
+    // Both done — mark as seen so banner disappears forever
+    setWelcomeBonusDismissed(true);
+    localStorage.setItem("welcome_bonus_seen", "true");
+    // The user now has a badge reward point to assign — we surface the badge reward dialog
+    toast.success("🎉 Welcome bonus unlocked! You earned +1 free loyalty point. Choose a club to apply it to!");
+    setShowBadgeReward(true);
+  }, [avatarUrl, playerComplete, welcomeBonusDismissed, user]);
+
   if (loading || loadingData) {
     return (
       <div className="min-h-screen">
