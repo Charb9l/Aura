@@ -276,7 +276,7 @@ const ProfilePage = () => {
   const availableBadgePoints = completedBadgeLevels - assignedLevels.size;
 
   // Send badge completion email when new level detected
-  const BADGE_NAMES_LIST = ["Rookie", "Athlete", "Legend"];
+  const BADGE_NAMES_LIST = ["Rookie", "Athlete", "Legend", "Champion", "Icon"];
   useEffect(() => {
     if (!user || completedBadgeLevels === 0 || !profile) return;
     // Check each completed level
