@@ -522,6 +522,8 @@ const ProfilePage = () => {
             { name: "Rookie", icon: <Shield className="h-6 w-6" />, color: "text-primary", bg: "bg-primary/15", border: "border-primary/40", glow: "shadow-[0_0_20px_hsl(var(--primary)/0.5)]" },
             { name: "Athlete", icon: <Award className="h-6 w-6" />, color: "text-accent", bg: "bg-accent/15", border: "border-accent/40", glow: "shadow-[0_0_20px_hsl(var(--accent)/0.5)]" },
             { name: "Legend", icon: <Crown className="h-6 w-6" />, color: "text-amber-400", bg: "bg-amber-400/15", border: "border-amber-400/40", glow: "shadow-[0_0_20px_rgba(251,191,36,0.5)]" },
+            { name: "Champion", icon: <Trophy className="h-6 w-6" />, color: "text-emerald-400", bg: "bg-emerald-400/15", border: "border-emerald-400/40", glow: "shadow-[0_0_20px_rgba(52,211,153,0.5)]" },
+            { name: "Icon", icon: <Zap className="h-6 w-6" />, color: "text-rose-400", bg: "bg-rose-400/15", border: "border-rose-400/40", glow: "shadow-[0_0_20px_rgba(251,113,133,0.5)]" },
           ];
           const currentIdx = completedBadgeLevels - 1;
           const badge = currentIdx >= 0 ? BADGE_NAMES[Math.min(currentIdx, BADGE_NAMES.length - 1)] : null;
