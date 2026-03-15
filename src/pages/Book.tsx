@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
-import { CalendarIcon, Clock, CheckCircle2, User, Mail, Phone, Gift, Sparkles } from "lucide-react";
+import { CalendarClock, Clock, CheckCircle2, User, Mail, Phone, Gift, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -798,7 +798,7 @@ const BookPage = () => {
                     )}
                     style={date ? brand.glowSm : undefined}
                   >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    <CalendarClock className="mr-2 h-4 w-4" />
                     {date ? format(date, "PPP") : "Pick a date"}
                   </Button>
                 </PopoverTrigger>

@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
-import { GraduationCap, CheckCircle2, ChevronLeft, MapPin } from "lucide-react";
+import { Award, CheckCircle2, ChevronLeft, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
@@ -363,7 +363,7 @@ const AcademyPage = () => {
         <div className="relative z-10 container mx-auto px-6 py-20 text-center">
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
             <div className="flex items-center justify-center gap-3 mb-4">
-              <GraduationCap className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+              <Award className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
               <h1 className="font-heading text-3xl sm:text-5xl md:text-6xl font-light text-foreground">{pageTitle}</h1>
             </div>
             <p className="text-muted-foreground text-sm sm:text-lg max-w-lg mx-auto">{pageSubtitle}</p>
@@ -427,7 +427,7 @@ const AcademyPage = () => {
 
         {filteredClubs.length === 0 && (
           <div className="text-center py-20">
-            <GraduationCap className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <Award className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <p className="text-muted-foreground text-lg">No academies available yet.</p>
           </div>
         )}

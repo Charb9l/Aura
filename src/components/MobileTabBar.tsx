@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, CalendarCheck, Building2, GraduationCap, Menu, X, LogOut, LogIn, ShieldCheck, TrendingUp, Users, Trophy } from "lucide-react";
+import { Compass, CalendarClock, MapPinned, Award, LayoutGrid, X, LogOut, LogIn, ShieldCheck, TrendingUp, Users, Trophy } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/hooks/use-mobile";
@@ -9,10 +9,10 @@ import { useAdminRole } from "@/hooks/useAdminRole";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const TABS = [
-  { to: "/", label: "Home", icon: Home },
-  { to: "/book", label: "Book", icon: CalendarCheck },
-  { to: "/clubs", label: "Clubs", icon: Building2 },
-  { to: "/academy", label: "Academies", icon: GraduationCap },
+  { to: "/", label: "Home", icon: Compass },
+  { to: "/book", label: "Book", icon: CalendarClock },
+  { to: "/clubs", label: "Clubs", icon: MapPinned },
+  { to: "/academy", label: "Academies", icon: Award },
 ];
 
 const MORE_LINKS = [
@@ -77,7 +77,7 @@ const MobileTabBar = () => {
                   transition={{ type: "spring", stiffness: 400, damping: 30 }}
                 />
               )}
-              <Menu className="h-5 w-5" />
+              <LayoutGrid className="h-5 w-5" />
               <span className="text-[10px] font-medium">More</span>
             </button>
           </SheetTrigger>
