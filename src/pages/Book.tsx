@@ -255,12 +255,45 @@ const BookPage = () => {
       const validRule = (rules as any[]).find(r => {
         if (r.start_date && r.start_date > today) return false;
         if (r.end_date && r.end_date < today) return false;
+        // Check max_total_uses: count existing bookings that used this price rule
+        if (r.max_total_uses != null) {
+          // We'll do a synchronous check below after fetching usage count
+          return true; // tentatively valid, will be filtered async
+        }
         return true;
       });
-      setActivePriceRule(validRule ? { id: validRule.id, discount_type: validRule.discount_type, discount_value: validRule.discount_value } : null);
+      if (!validRule) { setActivePriceRule(null); return; }
+
+      // Verify max_total_uses if set
+      if (validRule.max_total_uses != null) {
+        const { count } = await supabase
+          .from("bookings")
+          .select("id", { count: "exact", head: true })
+          .eq("discount_type", validRule.discount_type === "free" ? "free" : "50%");
+        if (count != null && count >= validRule.max_total_uses) {
+          setActivePriceRule(null);
+          return;
+        }
+      }
+
+      // Also check uses_per_customer
+      if (user && validRule.uses_per_customer) {
+        const { count } = await supabase
+          .from("bookings")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", user.id)
+          .not("discount_type", "is", null);
+        // If user already used their allocation for this rule, skip
+        if (count != null && count >= validRule.uses_per_customer) {
+          setActivePriceRule(null);
+          return;
+        }
+      }
+
+      setActivePriceRule({ id: validRule.id, discount_type: validRule.discount_type, discount_value: validRule.discount_value });
     };
     fetchPriceRule();
-  }, [resolvedClubId]);
+  }, [resolvedClubId, user]);
 
   // Dynamic brand color from the selected offering
   const selectedOffering = offerings.find(o => o.slug === selectedActivity);
