@@ -92,6 +92,9 @@ const ProfilePage = () => {
   const [showBadgeReward, setShowBadgeReward] = useState(false);
   const [selectedClubForPoint, setSelectedClubForPoint] = useState<string>("");
   const [assigningPoint, setAssigningPoint] = useState(false);
+  const [showWelcomeBonus, setShowWelcomeBonus] = useState(false);
+  const [welcomeClub, setWelcomeClub] = useState("");
+  const [assigningWelcome, setAssigningWelcome] = useState(false);
   const [viewNudge, setViewNudge] = useState<any | null>(null);
   const [respondingNudge, setRespondingNudge] = useState(false);
   const [showNudges, setShowNudges] = useState(false);
