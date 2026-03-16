@@ -172,7 +172,7 @@ const HeroSection = () => {
                 <Link
                   to={action.to}
                   className={cn(
-                    "group relative flex flex-col items-center justify-center text-center rounded-sm aspect-square p-2 transition-all duration-500 overflow-hidden",
+                    "group relative flex flex-col items-center justify-center text-center rounded-sm w-16 h-16 lg:w-20 lg:h-20 p-2 transition-all duration-500 overflow-hidden",
                     "border border-primary/20 bg-primary/[0.06] hover:bg-primary/[0.12] hover:border-primary/40",
                     hasGlow ? "text-primary" : "text-foreground/80 hover:text-primary"
                   )}
