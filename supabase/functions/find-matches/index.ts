@@ -86,7 +86,7 @@ Deno.serve(async (req) => {
     const userIds = [...new Set(selections.map((s: any) => s.user_id))];
 
     const [profilesRes, offeringsRes, levelsRes, locationsRes, mySelectionsRes, clubsRes] = await Promise.all([
-      supabase.from("profiles").select("user_id, full_name").in("user_id", userIds),
+      supabase.from("profiles").select("user_id, full_name, suspended").in("user_id", userIds),
       supabase.from("offerings").select("id, name, slug, brand_color"),
       supabase.from("player_levels").select("id, label, display_order"),
       supabase.from("club_locations").select("id, name, location, activity, club_id"),
@@ -96,6 +96,10 @@ Deno.serve(async (req) => {
 
     const profileMap = Object.fromEntries((profilesRes.data || []).map((p: any) => [p.user_id, p]));
     const offeringMap = Object.fromEntries((offeringsRes.data || []).map((o: any) => [o.id, o]));
+
+    // Filter out suspended users
+    const suspendedIds = new Set((profilesRes.data || []).filter((p: any) => p.suspended).map((p: any) => p.user_id));
+    const activeUserIds = userIds.filter((uid: string) => !suspendedIds.has(uid));
     const levelMap = Object.fromEntries((levelsRes.data || []).map((l: any) => [l.id, l]));
     const locationMap = Object.fromEntries((locationsRes.data || []).map((l: any) => [l.id, l]));
     const mySelections = mySelectionsRes.data || [];
@@ -146,7 +150,7 @@ Deno.serve(async (req) => {
       return { score, matchQuality, details };
     };
 
-    const matches = userIds.map((uid: string) => {
+    const matches = activeUserIds.map((uid: string) => {
       const profile = profileMap[uid];
       const userSels = userSelectionsMap[uid] || [];
       const fullName = profile?.full_name || "Anonymous";

@@ -81,7 +81,7 @@ export const useNudges = () => {
 
     // Fetch profiles, offerings, and player_selections
     const [profilesRes, offeringsRes, selectionsRes] = await Promise.all([
-      uniqueUserIds.length > 0 ? supabase.from("profiles").select("user_id, full_name, avatar_url, phone").in("user_id", uniqueUserIds) : { data: [] },
+      uniqueUserIds.length > 0 ? supabase.from("profiles").select("user_id, full_name, avatar_url, phone, suspended").in("user_id", uniqueUserIds) : { data: [] },
       uniqueSportIds.length > 0 ? supabase.from("offerings").select("id, name, slug, brand_color").in("id", uniqueSportIds) : { data: [] },
       uniqueUserIds.length > 0 && uniqueSportIds.length > 0
         ? supabase.from("player_selections").select("user_id, sport_id, level_id, playstyle").in("user_id", uniqueUserIds).in("sport_id", uniqueSportIds)
@@ -89,7 +89,11 @@ export const useNudges = () => {
     ]);
 
     const profileMap: Record<string, any> = {};
-    (profilesRes.data || []).forEach((p: any) => { profileMap[p.user_id] = p; });
+    const suspendedIds = new Set<string>();
+    (profilesRes.data || []).forEach((p: any) => {
+      profileMap[p.user_id] = p;
+      if (p.suspended) suspendedIds.add(p.user_id);
+    });
     const offeringMap: Record<string, any> = {};
     (offeringsRes.data || []).forEach((o: any) => { offeringMap[o.id] = o; });
     
@@ -129,24 +133,30 @@ export const useNudges = () => {
       };
     };
 
-    setSentNudges(rawSent.map(enrichNudge));
-    setReceivedNudges(rawRecv.map(enrichNudge));
+    // Filter out suspended users from nudges
+    setSentNudges(rawSent.filter((n: any) => !suspendedIds.has(n.receiver_id)).map(enrichNudge));
+    setReceivedNudges(rawRecv.filter((n: any) => !suspendedIds.has(n.sender_id)).map(enrichNudge));
 
-    // Enrich buddies
-    const enrichedBuddies: WorkoutBuddy[] = rawBuddies.map((b: any) => {
-      const buddyId = b.user_id_1 === user.id ? b.user_id_2 : b.user_id_1;
-      const buddyProfile = profileMap[buddyId];
-      const sport = offeringMap[b.sport_id];
-      return {
-        ...b,
-        buddy_name: buddyProfile?.full_name || "Anonymous",
-        buddy_avatar: buddyProfile?.avatar_url || null,
-        buddy_phone: buddyProfile?.phone || null,
-        sport_name: sport?.name || "Unknown",
-        sport_slug: sport?.slug || "",
-        sport_brand_color: sport?.brand_color || null,
-      };
-    });
+    // Enrich buddies — exclude suspended
+    const enrichedBuddies: WorkoutBuddy[] = rawBuddies
+      .filter((b: any) => {
+        const buddyId = b.user_id_1 === user.id ? b.user_id_2 : b.user_id_1;
+        return !suspendedIds.has(buddyId);
+      })
+      .map((b: any) => {
+        const buddyId = b.user_id_1 === user.id ? b.user_id_2 : b.user_id_1;
+        const buddyProfile = profileMap[buddyId];
+        const sport = offeringMap[b.sport_id];
+        return {
+          ...b,
+          buddy_name: buddyProfile?.full_name || "Anonymous",
+          buddy_avatar: buddyProfile?.avatar_url || null,
+          buddy_phone: buddyProfile?.phone || null,
+          sport_name: sport?.name || "Unknown",
+          sport_slug: sport?.slug || "",
+          sport_brand_color: sport?.brand_color || null,
+        };
+      });
     setBuddies(enrichedBuddies);
     setLoading(false);
   }, [user]);
