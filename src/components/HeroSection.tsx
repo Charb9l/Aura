@@ -151,7 +151,7 @@ const HeroSection = () => {
           </h1>
         </motion.div>
 
-        <div className="grid grid-cols-4 gap-2 w-full max-w-xs lg:max-w-md mx-auto">
+        <div className="flex flex-wrap justify-center gap-2 w-full max-w-xs lg:max-w-md mx-auto">
           {actions.map((action) => {
             const hasGlow = (action as any).glow;
             // Map icon by route path for both default and DB-sourced buttons
