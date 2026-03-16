@@ -96,6 +96,10 @@ Deno.serve(async (req) => {
 
     const profileMap = Object.fromEntries((profilesRes.data || []).map((p: any) => [p.user_id, p]));
     const offeringMap = Object.fromEntries((offeringsRes.data || []).map((o: any) => [o.id, o]));
+
+    // Filter out suspended users
+    const suspendedIds = new Set((profilesRes.data || []).filter((p: any) => p.suspended).map((p: any) => p.user_id));
+    const activeUserIds = userIds.filter((uid: string) => !suspendedIds.has(uid));
     const levelMap = Object.fromEntries((levelsRes.data || []).map((l: any) => [l.id, l]));
     const locationMap = Object.fromEntries((locationsRes.data || []).map((l: any) => [l.id, l]));
     const mySelections = mySelectionsRes.data || [];
