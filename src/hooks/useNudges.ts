@@ -81,7 +81,7 @@ export const useNudges = () => {
 
     // Fetch profiles, offerings, and player_selections
     const [profilesRes, offeringsRes, selectionsRes] = await Promise.all([
-      uniqueUserIds.length > 0 ? supabase.from("profiles").select("user_id, full_name, avatar_url, phone").in("user_id", uniqueUserIds) : { data: [] },
+      uniqueUserIds.length > 0 ? supabase.from("profiles").select("user_id, full_name, avatar_url, phone, suspended").in("user_id", uniqueUserIds) : { data: [] },
       uniqueSportIds.length > 0 ? supabase.from("offerings").select("id, name, slug, brand_color").in("id", uniqueSportIds) : { data: [] },
       uniqueUserIds.length > 0 && uniqueSportIds.length > 0
         ? supabase.from("player_selections").select("user_id, sport_id, level_id, playstyle").in("user_id", uniqueUserIds).in("sport_id", uniqueSportIds)

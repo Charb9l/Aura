@@ -150,7 +150,7 @@ Deno.serve(async (req) => {
       return { score, matchQuality, details };
     };
 
-    const matches = userIds.map((uid: string) => {
+    const matches = activeUserIds.map((uid: string) => {
       const profile = profileMap[uid];
       const userSels = userSelectionsMap[uid] || [];
       const fullName = profile?.full_name || "Anonymous";
