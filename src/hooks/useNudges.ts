@@ -89,7 +89,11 @@ export const useNudges = () => {
     ]);
 
     const profileMap: Record<string, any> = {};
-    (profilesRes.data || []).forEach((p: any) => { profileMap[p.user_id] = p; });
+    const suspendedIds = new Set<string>();
+    (profilesRes.data || []).forEach((p: any) => {
+      profileMap[p.user_id] = p;
+      if (p.suspended) suspendedIds.add(p.user_id);
+    });
     const offeringMap: Record<string, any> = {};
     (offeringsRes.data || []).forEach((o: any) => { offeringMap[o.id] = o; });
     
