@@ -86,7 +86,7 @@ Deno.serve(async (req) => {
     const userIds = [...new Set(selections.map((s: any) => s.user_id))];
 
     const [profilesRes, offeringsRes, levelsRes, locationsRes, mySelectionsRes, clubsRes] = await Promise.all([
-      supabase.from("profiles").select("user_id, full_name").in("user_id", userIds),
+      supabase.from("profiles").select("user_id, full_name, suspended").in("user_id", userIds),
       supabase.from("offerings").select("id, name, slug, brand_color"),
       supabase.from("player_levels").select("id, label, display_order"),
       supabase.from("club_locations").select("id, name, location, activity, club_id"),
