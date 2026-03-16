@@ -133,24 +133,30 @@ export const useNudges = () => {
       };
     };
 
-    setSentNudges(rawSent.map(enrichNudge));
-    setReceivedNudges(rawRecv.map(enrichNudge));
+    // Filter out suspended users from nudges
+    setSentNudges(rawSent.filter((n: any) => !suspendedIds.has(n.receiver_id)).map(enrichNudge));
+    setReceivedNudges(rawRecv.filter((n: any) => !suspendedIds.has(n.sender_id)).map(enrichNudge));
 
-    // Enrich buddies
-    const enrichedBuddies: WorkoutBuddy[] = rawBuddies.map((b: any) => {
-      const buddyId = b.user_id_1 === user.id ? b.user_id_2 : b.user_id_1;
-      const buddyProfile = profileMap[buddyId];
-      const sport = offeringMap[b.sport_id];
-      return {
-        ...b,
-        buddy_name: buddyProfile?.full_name || "Anonymous",
-        buddy_avatar: buddyProfile?.avatar_url || null,
-        buddy_phone: buddyProfile?.phone || null,
-        sport_name: sport?.name || "Unknown",
-        sport_slug: sport?.slug || "",
-        sport_brand_color: sport?.brand_color || null,
-      };
-    });
+    // Enrich buddies — exclude suspended
+    const enrichedBuddies: WorkoutBuddy[] = rawBuddies
+      .filter((b: any) => {
+        const buddyId = b.user_id_1 === user.id ? b.user_id_2 : b.user_id_1;
+        return !suspendedIds.has(buddyId);
+      })
+      .map((b: any) => {
+        const buddyId = b.user_id_1 === user.id ? b.user_id_2 : b.user_id_1;
+        const buddyProfile = profileMap[buddyId];
+        const sport = offeringMap[b.sport_id];
+        return {
+          ...b,
+          buddy_name: buddyProfile?.full_name || "Anonymous",
+          buddy_avatar: buddyProfile?.avatar_url || null,
+          buddy_phone: buddyProfile?.phone || null,
+          sport_name: sport?.name || "Unknown",
+          sport_slug: sport?.slug || "",
+          sport_brand_color: sport?.brand_color || null,
+        };
+      });
     setBuddies(enrichedBuddies);
     setLoading(false);
   }, [user]);
