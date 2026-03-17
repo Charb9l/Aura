@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
-import { ArrowRight, CalendarDays, GraduationCap, Users, Star } from "lucide-react";
+import { CalendarDays, GraduationCap, Users, Star } from "lucide-react";
 import FeaturedClubsStrip from "@/components/FeaturedClubsStrip";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -35,7 +35,6 @@ interface HeroContent {
 
 const CYCLE_INTERVAL = 4000;
 
-/** Returns a grid layout config based on picture count */
 const getGridLayout = (count: number) => {
   if (count === 1) return { cols: "grid-cols-1", rows: "" };
   if (count === 2) return { cols: "grid-cols-2", rows: "" };
@@ -43,7 +42,6 @@ const getGridLayout = (count: number) => {
   if (count === 4) return { cols: "grid-cols-2 md:grid-cols-4", rows: "" };
   if (count <= 6) return { cols: "grid-cols-3", rows: "grid-rows-2" };
   if (count <= 9) return { cols: "grid-cols-3", rows: "grid-rows-3" };
-  // For large counts, show a rotating window of 6
   return { cols: "grid-cols-3 md:grid-cols-6", rows: "", windowed: true, windowSize: 6 };
 };
 
@@ -70,7 +68,6 @@ const HeroSection = () => {
     fetchData();
   }, []);
 
-  // Cycle for large collections (>9 pictures)
   useEffect(() => {
     if (allPictures.length <= 9) return;
     const timer = setInterval(() => {
@@ -83,7 +80,6 @@ const HeroSection = () => {
     const pics = allPictures.length > 0 ? allPictures : (loaded ? [] : fallbackPanels);
     if (pics.length === 0) return [];
     if (pics.length <= 9) return pics;
-    // Windowed: show 6 at a time cycling through
     const windowSize = 6;
     return Array.from({ length: windowSize }, (_, i) => {
       const idx = (cycleIndex + i) % pics.length;
@@ -97,8 +93,14 @@ const HeroSection = () => {
   const actions = content?.hero_buttons?.map((b, i) => ({ ...b, delay: 0.4 + i * 0.1 })) || defaultActions;
   const showScrollIndicator = content?.show_scroll_indicator ?? false;
 
-  const totalCount = allPictures.length > 0 ? allPictures.length : (loaded ? 0 : fallbackPanels.length);
   const layout = getGridLayout(pictures.length);
+
+  const routeIconMap: Record<string, React.ReactNode> = {
+    "/book": <CalendarDays className="h-5 w-5" />,
+    "/academy": <GraduationCap className="h-5 w-5" />,
+    "/clubs": <Users className="h-5 w-5" />,
+    "/loyalty": <Star className="h-5 w-5" />,
+  };
 
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
@@ -119,8 +121,8 @@ const HeroSection = () => {
                   src={panel.image}
                   alt={panel.alt}
                   className={cn(
-                    "h-full w-full object-cover saturate-[0.3] contrast-[1.1]",
-                    pictures.length === 1 && "saturate-[0.4]"
+                    "h-full w-full object-cover brightness-105 saturate-[1.1]",
+                    pictures.length === 1 && "saturate-100"
                   )}
                 />
               </motion.div>
@@ -129,39 +131,31 @@ const HeroSection = () => {
         </div>
       )}
 
-      {/* Overlay — deep obsidian fade */}
-      <div className="absolute inset-0 bg-background/80 pointer-events-none" />
-      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-background/30 pointer-events-none" />
+      {/* Overlay — bright gradient */}
+      <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/50 to-background pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent pointer-events-none" />
 
       {/* Content */}
-      <div className="relative z-10 container mx-auto px-6 flex flex-col items-center text-center gap-16">
+      <div className="relative z-10 container mx-auto px-6 flex flex-col items-center text-center gap-12">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
           className="max-w-2xl"
         >
-          <p className="text-xs uppercase tracking-[0.4em] text-primary mb-8 font-medium">
+          <p className="text-xs uppercase tracking-[0.3em] text-primary mb-6 font-semibold">
             {subtitle}
           </p>
-          <h1 className="font-heading text-5xl md:text-7xl lg:text-8xl font-light tracking-tight text-foreground leading-[1.05]">
+          <h1 className="font-heading text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight text-foreground leading-[1.05]">
             {titleLine1}
             <br />
-            <span className="italic text-primary">{titleLine2}</span>
+            <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">{titleLine2}</span>
           </h1>
         </motion.div>
 
-        <div className="flex flex-wrap justify-center gap-2 w-full max-w-xs lg:max-w-md mx-auto">
+        <div className="flex flex-wrap justify-center gap-3 w-full max-w-sm lg:max-w-lg mx-auto">
           {actions.map((action) => {
-            const hasGlow = (action as any).glow;
-            // Map icon by route path for both default and DB-sourced buttons
-            const routeIconMap: Record<string, React.ReactNode> = {
-              "/book": <CalendarDays className="h-4 w-4" />,
-              "/academy": <GraduationCap className="h-4 w-4" />,
-              "/clubs": <Users className="h-4 w-4" />,
-              "/loyalty": <Star className="h-4 w-4" />,
-            };
-            const icon = routeIconMap[action.to] || (action as any).icon ? routeIconMap[action.to] : null;
+            const icon = routeIconMap[action.to] || null;
             return (
               <motion.div
                 key={action.to}
@@ -172,19 +166,12 @@ const HeroSection = () => {
                 <Link
                   to={action.to}
                   className={cn(
-                    "group relative flex flex-col items-center justify-center text-center rounded-sm w-16 h-16 lg:w-20 lg:h-20 p-2 transition-all duration-500 overflow-hidden",
-                    "border border-primary/20 bg-primary/[0.06] hover:bg-primary/[0.12] hover:border-primary/40",
-                    hasGlow ? "text-primary" : "text-foreground/80 hover:text-primary"
+                    "group relative flex flex-col items-center justify-center text-center rounded-2xl w-18 h-18 lg:w-22 lg:h-22 p-3 transition-all duration-300",
+                    "bg-card border border-border shadow-sm hover:shadow-lg hover:border-primary/40 hover:-translate-y-1"
                   )}
                 >
-                  {/* Corner accents */}
-                  <span className="absolute top-0 left-0 w-2.5 h-[1px] bg-gradient-to-r from-primary/50 to-transparent" />
-                  <span className="absolute top-0 left-0 h-2.5 w-[1px] bg-gradient-to-b from-primary/50 to-transparent" />
-                  <span className="absolute bottom-0 right-0 w-2.5 h-[1px] bg-gradient-to-l from-primary/50 to-transparent" />
-                  <span className="absolute bottom-0 right-0 h-2.5 w-[1px] bg-gradient-to-t from-primary/50 to-transparent" />
-
-                  <span className="mb-1.5 opacity-60 group-hover:opacity-100 transition-opacity">{icon}</span>
-                  <span className="text-[8px] font-medium uppercase tracking-[0.2em] leading-tight">{action.label}</span>
+                  <span className="mb-1.5 text-primary group-hover:scale-110 transition-transform">{icon}</span>
+                  <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-foreground/70 group-hover:text-foreground leading-tight">{action.label}</span>
                 </Link>
               </motion.div>
             );
@@ -201,15 +188,15 @@ const HeroSection = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.2, duration: 1 }}
-          className="absolute bottom-20 md:bottom-16 lg:bottom-12 left-1/2 -translate-x-1/2"
+          className="absolute bottom-24 md:bottom-20 lg:bottom-12 left-1/2 -translate-x-1/2"
         >
-          <div className="h-16 w-[1px] bg-gradient-to-b from-transparent via-primary/40 to-transparent relative">
-            <motion.div
-              animate={{ y: [0, 40, 0] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute top-0 left-1/2 -translate-x-1/2 h-2 w-[1px] bg-primary"
-            />
-          </div>
+          <motion.div
+            animate={{ y: [0, 10, 0] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            className="w-8 h-8 rounded-full border-2 border-primary/30 flex items-center justify-center"
+          >
+            <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+          </motion.div>
         </motion.div>
       )}
     </section>

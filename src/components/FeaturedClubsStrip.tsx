@@ -7,12 +7,6 @@ interface FeaturedClubsStripProps {
   className?: string;
 }
 
-/**
- * A subtle horizontal strip showing featured partner clubs.
- * - "hero": used at bottom of home page hero (larger images, gold accent)
- * - "auth": used on login/signup page (small logos, muted)
- * - "compact": used on Book page or sidebar (tiny inline logos)
- */
 const FeaturedClubsStrip = ({ variant = "hero", className }: FeaturedClubsStripProps) => {
   const { featuredClubs, loading } = useFeaturedClubs();
 
@@ -26,7 +20,7 @@ const FeaturedClubsStrip = ({ variant = "hero", className }: FeaturedClubsStripP
         transition={{ delay: 0.6, duration: 0.8 }}
         className={cn("flex flex-col items-center gap-3 mt-6", className)}
       >
-        <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground/60">
+        <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">
           Trusted Partners
         </p>
         <div className="flex items-center gap-5 flex-wrap justify-center">
@@ -35,7 +29,7 @@ const FeaturedClubsStrip = ({ variant = "hero", className }: FeaturedClubsStripP
               <img
                 src={fc.featured_image_url}
                 alt={fc.club_name}
-                className="h-8 w-auto object-contain opacity-40 grayscale hover:opacity-70 hover:grayscale-0 transition-all duration-300"
+                className="h-8 w-auto object-contain opacity-50 grayscale hover:opacity-80 hover:grayscale-0 transition-all duration-300"
               />
             </div>
           ))}
@@ -47,7 +41,7 @@ const FeaturedClubsStrip = ({ variant = "hero", className }: FeaturedClubsStripP
   if (variant === "compact") {
     return (
       <div className={cn("flex items-center gap-3 overflow-x-auto scrollbar-hide py-2", className)}>
-        <span className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground/50 whitespace-nowrap shrink-0">
+        <span className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium whitespace-nowrap shrink-0">
           Featured
         </span>
         {featuredClubs.map((fc) => (
@@ -55,14 +49,13 @@ const FeaturedClubsStrip = ({ variant = "hero", className }: FeaturedClubsStripP
             key={fc.id}
             src={fc.featured_image_url}
             alt={fc.club_name}
-            className="h-6 w-auto object-contain opacity-30 hover:opacity-60 transition-opacity shrink-0"
+            className="h-6 w-auto object-contain opacity-40 hover:opacity-70 transition-opacity shrink-0"
           />
         ))}
       </div>
     );
   }
 
-  // Hero variant — premium strip at bottom of hero
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -71,13 +64,13 @@ const FeaturedClubsStrip = ({ variant = "hero", className }: FeaturedClubsStripP
       className={cn("flex flex-col items-center gap-4", className)}
     >
       <div className="flex items-center gap-3">
-        <div className="h-[1px] w-8 bg-gradient-to-r from-transparent to-primary/30" />
-        <p className="text-[10px] uppercase tracking-[0.35em] text-primary/60 font-medium">
+        <div className="h-[2px] w-10 bg-gradient-to-r from-transparent to-primary/30 rounded-full" />
+        <p className="text-[11px] uppercase tracking-wide text-primary font-semibold">
           Featured Partners
         </p>
-        <div className="h-[1px] w-8 bg-gradient-to-l from-transparent to-primary/30" />
+        <div className="h-[2px] w-10 bg-gradient-to-l from-transparent to-primary/30 rounded-full" />
       </div>
-      <div className="flex items-center gap-8 flex-wrap justify-center">
+      <div className="flex items-center gap-6 flex-wrap justify-center">
         {featuredClubs.map((fc, i) => (
           <motion.div
             key={fc.id}
@@ -86,14 +79,14 @@ const FeaturedClubsStrip = ({ variant = "hero", className }: FeaturedClubsStripP
             transition={{ delay: 1.1 + i * 0.1, duration: 0.5 }}
             className="group relative"
           >
-            <div className="relative overflow-hidden rounded-sm border border-border/30 bg-card/30 backdrop-blur-sm p-3 hover:border-primary/20 transition-all duration-300">
+            <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-3 hover:border-primary/30 hover:shadow-lg transition-all duration-300 shadow-sm">
               <img
                 src={fc.featured_image_url}
                 alt={fc.club_name}
-                className="h-10 w-auto object-contain grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-90 transition-all duration-500"
+                className="h-10 w-auto object-contain grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500"
               />
             </div>
-            <p className="text-[8px] uppercase tracking-[0.2em] text-muted-foreground/40 text-center mt-1.5 group-hover:text-muted-foreground/60 transition-colors">
+            <p className="text-[9px] font-medium text-muted-foreground text-center mt-1.5 group-hover:text-foreground transition-colors">
               {fc.club_name}
             </p>
           </motion.div>

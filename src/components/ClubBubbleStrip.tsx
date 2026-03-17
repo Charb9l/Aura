@@ -40,17 +40,14 @@ const ClubBubbleStrip = ({ title, linkTo, filterAcademy = false }: ClubBubbleStr
     fetch();
   }, [filterAcademy]);
 
-  // Measure how many bubbles fit on one line
   useEffect(() => {
     if (!containerRef.current || clubs.length === 0) return;
 
     const measure = () => {
       const container = containerRef.current;
       if (!container) return;
-      // bubble size: 96px (w-24) + 12px gap = 108px per bubble
-      // Also reserve ~108px for the "See all" button
       const availableWidth = container.offsetWidth;
-      const bubbleWidth = 108; // w-24 (96) + gap-3 (12)
+      const bubbleWidth = 108;
       const seeAllWidth = 108;
       const maxFit = Math.floor((availableWidth - seeAllWidth) / bubbleWidth);
       setVisibleCount(Math.max(1, maxFit));
@@ -74,12 +71,12 @@ const ClubBubbleStrip = ({ title, linkTo, filterAcademy = false }: ClubBubbleStr
       transition={{ duration: 0.6 }}
       className="w-full"
     >
-      <div className="flex items-center gap-3 mb-5">
-        <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent to-border/40" />
-        <h2 className="text-[11px] font-medium uppercase tracking-[0.3em] text-muted-foreground">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="h-[2px] flex-1 bg-gradient-to-r from-transparent to-border rounded-full" />
+        <h2 className="text-sm font-bold uppercase tracking-wide text-foreground">
           {title}
         </h2>
-        <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-border/40" />
+        <div className="h-[2px] flex-1 bg-gradient-to-l from-transparent to-border rounded-full" />
       </div>
 
       <div ref={containerRef} className="flex items-center gap-3 justify-center">
@@ -92,7 +89,7 @@ const ClubBubbleStrip = ({ title, linkTo, filterAcademy = false }: ClubBubbleStr
             transition={{ delay: i * 0.05, duration: 0.4 }}
             className="flex flex-col items-center gap-2 shrink-0"
           >
-            <div className="w-20 h-20 lg:w-24 lg:h-24 rounded-full border border-border/40 bg-card/40 backdrop-blur-sm overflow-hidden flex items-center justify-center hover:border-primary/30 transition-all duration-300 shadow-sm">
+            <div className="w-20 h-20 lg:w-24 lg:h-24 rounded-full border-2 border-border bg-card overflow-hidden flex items-center justify-center hover:border-primary/40 hover:shadow-lg transition-all duration-300 shadow-sm">
               {club.logo_url ? (
                 <img
                   src={club.logo_url}
@@ -100,12 +97,12 @@ const ClubBubbleStrip = ({ title, linkTo, filterAcademy = false }: ClubBubbleStr
                   className="w-full h-full object-cover rounded-full"
                 />
               ) : (
-                <span className="text-sm font-medium text-muted-foreground uppercase">
+                <span className="text-sm font-bold text-muted-foreground uppercase">
                   {club.name.slice(0, 2)}
                 </span>
               )}
             </div>
-            <span className="text-[10px] lg:text-xs uppercase tracking-[0.15em] text-muted-foreground/70 text-center max-w-[88px] truncate">
+            <span className="text-[10px] lg:text-xs font-medium text-muted-foreground text-center max-w-[88px] truncate">
               {club.name}
             </span>
           </motion.div>
@@ -116,10 +113,10 @@ const ClubBubbleStrip = ({ title, linkTo, filterAcademy = false }: ClubBubbleStr
             to={linkTo}
             className="flex flex-col items-center gap-2 shrink-0 group"
           >
-            <div className="w-20 h-20 lg:w-24 lg:h-24 rounded-full border border-primary/20 bg-primary/[0.06] flex items-center justify-center hover:bg-primary/[0.12] hover:border-primary/40 transition-all duration-300 shadow-sm">
+            <div className="w-20 h-20 lg:w-24 lg:h-24 rounded-full border-2 border-primary/30 bg-primary/5 flex items-center justify-center hover:bg-primary/10 hover:border-primary/50 transition-all duration-300 shadow-sm">
               <ArrowRight className="h-5 w-5 text-primary opacity-60 group-hover:opacity-100 transition-opacity" />
             </div>
-            <span className="text-[10px] lg:text-xs uppercase tracking-[0.15em] text-primary/60 group-hover:text-primary transition-colors">
+            <span className="text-[10px] lg:text-xs font-medium text-primary/60 group-hover:text-primary transition-colors">
               See all
             </span>
           </Link>
