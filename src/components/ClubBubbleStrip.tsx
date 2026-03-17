@@ -82,7 +82,7 @@ const ClubBubbleStrip = ({ title, linkTo, filterAcademy = false }: ClubBubbleStr
         <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-border/40" />
       </div>
 
-      <div ref={containerRef} className="flex items-center gap-2 justify-center">
+      <div ref={containerRef} className="flex items-center gap-3 justify-center">
         {displayed.map((club, i) => (
           <motion.div
             key={club.id}
@@ -90,9 +90,9 @@ const ClubBubbleStrip = ({ title, linkTo, filterAcademy = false }: ClubBubbleStr
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ delay: i * 0.05, duration: 0.4 }}
-            className="flex flex-col items-center gap-1.5 shrink-0"
+            className="flex flex-col items-center gap-2 shrink-0"
           >
-            <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-full border border-border/40 bg-card/40 backdrop-blur-sm overflow-hidden flex items-center justify-center hover:border-primary/30 transition-all duration-300">
+            <div className="w-20 h-20 lg:w-24 lg:h-24 rounded-full border border-border/40 bg-card/40 backdrop-blur-sm overflow-hidden flex items-center justify-center hover:border-primary/30 transition-all duration-300 shadow-sm">
               {club.logo_url ? (
                 <img
                   src={club.logo_url}
@@ -100,12 +100,12 @@ const ClubBubbleStrip = ({ title, linkTo, filterAcademy = false }: ClubBubbleStr
                   className="w-full h-full object-cover rounded-full"
                 />
               ) : (
-                <span className="text-[10px] font-medium text-muted-foreground uppercase">
+                <span className="text-sm font-medium text-muted-foreground uppercase">
                   {club.name.slice(0, 2)}
                 </span>
               )}
             </div>
-            <span className="text-[8px] uppercase tracking-[0.15em] text-muted-foreground/60 text-center max-w-[60px] truncate">
+            <span className="text-[10px] lg:text-xs uppercase tracking-[0.15em] text-muted-foreground/70 text-center max-w-[88px] truncate">
               {club.name}
             </span>
           </motion.div>
@@ -114,12 +114,12 @@ const ClubBubbleStrip = ({ title, linkTo, filterAcademy = false }: ClubBubbleStr
         {showSeeAll && (
           <Link
             to={linkTo}
-            className="flex flex-col items-center gap-1.5 shrink-0 group"
+            className="flex flex-col items-center gap-2 shrink-0 group"
           >
-            <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-full border border-primary/20 bg-primary/[0.06] flex items-center justify-center hover:bg-primary/[0.12] hover:border-primary/40 transition-all duration-300">
-              <ArrowRight className="h-4 w-4 text-primary opacity-60 group-hover:opacity-100 transition-opacity" />
+            <div className="w-20 h-20 lg:w-24 lg:h-24 rounded-full border border-primary/20 bg-primary/[0.06] flex items-center justify-center hover:bg-primary/[0.12] hover:border-primary/40 transition-all duration-300 shadow-sm">
+              <ArrowRight className="h-5 w-5 text-primary opacity-60 group-hover:opacity-100 transition-opacity" />
             </div>
-            <span className="text-[8px] uppercase tracking-[0.15em] text-primary/60 group-hover:text-primary transition-colors">
+            <span className="text-[10px] lg:text-xs uppercase tracking-[0.15em] text-primary/60 group-hover:text-primary transition-colors">
               See all
             </span>
           </Link>
