@@ -47,11 +47,11 @@ const ClubBubbleStrip = ({ title, linkTo, filterAcademy = false }: ClubBubbleStr
     const measure = () => {
       const container = containerRef.current;
       if (!container) return;
-      // bubble size: 64px (w-16) + 8px gap = 72px per bubble
-      // Also reserve ~80px for the "See all" button
+      // bubble size: 96px (w-24) + 12px gap = 108px per bubble
+      // Also reserve ~108px for the "See all" button
       const availableWidth = container.offsetWidth;
-      const bubbleWidth = 72; // w-16 (64) + gap-2 (8)
-      const seeAllWidth = 80;
+      const bubbleWidth = 108; // w-24 (96) + gap-3 (12)
+      const seeAllWidth = 108;
       const maxFit = Math.floor((availableWidth - seeAllWidth) / bubbleWidth);
       setVisibleCount(Math.max(1, maxFit));
     };
