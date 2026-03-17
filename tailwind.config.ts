@@ -14,8 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        heading: ['DM Sans', 'sans-serif'],
-        body: ['Inter', 'sans-serif'],
+        heading: ['Outfit', 'sans-serif'],
+        body: ['Plus Jakarta Sans', 'sans-serif'],
       },
       fontSize: {
         'xs': ['0.7rem', { lineHeight: '1rem' }],

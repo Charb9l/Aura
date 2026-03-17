@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,7 +8,7 @@ import { useAdminRole } from "@/hooks/useAdminRole";
 import { useBadgeLevels } from "@/hooks/useBadgeLevels";
 import { useBadgePoints } from "@/hooks/useBadgePoints";
 import { usePendingNudgeCount } from "@/hooks/useNudges";
-import { LogOut, ShieldCheck, Menu, X, LogIn, Bell } from "lucide-react";
+import { LogOut, ShieldCheck, Menu, X, LogIn } from "lucide-react";
 import { useCustomerNotificationCount } from "@/hooks/useCustomerNotifications";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -64,12 +64,10 @@ const Navbar = () => {
     supabase.from("page_content").select("content").eq("page_slug", "home").single().then(({ data }) => {
       if (data) {
         const content = data.content as any;
-        // Nav glow: prefer nav_order glow, fall back to hero_buttons glow for backward compat
         const navGlowRoutes = new Set<string>();
         if (content?.nav_order?.length) {
           (content.nav_order as any[]).forEach((n: any) => { if (n.glow) navGlowRoutes.add(n.to); });
         }
-        // Fallback: if no nav-level glows defined, use hero button glows
         if (navGlowRoutes.size === 0) {
           (content?.hero_buttons || []).filter((b: any) => b.glow).forEach((b: any) => navGlowRoutes.add(b.to));
         }
@@ -101,9 +99,9 @@ const Navbar = () => {
   const AvatarDisplay = ({ size = "sm" }: { size?: "sm" | "md" }) => {
     const sizeClass = size === "md" ? "h-8 w-8 text-[9px]" : "h-7 w-7 text-[9px]";
     return avatarUrl ? (
-      <img src={avatarUrl} alt="Avatar" className={cn(sizeClass, "rounded-full object-cover border border-border")} />
+      <img src={avatarUrl} alt="Avatar" className={cn(sizeClass, "rounded-full object-cover border-2 border-primary/20")} />
     ) : (
-      <div className={cn(sizeClass, "rounded-full bg-primary/10 text-primary font-medium flex items-center justify-center border border-border")}>{initials}</div>
+      <div className={cn(sizeClass, "rounded-full bg-primary/10 text-primary font-semibold flex items-center justify-center border-2 border-primary/20")}>{initials}</div>
     );
   };
 
@@ -114,20 +112,20 @@ const Navbar = () => {
       transition={{ duration: 0.5 }}
       className="fixed top-0 left-0 right-0 z-50 glass pt-[env(safe-area-inset-top)]"
     >
-      <div className="container mx-auto flex items-center justify-between px-4 sm:px-8 py-3 sm:py-5">
+      <div className="container mx-auto flex items-center justify-between px-4 sm:px-8 py-3 sm:py-4">
         {/* Logo */}
         <Link to="/" className="font-heading tracking-tight text-foreground shrink-0">
-          <span className="text-2xl font-light">{platformName.line1}</span>
+          <span className="text-2xl font-bold">{platformName.line1}</span>
           {platformName.line2 && (
             <>
               <br />
-              <span className="text-[9px] font-body font-light tracking-[0.35em] text-muted-foreground uppercase">{platformName.line2}</span>
+              <span className="text-[9px] font-body font-medium tracking-[0.25em] text-muted-foreground uppercase">{platformName.line2}</span>
             </>
           )}
         </Link>
 
         {/* Center: Nav Links (desktop) */}
-        <div className="hidden lg:flex items-center gap-8">
+        <div className="hidden lg:flex items-center gap-7">
           {NAV_LINKS.map((link) => {
             const isActive = location.pathname === link.to;
             const isGold = glowRoutes.has(link.to);
@@ -136,8 +134,8 @@ const Navbar = () => {
                 key={link.to}
                 to={link.to}
                 className={cn(
-                  "text-xs font-light tracking-[0.1em] uppercase transition-colors whitespace-nowrap relative",
-                  isGold && "text-primary",
+                  "text-xs font-medium tracking-wide transition-colors whitespace-nowrap relative",
+                  isGold && "text-accent",
                   !isGold && isActive && "text-foreground",
                   !isGold && !isActive && "text-muted-foreground hover:text-foreground"
                 )}
@@ -152,7 +150,7 @@ const Navbar = () => {
                 {isActive && (
                   <motion.div
                     layoutId="nav-underline"
-                    className="h-[1px] mt-1.5 bg-primary"
+                    className="h-[2px] mt-1 rounded-full bg-primary"
                     transition={{ type: "spring", stiffness: 380, damping: 30 }}
                   />
                 )}
@@ -166,23 +164,24 @@ const Navbar = () => {
           {user ? (
             <div className="relative" ref={dropdownRef}>
               <button onClick={() => setDropdownOpen(prev => !prev)} className={cn("flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors relative", showGlow && "text-primary")}>
-                {showGlow && <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-primary animate-ping" />}
+                {showGlow && <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-accent animate-ping" />}
+                {showGlow && <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-accent" />}
                 <AvatarDisplay />
               </button>
               <AnimatePresence>
                 {dropdownOpen && (
-                  <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.15 }} className="absolute right-0 mt-3 w-44 glass-card rounded-sm overflow-hidden">
-                    <Link to="/profile" onClick={() => setDropdownOpen(false)} className="flex items-center gap-2 px-5 py-3 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors">
+                  <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.15 }} className="absolute right-0 mt-3 w-48 glass-card rounded-xl overflow-hidden">
+                    <Link to="/profile" onClick={() => setDropdownOpen(false)} className="flex items-center gap-2 px-5 py-3 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
                       <AvatarDisplay /> Profile
                     </Link>
-                    <button onClick={() => { setDropdownOpen(false); handleSignOut(); }} className="w-full flex items-center gap-2 px-5 py-3 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors">
-                      <LogOut className="h-3.5 w-3.5" /> Sign Out
+                    <button onClick={() => { setDropdownOpen(false); handleSignOut(); }} className="w-full flex items-center gap-2 px-5 py-3 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
+                      <LogOut className="h-4 w-4" /> Sign Out
                     </button>
                     {isAdmin && (
                       <>
                         <div className="border-t border-border" />
-                        <Link to="/admin-login" onClick={() => setDropdownOpen(false)} className="flex items-center gap-2 px-5 py-3 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors">
-                          <ShieldCheck className="h-3.5 w-3.5" /> Admin
+                        <Link to="/admin-login" onClick={() => setDropdownOpen(false)} className="flex items-center gap-2 px-5 py-3 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
+                          <ShieldCheck className="h-4 w-4" /> Admin
                         </Link>
                       </>
                     )}
@@ -192,16 +191,16 @@ const Navbar = () => {
             </div>
           ) : (
             <div className="relative" ref={loggedOutDropdownRef}>
-              <button onClick={() => setLoggedOutDropdownOpen(prev => !prev)} className="rounded-full border border-primary/30 p-2 text-primary transition-all hover:bg-primary/5">
+              <button onClick={() => setLoggedOutDropdownOpen(prev => !prev)} className="rounded-full bg-primary text-primary-foreground p-2.5 transition-all hover:bg-primary/90 shadow-sm">
                 <LogIn className="h-4 w-4" />
               </button>
               <AnimatePresence>
                 {loggedOutDropdownOpen && (
-                  <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.15 }} className="absolute right-0 mt-3 w-44 glass-card rounded-sm overflow-hidden">
-                    <Link to="/auth" onClick={() => setLoggedOutDropdownOpen(false)} className="flex items-center gap-2 px-5 py-3 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors">Login / Sign Up</Link>
+                  <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.15 }} className="absolute right-0 mt-3 w-48 glass-card rounded-xl overflow-hidden">
+                    <Link to="/auth" onClick={() => setLoggedOutDropdownOpen(false)} className="flex items-center gap-2 px-5 py-3 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">Login / Sign Up</Link>
                     <div className="border-t border-border" />
-                    <Link to="/admin-login" onClick={() => setLoggedOutDropdownOpen(false)} className="flex items-center gap-2 px-5 py-3 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors">
-                      <ShieldCheck className="h-3.5 w-3.5" /> Admin
+                    <Link to="/admin-login" onClick={() => setLoggedOutDropdownOpen(false)} className="flex items-center gap-2 px-5 py-3 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
+                      <ShieldCheck className="h-4 w-4" /> Admin
                     </Link>
                   </motion.div>
                 )}
@@ -214,16 +213,16 @@ const Navbar = () => {
         <div className="flex lg:hidden items-center gap-1">
           {user && (
             <Link to="/profile" className={cn("text-muted-foreground active:text-foreground transition-colors p-2 relative min-h-[44px] min-w-[44px] flex items-center justify-center", showGlow && "text-primary")}>
-              {showGlow && <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary animate-ping" />}
+              {showGlow && <span className="absolute top-1 right-1 h-2.5 w-2.5 rounded-full bg-accent animate-ping" />}
+              {showGlow && <span className="absolute top-1 right-1 h-2.5 w-2.5 rounded-full bg-accent" />}
               <AvatarDisplay size="md" />
             </Link>
           )}
           {!user && (
-            <Link to="/auth" className="rounded-full border border-primary/30 p-2.5 text-primary transition-all active:bg-primary/5 min-h-[44px] min-w-[44px] flex items-center justify-center">
+            <Link to="/auth" className="rounded-full bg-primary text-primary-foreground p-2.5 transition-all active:bg-primary/90 min-h-[44px] min-w-[44px] flex items-center justify-center shadow-sm">
               <LogIn className="h-5 w-5" />
             </Link>
           )}
-          {/* Hamburger only on tablet (sm+), hidden on small phones where bottom bar has it */}
           <button onClick={() => setMobileOpen(!mobileOpen)} className="hidden sm:flex p-2.5 text-muted-foreground active:text-foreground transition-colors min-h-[44px] min-w-[44px] items-center justify-center">
             {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
@@ -233,17 +232,17 @@ const Navbar = () => {
       {/* Mobile dropdown */}
       <AnimatePresence>
         {mobileOpen && (
-          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.25 }} className="lg:hidden overflow-hidden border-t border-border glass">
-            <div className="container mx-auto px-8 py-6 flex flex-col gap-1">
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.25 }} className="lg:hidden overflow-hidden border-t border-border bg-card">
+            <div className="container mx-auto px-6 py-4 flex flex-col gap-1">
               {NAV_LINKS.map((link) => {
                 const isActive = location.pathname === link.to;
                 const isGold = glowRoutes.has(link.to);
                 return (
                   <Link key={link.to} to={link.to} onClick={() => setMobileOpen(false)} className={cn(
-                    "py-3 px-3 text-xs font-light uppercase tracking-[0.1em] transition-colors relative",
-                    isGold && "text-primary",
-                    isActive && !isGold && "text-foreground",
-                    !isActive && !isGold && "text-muted-foreground hover:text-foreground"
+                    "py-3 px-4 text-sm font-medium rounded-xl transition-colors relative",
+                    isGold && "text-accent",
+                    isActive && !isGold && "text-foreground bg-muted/50",
+                    !isActive && !isGold && "text-muted-foreground hover:text-foreground hover:bg-muted/30"
                   )}>
                     {link.label}
                     {link.to === "/book" && hasRewards && user && (
@@ -254,24 +253,24 @@ const Navbar = () => {
               })}
               {isAdmin && (
                 <>
-                  <div className="border-t border-border my-3" />
-                  <Link to="/admin-login" onClick={() => setMobileOpen(false)} className="py-3 px-3 text-xs font-light uppercase tracking-[0.1em] text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2">
-                    <ShieldCheck className="h-3.5 w-3.5" /> Admin
+                  <div className="border-t border-border my-2" />
+                  <Link to="/admin-login" onClick={() => setMobileOpen(false)} className="py-3 px-4 text-sm font-medium rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors flex items-center gap-2">
+                    <ShieldCheck className="h-4 w-4" /> Admin
                   </Link>
                 </>
               )}
               {user ? (
-                <button onClick={handleSignOut} className="py-3 px-3 text-xs font-light uppercase tracking-[0.1em] text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 w-full text-left">
-                  <LogOut className="h-3.5 w-3.5" /> Sign Out
+                <button onClick={handleSignOut} className="py-3 px-4 text-sm font-medium rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors flex items-center gap-2 w-full text-left">
+                  <LogOut className="h-4 w-4" /> Sign Out
                 </button>
               ) : (
                 <>
-                  <Link to="/auth" onClick={() => setMobileOpen(false)} className="py-3 px-3 text-xs font-light uppercase tracking-[0.1em] text-primary hover:text-foreground transition-colors flex items-center gap-2">
-                    <LogIn className="h-3.5 w-3.5" /> Login / Sign Up
+                  <Link to="/auth" onClick={() => setMobileOpen(false)} className="py-3 px-4 text-sm font-medium rounded-xl text-primary hover:bg-primary/5 transition-colors flex items-center gap-2">
+                    <LogIn className="h-4 w-4" /> Login / Sign Up
                   </Link>
-                  <div className="border-t border-border my-3" />
-                  <Link to="/admin-login" onClick={() => setMobileOpen(false)} className="py-3 px-3 text-xs font-light uppercase tracking-[0.1em] text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2">
-                    <ShieldCheck className="h-3.5 w-3.5" /> Admin
+                  <div className="border-t border-border my-2" />
+                  <Link to="/admin-login" onClick={() => setMobileOpen(false)} className="py-3 px-4 text-sm font-medium rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors flex items-center gap-2">
+                    <ShieldCheck className="h-4 w-4" /> Admin
                   </Link>
                 </>
               )}
