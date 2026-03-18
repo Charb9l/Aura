@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
-import { CalendarDays, GraduationCap, Users, Star } from "lucide-react";
+import { CalendarDays, GraduationCap, Users, Star, Handshake, Activity, Trophy, LayoutGrid, Heart, Dumbbell } from "lucide-react";
 import FeaturedClubsStrip from "@/components/FeaturedClubsStrip";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
