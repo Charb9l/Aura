@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
-import { CalendarDays, GraduationCap, Users, Star } from "lucide-react";
+import { CalendarDays, GraduationCap, Users, Star, Handshake, Activity, Trophy, LayoutGrid, Heart, Dumbbell } from "lucide-react";
 import FeaturedClubsStrip from "@/components/FeaturedClubsStrip";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -96,10 +96,27 @@ const HeroSection = () => {
   const layout = getGridLayout(pictures.length);
 
   const routeIconMap: Record<string, React.ReactNode> = {
-    "/book": <CalendarDays className="h-5 w-5" />,
-    "/academy": <GraduationCap className="h-5 w-5" />,
-    "/clubs": <Users className="h-5 w-5" />,
-    "/loyalty": <Star className="h-5 w-5" />,
+    "/book": <CalendarDays className="h-6 w-6" />,
+    "/academy": <GraduationCap className="h-6 w-6" />,
+    "/clubs": <Users className="h-6 w-6" />,
+    "/loyalty": <Star className="h-6 w-6" />,
+    "/matchmaker": <Handshake className="h-6 w-6" />,
+    "/habits": <Activity className="h-6 w-6" />,
+    "/community": <LayoutGrid className="h-6 w-6" />,
+    "/profile": <Heart className="h-6 w-6" />,
+  };
+
+  const getFallbackIcon = (label: string): React.ReactNode => {
+    const l = label.toLowerCase();
+    if (l.includes("match")) return <Handshake className="h-6 w-6" />;
+    if (l.includes("habit") || l.includes("track")) return <Activity className="h-6 w-6" />;
+    if (l.includes("loyal") || l.includes("reward")) return <Star className="h-6 w-6" />;
+    if (l.includes("book") || l.includes("calendar")) return <CalendarDays className="h-6 w-6" />;
+    if (l.includes("academ") || l.includes("train")) return <GraduationCap className="h-6 w-6" />;
+    if (l.includes("club") || l.includes("partner")) return <Users className="h-6 w-6" />;
+    if (l.includes("communit")) return <LayoutGrid className="h-6 w-6" />;
+    if (l.includes("fitness") || l.includes("workout")) return <Dumbbell className="h-6 w-6" />;
+    return <Trophy className="h-6 w-6" />;
   };
 
   return (
@@ -155,24 +172,25 @@ const HeroSection = () => {
 
         <div className="flex flex-wrap justify-center gap-3 w-full max-w-sm lg:max-w-lg mx-auto">
           {actions.map((action) => {
-            const icon = routeIconMap[action.to] || null;
+            const icon = routeIconMap[action.to] || getFallbackIcon(action.label);
             return (
               <motion.div
                 key={action.to}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: action.delay }}
+                className="flex flex-col items-center gap-1.5"
               >
                 <Link
                   to={action.to}
                   className={cn(
-                    "group relative flex flex-col items-center justify-center text-center rounded-2xl w-18 h-18 lg:w-22 lg:h-22 p-3 transition-all duration-300",
+                    "group relative flex items-center justify-center rounded-2xl w-16 h-16 lg:w-20 lg:h-20 transition-all duration-300",
                     "bg-card border border-border shadow-sm hover:shadow-lg hover:border-primary/40 hover:-translate-y-1"
                   )}
                 >
-                  <span className="mb-1.5 text-primary group-hover:scale-110 transition-transform">{icon}</span>
-                  <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-foreground/70 group-hover:text-foreground leading-tight">{action.label}</span>
+                  <span className="text-primary group-hover:scale-110 transition-transform">{icon}</span>
                 </Link>
+                <span className="text-[9px] font-semibold uppercase tracking-[0.1em] text-foreground/60 leading-tight text-center max-w-[72px]">{action.label}</span>
               </motion.div>
             );
           })}
