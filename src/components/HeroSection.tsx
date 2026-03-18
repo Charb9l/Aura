@@ -208,13 +208,23 @@ const HeroSection = () => {
           transition={{ delay: 1.2, duration: 1 }}
           className="absolute bottom-24 md:bottom-20 lg:bottom-12 left-1/2 -translate-x-1/2"
         >
-          <motion.div
+          <motion.svg
             animate={{ y: [0, 10, 0] }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            className="w-8 h-8 rounded-full border-2 border-primary/30 flex items-center justify-center"
+            xmlns="http://www.w3.org/2000/svg"
+            width="28"
+            height="28"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="text-primary/60"
           >
-            <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-          </motion.div>
+            <path d="M12 5v14" />
+            <path d="m19 12-7 7-7-7" />
+          </motion.svg>
         </motion.div>
       )}
     </section>
