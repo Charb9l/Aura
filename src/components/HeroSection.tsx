@@ -155,24 +155,25 @@ const HeroSection = () => {
 
         <div className="flex flex-wrap justify-center gap-3 w-full max-w-sm lg:max-w-lg mx-auto">
           {actions.map((action) => {
-            const icon = routeIconMap[action.to] || null;
+            const icon = routeIconMap[action.to] || getFallbackIcon(action.label);
             return (
               <motion.div
                 key={action.to}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: action.delay }}
+                className="flex flex-col items-center gap-1.5"
               >
                 <Link
                   to={action.to}
                   className={cn(
-                    "group relative flex flex-col items-center justify-center text-center rounded-2xl w-18 h-18 lg:w-22 lg:h-22 p-3 transition-all duration-300",
+                    "group relative flex items-center justify-center rounded-2xl w-16 h-16 lg:w-20 lg:h-20 transition-all duration-300",
                     "bg-card border border-border shadow-sm hover:shadow-lg hover:border-primary/40 hover:-translate-y-1"
                   )}
                 >
-                  <span className="mb-1.5 text-primary group-hover:scale-110 transition-transform">{icon}</span>
-                  <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-foreground/70 group-hover:text-foreground leading-tight">{action.label}</span>
+                  <span className="text-primary group-hover:scale-110 transition-transform">{icon}</span>
                 </Link>
+                <span className="text-[9px] font-semibold uppercase tracking-[0.1em] text-foreground/60 leading-tight text-center max-w-[72px]">{action.label}</span>
               </motion.div>
             );
           })}
