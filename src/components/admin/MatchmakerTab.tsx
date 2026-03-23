@@ -139,7 +139,7 @@ const MatchmakerTab = () => {
         Configure the matchmaker page content and player profile options.
       </p>
 
-      <PageCmsSection pageSlug="matchmaker" pageName="AI Matchmaker" showMatchCriteria />
+      <PageCmsSection pageSlug="matchmaker" pageName="Matchmaker" showMatchCriteria />
 
       <h2 className="font-heading text-2xl font-bold text-foreground mb-4">MyPlayer Config</h2>
       <p className="text-muted-foreground mb-6">
