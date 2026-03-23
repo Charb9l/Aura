@@ -15,6 +15,13 @@ import MobileBackButton from "@/components/MobileBackButton";
 import { Spinner } from "@/components/ui/spinner";
 import FeaturedClubsStrip from "@/components/FeaturedClubsStrip";
 
+const passwordRules = [
+  { label: "At least 8 characters", test: (p: string) => p.length >= 8 },
+  { label: "One uppercase letter", test: (p: string) => /[A-Z]/.test(p) },
+  { label: "One lowercase letter", test: (p: string) => /[a-z]/.test(p) },
+  { label: "One number", test: (p: string) => /\d/.test(p) },
+];
+
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [isForgot, setIsForgot] = useState(false);
@@ -27,6 +34,8 @@ const Auth = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  const passwordValid = passwordRules.every((r) => r.test(password));
+
   useEffect(() => {
     // Don't redirect while we're checking the admin role
     if (checkingRole) return;
@@ -35,6 +44,10 @@ const Auth = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!passwordValid) {
+      toast.error("Please meet all password requirements.");
+      return;
+    }
     setLoading(true);
     const { error } = await supabase.auth.signUp({
       email,
