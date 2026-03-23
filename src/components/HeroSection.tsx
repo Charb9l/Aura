@@ -72,7 +72,7 @@ const HeroSection = () => {
 
         {/* Action Buttons */}
         {actions.length > 0 && (
-          <div className="flex flex-wrap justify-center gap-3 w-full max-w-sm lg:max-w-lg mx-auto">
+          <div className="flex flex-wrap justify-center gap-4 w-full max-w-sm lg:max-w-lg mx-auto">
             {actions.map((action) => {
               const icon = routeIconMap[action.to] || getFallbackIcon(action.label);
               return (
