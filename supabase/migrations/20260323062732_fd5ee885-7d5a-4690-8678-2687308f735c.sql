@@ -1,0 +1,1 @@
+DELETE FROM public.loyalty_point_adjustments WHERE id IN ('fb53eb92-523f-4f76-b377-e17af3432651', '9279ef25-402f-42dd-8f22-65e4664c9565');
