@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Handshake, MapPin } from "lucide-react";
 import { ClubsIcon } from "@/components/icons/BrandIcons";
@@ -68,6 +68,8 @@ const ClubsPage = () => {
   const [picturesLoading, setPicturesLoading] = useState(false);
   const [showPartnerForm, setShowPartnerForm] = useState(false);
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const clubParam = searchParams.get("club") || "";
 
   // Filters
   const [activities, setActivities] = useState<{ id: string; name: string; slug: string }[]>([]);
@@ -103,6 +105,19 @@ const ClubsPage = () => {
     };
     fetchData();
   }, []);
+
+  // Auto-open club from ?club= param
+  const [autoOpened, setAutoOpened] = useState(false);
+  useEffect(() => {
+    if (clubParam && clubs.length > 0 && !autoOpened) {
+      const match = clubs.find(c => c.id === clubParam);
+      if (match) {
+        openClub(match);
+        setAutoOpened(true);
+        setSearchParams({}, { replace: true });
+      }
+    }
+  }, [clubParam, clubs, autoOpened]);
 
   useEffect(() => {
     if (heroPictures.length <= 9) return;
