@@ -7,49 +7,49 @@
 @layer base {
   :root {
     --background: 0 0% 7%;
-    --foreground: 40 20% 92%;
+    --foreground: 43 30% 90%;
 
     --card: 0 0% 11%;
-    --card-foreground: 40 20% 92%;
+    --card-foreground: 43 30% 90%;
 
     --popover: 0 0% 11%;
-    --popover-foreground: 40 20% 92%;
+    --popover-foreground: 43 30% 90%;
 
-    --primary: 220 10% 72%;
+    --primary: 43 50% 58%;
     --primary-foreground: 0 0% 5%;
 
     --secondary: 0 0% 15%;
-    --secondary-foreground: 40 15% 75%;
+    --secondary-foreground: 40 25% 70%;
 
     --muted: 0 0% 14%;
-    --muted-foreground: 40 5% 55%;
+    --muted-foreground: 40 12% 50%;
 
-    --accent: 220 10% 72%;
+    --accent: 43 50% 58%;
     --accent-foreground: 0 0% 5%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 40 10% 20%;
-    --input: 40 10% 20%;
-    --ring: 220 10% 72%;
+    --border: 40 15% 20%;
+    --input: 40 15% 20%;
+    --ring: 43 50% 58%;
 
     --radius: 1rem;
 
     --sidebar-background: 0 0% 9%;
-    --sidebar-foreground: 40 20% 92%;
-    --sidebar-primary: 220 10% 72%;
+    --sidebar-foreground: 43 30% 90%;
+    --sidebar-primary: 43 50% 58%;
     --sidebar-primary-foreground: 0 0% 5%;
     --sidebar-accent: 0 0% 14%;
-    --sidebar-accent-foreground: 40 15% 75%;
-    --sidebar-border: 40 10% 20%;
-    --sidebar-ring: 220 10% 72%;
+    --sidebar-accent-foreground: 40 25% 70%;
+    --sidebar-border: 40 15% 20%;
+    --sidebar-ring: 43 50% 58%;
 
     --font-heading: 'Outfit', sans-serif;
     --font-body: 'Plus Jakarta Sans', sans-serif;
 
-    --gold: 220 10% 72%;
-    --gold-light: 220 12% 80%;
+    --gold: 43 50% 58%;
+    --gold-light: 43 45% 72%;
   }
 }
 
