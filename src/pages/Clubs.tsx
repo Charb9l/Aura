@@ -71,8 +71,8 @@ const ClubsPage = () => {
   // Filters
   const [activities, setActivities] = useState<{ id: string; name: string; slug: string }[]>([]);
   const [clubLocations, setClubLocations] = useState<{ id: string; club_id: string; name: string; location: string }[]>([]);
-  const [selectedActivity, setSelectedActivity] = useState<string>("all");
-  const [selectedLocation, setSelectedLocation] = useState<string>("all");
+  const [filterSlugs, setFilterSlugs] = useState<string[]>([]);
+  const [filterLocation, setFilterLocation] = useState("");
 
   // Hero grid pictures
   const [heroPictures, setHeroPictures] = useState<{ image: string; alt: string }[]>([]);
