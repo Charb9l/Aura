@@ -118,30 +118,38 @@ const ClubsPage = () => {
     return Array.from({ length: windowSize }, (_, i) => heroPictures[(heroCycleIndex + i) % heroPictures.length]);
   }, [heroPictures, heroCycleIndex]);
 
-  // Unique location areas from club_locations
-  const locationAreas = useMemo(() => {
-    const areas = [...new Set(clubLocations.map(l => l.location))].sort();
-    return areas;
-  }, [clubLocations]);
+  // Unique location areas from club_locations (filtered by selected activities)
+  const availableLocations = useMemo(() => {
+    let relevantClubIds: Set<string>;
+    if (filterSlugs.length > 0) {
+      relevantClubIds = new Set(
+        clubs.filter(c => filterSlugs.some(slug => c.offerings.some(o => o.toLowerCase().includes(slug.toLowerCase())))).map(c => c.id)
+      );
+    } else {
+      relevantClubIds = new Set(clubs.map(c => c.id));
+    }
+    const locs = clubLocations.filter(l => relevantClubIds.has(l.club_id));
+    const uniqueMap = new Map<string, typeof clubLocations[0]>();
+    locs.forEach(l => { if (!uniqueMap.has(l.location)) uniqueMap.set(l.location, l); });
+    return Array.from(uniqueMap.values()).sort((a, b) => a.location.localeCompare(b.location));
+  }, [filterSlugs, clubs, clubLocations]);
 
   // Filtered clubs
   const filteredClubs = useMemo(() => {
     return clubs.filter(club => {
-      // Activity filter: check if any offering matches the selected activity slug
-      if (selectedActivity !== "all") {
-        const act = activities.find(a => a.id === selectedActivity);
-        if (act && !club.offerings.some(o => o.toLowerCase().includes(act.slug.toLowerCase()))) {
-          return false;
-        }
+      // Activity filter
+      if (filterSlugs.length > 0) {
+        const matches = filterSlugs.some(slug => club.offerings.some(o => o.toLowerCase().includes(slug.toLowerCase())));
+        if (!matches) return false;
       }
-      // Location filter: check if any club_location for this club matches
-      if (selectedLocation !== "all") {
-        const hasLocation = clubLocations.some(l => l.club_id === club.id && l.location === selectedLocation);
+      // Location filter
+      if (filterLocation) {
+        const hasLocation = clubLocations.some(l => l.club_id === club.id && l.location === filterLocation);
         if (!hasLocation) return false;
       }
       return true;
     });
-  }, [clubs, selectedActivity, selectedLocation, activities, clubLocations]);
+  }, [clubs, filterSlugs, filterLocation, clubLocations]);
 
   const openClub = async (club: Club) => {
     setSelectedClub(club);
