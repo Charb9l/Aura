@@ -106,6 +106,19 @@ const ClubsPage = () => {
     fetchData();
   }, []);
 
+  // Auto-open club from ?club= param
+  const [autoOpened, setAutoOpened] = useState(false);
+  useEffect(() => {
+    if (clubParam && clubs.length > 0 && !autoOpened) {
+      const match = clubs.find(c => c.id === clubParam);
+      if (match) {
+        openClub(match);
+        setAutoOpened(true);
+        setSearchParams({}, { replace: true });
+      }
+    }
+  }, [clubParam, clubs, autoOpened]);
+
   useEffect(() => {
     if (heroPictures.length <= 9) return;
     const timer = setInterval(() => {
