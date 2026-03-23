@@ -16,7 +16,7 @@ import { useRewards } from "@/hooks/useRewards";
 
 const DEFAULT_NAV_LINKS = [
   { to: "/", label: "Home" },
-  { to: "/habits", label: "AI Habit Tracker" },
+  { to: "/habits", label: "Habit Tracker" },
   { to: "/matchmaker", label: "Matchmaker" },
   { to: "/book", label: "Book Now" },
   { to: "/academy", label: "Academies" },

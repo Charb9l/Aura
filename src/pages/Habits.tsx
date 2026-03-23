@@ -690,7 +690,7 @@ const HabitsPage = () => {
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-primary" />
-                  AI Insights
+                  Insights
                 </CardTitle>
               </CardHeader>
               <CardContent>

@@ -98,7 +98,7 @@ const ReportsTab = () => {
           className="gap-2"
         >
           <Sparkles className="h-3.5 w-3.5" />
-          AI Report
+          Smart Report
         </Button>
         <Button
           variant={mode === "manual" ? "default" : "outline"}
