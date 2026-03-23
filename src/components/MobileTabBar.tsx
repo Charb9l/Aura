@@ -52,7 +52,7 @@ const IconHabits = ({ className }: { className?: string }) => (
 const TABS = [
   { to: "/", label: "Home", Icon: IconHome },
   { to: "/book", label: "Book", Icon: IconBook },
-  { to: "/community", label: "Community", Icon: IconCommunity },
+  { to: "/community", label: "Your Space", Icon: IconCommunity },
   { to: "/matchmaker", label: "Match", Icon: IconMatchmaker },
   { to: "/habits", label: "Habits", Icon: IconHabits },
 ];
@@ -81,13 +81,7 @@ const MobileTabBar = () => {
                 isActive ? "text-primary" : "text-muted-foreground"
               )}
             >
-              {isActive && (
-                <motion.div
-                  layoutId="tab-indicator"
-                  className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-[3px] rounded-full bg-primary"
-                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                />
-              )}
+              
               <tab.Icon className="h-5 w-5" />
               <span className="text-[10px] font-semibold">{tab.label}</span>
             </Link>
