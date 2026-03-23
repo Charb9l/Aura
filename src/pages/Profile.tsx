@@ -311,10 +311,28 @@ const ProfilePage = () => {
     return null;
   }, [assignedLevels, completedBadgeLevels]);
 
+  // Server-side check: has user already claimed welcome bonus?
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("loyalty_point_adjustments")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("reason", "Welcome bonus: profile photo + MyPlayer setup")
+      .limit(1)
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          setWelcomeBonusAlreadyClaimed(true);
+          setWelcomeBonusDismissed(true);
+          localStorage.setItem("welcome_bonus_seen", "true");
+        }
+      });
+  }, [user]);
+
   // Auto-grant welcome bonus when both photo + MyPlayer are complete
   const welcomeBonusGrantedRef = useRef(false);
   useEffect(() => {
-    if (welcomeBonusDismissed) return;
+    if (welcomeBonusDismissed || welcomeBonusAlreadyClaimed) return;
     if (!user || !avatarUrl || playerComplete !== true) return;
     if (welcomeBonusGrantedRef.current) return;
     welcomeBonusGrantedRef.current = true;
@@ -323,7 +341,7 @@ const ProfilePage = () => {
     localStorage.setItem("welcome_bonus_seen", "true");
     toast.success("🎉 Welcome bonus unlocked! Choose a club for your free loyalty point!");
     setShowWelcomeBonus(true);
-  }, [avatarUrl, playerComplete, welcomeBonusDismissed, user]);
+  }, [avatarUrl, playerComplete, welcomeBonusDismissed, welcomeBonusAlreadyClaimed, user]);
 
   const handleWelcomeBonusAssign = async () => {
     if (!welcomeClub || !user) return;
