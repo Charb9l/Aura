@@ -479,7 +479,7 @@ const ProfilePage = () => {
 
         {/* One-time welcome bonus banner */}
         <AnimatePresence>
-          {!welcomeBonusDismissed && (!avatarUrl || playerComplete === false) && (
+          {!welcomeBonusDismissed && !welcomeBonusAlreadyClaimed && (!avatarUrl || playerComplete === false) && (
             <motion.div
               initial={{ opacity: 0, y: -10, height: 0 }}
               animate={{ opacity: 1, y: 0, height: "auto" }}
