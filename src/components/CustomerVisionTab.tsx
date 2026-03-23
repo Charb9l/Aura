@@ -36,6 +36,8 @@ interface HomeContent {
   landing_image_2?: string;
   featured_club_id?: string;
   featured_academy_id?: string;
+  featured_club_id_2?: string;
+  featured_academy_id_2?: string;
 }
 
 interface PageContent {
