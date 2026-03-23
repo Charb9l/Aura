@@ -30,22 +30,20 @@ const IconCommunity = ({ className }: { className?: string }) => (
   </svg>
 );
 
-const IconMatchmaker = ({ className }: { className?: string }) => (
+const IconClubs = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="9" cy="8" r="4" />
-    <circle cx="15" cy="8" r="4" />
-    <path d="M4 21c0-4 2.5-7 5.5-7" />
-    <path d="M20 21c0-4-2.5-7-5.5-7" />
-    <path d="M10.5 16l1.5-1.5L13.5 16" />
+    <path d="M3 21h18" />
+    <path d="M5 21V7l7-4 7 4v14" />
+    <path d="M9 21v-4a2 2 0 012-2h2a2 2 0 012 2v4" />
+    <path d="M9 10h1M14 10h1" />
   </svg>
 );
 
-const IconHabits = ({ className }: { className?: string }) => (
+const IconAcademy = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M4 18l4-8 4 6 3-10 4 5h3" />
-    <circle cx="8" cy="10" r="1.5" fill="currentColor" fillOpacity="0.3" />
-    <circle cx="12" cy="16" r="1.5" fill="currentColor" fillOpacity="0.3" />
-    <circle cx="15" cy="6" r="1.5" fill="currentColor" fillOpacity="0.3" />
+    <path d="M12 3L2 9l10 6 10-6-10-6z" />
+    <path d="M2 9v8" />
+    <path d="M6 11.5v5c0 1.5 2.7 3 6 3s6-1.5 6-3v-5" />
   </svg>
 );
 
@@ -53,8 +51,8 @@ const TABS = [
   { to: "/", label: "Home", Icon: IconHome },
   { to: "/book", label: "Book", Icon: IconBook },
   { to: "/community", label: "Your Space", Icon: IconCommunity },
-  { to: "/matchmaker", label: "Match", Icon: IconMatchmaker },
-  { to: "/habits", label: "Habits", Icon: IconHabits },
+  { to: "/clubs", label: "Clubs", Icon: IconClubs },
+  { to: "/academy", label: "Academies", Icon: IconAcademy },
 ];
 
 const MobileTabBar = () => {
