@@ -482,7 +482,7 @@ const HabitsPage = () => {
               {cmsContent.title || "Habit Tracker"}
             </h1>
             <p className="text-muted-foreground max-w-2xl mx-auto mb-8">
-              {cmsContent.subtitle || "Discover your wellness patterns. Track streaks, earn badges, and get personalized insights."}
+              {cmsContent.subtitle || "Track your streaks, earn badges, and unlock free loyalty points with every badge level you reach."}
             </p>
             <motion.div
               initial={{ opacity: 0, y: 10 }}
