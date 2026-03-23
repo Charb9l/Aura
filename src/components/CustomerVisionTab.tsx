@@ -463,14 +463,17 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
 
   // Editable state
   const [heroSubtitle, setHeroSubtitle] = useState("");
-  const [heroLine1, setHeroLine1] = useState("");
-  const [heroLine2, setHeroLine2] = useState("");
   const [heroButtons, setHeroButtons] = useState<HeroButton[]>([]);
   const [navOrder, setNavOrder] = useState<NavItem[]>(DEFAULT_NAV_ORDER);
-  const [backgroundPicture, setBackgroundPicture] = useState(""); // kept for backward compat in save
   const [platformNameLine1, setPlatformNameLine1] = useState("");
   const [platformNameLine2, setPlatformNameLine2] = useState("");
   const [showScrollIndicator, setShowScrollIndicator] = useState(false);
+  const [landingImage1, setLandingImage1] = useState("");
+  const [landingImage2, setLandingImage2] = useState("");
+  const [featuredClubId, setFeaturedClubId] = useState("");
+  const [featuredAcademyId, setFeaturedAcademyId] = useState("");
+  const [allClubs, setAllClubs] = useState<{ id: string; name: string; has_academy: boolean }[]>([]);
+  const [uploadingLanding, setUploadingLanding] = useState<1 | 2 | null>(null);
 
   // Generic page state
   const [pageTitle, setPageTitle] = useState("");
