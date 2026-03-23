@@ -31,12 +31,10 @@ const LandingClubsSection = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      // Get featured club ID from home page content
       const { data: homeContent } = await supabase
         .from("page_content").select("content").eq("page_slug", "home").single();
       const featuredClubId = (homeContent?.content as any)?.featured_club_id;
 
-      // Get clubs page content for title/subtitle
       const { data: clubsContent } = await supabase
         .from("page_content").select("content").eq("page_slug", "clubs").single();
       if (clubsContent?.content) {
@@ -45,21 +43,19 @@ const LandingClubsSection = () => {
         if (c.subtitle) setPageSubtitle(c.subtitle);
       }
 
-      // Get the featured club
       let clubData: Club | null = null;
       if (featuredClubId) {
         const { data } = await supabase.from("clubs").select("id, name, description, logo_url, offerings").eq("id", featuredClubId).eq("published", true).single();
         clubData = data as unknown as Club;
       }
       if (!clubData) {
-        // Fallback: first published club
         const { data } = await supabase.from("clubs").select("id, name, description, logo_url, offerings").eq("published", true).order("name").limit(1);
         if (data && data.length > 0) clubData = data[0] as unknown as Club;
       }
       if (clubData) {
         setClub(clubData);
         const { data: pics } = await supabase
-          .from("club_pictures").select("*").eq("club_id", clubData.id).order("display_order").limit(1);
+          .from("club_pictures").select("*").eq("club_id", clubData.id).order("display_order").limit(3);
         if (pics) setPictures(pics as unknown as ClubPicture[]);
       }
     };
@@ -69,6 +65,7 @@ const LandingClubsSection = () => {
   if (!club) return null;
 
   const coverImage = pictures[0]?.image_url || (club.logo_url?.startsWith("http") ? club.logo_url : null);
+  const logoSrc = club.logo_url?.startsWith("http") ? club.logo_url : null;
 
   return (
     <>
@@ -80,58 +77,86 @@ const LandingClubsSection = () => {
         className="w-full"
       >
         {/* Header */}
-        <div className="text-center mb-6">
-          <div className="flex items-center justify-center gap-3 mb-3">
-            <MapPinned className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-            <h2 className="font-heading text-2xl sm:text-3xl font-bold text-foreground">{pageTitle}</h2>
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 mb-4">
+            <MapPinned className="h-4 w-4 text-primary" />
+            <span className="text-xs font-semibold uppercase tracking-wider text-primary">{pageTitle}</span>
           </div>
-          <p className="text-muted-foreground text-sm sm:text-base max-w-md mx-auto mb-4">{pageSubtitle}</p>
-          <Button
-            onClick={() => setShowPartnerForm(true)}
-            variant="outline"
-            size="sm"
-            className="text-xs uppercase tracking-[0.12em] font-medium border-primary/40 text-primary hover:bg-primary/10 transition-all gap-2 rounded-full"
-          >
-            <Handshake className="h-3.5 w-3.5" /> Become a Partner
-          </Button>
+          <p className="text-muted-foreground text-sm max-w-xs mx-auto leading-relaxed">{pageSubtitle}</p>
         </div>
 
-        {/* Featured Club Bubble */}
-        <div className="flex items-center gap-4">
-          <div className="flex-1 rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
-            {coverImage && (
-              <div className="h-40 sm:h-52 w-full overflow-hidden">
-                <img src={coverImage} alt={club.name} className="w-full h-full object-cover" />
-              </div>
-            )}
-            <div className="p-4 sm:p-5">
-              <div className="flex items-center gap-3 mb-2">
-                {club.logo_url?.startsWith("http") && (
-                  <div className="h-10 w-10 rounded-xl overflow-hidden bg-secondary flex items-center justify-center shrink-0">
-                    <img src={club.logo_url} alt={club.name} className="h-full w-full object-contain" />
+        {/* Featured Club Card */}
+        <div className="rounded-3xl overflow-hidden bg-card border border-border shadow-lg shadow-primary/5">
+          {/* Cover Image */}
+          {coverImage && (
+            <div className="relative h-48 sm:h-56 w-full overflow-hidden">
+              <img src={coverImage} alt={club.name} className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-foreground/10 to-transparent" />
+              {/* Club identity overlay */}
+              <div className="absolute bottom-4 left-4 right-4 flex items-end gap-3">
+                {logoSrc && (
+                  <div className="h-14 w-14 rounded-2xl overflow-hidden bg-card/90 backdrop-blur-sm border-2 border-card shadow-lg flex items-center justify-center shrink-0">
+                    <img src={logoSrc} alt={club.name} className="h-full w-full object-contain" />
                   </div>
                 )}
-                <h3 className="font-heading text-base sm:text-lg font-bold text-foreground">{club.name}</h3>
-              </div>
-              {club.description && (
-                <p className="text-muted-foreground text-xs sm:text-sm line-clamp-2 mb-3">{club.description}</p>
-              )}
-              <div className="flex flex-wrap gap-1.5">
-                {club.offerings.slice(0, 4).map((offering) => (
-                  <Badge key={offering} variant="secondary" className="text-[10px] sm:text-xs">{offering}</Badge>
-                ))}
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-heading text-lg sm:text-xl font-bold text-card leading-tight drop-shadow-md truncate">
+                    {club.name}
+                  </h3>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
-          {/* View All Arrow */}
-          <Link
-            to="/clubs"
-            className="flex flex-col items-center gap-2 text-primary hover:text-primary/80 transition-colors shrink-0"
-          >
-            <ArrowRight className="h-8 w-8" />
-            <span className="text-xs font-semibold uppercase tracking-wider">View All</span>
-          </Link>
+          {/* Card Body */}
+          <div className="p-5 space-y-4">
+            {!coverImage && (
+              <div className="flex items-center gap-3 mb-1">
+                {logoSrc && (
+                  <div className="h-12 w-12 rounded-2xl overflow-hidden bg-secondary flex items-center justify-center shrink-0">
+                    <img src={logoSrc} alt={club.name} className="h-full w-full object-contain" />
+                  </div>
+                )}
+                <h3 className="font-heading text-lg font-bold text-foreground">{club.name}</h3>
+              </div>
+            )}
+
+            {club.description && (
+              <p className="text-muted-foreground text-sm leading-relaxed line-clamp-2">{club.description}</p>
+            )}
+
+            {/* Offerings */}
+            <div className="flex flex-wrap gap-2">
+              {club.offerings.slice(0, 4).map((offering) => (
+                <span
+                  key={offering}
+                  className="inline-flex items-center px-3 py-1 rounded-full bg-primary/8 text-primary text-xs font-medium"
+                >
+                  {offering}
+                </span>
+              ))}
+            </div>
+
+            {/* Actions Row */}
+            <div className="flex items-center gap-3 pt-1">
+              <Link
+                to="/clubs"
+                className="flex-1 inline-flex items-center justify-center gap-2 h-11 rounded-2xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-all shadow-md shadow-primary/20"
+              >
+                View All Clubs
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Button
+                onClick={() => setShowPartnerForm(true)}
+                variant="outline"
+                size="sm"
+                className="h-11 px-4 rounded-2xl text-xs font-semibold border-primary/30 text-primary hover:bg-primary/5 gap-1.5"
+              >
+                <Handshake className="h-3.5 w-3.5" />
+                Partner
+              </Button>
+            </div>
+          </div>
         </div>
       </motion.section>
 
