@@ -161,20 +161,19 @@ const LoyaltyPage = () => {
               {steps.map((step, i) => (
                 <motion.div
                   key={i}
-                  initial={{ opacity: 0, y: 30 }}
+                  initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ delay: i * 0.12, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                  className="relative px-8 py-6 group"
+                  transition={{ delay: i * 0.1, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                  className="relative px-6 py-4 group"
                 >
-                  <div className="flex items-start gap-4 mb-5">
-                    <span className="text-3xl font-heading font-light text-primary/30 leading-none">{String(i + 1).padStart(2, "0")}</span>
-                    <div className="w-8 h-8 border border-primary/30 flex items-center justify-center text-primary mt-1 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-500">
-                      {STEP_ICONS[i] || <Star className="h-5 w-5" />}
+                  <div className="flex items-center gap-3 mb-2.5">
+                    <div className="w-8 h-8 border border-primary/30 flex items-center justify-center text-primary shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-500">
+                      {STEP_ICONS[i] || <StepBookIcon className="h-5 w-5" />}
                     </div>
+                    <h3 className="text-xs uppercase tracking-[0.25em] font-medium text-foreground">{step.title}</h3>
                   </div>
-                  <h3 className="text-xs uppercase tracking-[0.25em] font-medium text-foreground mb-3">{step.title}</h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed font-light">{step.desc}</p>
+                  <p className="text-muted-foreground text-sm leading-relaxed font-light pl-11">{step.desc}</p>
                 </motion.div>
               ))}
             </div>
