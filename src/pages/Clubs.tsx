@@ -117,6 +117,31 @@ const ClubsPage = () => {
     return Array.from({ length: windowSize }, (_, i) => heroPictures[(heroCycleIndex + i) % heroPictures.length]);
   }, [heroPictures, heroCycleIndex]);
 
+  // Unique location areas from club_locations
+  const locationAreas = useMemo(() => {
+    const areas = [...new Set(clubLocations.map(l => l.location))].sort();
+    return areas;
+  }, [clubLocations]);
+
+  // Filtered clubs
+  const filteredClubs = useMemo(() => {
+    return clubs.filter(club => {
+      // Activity filter: check if any offering matches the selected activity slug
+      if (selectedActivity !== "all") {
+        const act = activities.find(a => a.id === selectedActivity);
+        if (act && !club.offerings.some(o => o.toLowerCase().includes(act.slug.toLowerCase()))) {
+          return false;
+        }
+      }
+      // Location filter: check if any club_location for this club matches
+      if (selectedLocation !== "all") {
+        const hasLocation = clubLocations.some(l => l.club_id === club.id && l.location === selectedLocation);
+        if (!hasLocation) return false;
+      }
+      return true;
+    });
+  }, [clubs, selectedActivity, selectedLocation, activities, clubLocations]);
+
   const openClub = async (club: Club) => {
     setSelectedClub(club);
     setPicturesLoading(true);
