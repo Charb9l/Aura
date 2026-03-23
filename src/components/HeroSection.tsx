@@ -110,7 +110,7 @@ const HeroSection = () => {
               </div>
             )}
             {image2 && (
-              <div className="rounded-2xl overflow-hidden aspect-[4/3] border border-border shadow-sm">
+              <div className="rounded-2xl overflow-hidden aspect-[4/3] lg:aspect-[16/7] border border-border shadow-sm">
                 <img src={image2} alt="Featured" className="w-full h-full object-cover" />
               </div>
             )}
