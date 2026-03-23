@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { MapPinned, ArrowRight, Handshake } from "lucide-react";
+import { ArrowRight, Handshake } from "lucide-react";
+import { ClubsIcon } from "@/components/icons/BrandIcons";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import PartnerRequestForm from "@/components/PartnerRequestForm";
