@@ -86,7 +86,7 @@ const ReportsTab = () => {
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="reports">
       <h1 className="font-heading text-2xl md:text-4xl font-bold text-foreground mb-2">Reports</h1>
       <p className="text-muted-foreground mb-6">
-        Generate and download booking reports using AI or manual field selection.
+        Generate and download booking reports using smart generation or manual field selection.
       </p>
 
       {/* Mode toggle */}
