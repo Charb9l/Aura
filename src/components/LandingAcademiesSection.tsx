@@ -81,7 +81,7 @@ const LandingAcademiesSection = () => {
       </div>
 
       {/* Featured Academy Card */}
-      <div className="rounded-3xl overflow-hidden bg-card border border-border shadow-lg shadow-accent/5">
+      <Link to="/academy" className="block rounded-3xl overflow-hidden bg-card border border-border shadow-lg shadow-accent/5 hover:shadow-xl hover:shadow-accent/10 transition-all">
         {/* Cover Image */}
         {coverImage && (
           <div className="relative h-48 sm:h-56 w-full overflow-hidden">
@@ -121,7 +121,7 @@ const LandingAcademiesSection = () => {
           )}
 
           </div>
-        </div>
+      </Link>
 
         {/* Action — outside the card */}
         <Link

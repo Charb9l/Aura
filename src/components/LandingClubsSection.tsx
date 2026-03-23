@@ -86,7 +86,7 @@ const LandingClubsSection = () => {
         </div>
 
         {/* Featured Club Card */}
-        <div className="rounded-3xl overflow-hidden bg-card border border-border shadow-lg shadow-primary/5">
+        <Link to="/clubs" className="block rounded-3xl overflow-hidden bg-card border border-border shadow-lg shadow-primary/5 hover:shadow-xl hover:shadow-primary/10 transition-all">
           {/* Cover Image */}
           {coverImage && (
             <div className="relative h-48 sm:h-56 w-full overflow-hidden">
@@ -138,7 +138,7 @@ const LandingClubsSection = () => {
             </div>
 
           </div>
-        </div>
+        </Link>
 
         {/* Actions Row — outside the card */}
         <div className="flex items-center gap-3 mt-4">
