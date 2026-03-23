@@ -213,23 +213,26 @@ const AcademyPage = () => {
       .filter(Boolean) as (AcademyClub & { slug: string; brand: "tennis" | "basketball" | "wellness"; offeringImageUrl: string | null })[];
   }, [clubs, offerings]);
 
-  // Auto-open dialog when ?sport= param matches an academy club
+  // Auto-open dialog when ?sport= or ?club= param matches an academy club
   const [autoOpened, setAutoOpened] = useState(false);
   useEffect(() => {
-    if (sportParam && academyClubs.length > 0 && !autoOpened) {
-      const match = academyClubs.find(c => c.slug === sportParam);
-      if (match) {
-        setSelectedClub(match);
-        setCarouselIndex(0);
-        setShowRegister(false);
-        setSubmitted(false);
-        setSelectedLocationId("");
-        setAutoOpened(true);
-        // Clear the param so reopening the page is clean
-        setSearchParams({}, { replace: true });
-      }
+    if (autoOpened || academyClubs.length === 0) return;
+    let match: typeof academyClubs[0] | undefined;
+    if (clubParam) {
+      match = academyClubs.find(c => c.id === clubParam);
+    } else if (sportParam) {
+      match = academyClubs.find(c => c.slug === sportParam);
     }
-  }, [sportParam, academyClubs, autoOpened]);
+    if (match) {
+      setSelectedClub(match);
+      setCarouselIndex(0);
+      setShowRegister(false);
+      setSubmitted(false);
+      setSelectedLocationId("");
+      setAutoOpened(true);
+      setSearchParams({}, { replace: true });
+    }
+  }, [sportParam, clubParam, academyClubs, autoOpened]);
 
   const academyOfferings = useMemo(() => {
     const slugs = new Set(academyClubs.map(s => s.slug));
