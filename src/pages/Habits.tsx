@@ -413,7 +413,7 @@ const HabitsPage = () => {
 
   const completedLevels = badgeLevels.filter(lvl => lvl.badges.every(b => b.earned)).length;
 
-  // AI Insights
+  // Insights
   const insights = useMemo(() => {
     const tips: string[] = [];
     if (completedBookings.length === 0) {
