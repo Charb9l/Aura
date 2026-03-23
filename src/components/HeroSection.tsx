@@ -57,9 +57,9 @@ const HeroSection = () => {
   };
 
   return (
-    <section className="relative flex flex-col items-center pt-20 pb-4 md:pt-24 md:pb-8 overflow-hidden">
+    <section className="relative flex flex-col items-center pt-20 pb-6 md:pt-24 md:pb-8 overflow-hidden">
       {/* Content */}
-      <div className="relative z-10 container mx-auto px-6 flex flex-col items-center text-center gap-4 md:gap-8">
+      <div className="relative z-10 container mx-auto px-6 flex flex-col items-center text-center gap-6 md:gap-8">
         {/* Subtitle only */}
         <motion.p
           initial={{ opacity: 0, y: 20 }}
