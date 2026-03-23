@@ -66,6 +66,7 @@ const App = () => (
               <Route path="/admin" element={<AdminPage />} />
               <Route path="/admin-login" element={<AdminLoginPage />} />
               <Route path="/complete-profile" element={<CompleteProfilePage />} />
+              <Route path="/bookings" element={<BookingsPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <MobileTabBar />
