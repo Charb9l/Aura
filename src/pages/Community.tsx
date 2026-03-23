@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import MobileBackButton from "@/components/MobileBackButton";
 import { motion } from "framer-motion";
+import { MatchmakerIcon } from "@/components/icons/BrandIcons";
 
 const FEATURES = [
   {
