@@ -75,11 +75,21 @@ export const HabitTrackerIcon = ({ className }: IconProps) => (
 
 /**
  * Custom SVG icon for Loyalty.
- * A star with radiating accent — conveys rewards & achievement.
+ * A trophy with a star center — conveys rewards & achievement.
  */
 export const LoyaltyIcon = ({ className }: IconProps) => (
   <svg viewBox="0 0 24 24" fill="none" className={cn("shrink-0", className)} stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-    <polygon points="12,2 14.5,9 22,9 16,13.5 18,21 12,17 6,21 8,13.5 2,9 9.5,9" fill="currentColor" fillOpacity="0.08" />
-    <polygon points="12,2 14.5,9 22,9 16,13.5 18,21 12,17 6,21 8,13.5 2,9 9.5,9" />
+    {/* Trophy cup */}
+    <path d="M6 3h12v5a6 6 0 01-12 0V3z" fill="currentColor" fillOpacity="0.06" />
+    <path d="M6 3h12v5a6 6 0 01-12 0V3z" />
+    {/* Handles */}
+    <path d="M6 5H4a2 2 0 000 4h2" />
+    <path d="M18 5h2a2 2 0 010 4h-2" />
+    {/* Stem & base */}
+    <line x1="12" y1="14" x2="12" y2="18" />
+    <path d="M8 21h8" />
+    <path d="M9 18h6" />
+    {/* Star accent */}
+    <path d="M12 6.5l.8 1.6 1.7.2-1.2 1.2.3 1.7-1.6-.8-1.6.8.3-1.7-1.2-1.2 1.7-.2z" fill="currentColor" fillOpacity="0.2" strokeWidth="0.8" />
   </svg>
 );
