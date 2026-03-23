@@ -222,36 +222,32 @@ const ClubsPage = () => {
         <MobileBackButton fallbackPath="/" />
 
         {/* Filters */}
-        <div className="flex flex-wrap items-center gap-3 mb-6">
-          <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
-          <Select value={selectedActivity} onValueChange={setSelectedActivity}>
-            <SelectTrigger className="w-[160px] h-9 bg-secondary border-border text-sm">
-              <SelectValue placeholder="All Activities" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Activities</SelectItem>
-              {activities.map(a => (
-                <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={selectedLocation} onValueChange={setSelectedLocation}>
-            <SelectTrigger className="w-[180px] h-9 bg-secondary border-border text-sm">
-              <SelectValue placeholder="All Locations" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Locations</SelectItem>
-              {locationAreas.map(area => (
-                <SelectItem key={area} value={area}>{area}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {(selectedActivity !== "all" || selectedLocation !== "all") && (
-            <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={() => { setSelectedActivity("all"); setSelectedLocation("all"); }}>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-3 flex-wrap py-5">
+          {activities.length > 0 && (
+            <ActivityFilter activities={activities} selected={filterSlugs} onChange={(s) => { setFilterSlugs(s); setFilterLocation(""); }} />
+          )}
+          {availableLocations.length > 1 && (
+            <Select value={filterLocation || "all"} onValueChange={(v) => setFilterLocation(v === "all" ? "" : v)}>
+              <SelectTrigger className="h-10 w-44 bg-secondary border-border">
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+                  <SelectValue placeholder="All Locations" />
+                </div>
+              </SelectTrigger>
+              <SelectContent className="bg-card border-border z-50">
+                <SelectItem value="all">All Locations</SelectItem>
+                {availableLocations.map(l => (
+                  <SelectItem key={l.id} value={l.location}>{l.location}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          {(filterSlugs.length > 0 || filterLocation) && (
+            <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={() => { setFilterSlugs([]); setFilterLocation(""); }}>
               Clear filters
             </Button>
           )}
-        </div>
+        </motion.div>
 
         {loading ? (
           <p className="text-muted-foreground text-center py-20">Loading...</p>
