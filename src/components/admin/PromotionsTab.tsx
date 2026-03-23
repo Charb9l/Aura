@@ -140,7 +140,7 @@ const PromotionsTab = ({ allUsers, clubs }: Props) => {
       badgeMap[b.user_id].add(b.badge_level);
     });
 
-    // Also count show bookings for AI tracker context
+    // Also count show bookings for tracker context
     const badgeList: BadgeLeaderEntry[] = allUsers
       .filter(u => badgeMap[u.user_id] || pointsMap[u.user_id])
       .map(u => ({
