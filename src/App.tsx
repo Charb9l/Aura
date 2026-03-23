@@ -20,6 +20,7 @@ import MatchmakerPage from "./pages/Matchmaker";
 import HabitsPage from "./pages/Habits";
 import CommunityPage from "./pages/Community";
 import CompleteProfilePage from "./pages/CompleteProfile";
+import BookingsPage from "./pages/Bookings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
