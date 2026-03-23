@@ -212,11 +212,45 @@ const ClubsPage = () => {
       <div className="container mx-auto px-6 pb-16">
         <MobileBackButton fallbackPath="/" />
 
+        {/* Filters */}
+        <div className="flex flex-wrap items-center gap-3 mb-6">
+          <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
+          <Select value={selectedActivity} onValueChange={setSelectedActivity}>
+            <SelectTrigger className="w-[160px] h-9 bg-secondary border-border text-sm">
+              <SelectValue placeholder="All Activities" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Activities</SelectItem>
+              {activities.map(a => (
+                <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+            <SelectTrigger className="w-[180px] h-9 bg-secondary border-border text-sm">
+              <SelectValue placeholder="All Locations" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Locations</SelectItem>
+              {locationAreas.map(area => (
+                <SelectItem key={area} value={area}>{area}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {(selectedActivity !== "all" || selectedLocation !== "all") && (
+            <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={() => { setSelectedActivity("all"); setSelectedLocation("all"); }}>
+              Clear filters
+            </Button>
+          )}
+        </div>
+
         {loading ? (
           <p className="text-muted-foreground text-center py-20">Loading...</p>
+        ) : filteredClubs.length === 0 ? (
+          <p className="text-muted-foreground text-center py-20">No clubs match the selected filters.</p>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {clubs.map((club, i) => (
+            {filteredClubs.map((club, i) => (
               <motion.div
                 key={club.id}
                 initial={{ opacity: 0, y: 30 }}
