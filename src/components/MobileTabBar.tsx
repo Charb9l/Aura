@@ -52,7 +52,7 @@ const IconHabits = ({ className }: { className?: string }) => (
 const TABS = [
   { to: "/", label: "Home", Icon: IconHome },
   { to: "/book", label: "Book", Icon: IconBook },
-  { to: "/community", label: "Community", Icon: IconCommunity },
+  { to: "/community", label: "Your Space", Icon: IconCommunity },
   { to: "/matchmaker", label: "Match", Icon: IconMatchmaker },
   { to: "/habits", label: "Habits", Icon: IconHabits },
 ];
