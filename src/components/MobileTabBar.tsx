@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminRole } from "@/hooks/useAdminRole";
+import { MapPinned, Award } from "lucide-react";
 
 const IconHome = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -31,20 +32,11 @@ const IconCommunity = ({ className }: { className?: string }) => (
 );
 
 const IconClubs = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M3 21h18" />
-    <path d="M5 21V7l7-4 7 4v14" />
-    <path d="M9 21v-4a2 2 0 012-2h2a2 2 0 012 2v4" />
-    <path d="M9 10h1M14 10h1" />
-  </svg>
+  <MapPinned className={className} />
 );
 
 const IconAcademy = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 3L2 9l10 6 10-6-10-6z" />
-    <path d="M2 9v8" />
-    <path d="M6 11.5v5c0 1.5 2.7 3 6 3s6-1.5 6-3v-5" />
-  </svg>
+  <Award className={className} />
 );
 
 const TABS = [
