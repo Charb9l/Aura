@@ -684,7 +684,7 @@ const HabitsPage = () => {
             ))}
           </div>
 
-          {/* AI Insights — full width */}
+          {/* Insights — full width */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="mt-6">
             <Card className="bg-card border-border">
               <CardHeader className="pb-3">
