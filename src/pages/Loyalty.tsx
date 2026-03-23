@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Star, Gift, Zap, Trophy, ArrowRight, ChevronRight } from "lucide-react";
+import { ArrowRight, ChevronRight, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { LoyaltyIcon } from "@/components/icons/BrandIcons";
 
 interface OfferingItem {
   id: string;
@@ -19,7 +20,36 @@ const DEFAULT_STEPS = [
   { title: "10 PTS → FREE", desc: "Save up to 10 points and get a completely free booking — any activity." },
 ];
 
-const STEP_ICONS = [<Star className="h-5 w-5" />, <Gift className="h-5 w-5" />, <Zap className="h-5 w-5" />];
+/** Custom step icons — inline SVGs matching the premium aesthetic */
+const StepBookIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="12,2 14.5,8.5 21.5,8.5 16,12.5 18,19.5 12,15.5 6,19.5 8,12.5 2.5,8.5 9.5,8.5" fill="currentColor" fillOpacity="0.08" />
+    <polygon points="12,2 14.5,8.5 21.5,8.5 16,12.5 18,19.5 12,15.5 6,19.5 8,12.5 2.5,8.5 9.5,8.5" />
+  </svg>
+);
+
+const StepRewardIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="4" y="10" width="16" height="11" rx="2" />
+    <path d="M12 10V4" />
+    <path d="M8 4c0 0 0 3 4 6" />
+    <path d="M16 4c0 0 0 3-4 6" />
+    <line x1="4" y1="15" x2="20" y2="15" />
+  </svg>
+);
+
+const StepFreeIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" fill="currentColor" fillOpacity="0.08" />
+    <path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" />
+  </svg>
+);
+
+const STEP_ICONS = [
+  <StepBookIcon className="h-5 w-5" />,
+  <StepRewardIcon className="h-5 w-5" />,
+  <StepFreeIcon className="h-5 w-5" />,
+];
 
 const LoyaltyPage = () => {
   const { user } = useAuth();
@@ -131,20 +161,19 @@ const LoyaltyPage = () => {
               {steps.map((step, i) => (
                 <motion.div
                   key={i}
-                  initial={{ opacity: 0, y: 30 }}
+                  initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ delay: i * 0.12, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                  className="relative px-8 py-6 group"
+                  transition={{ delay: i * 0.1, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                  className="relative px-6 py-4 group"
                 >
-                  <div className="flex items-start gap-4 mb-5">
-                    <span className="text-3xl font-heading font-light text-primary/30 leading-none">{String(i + 1).padStart(2, "0")}</span>
-                    <div className="w-8 h-8 border border-primary/30 flex items-center justify-center text-primary mt-1 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-500">
-                      {STEP_ICONS[i] || <Star className="h-5 w-5" />}
+                  <div className="flex items-center gap-3 mb-2.5">
+                    <div className="w-8 h-8 border border-primary/30 flex items-center justify-center text-primary shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-500">
+                      {STEP_ICONS[i] || <StepBookIcon className="h-5 w-5" />}
                     </div>
+                    <h3 className="text-xs uppercase tracking-[0.25em] font-medium text-foreground">{step.title}</h3>
                   </div>
-                  <h3 className="text-xs uppercase tracking-[0.25em] font-medium text-foreground mb-3">{step.title}</h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed font-light">{step.desc}</p>
+                  <p className="text-muted-foreground text-sm leading-relaxed font-light pl-11">{step.desc}</p>
                 </motion.div>
               ))}
             </div>
