@@ -65,7 +65,7 @@ const Community = () => {
         <MobileBackButton fallbackPath="/" />
       </div>
 
-      <div className="max-w-lg mx-auto px-4 pt-6 pb-8">
+      <div className="max-w-lg mx-auto px-4 pt-20 sm:pt-24 pb-8">
         <h1 className="text-2xl font-heading tracking-wide text-foreground mb-1">Your Space</h1>
         <p className="text-xs text-muted-foreground mb-6 tracking-wider uppercase">Everything in one place</p>
 
