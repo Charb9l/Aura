@@ -529,6 +529,8 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
       setLandingImage2(content.landing_image_2 || "");
       setFeaturedClubId(content.featured_club_id || "");
       setFeaturedAcademyId(content.featured_academy_id || "");
+      setFeaturedClubId2(content.featured_club_id_2 || "");
+      setFeaturedAcademyId2(content.featured_academy_id_2 || "");
       // Fetch clubs for selectors
       supabase.from("clubs").select("id, name, has_academy").eq("published", true).order("name").then(({ data }) => {
         if (data) setAllClubs(data as any[]);
