@@ -102,10 +102,10 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.5 }}
-            className="grid grid-cols-2 gap-3 w-full max-w-lg"
+            className="grid grid-cols-2 gap-3 w-full max-w-lg lg:max-w-4xl"
           >
             {image1 && (
-              <div className="rounded-2xl overflow-hidden aspect-[4/3] border border-border shadow-sm">
+              <div className="rounded-2xl overflow-hidden aspect-[4/3] lg:aspect-[16/7] border border-border shadow-sm">
                 <img src={image1} alt="Featured" className="w-full h-full object-cover" />
               </div>
             )}
