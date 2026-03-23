@@ -121,7 +121,7 @@ const LandingAcademiesSection = () => {
           )}
 
           </div>
-        </div>
+      </Link>
 
         {/* Action — outside the card */}
         <Link
