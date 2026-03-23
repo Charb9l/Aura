@@ -25,7 +25,7 @@ const AcademyCard = ({ club, pictures }: { club: AcademyClub; pictures: AcademyP
   const logoSrc = club.logo_url?.startsWith("http") ? club.logo_url : null;
 
   return (
-    <Link to="/academy" className="block rounded-3xl overflow-hidden bg-card border border-border shadow-lg shadow-accent/5 hover:shadow-xl hover:shadow-accent/10 transition-all">
+    <Link to={`/academy?club=${club.id}`} className="block rounded-3xl overflow-hidden bg-card border border-border shadow-lg shadow-accent/5 hover:shadow-xl hover:shadow-accent/10 transition-all">
       {coverImage && (
         <div className="relative h-48 sm:h-56 w-full overflow-hidden">
           <img src={coverImage} alt={club.name} className="w-full h-full object-cover" />

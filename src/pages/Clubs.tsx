@@ -68,6 +68,8 @@ const ClubsPage = () => {
   const [picturesLoading, setPicturesLoading] = useState(false);
   const [showPartnerForm, setShowPartnerForm] = useState(false);
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const clubParam = searchParams.get("club") || "";
 
   // Filters
   const [activities, setActivities] = useState<{ id: string; name: string; slug: string }[]>([]);
