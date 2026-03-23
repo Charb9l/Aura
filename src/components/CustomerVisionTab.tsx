@@ -515,14 +515,19 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
     const content = allContent[slug] || {};
     if (slug === "home") {
       setHeroSubtitle(content.hero_subtitle || "");
-      setHeroLine1(content.hero_title_line1 || "");
-      setHeroLine2(content.hero_title_line2 || "");
       setHeroButtons([...(content.hero_buttons || [])]);
       setNavOrder(content.nav_order?.length ? [...content.nav_order] : [...DEFAULT_NAV_ORDER]);
-      setBackgroundPicture(content.background_picture || "");
       setPlatformNameLine1(content.platform_name_line1 || (content.platform_name ? content.platform_name.trim().split(/\s+/)[0] : ""));
       setPlatformNameLine2(content.platform_name_line2 || (content.platform_name ? content.platform_name.trim().split(/\s+/).slice(1).join(" ") : ""));
       setShowScrollIndicator(content.show_scroll_indicator ?? false);
+      setLandingImage1(content.landing_image_1 || "");
+      setLandingImage2(content.landing_image_2 || "");
+      setFeaturedClubId(content.featured_club_id || "");
+      setFeaturedAcademyId(content.featured_academy_id || "");
+      // Fetch clubs for selectors
+      supabase.from("clubs").select("id, name, has_academy").eq("published", true).order("name").then(({ data }) => {
+        if (data) setAllClubs(data as any[]);
+      });
     } else {
       setPageTitle(content.title || "");
       setPageSubtitle(content.subtitle || "");
