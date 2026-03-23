@@ -1,11 +1,12 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPinned, ArrowRight, Handshake, SlidersHorizontal } from "lucide-react";
+import { MapPinned, ArrowRight, Handshake, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import ActivityFilter from "@/components/ActivityFilter";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import Navbar from "@/components/Navbar";
@@ -70,8 +71,8 @@ const ClubsPage = () => {
   // Filters
   const [activities, setActivities] = useState<{ id: string; name: string; slug: string }[]>([]);
   const [clubLocations, setClubLocations] = useState<{ id: string; club_id: string; name: string; location: string }[]>([]);
-  const [selectedActivity, setSelectedActivity] = useState<string>("all");
-  const [selectedLocation, setSelectedLocation] = useState<string>("all");
+  const [filterSlugs, setFilterSlugs] = useState<string[]>([]);
+  const [filterLocation, setFilterLocation] = useState("");
 
   // Hero grid pictures
   const [heroPictures, setHeroPictures] = useState<{ image: string; alt: string }[]>([]);
@@ -117,30 +118,38 @@ const ClubsPage = () => {
     return Array.from({ length: windowSize }, (_, i) => heroPictures[(heroCycleIndex + i) % heroPictures.length]);
   }, [heroPictures, heroCycleIndex]);
 
-  // Unique location areas from club_locations
-  const locationAreas = useMemo(() => {
-    const areas = [...new Set(clubLocations.map(l => l.location))].sort();
-    return areas;
-  }, [clubLocations]);
+  // Unique location areas from club_locations (filtered by selected activities)
+  const availableLocations = useMemo(() => {
+    let relevantClubIds: Set<string>;
+    if (filterSlugs.length > 0) {
+      relevantClubIds = new Set(
+        clubs.filter(c => filterSlugs.some(slug => c.offerings.some(o => o.toLowerCase().includes(slug.toLowerCase())))).map(c => c.id)
+      );
+    } else {
+      relevantClubIds = new Set(clubs.map(c => c.id));
+    }
+    const locs = clubLocations.filter(l => relevantClubIds.has(l.club_id));
+    const uniqueMap = new Map<string, typeof clubLocations[0]>();
+    locs.forEach(l => { if (!uniqueMap.has(l.location)) uniqueMap.set(l.location, l); });
+    return Array.from(uniqueMap.values()).sort((a, b) => a.location.localeCompare(b.location));
+  }, [filterSlugs, clubs, clubLocations]);
 
   // Filtered clubs
   const filteredClubs = useMemo(() => {
     return clubs.filter(club => {
-      // Activity filter: check if any offering matches the selected activity slug
-      if (selectedActivity !== "all") {
-        const act = activities.find(a => a.id === selectedActivity);
-        if (act && !club.offerings.some(o => o.toLowerCase().includes(act.slug.toLowerCase()))) {
-          return false;
-        }
+      // Activity filter
+      if (filterSlugs.length > 0) {
+        const matches = filterSlugs.some(slug => club.offerings.some(o => o.toLowerCase().includes(slug.toLowerCase())));
+        if (!matches) return false;
       }
-      // Location filter: check if any club_location for this club matches
-      if (selectedLocation !== "all") {
-        const hasLocation = clubLocations.some(l => l.club_id === club.id && l.location === selectedLocation);
+      // Location filter
+      if (filterLocation) {
+        const hasLocation = clubLocations.some(l => l.club_id === club.id && l.location === filterLocation);
         if (!hasLocation) return false;
       }
       return true;
     });
-  }, [clubs, selectedActivity, selectedLocation, activities, clubLocations]);
+  }, [clubs, filterSlugs, filterLocation, clubLocations]);
 
   const openClub = async (club: Club) => {
     setSelectedClub(club);
@@ -213,36 +222,32 @@ const ClubsPage = () => {
         <MobileBackButton fallbackPath="/" />
 
         {/* Filters */}
-        <div className="flex flex-wrap items-center gap-3 mb-6">
-          <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
-          <Select value={selectedActivity} onValueChange={setSelectedActivity}>
-            <SelectTrigger className="w-[160px] h-9 bg-secondary border-border text-sm">
-              <SelectValue placeholder="All Activities" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Activities</SelectItem>
-              {activities.map(a => (
-                <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={selectedLocation} onValueChange={setSelectedLocation}>
-            <SelectTrigger className="w-[180px] h-9 bg-secondary border-border text-sm">
-              <SelectValue placeholder="All Locations" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Locations</SelectItem>
-              {locationAreas.map(area => (
-                <SelectItem key={area} value={area}>{area}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {(selectedActivity !== "all" || selectedLocation !== "all") && (
-            <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={() => { setSelectedActivity("all"); setSelectedLocation("all"); }}>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-3 flex-wrap py-5">
+          {activities.length > 0 && (
+            <ActivityFilter activities={activities} selected={filterSlugs} onChange={(s) => { setFilterSlugs(s); setFilterLocation(""); }} />
+          )}
+          {availableLocations.length > 1 && (
+            <Select value={filterLocation || "all"} onValueChange={(v) => setFilterLocation(v === "all" ? "" : v)}>
+              <SelectTrigger className="h-10 w-44 bg-secondary border-border">
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+                  <SelectValue placeholder="All Locations" />
+                </div>
+              </SelectTrigger>
+              <SelectContent className="bg-card border-border z-50">
+                <SelectItem value="all">All Locations</SelectItem>
+                {availableLocations.map(l => (
+                  <SelectItem key={l.id} value={l.location}>{l.location}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          {(filterSlugs.length > 0 || filterLocation) && (
+            <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={() => { setFilterSlugs([]); setFilterLocation(""); }}>
               Clear filters
             </Button>
           )}
-        </div>
+        </motion.div>
 
         {loading ? (
           <p className="text-muted-foreground text-center py-20">Loading...</p>
