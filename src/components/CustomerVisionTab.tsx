@@ -778,17 +778,92 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
             </div>
 
 
+            {/* Landing Images */}
             <div className="border-t border-border pt-6">
-              <h3 className="text-base font-heading font-semibold text-foreground mb-1">📷 Pictures</h3>
-              <p className="text-xs text-muted-foreground mb-6">All image uploads for the main page are managed here.</p>
-
-              <div className="space-y-2 mb-4">
-                <Label className="text-sm font-medium text-foreground block">Hero Background</Label>
-                <p className="text-xs text-muted-foreground">These pictures are displayed behind the hero text in a dynamic grid layout.</p>
+              <h3 className="text-base font-heading font-semibold text-foreground mb-1">📷 Landing Images</h3>
+              <p className="text-xs text-muted-foreground mb-4">Two rectangular image bubbles displayed under the action buttons on the landing page.</p>
+              <div className="grid grid-cols-2 gap-4">
+                {[1, 2].map((num) => {
+                  const imgUrl = num === 1 ? landingImage1 : landingImage2;
+                  const setImg = num === 1 ? setLandingImage1 : setLandingImage2;
+                  const inputId = `landing-img-${num}`;
+                  return (
+                    <div key={num} className="space-y-2">
+                      <Label className="text-xs font-medium text-muted-foreground">Image {num}</Label>
+                      {imgUrl ? (
+                        <div className="relative rounded-xl overflow-hidden border border-border aspect-[4/3] group">
+                          <img src={imgUrl} alt={`Landing ${num}`} className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-background/0 group-hover:bg-background/60 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                            <button onClick={() => setImg("")} className="rounded-full bg-destructive p-2 text-destructive-foreground shadow-lg">
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div
+                          onClick={() => document.getElementById(inputId)?.click()}
+                          className="border-2 border-dashed border-border rounded-xl aspect-[4/3] flex flex-col items-center justify-center cursor-pointer hover:border-muted-foreground/50 transition-all"
+                        >
+                          <Upload className="h-5 w-5 text-muted-foreground mb-1" />
+                          <p className="text-xs text-muted-foreground">Upload</p>
+                        </div>
+                      )}
+                      <input id={inputId} type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        setUploadingLanding(num as 1 | 2);
+                        const id = crypto.randomUUID();
+                        const ext = file.name.split(".").pop() || "jpg";
+                        const filePath = `landing-${num}-${id}.${ext}`;
+                        const { error } = await supabase.storage.from("hero-pictures").upload(filePath, file, { cacheControl: "3600" });
+                        if (error) { toast.error("Upload failed"); setUploadingLanding(null); return; }
+                        const { data: urlData } = supabase.storage.from("hero-pictures").getPublicUrl(filePath);
+                        setImg(urlData.publicUrl);
+                        setUploadingLanding(null);
+                        e.target.value = "";
+                      }} />
+                    </div>
+                  );
+                })}
               </div>
-              <PagePicturesManager pageSlug="home" />
-
             </div>
+
+            {/* Featured Club & Academy Selection */}
+            <div className="border-t border-border pt-6">
+              <h3 className="text-base font-heading font-semibold text-foreground mb-1">🏢 Featured Sections</h3>
+              <p className="text-xs text-muted-foreground mb-4">Select which club and academy to feature on the landing page.</p>
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground mb-2 block">Featured Club (Clubs & Partners section)</Label>
+                  <Select value={featuredClubId || "auto"} onValueChange={(v) => setFeaturedClubId(v === "auto" ? "" : v)}>
+                    <SelectTrigger className="h-9 bg-secondary border-border text-sm">
+                      <SelectValue placeholder="Auto (first club)" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-card border-border z-50">
+                      <SelectItem value="auto">Auto (first club)</SelectItem>
+                      {allClubs.map(c => (
+                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground mb-2 block">Featured Academy (Academies section)</Label>
+                  <Select value={featuredAcademyId || "auto"} onValueChange={(v) => setFeaturedAcademyId(v === "auto" ? "" : v)}>
+                    <SelectTrigger className="h-9 bg-secondary border-border text-sm">
+                      <SelectValue placeholder="Auto (first academy)" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-card border-border z-50">
+                      <SelectItem value="auto">Auto (first academy)</SelectItem>
+                      {allClubs.filter(c => c.has_academy).map(c => (
+                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
 
             <Button onClick={handleSaveHome} disabled={saving} className="w-full h-10 text-sm font-semibold glow">
               {saving ? "Saving..." : "Save Changes"}
