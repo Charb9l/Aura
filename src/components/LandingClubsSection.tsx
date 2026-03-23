@@ -138,7 +138,7 @@ const LandingClubsSection = () => {
             </div>
 
           </div>
-        </div>
+        </Link>
 
         {/* Actions Row — outside the card */}
         <div className="flex items-center gap-3 mt-4">
