@@ -81,13 +81,7 @@ const MobileTabBar = () => {
                 isActive ? "text-primary" : "text-muted-foreground"
               )}
             >
-              {isActive && (
-                <motion.div
-                  layoutId="tab-indicator"
-                  className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-[3px] rounded-full bg-primary"
-                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                />
-              )}
+              
               <tab.Icon className="h-5 w-5" />
               <span className="text-[10px] font-semibold">{tab.label}</span>
             </Link>
