@@ -496,7 +496,7 @@ const HabitsPage = () => {
                     { label: "Streaks" },
                     { label: "Badges" },
                     { label: "Wellness Score" },
-                    { label: "AI Insights" },
+                    { label: "Insights" },
                     { label: "Session Patterns" },
                   ];
                   const badges = (cmsContent.feature_badges && cmsContent.feature_badges.length > 0) ? cmsContent.feature_badges : defaultBadges;
