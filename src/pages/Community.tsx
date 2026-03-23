@@ -34,7 +34,7 @@ const FEATURES = [
   {
     to: "/habits",
     label: "Habit Tracker",
-    description: "AI-powered fitness habits",
+    description: "Track your fitness habits",
     icon: (
       <svg viewBox="0 0 48 48" fill="none" className="w-7 h-7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M8 38L14 20l8 12 6-18 8 10h6" />

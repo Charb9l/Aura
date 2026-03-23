@@ -413,7 +413,7 @@ const HabitsPage = () => {
 
   const completedLevels = badgeLevels.filter(lvl => lvl.badges.every(b => b.earned)).length;
 
-  // AI Insights
+  // Insights
   const insights = useMemo(() => {
     const tips: string[] = [];
     if (completedBookings.length === 0) {
@@ -496,7 +496,7 @@ const HabitsPage = () => {
                     { label: "Streaks" },
                     { label: "Badges" },
                     { label: "Wellness Score" },
-                    { label: "AI Insights" },
+                    { label: "Insights" },
                     { label: "Session Patterns" },
                   ];
                   const badges = (cmsContent.feature_badges && cmsContent.feature_badges.length > 0) ? cmsContent.feature_badges : defaultBadges;
@@ -506,7 +506,7 @@ const HabitsPage = () => {
                     Streaks: <Flame className="h-2.5 w-2.5 lg:h-3.5 lg:w-3.5" />,
                     Badges: <Trophy className="h-2.5 w-2.5 lg:h-3.5 lg:w-3.5" />,
                     "Wellness Score": <TrendingUp className="h-2.5 w-2.5 lg:h-3.5 lg:w-3.5" />,
-                    "AI Insights": <Sparkles className="h-2.5 w-2.5 lg:h-3.5 lg:w-3.5" />,
+                    "Insights": <Sparkles className="h-2.5 w-2.5 lg:h-3.5 lg:w-3.5" />,
                     "Session Patterns": <Clock className="h-2.5 w-2.5 lg:h-3.5 lg:w-3.5" />,
                   };
                   return badges.map((c, i) => {
@@ -684,13 +684,13 @@ const HabitsPage = () => {
             ))}
           </div>
 
-          {/* AI Insights — full width */}
+          {/* Insights — full width */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="mt-6">
             <Card className="bg-card border-border">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-primary" />
-                  AI Insights
+                  Insights
                 </CardTitle>
               </CardHeader>
               <CardContent>
