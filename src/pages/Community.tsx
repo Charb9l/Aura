@@ -2,20 +2,14 @@ import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import MobileBackButton from "@/components/MobileBackButton";
 import { motion } from "framer-motion";
-import { MatchmakerIcon } from "@/components/icons/BrandIcons";
+import { MatchmakerIcon, HabitTrackerIcon, LoyaltyIcon } from "@/components/icons/BrandIcons";
 
 const FEATURES = [
   {
     to: "/loyalty",
     label: "Loyalty",
     description: "Earn rewards & badges",
-    icon: (
-      <svg viewBox="0 0 48 48" fill="none" className="w-7 h-7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <polygon points="24,4 29,18 44,18 32,27 36,42 24,33 12,42 16,27 4,18 19,18" fill="currentColor" fillOpacity="0.08" />
-        <polygon points="24,4 29,18 44,18 32,27 36,42 24,33 12,42 16,27 4,18 19,18" />
-        <circle cx="24" cy="24" r="5" fill="currentColor" fillOpacity="0.12" />
-      </svg>
-    ),
+    icon: <LoyaltyIcon className="w-7 h-7" />,
   },
   {
     to: "/matchmaker",
@@ -27,15 +21,7 @@ const FEATURES = [
     to: "/habits",
     label: "Habit Tracker",
     description: "Track your fitness habits",
-    icon: (
-      <svg viewBox="0 0 48 48" fill="none" className="w-7 h-7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M8 38L14 20l8 12 6-18 8 10h6" />
-        <circle cx="14" cy="20" r="2.5" fill="currentColor" fillOpacity="0.15" />
-        <circle cx="22" cy="32" r="2.5" fill="currentColor" fillOpacity="0.15" />
-        <circle cx="28" cy="14" r="2.5" fill="currentColor" fillOpacity="0.15" />
-        <circle cx="36" cy="24" r="2.5" fill="currentColor" fillOpacity="0.15" />
-      </svg>
-    ),
+    icon: <HabitTrackerIcon className="w-7 h-7" />,
   },
 ];
 
