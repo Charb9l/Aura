@@ -24,7 +24,7 @@ const ROUTE_TO_TAB: Record<string, string> = {
 const BASE_MENU_ITEMS = [
   { label: "Dashboard", icon: LayoutDashboard, tab: "overview" },
   { label: "Activities", icon: Package, tab: "activities" },
-  { label: "AI Matchmaker", icon: Gamepad2, tab: "matchmaker" },
+  { label: "Matchmaker", icon: Gamepad2, tab: "matchmaker" },
   { label: "Bookings", icon: CalendarCheck, tab: "bookings" },
   { label: "Clubs & Partners", icon: Building2, tab: "clubs" },
   { label: "Featured Clubs", icon: Star, tab: "featured" },
