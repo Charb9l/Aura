@@ -240,9 +240,23 @@ const Auth = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                minLength={6}
+                minLength={8}
                 className="h-12 bg-secondary border-border"
               />
+              {!isLogin && password.length > 0 && (
+                <ul className="space-y-1 pt-1">
+                  {passwordRules.map((rule) => (
+                    <li
+                      key={rule.label}
+                      className={`text-xs flex items-center gap-1.5 ${
+                        rule.test(password) ? "text-green-500" : "text-muted-foreground"
+                      }`}
+                    >
+                      {rule.test(password) ? "✓" : "○"} {rule.label}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
 
             <Button
