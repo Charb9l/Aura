@@ -67,16 +67,24 @@ const ClubsPage = () => {
   const [showPartnerForm, setShowPartnerForm] = useState(false);
   const navigate = useNavigate();
 
+  // Filters
+  const [activities, setActivities] = useState<{ id: string; name: string; slug: string }[]>([]);
+  const [clubLocations, setClubLocations] = useState<{ id: string; club_id: string; name: string; location: string }[]>([]);
+  const [selectedActivity, setSelectedActivity] = useState<string>("all");
+  const [selectedLocation, setSelectedLocation] = useState<string>("all");
+
   // Hero grid pictures
   const [heroPictures, setHeroPictures] = useState<{ image: string; alt: string }[]>([]);
   const [heroCycleIndex, setHeroCycleIndex] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
-      const [clubsRes, contentRes, heroRes] = await Promise.all([
+      const [clubsRes, contentRes, heroRes, offeringsRes, locsRes] = await Promise.all([
         supabase.from("clubs").select("*").order("name"),
         supabase.from("page_content").select("content").eq("page_slug", "clubs").single(),
         supabase.from("hero_pictures").select("id, image_url, display_order").eq("page_slug", "clubs").order("display_order"),
+        supabase.from("offerings").select("id, name, slug"),
+        supabase.from("club_locations").select("id, club_id, name, location"),
       ]);
       if (clubsRes.data) setClubs((clubsRes.data as unknown as Club[]).filter(c => (c as any).published !== false));
       if (contentRes.data) {
@@ -87,6 +95,8 @@ const ClubsPage = () => {
       if (heroRes.data && heroRes.data.length > 0) {
         setHeroPictures(heroRes.data.map((p: any) => ({ image: p.image_url, alt: "Clubs" })));
       }
+      if (offeringsRes.data) setActivities(offeringsRes.data as any[]);
+      if (locsRes.data) setClubLocations(locsRes.data as any[]);
       setLoading(false);
     };
     fetchData();
