@@ -502,88 +502,94 @@ const ProfilePage = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="mb-8 grid grid-cols-2 sm:grid-cols-4 gap-3"
+          className="mb-6 grid grid-cols-2 sm:grid-cols-4 gap-2"
         >
           {/* Pending Bookings */}
           <button
             onClick={() => setShowPending(true)}
-            className="group relative rounded-2xl border border-border bg-card p-4 sm:p-5 text-left transition-all hover:border-primary/40 hover:shadow-[0_0_20px_hsl(var(--primary)/0.1)]"
+            className="group relative rounded-xl border border-border bg-card p-3 text-left transition-all hover:border-primary/40"
           >
-            <div className="flex items-center justify-between mb-3">
-              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                <CalendarCheck className="h-5 w-5 text-primary" />
+            <div className="flex items-center gap-2.5">
+              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <CalendarCheck className="h-4 w-4 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-heading font-bold text-xs text-foreground leading-tight">Bookings</p>
+                <p className="text-[10px] text-muted-foreground">Upcoming</p>
               </div>
               {pendingBookings.length > 0 && (
-                <Badge className="bg-primary text-primary-foreground text-xs px-2 py-0.5">
+                <Badge className="bg-primary text-primary-foreground text-[10px] px-1.5 py-0 h-5">
                   {pendingBookings.length}
                 </Badge>
               )}
             </div>
-            <p className="font-heading font-bold text-sm text-foreground">Bookings</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Upcoming sessions</p>
           </button>
 
           {/* Pending Nudges */}
           <button
             onClick={() => setShowNudges(true)}
-            className="group relative rounded-2xl border border-border bg-card p-4 sm:p-5 text-left transition-all hover:border-accent/40 hover:shadow-[0_0_20px_hsl(var(--accent)/0.1)]"
+            className="group relative rounded-xl border border-border bg-card p-3 text-left transition-all hover:border-accent/40"
           >
-            <div className="flex items-center justify-between mb-3">
-              <div className="h-10 w-10 rounded-xl bg-accent/10 flex items-center justify-center group-hover:bg-accent/20 transition-colors">
-                <Send className="h-5 w-5 text-accent" />
+            <div className="flex items-center gap-2.5">
+              <div className="h-8 w-8 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
+                <Send className="h-4 w-4 text-accent" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-heading font-bold text-xs text-foreground leading-tight">Nudges</p>
+                <p className="text-[10px] text-muted-foreground">{sentNudges.length > 0 ? `${sentNudges.length} sent` : "Requests"}</p>
               </div>
               {pendingReceivedCount > 0 && (
-                <Badge className="bg-accent text-accent-foreground text-xs px-2 py-0.5 animate-pulse">
+                <Badge className="bg-accent text-accent-foreground text-[10px] px-1.5 py-0 h-5 animate-pulse">
                   {pendingReceivedCount}
                 </Badge>
               )}
             </div>
-            <p className="font-heading font-bold text-sm text-foreground">Nudges</p>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {sentNudges.length > 0 ? `${sentNudges.length} sent` : "Match requests"}
-            </p>
           </button>
 
           {/* MyPlayer */}
           <button
             onClick={() => setShowMyPlayer(true)}
             className={cn(
-              "group relative rounded-2xl border bg-card p-4 sm:p-5 text-left transition-all hover:border-primary/40 hover:shadow-[0_0_20px_hsl(var(--primary)/0.1)]",
-              playerComplete === false ? "border-primary/50 animate-pulse shadow-[0_0_15px_hsl(var(--primary)/0.3)]" : "border-border"
+              "group relative rounded-xl border bg-card p-3 text-left transition-all hover:border-primary/40",
+              playerComplete === false ? "border-primary/50 shadow-[0_0_10px_hsl(var(--primary)/0.2)]" : "border-border"
             )}
           >
-            <div className="flex items-center justify-between mb-3">
-              <div className={cn("h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors", playerComplete === false && "animate-pulse")}>
-                <Gamepad2 className="h-5 w-5 text-primary" />
+            <div className="flex items-center gap-2.5">
+              <div className={cn("h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0", playerComplete === false && "animate-pulse")}>
+                <Gamepad2 className="h-4 w-4 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-heading font-bold text-xs text-foreground leading-tight">MyPlayer</p>
+                <p className="text-[10px] text-muted-foreground">{playerComplete === false ? "Set up now!" : "Profile"}</p>
               </div>
               {playerComplete === false && (
                 <>
-                  <span className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-primary animate-ping" />
-                  <span className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-primary" />
+                  <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-primary animate-ping" />
+                  <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-primary" />
                 </>
               )}
             </div>
-            <p className="font-heading font-bold text-sm text-foreground">MyPlayer</p>
-            <p className="text-xs text-muted-foreground mt-0.5">{playerComplete === false ? "Set up now!" : "Sport profile"}</p>
           </button>
 
           {/* Notifications */}
           <button
             onClick={() => setShowNotifications(true)}
-            className="group relative rounded-2xl border border-border bg-card p-4 sm:p-5 text-left transition-all hover:border-primary/40 hover:shadow-[0_0_20px_hsl(var(--primary)/0.1)]"
+            className="group relative rounded-xl border border-border bg-card p-3 text-left transition-all hover:border-primary/40"
           >
-            <div className="flex items-center justify-between mb-3">
-              <div className={cn("h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors", customerNotifCount > 0 && "animate-pulse")}>
-                <Bell className="h-5 w-5 text-primary" />
+            <div className="flex items-center gap-2.5">
+              <div className={cn("h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0", customerNotifCount > 0 && "animate-pulse")}>
+                <Bell className="h-4 w-4 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-heading font-bold text-xs text-foreground leading-tight">Notifications</p>
+                <p className="text-[10px] text-muted-foreground">Updates</p>
               </div>
               {customerNotifCount > 0 && (
-                <Badge className="bg-primary text-primary-foreground text-xs px-2 py-0.5 animate-pulse">
+                <Badge className="bg-primary text-primary-foreground text-[10px] px-1.5 py-0 h-5 animate-pulse">
                   {customerNotifCount}
                 </Badge>
               )}
             </div>
-            <p className="font-heading font-bold text-sm text-foreground">Notifications</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Updates & alerts</p>
           </button>
         </motion.div>
 
