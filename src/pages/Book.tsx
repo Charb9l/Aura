@@ -575,7 +575,7 @@ const BookPage = () => {
               <Select value={filterLocation || "__all__"} onValueChange={(v) => setFilterLocation(v === "__all__" ? "" : v)}>
                 <SelectTrigger className="h-10 w-44 bg-secondary border-border">
                   <div className="flex items-center gap-2">
-                    <CalendarClock className="h-3.5 w-3.5 text-muted-foreground" />
+                    <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
                     <SelectValue placeholder="All Locations" />
                   </div>
                 </SelectTrigger>
