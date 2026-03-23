@@ -58,3 +58,28 @@ export const MatchmakerIcon = ({ className }: IconProps) => (
     <path d="M12 11l-1.5 2.5h3L12 16" strokeWidth="1.8" fill="currentColor" fillOpacity="0.1" />
   </svg>
 );
+
+/**
+ * Custom SVG icon for Habit Tracker.
+ * A rising trend line with pulse dots — conveys tracking & progress.
+ */
+export const HabitTrackerIcon = ({ className }: IconProps) => (
+  <svg viewBox="0 0 24 24" fill="none" className={cn("shrink-0", className)} stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 20l4-8 4 5 4-10 4 5h2" />
+    <circle cx="7" cy="12" r="1.5" fill="currentColor" fillOpacity="0.15" />
+    <circle cx="11" cy="17" r="1.5" fill="currentColor" fillOpacity="0.15" />
+    <circle cx="15" cy="7" r="1.5" fill="currentColor" fillOpacity="0.15" />
+    <circle cx="19" cy="12" r="1.5" fill="currentColor" fillOpacity="0.15" />
+  </svg>
+);
+
+/**
+ * Custom SVG icon for Loyalty.
+ * A star with radiating accent — conveys rewards & achievement.
+ */
+export const LoyaltyIcon = ({ className }: IconProps) => (
+  <svg viewBox="0 0 24 24" fill="none" className={cn("shrink-0", className)} stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="12,2 14.5,9 22,9 16,13.5 18,21 12,17 6,21 8,13.5 2,9 9.5,9" fill="currentColor" fillOpacity="0.08" />
+    <polygon points="12,2 14.5,9 22,9 16,13.5 18,21 12,17 6,21 8,13.5 2,9 9.5,9" />
+  </svg>
+);
