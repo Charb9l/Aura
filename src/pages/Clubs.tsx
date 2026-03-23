@@ -1,7 +1,8 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPinned, ArrowRight, Handshake, MapPin } from "lucide-react";
+import { ArrowRight, Handshake, MapPin } from "lucide-react";
+import { ClubsIcon } from "@/components/icons/BrandIcons";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -205,7 +206,7 @@ const ClubsPage = () => {
         <div className={cn("relative z-10 container mx-auto px-6 text-center", visibleHeroPics.length > 0 ? "py-32" : "")}>
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
             <div className="flex items-center justify-center gap-3 mb-4">
-              <MapPinned className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+              <ClubsIcon className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
               <h1 className="font-heading text-3xl sm:text-5xl md:text-6xl font-light text-foreground">{pageTitle}</h1>
             </div>
             <p className="text-muted-foreground text-sm sm:text-lg max-w-lg mx-auto mb-6">{pageSubtitle}</p>

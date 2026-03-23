@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Award, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import { AcademiesIcon } from "@/components/icons/BrandIcons";
 import { supabase } from "@/integrations/supabase/client";
 
 interface AcademyClub {
@@ -132,7 +133,7 @@ const LandingAcademiesSection = () => {
       {/* Header */}
       <div className="text-center mb-4 md:mb-8">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent/10 mb-2 md:mb-4">
-          <Award className="h-4 w-4 text-accent" />
+          <AcademiesIcon className="h-4 w-4 text-accent" />
           <span className="text-xs font-semibold uppercase tracking-wider text-accent">{pageTitle}</span>
         </div>
         <p className="text-muted-foreground text-sm max-w-xs mx-auto leading-relaxed">{pageSubtitle}</p>

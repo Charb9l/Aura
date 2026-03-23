@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
-import { Users, Sparkles, MapPin, Trophy, Filter, Zap, Star, ArrowRight, Gauge, Swords, CalendarClock, Target, Send, ChevronRight, type LucideIcon } from "lucide-react";
+import { Sparkles, MapPin, Trophy, Filter, Zap, Star, ArrowRight, Gauge, Swords, CalendarClock, Target, Send, ChevronRight, type LucideIcon } from "lucide-react";
+import { MatchmakerIcon } from "@/components/icons/BrandIcons";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
@@ -48,7 +49,7 @@ interface Location {
 const MATCH_BADGE = {
   perfect: { label: "Perfect Match", icon: Zap, color: "48 90% 50%", bg: "48 90% 50%" },
   good: { label: "Great Match", icon: Star, color: "142 60% 45%", bg: "142 60% 45%" },
-  "sport-only": { label: "Same Sport", icon: Users, color: "212 70% 55%", bg: "212 70% 55%" },
+  "sport-only": { label: "Same Sport", icon: Star, color: "212 70% 55%", bg: "212 70% 55%" },
 };
 
 const MatchmakerPage = () => {
@@ -248,7 +249,7 @@ const MatchmakerPage = () => {
               animate={{ opacity: 1 }}
               className="text-center pb-12"
             >
-              <Users className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
+              <MatchmakerIcon className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
               <h2 className="font-heading text-xl font-bold text-foreground mb-2">Sign in to find matches</h2>
               <p className="text-muted-foreground text-sm mb-5">Create an account and set up your MyPlayer profile to get started.</p>
               <Button onClick={() => navigate("/auth")} className="glow px-8 h-11 font-semibold">
@@ -347,7 +348,7 @@ const MatchmakerPage = () => {
                 animate={{ opacity: 1 }}
                 className="text-center py-20"
               >
-                <Users className="h-16 w-16 text-muted-foreground/20 mx-auto mb-4" />
+                <MatchmakerIcon className="h-16 w-16 text-muted-foreground/20 mx-auto mb-4" />
                 <h2 className="font-heading text-xl font-bold text-foreground mb-2">No matches found yet</h2>
                 <p className="text-muted-foreground">Try removing filters, or check back later as more players join.</p>
               </motion.div>

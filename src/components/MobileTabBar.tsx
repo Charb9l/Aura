@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminRole } from "@/hooks/useAdminRole";
-import { MapPinned, Award } from "lucide-react";
+import { ClubsIcon, AcademiesIcon } from "@/components/icons/BrandIcons";
 
 const IconHome = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -31,20 +31,12 @@ const IconCommunity = ({ className }: { className?: string }) => (
   </svg>
 );
 
-const IconClubs = ({ className }: { className?: string }) => (
-  <MapPinned className={className} />
-);
-
-const IconAcademy = ({ className }: { className?: string }) => (
-  <Award className={className} />
-);
-
 const TABS = [
   { to: "/", label: "Home", Icon: IconHome },
   { to: "/book", label: "Book", Icon: IconBook },
   { to: "/community", label: "Your Space", Icon: IconCommunity },
-  { to: "/clubs", label: "Clubs", Icon: IconClubs },
-  { to: "/academy", label: "Academies", Icon: IconAcademy },
+  { to: "/clubs", label: "Clubs", Icon: ClubsIcon },
+  { to: "/academy", label: "Academies", Icon: AcademiesIcon },
 ];
 
 const MobileTabBar = () => {

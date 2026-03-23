@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import MobileBackButton from "@/components/MobileBackButton";
 import { motion } from "framer-motion";
+import { MatchmakerIcon } from "@/components/icons/BrandIcons";
 
 const FEATURES = [
   {
@@ -20,16 +21,7 @@ const FEATURES = [
     to: "/matchmaker",
     label: "Matchmaker",
     description: "Find your perfect partner",
-    icon: (
-      <svg viewBox="0 0 48 48" fill="none" className="w-7 h-7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="17" cy="16" r="7" />
-        <circle cx="31" cy="16" r="7" />
-        <path d="M6 40c0-7 5-12 11-12h2" />
-        <path d="M42 40c0-7-5-12-11-12h-2" />
-        <path d="M20 30l4-3 4 3" fill="currentColor" fillOpacity="0.12" />
-        <circle cx="24" cy="36" r="2" fill="currentColor" fillOpacity="0.2" />
-      </svg>
-    ),
+    icon: <MatchmakerIcon className="w-7 h-7" />,
   },
   {
     to: "/habits",
