@@ -147,7 +147,7 @@ const LandingClubsSection = () => {
         {/* Header */}
         <div className="text-center mb-4 md:mb-8">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 mb-2 md:mb-4">
-            <MapPinned className="h-4 w-4 text-primary" />
+            <ClubsIcon className="h-4 w-4 text-primary" />
             <span className="text-xs font-semibold uppercase tracking-wider text-primary">{pageTitle}</span>
           </div>
           <p className="text-muted-foreground text-sm max-w-xs mx-auto leading-relaxed">{pageSubtitle}</p>

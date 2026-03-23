@@ -35,8 +35,8 @@ const TABS = [
   { to: "/", label: "Home", Icon: IconHome },
   { to: "/book", label: "Book", Icon: IconBook },
   { to: "/community", label: "Your Space", Icon: IconCommunity },
-  { to: "/clubs", label: "Clubs", Icon: IconClubs },
-  { to: "/academy", label: "Academies", Icon: IconAcademy },
+  { to: "/clubs", label: "Clubs", Icon: ClubsIcon },
+  { to: "/academy", label: "Academies", Icon: AcademiesIcon },
 ];
 
 const MobileTabBar = () => {
