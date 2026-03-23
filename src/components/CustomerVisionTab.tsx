@@ -574,14 +574,15 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
   const handleSaveHome = () => {
     saveContent("home", {
       hero_subtitle: heroSubtitle,
-      hero_title_line1: heroLine1,
-      hero_title_line2: heroLine2,
       hero_buttons: heroButtons.filter(b => b.label.trim() && b.to.trim()),
       nav_order: navOrder,
-      background_picture: backgroundPicture,
       platform_name_line1: platformNameLine1,
       platform_name_line2: platformNameLine2,
       show_scroll_indicator: showScrollIndicator,
+      landing_image_1: landingImage1,
+      landing_image_2: landingImage2,
+      featured_club_id: featuredClubId,
+      featured_academy_id: featuredAcademyId,
     });
   };
 
