@@ -87,6 +87,7 @@ const AcademyPage = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const sportParam = searchParams.get("sport") || "";
+  const clubParam = searchParams.get("club") || "";
 
   // No redirect — show content to logged-out users
 
