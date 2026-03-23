@@ -590,6 +590,8 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
       landing_image_2: landingImage2,
       featured_club_id: featuredClubId,
       featured_academy_id: featuredAcademyId,
+      featured_club_id_2: featuredClubId2,
+      featured_academy_id_2: featuredAcademyId2,
     });
   };
 
