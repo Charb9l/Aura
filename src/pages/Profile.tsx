@@ -1266,9 +1266,16 @@ const ProfilePage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.45 }}
         >
-          <h2 className="font-heading text-xl font-bold text-foreground mb-4 flex items-center gap-2">
-            <Clock className="h-5 w-5 text-muted-foreground" /> Recent Bookings
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-heading text-xl font-bold text-foreground flex items-center gap-2">
+              <Clock className="h-5 w-5 text-muted-foreground" /> Recent Bookings
+            </h2>
+            {bookings.length > 5 && (
+              <Link to="/bookings" className="text-sm text-primary hover:underline flex items-center gap-1">
+                View All <ArrowRight className="h-3 w-3" />
+              </Link>
+            )}
+          </div>
 
           {bookings.length === 0 ? (
             <div className="rounded-2xl border border-border bg-card p-10 text-center">
@@ -1279,7 +1286,7 @@ const ProfilePage = () => {
             </div>
           ) : (
             <div className="space-y-3">
-              {bookings.slice(0, 10).map((booking) => (
+              {bookings.slice(0, 5).map((booking) => (
                 <div
                   key={booking.id}
                   className="rounded-xl border border-border bg-card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2"

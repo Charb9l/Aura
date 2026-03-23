@@ -20,6 +20,7 @@ import MatchmakerPage from "./pages/Matchmaker";
 import HabitsPage from "./pages/Habits";
 import CommunityPage from "./pages/Community";
 import CompleteProfilePage from "./pages/CompleteProfile";
+import BookingsPage from "./pages/Bookings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -65,6 +66,7 @@ const App = () => (
               <Route path="/admin" element={<AdminPage />} />
               <Route path="/admin-login" element={<AdminLoginPage />} />
               <Route path="/complete-profile" element={<CompleteProfilePage />} />
+              <Route path="/bookings" element={<BookingsPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <MobileTabBar />
