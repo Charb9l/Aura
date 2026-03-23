@@ -249,7 +249,7 @@ const MatchmakerPage = () => {
               animate={{ opacity: 1 }}
               className="text-center pb-12"
             >
-              <Users className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
+              <MatchmakerIcon className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
               <h2 className="font-heading text-xl font-bold text-foreground mb-2">Sign in to find matches</h2>
               <p className="text-muted-foreground text-sm mb-5">Create an account and set up your MyPlayer profile to get started.</p>
               <Button onClick={() => navigate("/auth")} className="glow px-8 h-11 font-semibold">
