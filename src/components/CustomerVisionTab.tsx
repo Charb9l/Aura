@@ -840,10 +840,10 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
             {/* Featured Club & Academy Selection */}
             <div className="border-t border-border pt-6">
               <h3 className="text-base font-heading font-semibold text-foreground mb-1">🏢 Featured Sections</h3>
-              <p className="text-xs text-muted-foreground mb-4">Select which club and academy to feature on the landing page.</p>
+              <p className="text-xs text-muted-foreground mb-4">Select which clubs and academies to feature on the landing page. The second selection is shown only on desktop.</p>
               <div className="space-y-4">
                 <div>
-                  <Label className="text-sm font-medium text-muted-foreground mb-2 block">Featured Club (Clubs & Partners section)</Label>
+                  <Label className="text-sm font-medium text-muted-foreground mb-2 block">Featured Club 1 (shown on mobile & desktop)</Label>
                   <Select value={featuredClubId || "auto"} onValueChange={(v) => setFeaturedClubId(v === "auto" ? "" : v)}>
                     <SelectTrigger className="h-9 bg-secondary border-border text-sm">
                       <SelectValue placeholder="Auto (first club)" />
@@ -857,7 +857,21 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
                   </Select>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-muted-foreground mb-2 block">Featured Academy (Academies section)</Label>
+                  <Label className="text-sm font-medium text-muted-foreground mb-2 block">Featured Club 2 (desktop only)</Label>
+                  <Select value={featuredClubId2 || "none"} onValueChange={(v) => setFeaturedClubId2(v === "none" ? "" : v)}>
+                    <SelectTrigger className="h-9 bg-secondary border-border text-sm">
+                      <SelectValue placeholder="None" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-card border-border z-50">
+                      <SelectItem value="none">None</SelectItem>
+                      {allClubs.filter(c => c.id !== featuredClubId).map(c => (
+                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground mb-2 block">Featured Academy 1 (shown on mobile & desktop)</Label>
                   <Select value={featuredAcademyId || "auto"} onValueChange={(v) => setFeaturedAcademyId(v === "auto" ? "" : v)}>
                     <SelectTrigger className="h-9 bg-secondary border-border text-sm">
                       <SelectValue placeholder="Auto (first academy)" />
@@ -865,6 +879,20 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
                     <SelectContent className="bg-card border-border z-50">
                       <SelectItem value="auto">Auto (first academy)</SelectItem>
                       {allClubs.filter(c => c.has_academy).map(c => (
+                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground mb-2 block">Featured Academy 2 (desktop only)</Label>
+                  <Select value={featuredAcademyId2 || "none"} onValueChange={(v) => setFeaturedAcademyId2(v === "none" ? "" : v)}>
+                    <SelectTrigger className="h-9 bg-secondary border-border text-sm">
+                      <SelectValue placeholder="None" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-card border-border z-50">
+                      <SelectItem value="none">None</SelectItem>
+                      {allClubs.filter(c => c.has_academy && c.id !== featuredAcademyId).map(c => (
                         <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                       ))}
                     </SelectContent>
