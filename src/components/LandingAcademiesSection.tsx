@@ -130,8 +130,8 @@ const LandingAcademiesSection = () => {
       className="w-full"
     >
       {/* Header */}
-      <div className="text-center mb-8">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent/10 mb-4">
+      <div className="text-center mb-4 md:mb-8">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent/10 mb-2 md:mb-4">
           <Award className="h-4 w-4 text-accent" />
           <span className="text-xs font-semibold uppercase tracking-wider text-accent">{pageTitle}</span>
         </div>
