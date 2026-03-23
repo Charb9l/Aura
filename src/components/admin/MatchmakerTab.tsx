@@ -133,7 +133,7 @@ const MatchmakerTab = () => {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="matchmaker">
       <div className="mb-2">
-        <h1 className="font-heading text-2xl md:text-4xl font-bold text-foreground">AI Matchmaker</h1>
+        <h1 className="font-heading text-2xl md:text-4xl font-bold text-foreground">Matchmaker</h1>
       </div>
       <p className="text-muted-foreground mb-8">
         Configure the matchmaker page content and player profile options.
