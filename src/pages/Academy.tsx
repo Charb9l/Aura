@@ -430,7 +430,7 @@ const AcademyPage = () => {
 
         {filteredClubs.length === 0 && (
           <div className="text-center py-20">
-            <Award className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <AcademiesIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <p className="text-muted-foreground text-lg">No academies available yet.</p>
           </div>
         )}

@@ -348,7 +348,7 @@ const MatchmakerPage = () => {
                 animate={{ opacity: 1 }}
                 className="text-center py-20"
               >
-                <Users className="h-16 w-16 text-muted-foreground/20 mx-auto mb-4" />
+                <MatchmakerIcon className="h-16 w-16 text-muted-foreground/20 mx-auto mb-4" />
                 <h2 className="font-heading text-xl font-bold text-foreground mb-2">No matches found yet</h2>
                 <p className="text-muted-foreground">Try removing filters, or check back later as more players join.</p>
               </motion.div>
