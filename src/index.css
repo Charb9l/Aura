@@ -15,7 +15,7 @@
     --popover: 0 0% 11%;
     --popover-foreground: 40 20% 92%;
 
-    --primary: 38 70% 50%;
+    --primary: 220 10% 72%;
     --primary-foreground: 0 0% 5%;
 
     --secondary: 0 0% 15%;
@@ -24,7 +24,7 @@
     --muted: 0 0% 14%;
     --muted-foreground: 40 5% 55%;
 
-    --accent: 38 70% 50%;
+    --accent: 220 10% 72%;
     --accent-foreground: 0 0% 5%;
 
     --destructive: 0 72% 51%;
@@ -32,24 +32,24 @@
 
     --border: 40 10% 20%;
     --input: 40 10% 20%;
-    --ring: 38 70% 50%;
+    --ring: 220 10% 72%;
 
     --radius: 1rem;
 
     --sidebar-background: 0 0% 9%;
     --sidebar-foreground: 40 20% 92%;
-    --sidebar-primary: 38 70% 50%;
+    --sidebar-primary: 220 10% 72%;
     --sidebar-primary-foreground: 0 0% 5%;
     --sidebar-accent: 0 0% 14%;
     --sidebar-accent-foreground: 40 15% 75%;
     --sidebar-border: 40 10% 20%;
-    --sidebar-ring: 38 70% 50%;
+    --sidebar-ring: 220 10% 72%;
 
     --font-heading: 'Outfit', sans-serif;
     --font-body: 'Plus Jakarta Sans', sans-serif;
 
-    --gold: 38 70% 50%;
-    --gold-light: 40 65% 58%;
+    --gold: 220 10% 72%;
+    --gold-light: 220 12% 80%;
   }
 }
 
