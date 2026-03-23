@@ -29,12 +29,13 @@ const DEFAULT_NAV_ORDER: NavItem[] = [
 
 interface HomeContent {
   hero_subtitle: string;
-  hero_title_line1: string;
-  hero_title_line2: string;
   hero_buttons: HeroButton[];
   nav_order?: NavItem[];
-  background_picture?: string;
   platform_name?: string;
+  landing_image_1?: string;
+  landing_image_2?: string;
+  featured_club_id?: string;
+  featured_academy_id?: string;
 }
 
 interface PageContent {
