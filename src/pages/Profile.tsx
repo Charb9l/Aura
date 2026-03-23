@@ -106,6 +106,8 @@ const ProfilePage = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   // One-time welcome bonus banner: show only if never dismissed/completed
   const [welcomeBonusDismissed, setWelcomeBonusDismissed] = useState(() => localStorage.getItem("welcome_bonus_seen") === "true");
+  // Server-side check: has this user already claimed the welcome bonus?
+  const [welcomeBonusAlreadyClaimed, setWelcomeBonusAlreadyClaimed] = useState(false);
   const customerNotifCount = useCustomerNotificationCount();
   const badgeEmailSentRef = useRef<Set<number>>(new Set());
 
