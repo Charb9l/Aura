@@ -1153,7 +1153,7 @@ const ProfilePage = () => {
           </div>
 
           <div className="grid md:grid-cols-2 gap-5">
-            {clubs.map((club, idx) => {
+            {clubs.filter(club => (effectiveClubPoints[club.id] || 0) > 0).map((club, idx) => {
               const rawPoints = effectiveClubPoints[club.id] || 0;
               const cyclePoints = rawPoints % 10; // resets after 10
               const completedCycles = Math.floor(rawPoints / 10);
