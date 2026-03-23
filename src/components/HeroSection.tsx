@@ -57,9 +57,9 @@ const HeroSection = () => {
   };
 
   return (
-    <section className="relative flex flex-col items-center pt-20 pb-4 md:pt-24 md:pb-8 overflow-hidden">
+    <section className="relative flex flex-col items-center pt-20 pb-6 md:pt-24 md:pb-8 overflow-hidden">
       {/* Content */}
-      <div className="relative z-10 container mx-auto px-6 flex flex-col items-center text-center gap-4 md:gap-8">
+      <div className="relative z-10 container mx-auto px-6 flex flex-col items-center text-center gap-6 md:gap-8">
         {/* Subtitle only */}
         <motion.p
           initial={{ opacity: 0, y: 20 }}
@@ -72,7 +72,7 @@ const HeroSection = () => {
 
         {/* Action Buttons */}
         {actions.length > 0 && (
-          <div className="flex flex-wrap justify-center gap-3 w-full max-w-sm lg:max-w-lg mx-auto">
+          <div className="flex flex-wrap justify-center gap-4 w-full max-w-sm lg:max-w-lg mx-auto">
             {actions.map((action) => {
               const icon = routeIconMap[action.to] || getFallbackIcon(action.label);
               return (
@@ -81,7 +81,7 @@ const HeroSection = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: action.delay }}
-                  className="flex flex-col items-center gap-1.5"
+                  className="flex flex-col items-center gap-2"
                 >
                   <Link
                     to={action.to}
