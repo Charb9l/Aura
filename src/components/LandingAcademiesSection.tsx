@@ -120,16 +120,17 @@ const LandingAcademiesSection = () => {
             <p className="text-muted-foreground text-sm leading-relaxed line-clamp-2">{club.description}</p>
           )}
 
-          {/* Action */}
-          <Link
-            to="/academy"
-            className="flex items-center justify-center gap-2 h-11 rounded-2xl bg-accent text-accent-foreground font-semibold text-sm hover:bg-accent/90 transition-all shadow-md shadow-accent/20"
-          >
-            View All Academies
-            <ArrowRight className="h-4 w-4" />
-          </Link>
+          </div>
         </div>
-      </div>
+
+        {/* Action — outside the card */}
+        <Link
+          to="/academy"
+          className="flex items-center justify-center gap-2 h-11 mt-4 rounded-2xl bg-accent text-accent-foreground font-semibold text-sm hover:bg-accent/90 transition-all shadow-md shadow-accent/20"
+        >
+          View All Academies
+          <ArrowRight className="h-4 w-4" />
+        </Link>
     </motion.section>
   );
 };

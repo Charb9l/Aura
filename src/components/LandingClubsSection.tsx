@@ -137,26 +137,27 @@ const LandingClubsSection = () => {
               ))}
             </div>
 
-            {/* Actions Row */}
-            <div className="flex items-center gap-3 pt-1">
-              <Link
-                to="/clubs"
-                className="flex-1 inline-flex items-center justify-center gap-2 h-11 rounded-2xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-all shadow-md shadow-primary/20"
-              >
-                View All Clubs
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Button
-                onClick={() => setShowPartnerForm(true)}
-                variant="outline"
-                size="sm"
-                className="h-11 px-4 rounded-2xl text-xs font-semibold border-primary/30 text-primary hover:bg-primary/5 gap-1.5"
-              >
-                <Handshake className="h-3.5 w-3.5" />
-                Partner
-              </Button>
-            </div>
           </div>
+        </div>
+
+        {/* Actions Row — outside the card */}
+        <div className="flex items-center gap-3 mt-4">
+          <Link
+            to="/clubs"
+            className="flex-1 inline-flex items-center justify-center gap-2 h-11 rounded-2xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-all shadow-md shadow-primary/20"
+          >
+            View All Clubs
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+          <Button
+            onClick={() => setShowPartnerForm(true)}
+            variant="outline"
+            size="sm"
+            className="h-11 px-4 rounded-2xl text-xs font-semibold border-primary/30 text-primary hover:bg-primary/5 gap-1.5"
+          >
+            <Handshake className="h-3.5 w-3.5" />
+            Partner
+          </Button>
         </div>
       </motion.section>
 
