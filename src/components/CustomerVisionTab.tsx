@@ -475,6 +475,8 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
   const [landingImage2, setLandingImage2] = useState("");
   const [featuredClubId, setFeaturedClubId] = useState("");
   const [featuredAcademyId, setFeaturedAcademyId] = useState("");
+  const [featuredClubId2, setFeaturedClubId2] = useState("");
+  const [featuredAcademyId2, setFeaturedAcademyId2] = useState("");
   const [allClubs, setAllClubs] = useState<{ id: string; name: string; has_academy: boolean }[]>([]);
   const [uploadingLanding, setUploadingLanding] = useState<1 | 2 | null>(null);
 
