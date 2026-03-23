@@ -506,7 +506,7 @@ const HabitsPage = () => {
                     Streaks: <Flame className="h-2.5 w-2.5 lg:h-3.5 lg:w-3.5" />,
                     Badges: <Trophy className="h-2.5 w-2.5 lg:h-3.5 lg:w-3.5" />,
                     "Wellness Score": <TrendingUp className="h-2.5 w-2.5 lg:h-3.5 lg:w-3.5" />,
-                    "AI Insights": <Sparkles className="h-2.5 w-2.5 lg:h-3.5 lg:w-3.5" />,
+                    "Insights": <Sparkles className="h-2.5 w-2.5 lg:h-3.5 lg:w-3.5" />,
                     "Session Patterns": <Clock className="h-2.5 w-2.5 lg:h-3.5 lg:w-3.5" />,
                   };
                   return badges.map((c, i) => {
