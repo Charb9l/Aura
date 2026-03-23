@@ -29,12 +29,13 @@ const DEFAULT_NAV_ORDER: NavItem[] = [
 
 interface HomeContent {
   hero_subtitle: string;
-  hero_title_line1: string;
-  hero_title_line2: string;
   hero_buttons: HeroButton[];
   nav_order?: NavItem[];
-  background_picture?: string;
   platform_name?: string;
+  landing_image_1?: string;
+  landing_image_2?: string;
+  featured_club_id?: string;
+  featured_academy_id?: string;
 }
 
 interface PageContent {
@@ -463,14 +464,17 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
 
   // Editable state
   const [heroSubtitle, setHeroSubtitle] = useState("");
-  const [heroLine1, setHeroLine1] = useState("");
-  const [heroLine2, setHeroLine2] = useState("");
   const [heroButtons, setHeroButtons] = useState<HeroButton[]>([]);
   const [navOrder, setNavOrder] = useState<NavItem[]>(DEFAULT_NAV_ORDER);
-  const [backgroundPicture, setBackgroundPicture] = useState(""); // kept for backward compat in save
   const [platformNameLine1, setPlatformNameLine1] = useState("");
   const [platformNameLine2, setPlatformNameLine2] = useState("");
   const [showScrollIndicator, setShowScrollIndicator] = useState(false);
+  const [landingImage1, setLandingImage1] = useState("");
+  const [landingImage2, setLandingImage2] = useState("");
+  const [featuredClubId, setFeaturedClubId] = useState("");
+  const [featuredAcademyId, setFeaturedAcademyId] = useState("");
+  const [allClubs, setAllClubs] = useState<{ id: string; name: string; has_academy: boolean }[]>([]);
+  const [uploadingLanding, setUploadingLanding] = useState<1 | 2 | null>(null);
 
   // Generic page state
   const [pageTitle, setPageTitle] = useState("");
@@ -512,14 +516,19 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
     const content = allContent[slug] || {};
     if (slug === "home") {
       setHeroSubtitle(content.hero_subtitle || "");
-      setHeroLine1(content.hero_title_line1 || "");
-      setHeroLine2(content.hero_title_line2 || "");
       setHeroButtons([...(content.hero_buttons || [])]);
       setNavOrder(content.nav_order?.length ? [...content.nav_order] : [...DEFAULT_NAV_ORDER]);
-      setBackgroundPicture(content.background_picture || "");
       setPlatformNameLine1(content.platform_name_line1 || (content.platform_name ? content.platform_name.trim().split(/\s+/)[0] : ""));
       setPlatformNameLine2(content.platform_name_line2 || (content.platform_name ? content.platform_name.trim().split(/\s+/).slice(1).join(" ") : ""));
       setShowScrollIndicator(content.show_scroll_indicator ?? false);
+      setLandingImage1(content.landing_image_1 || "");
+      setLandingImage2(content.landing_image_2 || "");
+      setFeaturedClubId(content.featured_club_id || "");
+      setFeaturedAcademyId(content.featured_academy_id || "");
+      // Fetch clubs for selectors
+      supabase.from("clubs").select("id, name, has_academy").eq("published", true).order("name").then(({ data }) => {
+        if (data) setAllClubs(data as any[]);
+      });
     } else {
       setPageTitle(content.title || "");
       setPageSubtitle(content.subtitle || "");
@@ -566,14 +575,15 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
   const handleSaveHome = () => {
     saveContent("home", {
       hero_subtitle: heroSubtitle,
-      hero_title_line1: heroLine1,
-      hero_title_line2: heroLine2,
       hero_buttons: heroButtons.filter(b => b.label.trim() && b.to.trim()),
       nav_order: navOrder,
-      background_picture: backgroundPicture,
       platform_name_line1: platformNameLine1,
       platform_name_line2: platformNameLine2,
       show_scroll_indicator: showScrollIndicator,
+      landing_image_1: landingImage1,
+      landing_image_2: landingImage2,
+      featured_club_id: featuredClubId,
+      featured_academy_id: featuredAcademyId,
     });
   };
 
@@ -676,16 +686,8 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
             </div>
             
             <div>
-              <Label className="text-sm font-medium text-muted-foreground mb-2 block">Hero Subtitle (small text above title)</Label>
+              <Label className="text-sm font-medium text-muted-foreground mb-2 block">Hero Subtitle</Label>
               <Input value={heroSubtitle} onChange={(e) => setHeroSubtitle(e.target.value)} placeholder="e.g. Movement & Mindfulness" className="h-9 bg-secondary border-border text-sm" />
-            </div>
-            <div>
-              <Label className="text-sm font-medium text-muted-foreground mb-2 block">Hero Title — Line 1</Label>
-              <Input value={heroLine1} onChange={(e) => setHeroLine1(e.target.value)} placeholder="e.g. Your Journey." className="h-9 bg-secondary border-border text-sm" />
-            </div>
-            <div>
-              <Label className="text-sm font-medium text-muted-foreground mb-2 block">Hero Title — Line 2 (gradient highlight)</Label>
-              <Input value={heroLine2} onChange={(e) => setHeroLine2(e.target.value)} placeholder="e.g. Your Space." className="h-9 bg-secondary border-border text-sm" />
             </div>
 
             {/* Action Buttons */}
@@ -777,17 +779,92 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
             </div>
 
 
+            {/* Landing Images */}
             <div className="border-t border-border pt-6">
-              <h3 className="text-base font-heading font-semibold text-foreground mb-1">📷 Pictures</h3>
-              <p className="text-xs text-muted-foreground mb-6">All image uploads for the main page are managed here.</p>
-
-              <div className="space-y-2 mb-4">
-                <Label className="text-sm font-medium text-foreground block">Hero Background</Label>
-                <p className="text-xs text-muted-foreground">These pictures are displayed behind the hero text in a dynamic grid layout.</p>
+              <h3 className="text-base font-heading font-semibold text-foreground mb-1">📷 Landing Images</h3>
+              <p className="text-xs text-muted-foreground mb-4">Two rectangular image bubbles displayed under the action buttons on the landing page.</p>
+              <div className="grid grid-cols-2 gap-4">
+                {[1, 2].map((num) => {
+                  const imgUrl = num === 1 ? landingImage1 : landingImage2;
+                  const setImg = num === 1 ? setLandingImage1 : setLandingImage2;
+                  const inputId = `landing-img-${num}`;
+                  return (
+                    <div key={num} className="space-y-2">
+                      <Label className="text-xs font-medium text-muted-foreground">Image {num}</Label>
+                      {imgUrl ? (
+                        <div className="relative rounded-xl overflow-hidden border border-border aspect-[4/3] group">
+                          <img src={imgUrl} alt={`Landing ${num}`} className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-background/0 group-hover:bg-background/60 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                            <button onClick={() => setImg("")} className="rounded-full bg-destructive p-2 text-destructive-foreground shadow-lg">
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div
+                          onClick={() => document.getElementById(inputId)?.click()}
+                          className="border-2 border-dashed border-border rounded-xl aspect-[4/3] flex flex-col items-center justify-center cursor-pointer hover:border-muted-foreground/50 transition-all"
+                        >
+                          <Upload className="h-5 w-5 text-muted-foreground mb-1" />
+                          <p className="text-xs text-muted-foreground">Upload</p>
+                        </div>
+                      )}
+                      <input id={inputId} type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        setUploadingLanding(num as 1 | 2);
+                        const id = crypto.randomUUID();
+                        const ext = file.name.split(".").pop() || "jpg";
+                        const filePath = `landing-${num}-${id}.${ext}`;
+                        const { error } = await supabase.storage.from("hero-pictures").upload(filePath, file, { cacheControl: "3600" });
+                        if (error) { toast.error("Upload failed"); setUploadingLanding(null); return; }
+                        const { data: urlData } = supabase.storage.from("hero-pictures").getPublicUrl(filePath);
+                        setImg(urlData.publicUrl);
+                        setUploadingLanding(null);
+                        e.target.value = "";
+                      }} />
+                    </div>
+                  );
+                })}
               </div>
-              <PagePicturesManager pageSlug="home" />
-
             </div>
+
+            {/* Featured Club & Academy Selection */}
+            <div className="border-t border-border pt-6">
+              <h3 className="text-base font-heading font-semibold text-foreground mb-1">🏢 Featured Sections</h3>
+              <p className="text-xs text-muted-foreground mb-4">Select which club and academy to feature on the landing page.</p>
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground mb-2 block">Featured Club (Clubs & Partners section)</Label>
+                  <Select value={featuredClubId || "auto"} onValueChange={(v) => setFeaturedClubId(v === "auto" ? "" : v)}>
+                    <SelectTrigger className="h-9 bg-secondary border-border text-sm">
+                      <SelectValue placeholder="Auto (first club)" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-card border-border z-50">
+                      <SelectItem value="auto">Auto (first club)</SelectItem>
+                      {allClubs.map(c => (
+                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground mb-2 block">Featured Academy (Academies section)</Label>
+                  <Select value={featuredAcademyId || "auto"} onValueChange={(v) => setFeaturedAcademyId(v === "auto" ? "" : v)}>
+                    <SelectTrigger className="h-9 bg-secondary border-border text-sm">
+                      <SelectValue placeholder="Auto (first academy)" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-card border-border z-50">
+                      <SelectItem value="auto">Auto (first academy)</SelectItem>
+                      {allClubs.filter(c => c.has_academy).map(c => (
+                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
 
             <Button onClick={handleSaveHome} disabled={saving} className="w-full h-10 text-sm font-semibold glow">
               {saving ? "Saving..." : "Save Changes"}
