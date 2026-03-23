@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { CalendarDays, GraduationCap, Users, Star, Handshake, Activity, Trophy, LayoutGrid, Heart, Dumbbell } from "lucide-react";
+import { CalendarDays, GraduationCap, LayoutGrid, Heart, Dumbbell, Trophy } from "lucide-react";
 import FeaturedClubsStrip from "@/components/FeaturedClubsStrip";
 import { supabase } from "@/integrations/supabase/client";
+import { ClubsIcon, AcademiesIcon, MatchmakerIcon, HabitTrackerIcon, LoyaltyIcon } from "@/components/icons/BrandIcons";
 
 interface HeroButton { to: string; label: string; glow?: boolean; }
 
@@ -34,23 +35,23 @@ const HeroSection = () => {
 
   const routeIconMap: Record<string, React.ReactNode> = {
     "/book": <CalendarDays className="h-6 w-6" />,
-    "/academy": <GraduationCap className="h-6 w-6" />,
-    "/clubs": <Users className="h-6 w-6" />,
-    "/loyalty": <Star className="h-6 w-6" />,
-    "/matchmaker": <Handshake className="h-6 w-6" />,
-    "/habits": <Activity className="h-6 w-6" />,
+    "/academy": <AcademiesIcon className="h-6 w-6" />,
+    "/clubs": <ClubsIcon className="h-6 w-6" />,
+    "/loyalty": <LoyaltyIcon className="h-6 w-6" />,
+    "/matchmaker": <MatchmakerIcon className="h-6 w-6" />,
+    "/habits": <HabitTrackerIcon className="h-6 w-6" />,
     "/community": <LayoutGrid className="h-6 w-6" />,
     "/profile": <Heart className="h-6 w-6" />,
   };
 
   const getFallbackIcon = (label: string): React.ReactNode => {
     const l = label.toLowerCase();
-    if (l.includes("match")) return <Handshake className="h-6 w-6" />;
-    if (l.includes("habit") || l.includes("track")) return <Activity className="h-6 w-6" />;
-    if (l.includes("loyal") || l.includes("reward")) return <Star className="h-6 w-6" />;
+    if (l.includes("match")) return <MatchmakerIcon className="h-6 w-6" />;
+    if (l.includes("habit") || l.includes("track")) return <HabitTrackerIcon className="h-6 w-6" />;
+    if (l.includes("loyal") || l.includes("reward")) return <LoyaltyIcon className="h-6 w-6" />;
     if (l.includes("book") || l.includes("calendar")) return <CalendarDays className="h-6 w-6" />;
-    if (l.includes("academ") || l.includes("train")) return <GraduationCap className="h-6 w-6" />;
-    if (l.includes("club") || l.includes("partner")) return <Users className="h-6 w-6" />;
+    if (l.includes("academ") || l.includes("train")) return <AcademiesIcon className="h-6 w-6" />;
+    if (l.includes("club") || l.includes("partner")) return <ClubsIcon className="h-6 w-6" />;
     if (l.includes("communit")) return <LayoutGrid className="h-6 w-6" />;
     if (l.includes("fitness") || l.includes("workout")) return <Dumbbell className="h-6 w-6" />;
     return <Trophy className="h-6 w-6" />;
