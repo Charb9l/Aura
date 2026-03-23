@@ -1,10 +1,11 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPinned, ArrowRight, Handshake } from "lucide-react";
+import { MapPinned, ArrowRight, Handshake, SlidersHorizontal } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import Navbar from "@/components/Navbar";
@@ -66,16 +67,24 @@ const ClubsPage = () => {
   const [showPartnerForm, setShowPartnerForm] = useState(false);
   const navigate = useNavigate();
 
+  // Filters
+  const [activities, setActivities] = useState<{ id: string; name: string; slug: string }[]>([]);
+  const [clubLocations, setClubLocations] = useState<{ id: string; club_id: string; name: string; location: string }[]>([]);
+  const [selectedActivity, setSelectedActivity] = useState<string>("all");
+  const [selectedLocation, setSelectedLocation] = useState<string>("all");
+
   // Hero grid pictures
   const [heroPictures, setHeroPictures] = useState<{ image: string; alt: string }[]>([]);
   const [heroCycleIndex, setHeroCycleIndex] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
-      const [clubsRes, contentRes, heroRes] = await Promise.all([
+      const [clubsRes, contentRes, heroRes, offeringsRes, locsRes] = await Promise.all([
         supabase.from("clubs").select("*").order("name"),
         supabase.from("page_content").select("content").eq("page_slug", "clubs").single(),
         supabase.from("hero_pictures").select("id, image_url, display_order").eq("page_slug", "clubs").order("display_order"),
+        supabase.from("offerings").select("id, name, slug"),
+        supabase.from("club_locations").select("id, club_id, name, location"),
       ]);
       if (clubsRes.data) setClubs((clubsRes.data as unknown as Club[]).filter(c => (c as any).published !== false));
       if (contentRes.data) {
@@ -86,6 +95,8 @@ const ClubsPage = () => {
       if (heroRes.data && heroRes.data.length > 0) {
         setHeroPictures(heroRes.data.map((p: any) => ({ image: p.image_url, alt: "Clubs" })));
       }
+      if (offeringsRes.data) setActivities(offeringsRes.data as any[]);
+      if (locsRes.data) setClubLocations(locsRes.data as any[]);
       setLoading(false);
     };
     fetchData();
@@ -105,6 +116,31 @@ const ClubsPage = () => {
     const windowSize = 6;
     return Array.from({ length: windowSize }, (_, i) => heroPictures[(heroCycleIndex + i) % heroPictures.length]);
   }, [heroPictures, heroCycleIndex]);
+
+  // Unique location areas from club_locations
+  const locationAreas = useMemo(() => {
+    const areas = [...new Set(clubLocations.map(l => l.location))].sort();
+    return areas;
+  }, [clubLocations]);
+
+  // Filtered clubs
+  const filteredClubs = useMemo(() => {
+    return clubs.filter(club => {
+      // Activity filter: check if any offering matches the selected activity slug
+      if (selectedActivity !== "all") {
+        const act = activities.find(a => a.id === selectedActivity);
+        if (act && !club.offerings.some(o => o.toLowerCase().includes(act.slug.toLowerCase()))) {
+          return false;
+        }
+      }
+      // Location filter: check if any club_location for this club matches
+      if (selectedLocation !== "all") {
+        const hasLocation = clubLocations.some(l => l.club_id === club.id && l.location === selectedLocation);
+        if (!hasLocation) return false;
+      }
+      return true;
+    });
+  }, [clubs, selectedActivity, selectedLocation, activities, clubLocations]);
 
   const openClub = async (club: Club) => {
     setSelectedClub(club);
@@ -176,11 +212,45 @@ const ClubsPage = () => {
       <div className="container mx-auto px-6 pb-16">
         <MobileBackButton fallbackPath="/" />
 
+        {/* Filters */}
+        <div className="flex flex-wrap items-center gap-3 mb-6">
+          <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
+          <Select value={selectedActivity} onValueChange={setSelectedActivity}>
+            <SelectTrigger className="w-[160px] h-9 bg-secondary border-border text-sm">
+              <SelectValue placeholder="All Activities" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Activities</SelectItem>
+              {activities.map(a => (
+                <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+            <SelectTrigger className="w-[180px] h-9 bg-secondary border-border text-sm">
+              <SelectValue placeholder="All Locations" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Locations</SelectItem>
+              {locationAreas.map(area => (
+                <SelectItem key={area} value={area}>{area}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {(selectedActivity !== "all" || selectedLocation !== "all") && (
+            <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={() => { setSelectedActivity("all"); setSelectedLocation("all"); }}>
+              Clear filters
+            </Button>
+          )}
+        </div>
+
         {loading ? (
           <p className="text-muted-foreground text-center py-20">Loading...</p>
+        ) : filteredClubs.length === 0 ? (
+          <p className="text-muted-foreground text-center py-20">No clubs match the selected filters.</p>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {clubs.map((club, i) => (
+            {filteredClubs.map((club, i) => (
               <motion.div
                 key={club.id}
                 initial={{ opacity: 0, y: 30 }}
