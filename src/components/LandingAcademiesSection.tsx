@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Award, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import { AcademiesIcon } from "@/components/icons/BrandIcons";
 import { supabase } from "@/integrations/supabase/client";
 
 interface AcademyClub {
