@@ -254,7 +254,10 @@ const NotificationsTab = ({ onUnreadCountChange, onNavigate }: Props) => {
         </Button>
       </div>
 
-      <SendNotificationDialog open={sendDialogOpen} onOpenChange={setSendDialogOpen} />
+      <SendNotificationDialog open={sendDialogOpen} onOpenChange={(open) => {
+        setSendDialogOpen(open);
+        if (!open && isSentView) fetchSentNotifications();
+      }} />
 
       {/* Bulk actions bar */}
       {filtered.length > 0 && (
