@@ -115,7 +115,7 @@ const Navbar = () => {
       <div className="container mx-auto flex items-center justify-between sm:justify-between justify-center px-4 sm:px-8 py-3 sm:py-4 relative">
         {/* Logo */}
         <Link to="/" className="font-heading tracking-tight text-foreground shrink-0 sm:static absolute left-1/2 -translate-x-1/2 sm:translate-x-0 sm:left-auto">
-          <span className="text-2xl font-bold">{platformName.line1}</span>
+          <span className="text-3xl sm:text-2xl font-bold mobile-logo-glow">{platformName.line1}</span>
           {platformName.line2 && (
             <>
               <br className="hidden sm:block" />
