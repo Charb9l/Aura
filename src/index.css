@@ -101,7 +101,7 @@
   /* Navbar is fixed and grows by safe-area-inset-top in standalone/native mode.
      Pages using pt-28/pt-32 need extra top offset to clear the taller navbar. */
   .page-offset-top {
-    padding-top: calc(7rem + env(safe-area-inset-top));
+    padding-top: calc(5.5rem + env(safe-area-inset-top));
   }
   @media (min-width: 640px) {
     .page-offset-top {
