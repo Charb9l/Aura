@@ -48,7 +48,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { email, password, full_name, phone, club_id } = await req.json();
+    const { email, password, full_name, phone, club_id, admin_code } = await req.json();
 
     if (!email || !password) {
       return new Response(JSON.stringify({ error: "Email and password are required" }), {
