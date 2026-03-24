@@ -18,6 +18,7 @@ import PhoneInput from "@/components/PhoneInput";
 import ActivityFilter from "@/components/ActivityFilter";
 import MobileBackButton from "@/components/MobileBackButton";
 import GalleryMosaic from "@/components/GalleryMosaic";
+import ClubsAcademyToggle from "@/components/ClubsAcademyToggle";
 
 interface AcademyClub {
   id: string;
