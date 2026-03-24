@@ -50,7 +50,7 @@ const AdminNavbar = ({ activeTab, onTabChange, assignedClubId, notificationCount
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const assignedAdminTabs = new Set(["overview", "promotions", "bookings"]);
+  const assignedAdminTabs = new Set(["overview", "promotions", "bookings", "reports"]);
 
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
