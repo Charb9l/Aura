@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Bell, CheckCheck, Trash2, UserPlus, AlertTriangle, BarChart3, XCircle, Download, MailOpen, Mail, ExternalLink, GraduationCap, Handshake } from "lucide-react";
+import { Bell, CheckCheck, Trash2, UserPlus, AlertTriangle, BarChart3, XCircle, Download, MailOpen, Mail, ExternalLink, GraduationCap, Handshake, Tag } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +29,7 @@ const TYPE_CONFIG: Record<string, { icon: typeof Bell; color: string; label: str
   booking_cancelled: { icon: XCircle, color: "text-destructive", label: "Cancelled" },
   academy_registration: { icon: GraduationCap, color: "text-purple-400", label: "Academy" },
   partner_request: { icon: Handshake, color: "text-teal-400", label: "Partner" },
+  price_rule_created: { icon: Tag, color: "text-amber-400", label: "Price Rule" },
 };
 
 interface Props {
@@ -193,6 +194,7 @@ const NotificationsTab = ({ onUnreadCountChange, onNavigate }: Props) => {
             <SelectItem value="unmarked_booking">Unmarked Bookings</SelectItem>
             <SelectItem value="daily_report">Daily Reports</SelectItem>
             <SelectItem value="booking_cancelled">Cancellations</SelectItem>
+            <SelectItem value="price_rule_created">Price Rules</SelectItem>
           </SelectContent>
         </Select>
         {unreadCount > 0 && (
@@ -319,6 +321,11 @@ const NotificationsTab = ({ onUnreadCountChange, onNavigate }: Props) => {
                             {n.type === "partner_request" && (
                               <Button variant="outline" size="sm" className="gap-1.5" onClick={(e) => { e.stopPropagation(); onNavigate?.("clubs"); }}>
                                 <ExternalLink className="h-3.5 w-3.5" /> View Partners
+                              </Button>
+                            )}
+                            {n.type === "price_rule_created" && (
+                              <Button variant="outline" size="sm" className="gap-1.5" onClick={(e) => { e.stopPropagation(); onNavigate?.("promotions"); }}>
+                                <ExternalLink className="h-3.5 w-3.5" /> View Price Rules
                               </Button>
                             )}
                           </div>
