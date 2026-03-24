@@ -421,13 +421,9 @@ const PromotionsTab = ({ allUsers, clubs, myClubId }: Props) => {
                         <p className="text-xs text-muted-foreground">{entry.email}</p>
                       </TableCell>
                       <TableCell>
-                        <div className="flex gap-1">
-                          {[1, 2, 3].map(lvl => (
-                            <Badge key={lvl} variant={entry.completedLevels >= lvl ? "default" : "secondary"} className={cn("text-xs", entry.completedLevels >= lvl && "bg-primary/20 text-primary border-primary/30")}>
-                              {LEVEL_NAMES[lvl - 1]}
-                            </Badge>
-                          ))}
-                        </div>
+                        <Badge variant="default" className="text-xs bg-primary/20 text-primary border-primary/30">
+                          {entry.completedLevels > 0 ? LEVEL_NAMES[Math.min(entry.completedLevels, 5) - 1] : "None"}
+                        </Badge>
                       </TableCell>
                       <TableCell><span className="font-medium text-foreground">{entry.totalShowBookings}</span></TableCell>
                       <TableCell>
