@@ -322,6 +322,11 @@ const NotificationsTab = ({ onUnreadCountChange, onNavigate }: Props) => {
                                 <ExternalLink className="h-3.5 w-3.5" /> View Partners
                               </Button>
                             )}
+                            {n.type === "price_rule_created" && (
+                              <Button variant="outline" size="sm" className="gap-1.5" onClick={(e) => { e.stopPropagation(); onNavigate?.("promotions"); }}>
+                                <ExternalLink className="h-3.5 w-3.5" /> View Price Rules
+                              </Button>
+                            )}
                           </div>
                         </motion.div>
                       )}
