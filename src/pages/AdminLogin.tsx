@@ -147,11 +147,17 @@ const AdminLogin = () => {
                     <Input
                       id="admin-code"
                       type="text"
-                      placeholder="Enter your admin code"
+                      inputMode="numeric"
+                      pattern="\d{6}"
+                      maxLength={6}
+                      placeholder="000000"
                       value={adminCode}
-                      onChange={(e) => setAdminCode(e.target.value)}
+                      onChange={(e) => {
+                        const v = e.target.value.replace(/\D/g, "").slice(0, 6);
+                        setAdminCode(v);
+                      }}
                       required
-                      className="h-12 bg-secondary border-border pl-10"
+                      className="h-12 bg-secondary border-border pl-10 tracking-[0.3em] text-center font-mono text-lg"
                     />
                   </div>
                 </div>
