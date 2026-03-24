@@ -718,6 +718,70 @@ const PromotionsTab = ({ allUsers, clubs, myClubId }: Props) => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Price Rule Detail Dialog (mega admin only) */}
+      <Dialog open={!!detailRule} onOpenChange={(open) => { if (!open) setDetailRule(null); }}>
+        <DialogContent className="bg-card border-border max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="font-heading">{detailRule?.name}</DialogTitle>
+          </DialogHeader>
+          {detailRule && (() => {
+            const status = getRuleStatus(detailRule);
+            const participatingClubs = clubs.filter(c => detailRule.clubs.includes(c.id));
+            return (
+              <div className="space-y-4 pt-2">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Discount</p>
+                    <p className="text-sm font-medium text-foreground">{formatDiscount(detailRule.discount_type, detailRule.discount_value)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Status</p>
+                    <Badge className={cn("text-xs", status.color)}>{status.label}</Badge>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Max Total Uses</p>
+                    <p className="text-sm text-foreground">{detailRule.max_total_uses ?? "Unlimited"}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Uses per Customer</p>
+                    <p className="text-sm text-foreground">{detailRule.uses_per_customer}×</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Activation Date</p>
+                    <p className="text-sm text-foreground">{detailRule.start_date ? format(new Date(detailRule.start_date + "T00:00"), "MMM d, yyyy") : "Immediate"}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Deactivation Date</p>
+                    <p className="text-sm text-foreground">{detailRule.end_date ? format(new Date(detailRule.end_date + "T00:00"), "MMM d, yyyy") : "No end date"}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Created By</p>
+                    <p className="text-sm text-foreground">{detailRule.creator_name || "System / Mega Admin"}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Created On</p>
+                    <p className="text-sm text-foreground">{format(new Date(detailRule.created_at), "MMM d, yyyy 'at' h:mm a")}</p>
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-xs text-muted-foreground mb-2">Participating Clubs ({participatingClubs.length})</p>
+                  {participatingClubs.length > 0 ? (
+                    <div className="flex flex-wrap gap-1.5">
+                      {participatingClubs.map(c => (
+                        <Badge key={c.id} variant="secondary" className="text-xs">{c.name}</Badge>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No clubs assigned</p>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 };
