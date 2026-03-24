@@ -346,11 +346,11 @@ const ProfilePage = () => {
   const handleWelcomeBonusAssign = async () => {
     if (!welcomeClub || !user) return;
     setAssigningWelcome(true);
-    const { error } = await supabase.from("loyalty_point_adjustments").insert({
-      user_id: user.id,
-      club_id: welcomeClub,
-      points: 1,
-      reason: "Welcome bonus: profile photo + MyPlayer setup",
+    const { error } = await supabase.rpc("adjust_loyalty_points" as any, {
+      _user_id: user.id,
+      _club_id: welcomeClub,
+      _points: 1,
+      _reason: "Welcome bonus: profile photo + MyPlayer setup",
     });
     setAssigningWelcome(false);
     if (error) {
