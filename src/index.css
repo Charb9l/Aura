@@ -185,6 +185,21 @@
   .gold-border {
     border-color: hsl(var(--accent) / 0.3);
   }
+
+  .mobile-logo-glow {
+    color: hsl(var(--primary));
+    text-shadow:
+      0 0 8px hsl(var(--primary) / 0.6),
+      0 0 20px hsl(var(--primary) / 0.3),
+      0 0 40px hsl(var(--primary) / 0.15);
+  }
+
+  @media (min-width: 640px) {
+    .mobile-logo-glow {
+      color: hsl(var(--foreground));
+      text-shadow: none;
+    }
+  }
 }
 
 /* ─── Touch-friendly: minimum 44×44px hit areas on touch devices ─── */
