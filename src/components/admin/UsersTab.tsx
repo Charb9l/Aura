@@ -79,6 +79,7 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
   const [newAdminPassword, setNewAdminPassword] = useState("");
   const [newAdminPhone, setNewAdminPhone] = useState("");
   const [newAdminClubId, setNewAdminClubId] = useState("none");
+  const [newAdminCode, setNewAdminCode] = useState("");
   const [creatingAdmin, setCreatingAdmin] = useState(false);
 
   // Former dialog
@@ -205,10 +206,10 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
   const handleCreateAdmin = async (e: React.FormEvent) => {
     e.preventDefault();
     setCreatingAdmin(true);
-    const { data, error } = await supabase.functions.invoke("manage-admin", { body: { email: newAdminEmail, password: newAdminPassword, full_name: newAdminName, phone: newAdminPhone, club_id: (newAdminClubId && newAdminClubId !== "none") ? newAdminClubId : null } });
+    const { data, error } = await supabase.functions.invoke("manage-admin", { body: { email: newAdminEmail, password: newAdminPassword, full_name: newAdminName, phone: newAdminPhone, club_id: (newAdminClubId && newAdminClubId !== "none") ? newAdminClubId : null, admin_code: (newAdminClubId && newAdminClubId !== "none") ? newAdminCode : null } });
     setCreatingAdmin(false);
     if (error || data?.error) { toast.error(data?.error || error?.message || "Failed"); }
-    else { toast.success(`Admin created for ${newAdminEmail}`); setNewAdminName(""); setNewAdminEmail(""); setNewAdminPassword(""); setNewAdminPhone(""); setNewAdminClubId("none"); setShowCreateAdmin(false); onAdminCreated(); }
+    else { toast.success(`Admin created for ${newAdminEmail}`); setNewAdminName(""); setNewAdminEmail(""); setNewAdminPassword(""); setNewAdminPhone(""); setNewAdminClubId("none"); setNewAdminCode(""); setShowCreateAdmin(false); onAdminCreated(); }
   };
 
   const openFormerDialog = async (type: "customer" | "admin") => {
@@ -503,6 +504,9 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
             <div><Label>Password</Label><Input type="password" placeholder="••••••••" value={newAdminPassword} onChange={(e) => setNewAdminPassword(e.target.value)} required minLength={6} className="h-9 bg-secondary border-border mt-1 text-sm" /></div>
             <div><Label>Phone</Label><PhoneInput value={newAdminPhone} onChange={setNewAdminPhone} className="mt-1" /></div>
             <div><Label>Assign Club</Label><Select value={newAdminClubId} onValueChange={setNewAdminClubId}><SelectTrigger className="h-9 bg-secondary border-border mt-1 text-sm"><SelectValue placeholder="All Clubs (Master Admin)" /></SelectTrigger><SelectContent className="bg-card border-border z-50"><SelectItem value="none">All Clubs (Master Admin)</SelectItem>{clubs.sort((a, b) => a.name.localeCompare(b.name)).map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent></Select></div>
+            {newAdminClubId && newAdminClubId !== "none" && (
+              <div><Label>Admin Code</Label><Input placeholder="Enter a unique code for this admin" value={newAdminCode} onChange={(e) => setNewAdminCode(e.target.value)} required className="h-9 bg-secondary border-border mt-1 text-sm" /></div>
+            )}
             <Button type="submit" disabled={creatingAdmin} className="w-full h-10 text-sm font-semibold glow"><UserPlus className="h-4 w-4 mr-2" />{creatingAdmin ? "Creating..." : "Create Admin"}</Button>
           </form>
         </DialogContent>

@@ -9,11 +9,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/components/ui/sonner";
-import { ShieldCheck, LogIn } from "lucide-react";
+import { ShieldCheck, LogIn, KeyRound, ArrowRight } from "lucide-react";
 import MobileBackButton from "@/components/MobileBackButton";
 import { Spinner } from "@/components/ui/spinner";
 
 const AdminLogin = () => {
+  const [adminCode, setAdminCode] = useState("");
+  const [codeVerified, setCodeVerified] = useState(false);
+  const [verifyingCode, setVerifyingCode] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -21,13 +24,32 @@ const AdminLogin = () => {
   const { isAdmin, loading: adminLoading } = useAdminRole();
   const navigate = useNavigate();
 
-  // If already logged in as admin, redirect to dashboard
   useEffect(() => {
     if (adminLoading) return;
     if (user && isAdmin) {
       navigate("/admin");
     }
   }, [user, isAdmin, adminLoading, navigate]);
+
+  const handleVerifyCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setVerifyingCode(true);
+    // Check if any admin role has this code
+    const { data, error } = await supabase
+      .from("user_roles")
+      .select("id")
+      .eq("admin_code", adminCode.trim())
+      .eq("role", "admin")
+      .not("club_id", "is", null)
+      .maybeSingle();
+
+    setVerifyingCode(false);
+    if (error || !data) {
+      toast.error("Invalid admin code.");
+      return;
+    }
+    setCodeVerified(true);
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,15 +65,22 @@ const AdminLogin = () => {
     // Verify the user has an admin role
     const { data: roleData } = await supabase
       .from("user_roles")
-      .select("role")
+      .select("role, admin_code")
       .eq("user_id", data.user.id)
       .eq("role", "admin")
       .maybeSingle();
 
     if (!roleData) {
-      // Not an admin — sign them out immediately
       await supabase.auth.signOut();
       toast.error("Access denied. This portal is for administrators only.");
+      setSubmitting(false);
+      return;
+    }
+
+    // If club admin, verify the code matches
+    if (roleData.admin_code && roleData.admin_code !== adminCode.trim()) {
+      await supabase.auth.signOut();
+      toast.error("Access denied. Invalid admin code.");
       setSubmitting(false);
       return;
     }
@@ -60,7 +89,6 @@ const AdminLogin = () => {
     navigate("/admin");
   };
 
-  // Don't show form if already authenticated as admin (will redirect)
   if (user && isAdmin) return null;
 
   return (
@@ -83,52 +111,89 @@ const AdminLogin = () => {
                 Admin Portal
               </p>
               <CardTitle className="text-2xl font-heading">
-                Welcome Back
+                {codeVerified ? "Welcome Back" : "Enter Admin Code"}
               </CardTitle>
             </div>
             <p className="text-muted-foreground text-sm mt-2">
-              Sign in with your administrator credentials.
+              {codeVerified
+                ? "Sign in with your administrator credentials."
+                : "Enter the code provided by your administrator to continue."}
             </p>
           </CardHeader>
           <CardContent className="pt-4">
-            <form onSubmit={handleLogin} className="space-y-5">
-              <div className="space-y-2">
-                <Label htmlFor="admin-email" className="text-muted-foreground">
-                  Email
-                </Label>
-                <Input
-                  id="admin-email"
-                  type="email"
-                  placeholder="admin@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="h-12 bg-secondary border-border"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="admin-password" className="text-muted-foreground">
-                  Password
-                </Label>
-                <Input
-                  id="admin-password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="h-12 bg-secondary border-border"
-                />
-              </div>
-              <Button
-                type="submit"
-                disabled={submitting}
-                className="w-full h-12 text-base font-semibold glow gap-2"
+            {!codeVerified ? (
+              <form onSubmit={handleVerifyCode} className="space-y-5">
+                <div className="space-y-2">
+                  <Label htmlFor="admin-code" className="text-muted-foreground">
+                    Admin Code
+                  </Label>
+                  <div className="relative">
+                    <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="admin-code"
+                      type="text"
+                      placeholder="Enter your admin code"
+                      value={adminCode}
+                      onChange={(e) => setAdminCode(e.target.value)}
+                      required
+                      className="h-12 bg-secondary border-border pl-10"
+                    />
+                  </div>
+                </div>
+                <Button
+                  type="submit"
+                  disabled={verifyingCode}
+                  className="w-full h-12 text-base font-semibold glow gap-2"
+                >
+                  {verifyingCode ? <Spinner size="sm" /> : <ArrowRight className="h-4 w-4" />}
+                  {verifyingCode ? "Verifying..." : "Continue"}
+                </Button>
+              </form>
+            ) : (
+              <motion.form
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                onSubmit={handleLogin}
+                className="space-y-5"
               >
-                {submitting ? <Spinner size="sm" /> : <LogIn className="h-4 w-4" />}
-                {submitting ? "Signing in..." : "Sign In"}
-              </Button>
-            </form>
+                <div className="space-y-2">
+                  <Label htmlFor="admin-email" className="text-muted-foreground">
+                    Email
+                  </Label>
+                  <Input
+                    id="admin-email"
+                    type="email"
+                    placeholder="admin@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="h-12 bg-secondary border-border"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="admin-password" className="text-muted-foreground">
+                    Password
+                  </Label>
+                  <Input
+                    id="admin-password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="h-12 bg-secondary border-border"
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  disabled={submitting}
+                  className="w-full h-12 text-base font-semibold glow gap-2"
+                >
+                  {submitting ? <Spinner size="sm" /> : <LogIn className="h-4 w-4" />}
+                  {submitting ? "Signing in..." : "Sign In"}
+                </Button>
+              </motion.form>
+            )}
 
             <div className="mt-6 pt-4 border-t border-border text-center">
               <p className="text-xs text-muted-foreground">
