@@ -37,6 +37,16 @@ interface Props {
   onNavigate?: (tab: string, context?: { userId?: string; bookingDate?: string; openRegistrations?: boolean }) => void;
 }
 
+interface SentNotification {
+  id: string;
+  title: string;
+  body: string;
+  image_url: string | null;
+  target_user_id: string | null;
+  created_at: string;
+  target_name?: string;
+}
+
 const NotificationsTab = ({ onUnreadCountChange, onNavigate }: Props) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,6 +54,11 @@ const NotificationsTab = ({ onUnreadCountChange, onNavigate }: Props) => {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [sendDialogOpen, setSendDialogOpen] = useState(false);
+
+  // Sent notifications
+  const [sentNotifications, setSentNotifications] = useState<SentNotification[]>([]);
+  const [sentLoading, setSentLoading] = useState(false);
+  const isSentView = filterType === "sent";
 
   const updateUnreadCount = useCallback((items: Notification[]) => {
     onUnreadCountChange?.(items.filter(n => !n.is_read).length);
