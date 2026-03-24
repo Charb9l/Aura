@@ -430,7 +430,9 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
       <Dialog open={!!selectedBooking} onOpenChange={(o) => !o && setSelectedBooking(null)}>
         <DialogContent className="bg-card border-border max-w-md">
           <DialogHeader>
-            <DialogTitle className="font-heading">Booking Details</DialogTitle>
+            <DialogTitle className="font-heading">
+              Booking Details {selectedBooking?.booking_number ? <span className="text-muted-foreground font-mono text-sm ml-2">#{selectedBooking.booking_number}</span> : ""}
+            </DialogTitle>
           </DialogHeader>
           {selectedBooking && (
             <div className="space-y-4 pt-2">
