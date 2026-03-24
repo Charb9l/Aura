@@ -562,7 +562,7 @@ const AdminDashboard = () => {
         {activeTab === "activities" && <ActivitiesTab />}
 
         {activeTab === "promotions" && (
-          <PromotionsTab allUsers={allUsers} clubs={clubs} />
+          <PromotionsTab allUsers={allUsers} clubs={clubs} myClubId={myClubId} />
         )}
 
         {/* Current & Former Dialog */}
