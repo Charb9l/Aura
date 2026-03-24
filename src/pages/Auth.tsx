@@ -314,6 +314,10 @@ const Auth = () => {
           </p>
 
           <FeaturedClubsStrip variant="auth" />
+
+          <Link to="/admin-login" className="block text-center text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors mt-2">
+            Admin Portal →
+          </Link>
         </motion.div>
       </div>
     </div>

@@ -1315,6 +1315,21 @@ const ProfilePage = () => {
             </div>
           )}
         </motion.div>
+
+        {/* Logout */}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="mt-10 mb-8 flex justify-center">
+          <Button
+            variant="ghost"
+            className="text-muted-foreground hover:text-destructive gap-2"
+            onClick={async () => {
+              await signOut();
+              navigate("/");
+            }}
+          >
+            <ArrowRight className="h-4 w-4 rotate-180" />
+            Log Out
+          </Button>
+        </motion.div>
       </div>
     </div>
   );
