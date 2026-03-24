@@ -70,9 +70,10 @@ interface Props {
 
 const LEVEL_NAMES = ["Rookie", "Athlete", "Legend"];
 
-const PromotionsTab = ({ allUsers, clubs }: Props) => {
+const PromotionsTab = ({ allUsers, clubs, myClubId }: Props) => {
   const { user: adminUser } = useAuth();
-  const [subTab, setSubTab] = useState("loyalty");
+  const isMasterAdmin = !myClubId;
+  const [subTab, setSubTab] = useState(isMasterAdmin ? "loyalty" : "rules");
   const [loyaltyLeaders, setLoyaltyLeaders] = useState<LoyaltyLeaderEntry[]>([]);
   const [badgeLeaders, setBadgeLeaders] = useState<BadgeLeaderEntry[]>([]);
   const [loading, setLoading] = useState(true);
