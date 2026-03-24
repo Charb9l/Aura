@@ -45,12 +45,30 @@ const ManualExport = ({ myClubId }: Props) => {
   const [selectedActivities, setSelectedActivities] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState<BookingRow[] | null>(null);
+  const [clubActivitySlugs, setClubActivitySlugs] = useState<string[] | null>(null);
 
   useEffect(() => {
-    supabase.from("offerings").select("slug, name").order("name").then(({ data }) => {
-      if (data) setActivityOptions(data.map((o) => ({ key: o.slug, label: o.name })));
-    });
-  }, []);
+    const load = async () => {
+      // If club admin, fetch club's offerings to determine allowed activity slugs
+      if (myClubId) {
+        const { data: clubData } = await supabase.from("clubs").select("offerings").eq("id", myClubId).single();
+        const clubOfferings = (clubData?.offerings || []) as string[];
+        // Get slugs for offerings that match the club
+        const { data: allOfferings } = await supabase.from("offerings").select("slug, name").order("name");
+        if (allOfferings) {
+          const slugs = allOfferings
+            .filter(o => clubOfferings.some(co => co.toLowerCase().includes(o.slug.replace(/-/g, " ").toLowerCase()) || o.name.toLowerCase().includes(co.toLowerCase())))
+            .map(o => o.slug);
+          setClubActivitySlugs(slugs);
+          setActivityOptions(allOfferings.filter(o => slugs.includes(o.slug)).map(o => ({ key: o.slug, label: o.name })));
+        }
+      } else {
+        const { data } = await supabase.from("offerings").select("slug, name").order("name");
+        if (data) setActivityOptions(data.map((o) => ({ key: o.slug, label: o.name })));
+      }
+    };
+    load();
+  }, [myClubId]);
 
   const toggleField = (key: FieldKey) => {
     setSelectedFields((prev) => {
