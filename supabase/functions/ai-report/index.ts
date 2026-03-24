@@ -22,15 +22,24 @@ serve(async (req) => {
 
     const { data: roleData } = await adminClient
       .from("user_roles")
-      .select("role")
+      .select("role, club_id")
       .eq("user_id", user.id)
       .eq("role", "admin")
       .maybeSingle();
     if (!roleData) throw new Error("Admin access required");
 
-    const { prompt } = await req.json();
+    const { prompt, club_id } = await req.json();
     if (!prompt || typeof prompt !== "string" || prompt.trim().length === 0) {
       throw new Error("Prompt is required");
+    }
+
+    // Determine if this is a club-scoped request
+    const isClubAdmin = !!club_id && roleData.club_id === club_id;
+    const isSuperAdmin = !roleData.club_id;
+    
+    // Security: club admins can only query their own club
+    if (club_id && !isSuperAdmin && roleData.club_id !== club_id) {
+      throw new Error("Unauthorized: cannot access other club data");
     }
 
     // Fetch all data sources in parallel
@@ -39,7 +48,7 @@ serve(async (req) => {
       adminClient.from("clubs").select("id, name, offerings, has_academy, published"),
       adminClient.from("club_activity_prices").select("club_id, activity_slug, price, price_label"),
       adminClient.from("profiles").select("user_id, full_name, phone, created_at, suspended"),
-      adminClient.auth.admin.listUsers({ perPage: 1000 }),
+      isSuperAdmin ? adminClient.auth.admin.listUsers({ perPage: 1000 }) : Promise.resolve({ data: { users: [] } }),
       adminClient.from("nudges").select("id, sender_id, receiver_id, sport_id, status, created_at, responded_at").order("created_at", { ascending: false }).limit(500),
       adminClient.from("academy_registrations").select("*").order("created_at", { ascending: false }).limit(500),
       adminClient.from("workout_buddies").select("id, user_id_1, user_id_2, sport_id, created_at").order("created_at", { ascending: false }).limit(500),
@@ -49,51 +58,60 @@ serve(async (req) => {
       adminClient.from("user_promotions").select("*").order("created_at", { ascending: false }).limit(500),
     ]);
 
-    const bookings = bookingsRes.data || [];
-    const clubs = clubsRes.data || [];
+    const allClubs = clubsRes.data || [];
     const prices = pricesRes.data || [];
     const profiles = profilesRes.data || [];
-    const authUsers = usersRes.data?.users || [];
-    const nudges = nudgesRes.data || [];
-    const academyRegs = academyRegsRes.data || [];
-    const workoutBuddies = workoutBuddiesRes.data || [];
     const offerings = offeringsRes.data || [];
     const locations = locationsRes.data || [];
-    const formerUsers = formerUsersRes.data || [];
-    const promotions = promotionsRes.data || [];
-
-    // Build customer list (merge profiles + auth emails)
-    const customers = profiles.map(p => {
-      const authUser = authUsers.find(u => u.id === p.user_id);
-      return {
-        name: p.full_name || "—",
-        email: authUser?.email || "—",
-        phone: p.phone || "—",
-        signed_up: p.created_at?.slice(0, 10) || "—",
-      };
-    });
 
     // Build club → activities mapping
     const clubActivityMap: Record<string, string[]> = {};
-    clubs.forEach(c => {
+    allClubs.forEach(c => {
       const activities: string[] = [];
       c.offerings.forEach((o: string) => {
         const lower = o.toLowerCase();
-        if (lower.includes("basketball")) activities.push("basketball");
-        if (lower.includes("tennis")) activities.push("tennis");
-        if (lower.includes("pilates")) activities.push("pilates");
-        if (lower.includes("yoga") || lower.includes("aerial")) activities.push("aerial-yoga");
+        offerings.forEach(off => {
+          if (lower.includes(off.slug.replace(/-/g, " ")) || lower.includes(off.name.toLowerCase())) {
+            if (!activities.includes(off.slug)) activities.push(off.slug);
+          }
+        });
       });
       clubActivityMap[c.id] = activities;
     });
 
-    // Build pricing string from actual DB data
+    // For club admins, determine allowed activity slugs
+    let allowedActivitySlugs: string[] | null = null;
+    let clubName = "";
+    if (isClubAdmin && club_id) {
+      allowedActivitySlugs = clubActivityMap[club_id] || [];
+      clubName = allClubs.find(c => c.id === club_id)?.name || "Your club";
+    }
+
+    // Filter bookings for club admin
+    let bookings = bookingsRes.data || [];
+    if (allowedActivitySlugs) {
+      bookings = bookings.filter(b => allowedActivitySlugs!.includes(b.activity));
+    }
+
+    // Filter clubs for club admin
+    const clubs = isClubAdmin ? allClubs.filter(c => c.id === club_id) : allClubs;
+
+    // Filter prices for club admin
+    const filteredPrices = isClubAdmin ? prices.filter(p => p.club_id === club_id) : prices;
+
+    // Filter academy registrations for club admin
+    let academyRegs = academyRegsRes.data || [];
+    if (isClubAdmin) {
+      academyRegs = academyRegs.filter(r => r.club_id === club_id);
+    }
+
+    // Build pricing string
     const pricingLines: string[] = [];
-    prices.forEach(p => {
-      const club = clubs.find(c => c.id === p.club_id);
-      const clubName = club?.name || "Unknown";
+    filteredPrices.forEach(p => {
+      const club = allClubs.find(c => c.id === p.club_id);
+      const cName = club?.name || "Unknown";
       const label = p.price_label ? ` (${p.price_label})` : "";
-      pricingLines.push(`${clubName} — ${p.activity_slug}${label}: $${p.price}`);
+      pricingLines.push(`${cName} — ${p.activity_slug}${label}: $${p.price}`);
     });
     const pricingStr = pricingLines.length > 0 ? pricingLines.join("\n") : "No pricing data available";
 
@@ -106,14 +124,14 @@ serve(async (req) => {
         if (b.discount_type === "50%") return storedBase * 0.5;
         return storedBase;
       }
-      let clubId: string | undefined;
+      let cId: string | undefined;
       for (const [cid, acts] of Object.entries(clubActivityMap)) {
-        if (acts.includes(b.activity)) { clubId = cid; break; }
+        if (acts.includes(b.activity)) { cId = cid; break; }
       }
       let basePrice = 0;
-      if (clubId) {
+      if (cId) {
         const match = prices.find(p =>
-          p.club_id === clubId &&
+          p.club_id === cId &&
           p.activity_slug === b.activity &&
           (b.court_type ? p.price_label === b.court_type : !p.price_label || true)
         );
@@ -153,25 +171,13 @@ serve(async (req) => {
       revenue: getBookingRevenue(b),
     })));
 
-    const customersJson = JSON.stringify(customers);
-
     // Build offering lookup
     const offeringMap: Record<string, string> = {};
     offerings.forEach(o => { offeringMap[o.id] = o.name; });
 
-    // Build profile lookup for nudges
+    // Build profile lookup
     const profileMap: Record<string, string> = {};
     profiles.forEach(p => { profileMap[p.user_id] = p.full_name || "Unknown"; });
-
-    // Nudges data
-    const nudgesJson = JSON.stringify(nudges.map(n => ({
-      sender: profileMap[n.sender_id] || n.sender_id,
-      receiver: profileMap[n.receiver_id] || n.receiver_id,
-      sport: offeringMap[n.sport_id] || n.sport_id,
-      status: n.status,
-      created: n.created_at?.slice(0, 10) || "",
-      responded: n.responded_at?.slice(0, 10) || "",
-    })));
 
     // Academy registrations data
     const academyRegsJson = JSON.stringify(academyRegs.map(r => ({
@@ -186,36 +192,6 @@ serve(async (req) => {
       date: r.created_at?.slice(0, 10) || "",
     })));
 
-    // Workout buddies data
-    const buddiesJson = JSON.stringify(workoutBuddies.map(wb => ({
-      user1: profileMap[wb.user_id_1] || wb.user_id_1,
-      user2: profileMap[wb.user_id_2] || wb.user_id_2,
-      sport: offeringMap[wb.sport_id] || wb.sport_id,
-      created: wb.created_at?.slice(0, 10) || "",
-    })));
-
-    // Former users data
-    const formerUsersJson = JSON.stringify(formerUsers.map(fu => ({
-      name: fu.full_name || "",
-      email: fu.email,
-      phone: fu.phone || "",
-      type: fu.user_type,
-      club: fu.club_name || "",
-      reason: fu.reason || "",
-      started: fu.started_at?.slice(0, 10) || "",
-      ended: fu.ended_at?.slice(0, 10) || "",
-    })));
-
-    // Promotions data
-    const promotionsJson = JSON.stringify(promotions.map(p => ({
-      user: profileMap[p.user_id] || p.user_id,
-      type: p.discount_type,
-      value: p.discount_value,
-      remaining: p.remaining_uses,
-      source: p.source,
-      created: p.created_at?.slice(0, 10) || "",
-    })));
-
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -227,7 +203,95 @@ serve(async (req) => {
     const lastOfMonth = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
     const todayStr = today.toISOString().slice(0, 10);
 
-    const systemPrompt = `You are a data analyst for a multi-sport booking and community platform in Lebanon.
+    let systemPrompt: string;
+
+    if (isClubAdmin) {
+      // Club admin: restricted data — no user lists, no other clubs, no nudges/buddies/former users/promotions
+      systemPrompt = `You are a data analyst for a club called "${clubName}" on a multi-sport booking platform in Lebanon.
+
+TODAY'S DATE: ${todayStr}
+CURRENT CALENDAR MONTH: ${firstOfMonth} to ${lastOfMonth}
+IMPORTANT: When the user says "this month", they mean the FULL calendar month from ${firstOfMonth} to ${lastOfMonth} (inclusive).
+
+SCOPE: You can ONLY report on data related to "${clubName}". You must NOT reveal data about other clubs, individual user details (emails, phones, names of non-booking customers), or platform-wide statistics.
+
+DATA OVERVIEW:
+- ${totalBookings} bookings for this club spanning ${dateRange}
+- ${academyRegs.length} academy registrations for this club
+- Activities: ${activitiesSummary}
+
+PRICING (this club only):
+${pricingStr}
+
+CRITICAL RULES:
+1. Revenue can ONLY come from bookings where attendance="show". Bookings without attendance="show" have $0 revenue.
+2. Each booking already has a pre-calculated "revenue" field — USE IT as-is.
+3. For discount="free", revenue is $0. For discount="50%", revenue is half the club price.
+4. Do NOT include customer emails, phones, or personal info in reports — only aggregate stats or booking-level data (name, activity, date, time, revenue).
+5. Do NOT reveal any data about other clubs or platform-wide metrics.
+
+BOOKINGS DATA (act=activity slug, act_name=display name, court=court_type, discount=discount_type, attendance=attendance_status, revenue=$ amount):
+${bookingsJson}
+
+ACADEMY REGISTRATIONS (${academyRegs.length} registrations):
+${academyRegsJson}
+
+TASK: Answer the club admin's question using generate_report. Pick appropriate columns based on what was asked. Sort sensibly. Remember: ONLY this club's data.`;
+    } else {
+      // Super admin: full access
+      const authUsers = (usersRes as any).data?.users || [];
+      const customers = profiles.map(p => {
+        const authUser = authUsers.find((u: any) => u.id === p.user_id);
+        return {
+          name: p.full_name || "—",
+          email: authUser?.email || "—",
+          phone: p.phone || "—",
+          signed_up: p.created_at?.slice(0, 10) || "—",
+        };
+      });
+      const customersJson = JSON.stringify(customers);
+
+      const nudges = nudgesRes.data || [];
+      const nudgesJson = JSON.stringify(nudges.map(n => ({
+        sender: profileMap[n.sender_id] || n.sender_id,
+        receiver: profileMap[n.receiver_id] || n.receiver_id,
+        sport: offeringMap[n.sport_id] || n.sport_id,
+        status: n.status,
+        created: n.created_at?.slice(0, 10) || "",
+        responded: n.responded_at?.slice(0, 10) || "",
+      })));
+
+      const workoutBuddies = workoutBuddiesRes.data || [];
+      const buddiesJson = JSON.stringify(workoutBuddies.map(wb => ({
+        user1: profileMap[wb.user_id_1] || wb.user_id_1,
+        user2: profileMap[wb.user_id_2] || wb.user_id_2,
+        sport: offeringMap[wb.sport_id] || wb.sport_id,
+        created: wb.created_at?.slice(0, 10) || "",
+      })));
+
+      const formerUsers = formerUsersRes.data || [];
+      const formerUsersJson = JSON.stringify(formerUsers.map(fu => ({
+        name: fu.full_name || "",
+        email: fu.email,
+        phone: fu.phone || "",
+        type: fu.user_type,
+        club: fu.club_name || "",
+        reason: fu.reason || "",
+        started: fu.started_at?.slice(0, 10) || "",
+        ended: fu.ended_at?.slice(0, 10) || "",
+      })));
+
+      const promotions = promotionsRes.data || [];
+      const promotionsJson = JSON.stringify(promotions.map(p => ({
+        user: profileMap[p.user_id] || p.user_id,
+        type: p.discount_type,
+        value: p.discount_value,
+        remaining: p.remaining_uses,
+        source: p.source,
+        created: p.created_at?.slice(0, 10) || "",
+      })));
+
+      systemPrompt = `You are a data analyst for a multi-sport booking and community platform in Lebanon.
 
 TODAY'S DATE: ${todayStr}
 CURRENT CALENDAR MONTH: ${firstOfMonth} to ${lastOfMonth}
@@ -286,6 +350,7 @@ PROMOTIONS (${promotions.length} user promotions):
 ${promotionsJson}
 
 TASK: Answer the admin's question using generate_report. Pick appropriate columns based on what was asked. Sort sensibly.`;
+    }
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
