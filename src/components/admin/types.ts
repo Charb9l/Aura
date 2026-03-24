@@ -63,6 +63,7 @@ export interface AuditLogRow {
   deleted_at: string;
   created_at: string;
   created_by: string | null;
+  booking_number?: number | null;
 }
 
 export interface ActivityRow {
