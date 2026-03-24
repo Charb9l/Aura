@@ -114,12 +114,12 @@ const Navbar = () => {
     >
       <div className="container mx-auto flex items-center justify-between sm:justify-between justify-center px-4 sm:px-8 py-3 sm:py-4 relative">
         {/* Logo */}
-        <Link to="/" className="font-heading tracking-tight text-foreground shrink-0 sm:static absolute left-1/2 -translate-x-1/2 sm:translate-x-0 sm:left-auto">
+        <Link to="/" className="font-heading tracking-tight text-foreground shrink-0 sm:static absolute left-1/2 -translate-x-1/2 sm:translate-x-0 sm:left-auto text-center sm:text-left leading-none">
           <span className="text-3xl sm:text-2xl font-bold mobile-logo-glow">{platformName.line1}</span>
           {platformName.line2 && (
             <>
               <br />
-              <span className="text-[8px] sm:text-[9px] font-body font-medium tracking-[0.25em] text-muted-foreground uppercase">{platformName.line2}</span>
+              <span className="text-[8px] sm:text-[9px] font-body font-medium tracking-[0.25em] text-muted-foreground uppercase block mt-0.5">{platformName.line2}</span>
             </>
           )}
         </Link>
