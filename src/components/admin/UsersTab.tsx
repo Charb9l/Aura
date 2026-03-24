@@ -79,6 +79,7 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
   const [newAdminPassword, setNewAdminPassword] = useState("");
   const [newAdminPhone, setNewAdminPhone] = useState("");
   const [newAdminClubId, setNewAdminClubId] = useState("none");
+  const [newAdminCode, setNewAdminCode] = useState("");
   const [creatingAdmin, setCreatingAdmin] = useState(false);
 
   // Former dialog
