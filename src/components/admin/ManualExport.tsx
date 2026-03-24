@@ -31,7 +31,11 @@ const ALL_FIELDS = [
 type FieldKey = (typeof ALL_FIELDS)[number]["key"];
 
 
-const ManualExport = () => {
+interface Props {
+  myClubId?: string | null;
+}
+
+const ManualExport = ({ myClubId }: Props) => {
   const [activityOptions, setActivityOptions] = useState<{ key: string; label: string }[]>([]);
   const [selectedFields, setSelectedFields] = useState<Set<FieldKey>>(
     new Set(ALL_FIELDS.map((f) => f.key))
