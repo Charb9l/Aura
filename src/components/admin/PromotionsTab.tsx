@@ -402,7 +402,7 @@ const PromotionsTab = ({ allUsers, clubs, myClubId }: Props) => {
                     <TableHead className="w-10"></TableHead>
                     <TableHead className="w-12">#</TableHead>
                     <TableHead>Customer</TableHead>
-                    <TableHead>Badge Levels</TableHead>
+                    <TableHead>Current Badge</TableHead>
                     <TableHead>Total Shows</TableHead>
                     <TableHead>Active Promos</TableHead>
                   </TableRow>
