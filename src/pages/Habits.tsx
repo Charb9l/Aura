@@ -445,7 +445,7 @@ const HabitsPage = () => {
     return (
       <div className="min-h-screen pb-20 md:pb-0">
         <Navbar />
-        <div className="container mx-auto px-4 sm:px-6 pt-28 sm:pt-32 pb-20">
+        <div className="container mx-auto px-4 sm:px-6 page-offset-top pb-20">
           <div className="text-center mb-8">
             <Skeleton className="h-10 w-48 mx-auto mb-4" />
             <Skeleton className="h-4 w-72 mx-auto" />
