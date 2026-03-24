@@ -65,13 +65,15 @@ interface UserPromotion {
 interface Props {
   allUsers: UserWithEmail[];
   clubs: ClubRow[];
+  myClubId?: string | null;
 }
 
 const LEVEL_NAMES = ["Rookie", "Athlete", "Legend"];
 
-const PromotionsTab = ({ allUsers, clubs }: Props) => {
+const PromotionsTab = ({ allUsers, clubs, myClubId }: Props) => {
   const { user: adminUser } = useAuth();
-  const [subTab, setSubTab] = useState("loyalty");
+  const isMasterAdmin = !myClubId;
+  const [subTab, setSubTab] = useState(isMasterAdmin ? "loyalty" : "rules");
   const [loyaltyLeaders, setLoyaltyLeaders] = useState<LoyaltyLeaderEntry[]>([]);
   const [badgeLeaders, setBadgeLeaders] = useState<BadgeLeaderEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -214,10 +216,11 @@ const PromotionsTab = ({ allUsers, clubs }: Props) => {
       end_date: ruleEndDate ? format(ruleEndDate, "yyyy-MM-dd") : null,
     } as any).select().single();
     if (error || !rule) { toast.error("Failed to create rule"); setRuleSaving(false); return; }
-    // Add clubs
-    if (ruleSelectedClubs.size > 0) {
+    // Add clubs — club admins auto-assign their own club
+    const clubsToAssign = myClubId ? [myClubId] : Array.from(ruleSelectedClubs);
+    if (clubsToAssign.length > 0) {
       await supabase.from("price_rule_clubs").insert(
-        Array.from(ruleSelectedClubs).map(cid => ({ price_rule_id: (rule as any).id, club_id: cid })) as any
+        clubsToAssign.map(cid => ({ price_rule_id: (rule as any).id, club_id: cid })) as any
       );
     }
     setRuleSaving(false);
@@ -285,8 +288,8 @@ const PromotionsTab = ({ allUsers, clubs }: Props) => {
 
       <Tabs value={subTab} onValueChange={setSubTab} className="space-y-6">
         <TabsList className="bg-secondary/50">
-          <TabsTrigger value="loyalty" className="gap-2"><Trophy className="h-4 w-4" /> Loyalty Leaderboard</TabsTrigger>
-          <TabsTrigger value="badges" className="gap-2"><Medal className="h-4 w-4" /> Tracker Leaderboard</TabsTrigger>
+          {isMasterAdmin && <TabsTrigger value="loyalty" className="gap-2"><Trophy className="h-4 w-4" /> Loyalty Leaderboard</TabsTrigger>}
+          {isMasterAdmin && <TabsTrigger value="badges" className="gap-2"><Medal className="h-4 w-4" /> Tracker Leaderboard</TabsTrigger>}
           <TabsTrigger value="rules" className="gap-2"><Gift className="h-4 w-4" /> Price Rules</TabsTrigger>
         </TabsList>
 
@@ -476,6 +479,7 @@ const PromotionsTab = ({ allUsers, clubs }: Props) => {
                       </div>
                     </div>
                   </CardHeader>
+                  {isMasterAdmin && (
                   <CardContent>
                     <Label className="text-xs text-muted-foreground mb-2 block">Participating Clubs</Label>
                     <Popover>
@@ -495,10 +499,8 @@ const PromotionsTab = ({ allUsers, clubs }: Props) => {
                             onClick={async () => {
                               const allSelected = rule.clubs.length === clubs.length;
                               if (allSelected) {
-                                // Untick all
                                 for (const cid of [...rule.clubs]) await toggleRuleClub(rule.id, cid, true);
                               } else {
-                                // Tick all
                                 for (const club of clubs) {
                                   if (!rule.clubs.includes(club.id)) await toggleRuleClub(rule.id, club.id, false);
                                 }
@@ -522,6 +524,7 @@ const PromotionsTab = ({ allUsers, clubs }: Props) => {
                       </PopoverContent>
                     </Popover>
                   </CardContent>
+                  )}
                 </Card>
               ))}
             </div>
@@ -640,6 +643,7 @@ const PromotionsTab = ({ allUsers, clubs }: Props) => {
               <Input type="number" value={ruleUsesPerCustomer} onChange={e => setRuleUsesPerCustomer(e.target.value)} min={1} />
               <p className="text-xs text-muted-foreground mt-1">How many times each customer can benefit from this rule.</p>
             </div>
+            {isMasterAdmin && (
             <div>
               <Label className="text-sm mb-2 block">Participating Clubs</Label>
               <Popover>
@@ -687,6 +691,7 @@ const PromotionsTab = ({ allUsers, clubs }: Props) => {
                 </PopoverContent>
               </Popover>
             </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRuleDialogOpen(false)}>Cancel</Button>
