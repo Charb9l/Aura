@@ -61,12 +61,22 @@ const HeroSection = () => {
     <section className="relative flex flex-col items-center page-offset-top pb-6 md:pb-8 overflow-hidden">
       {/* Content */}
       <div className="relative z-10 container mx-auto px-6 flex flex-col items-center text-center gap-6 md:gap-8">
+        {/* Mobile AURA title */}
+        <motion.h1
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="sm:hidden text-5xl font-heading font-bold mobile-logo-glow"
+        >
+          AURA
+        </motion.h1>
+
         {/* Subtitle only */}
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="text-xs uppercase tracking-[0.3em] text-primary font-semibold"
+          className="text-xs uppercase tracking-[0.3em] text-primary font-semibold -mt-3 sm:mt-0"
         >
           {subtitle}
         </motion.p>
