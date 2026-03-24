@@ -462,7 +462,7 @@ const PromotionsTab = ({ allUsers, clubs, myClubId }: Props) => {
           ) : (
             <div className="space-y-4">
               {priceRules.map(rule => (
-                <Card key={rule.id} className={cn("bg-card border-border", !rule.active && "opacity-60")}>
+                <Card key={rule.id} className={cn("bg-card border-border", !rule.active && "opacity-60", isMasterAdmin && "cursor-pointer")} onClick={() => isMasterAdmin && setDetailRule(rule)}>
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3 flex-wrap">
