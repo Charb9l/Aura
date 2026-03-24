@@ -70,7 +70,7 @@ interface Props {
   myClubId?: string | null;
 }
 
-const LEVEL_NAMES = ["Rookie", "Athlete", "Legend"];
+const LEVEL_NAMES = ["Spark", "Flame", "Blaze", "Inferno", "Immortal"];
 
 const PromotionsTab = ({ allUsers, clubs, myClubId }: Props) => {
   const { user: adminUser } = useAuth();
