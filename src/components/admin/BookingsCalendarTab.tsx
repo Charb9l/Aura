@@ -285,6 +285,9 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
                           </Button>
                         )}
                       </TableCell>
+                      <TableCell className="text-xs text-muted-foreground font-mono">
+                        {(entry as any).booking_number ? `#${(entry as any).booking_number}` : "—"}
+                      </TableCell>
                       <TableCell>
                         <div>
                           <p className="font-medium text-foreground">{entry.full_name}</p>
