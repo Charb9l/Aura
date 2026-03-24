@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Bell, CheckCheck, Trash2, UserPlus, AlertTriangle, BarChart3, XCircle, Download, MailOpen, Mail, ExternalLink, GraduationCap, Handshake, Tag } from "lucide-react";
+import { Bell, CheckCheck, Trash2, UserPlus, AlertTriangle, BarChart3, XCircle, Download, MailOpen, Mail, ExternalLink, GraduationCap, Handshake, Tag, Send, Users, User } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -37,6 +37,16 @@ interface Props {
   onNavigate?: (tab: string, context?: { userId?: string; bookingDate?: string; openRegistrations?: boolean }) => void;
 }
 
+interface SentNotification {
+  id: string;
+  title: string;
+  body: string;
+  image_url: string | null;
+  target_user_id: string | null;
+  created_at: string;
+  target_name?: string;
+}
+
 const NotificationsTab = ({ onUnreadCountChange, onNavigate }: Props) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,6 +54,11 @@ const NotificationsTab = ({ onUnreadCountChange, onNavigate }: Props) => {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [sendDialogOpen, setSendDialogOpen] = useState(false);
+
+  // Sent notifications
+  const [sentNotifications, setSentNotifications] = useState<SentNotification[]>([]);
+  const [sentLoading, setSentLoading] = useState(false);
+  const isSentView = filterType === "sent";
 
   const updateUnreadCount = useCallback((items: Notification[]) => {
     onUnreadCountChange?.(items.filter(n => !n.is_read).length);
@@ -62,6 +77,34 @@ const NotificationsTab = ({ onUnreadCountChange, onNavigate }: Props) => {
   }, [updateUnreadCount]);
 
   useEffect(() => { fetchNotifications(); }, [fetchNotifications]);
+
+  const fetchSentNotifications = useCallback(async () => {
+    setSentLoading(true);
+    const { data } = await supabase
+      .from("customer_notifications")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(200);
+    if (!data) { setSentLoading(false); return; }
+    const targetIds = [...new Set(data.filter(n => n.target_user_id).map(n => n.target_user_id!))];
+    let nameMap = new Map<string, string>();
+    if (targetIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, full_name")
+        .in("user_id", targetIds);
+      if (profiles) profiles.forEach(p => { if (p.full_name) nameMap.set(p.user_id, p.full_name); });
+    }
+    setSentNotifications(data.map(n => ({
+      ...n,
+      target_name: n.target_user_id ? (nameMap.get(n.target_user_id) || "Unknown user") : undefined,
+    })));
+    setSentLoading(false);
+  }, []);
+
+  useEffect(() => {
+    if (isSentView && sentNotifications.length === 0) fetchSentNotifications();
+  }, [isSentView, fetchSentNotifications]);
 
   useEffect(() => {
     const channel = supabase
@@ -195,6 +238,9 @@ const NotificationsTab = ({ onUnreadCountChange, onNavigate }: Props) => {
             <SelectItem value="daily_report">Daily Reports</SelectItem>
             <SelectItem value="booking_cancelled">Cancellations</SelectItem>
             <SelectItem value="price_rule_created">Price Rules</SelectItem>
+            <SelectItem value="sent">
+              <span className="flex items-center gap-1.5"><Send className="h-3 w-3" /> Sent Notifications</span>
+            </SelectItem>
           </SelectContent>
         </Select>
         {unreadCount > 0 && (
@@ -208,10 +254,13 @@ const NotificationsTab = ({ onUnreadCountChange, onNavigate }: Props) => {
         </Button>
       </div>
 
-      <SendNotificationDialog open={sendDialogOpen} onOpenChange={setSendDialogOpen} />
+      <SendNotificationDialog open={sendDialogOpen} onOpenChange={(open) => {
+        setSendDialogOpen(open);
+        if (!open && isSentView) fetchSentNotifications();
+      }} />
 
       {/* Bulk actions bar */}
-      {filtered.length > 0 && (
+      {!isSentView && filtered.length > 0 && (
         <div className="flex items-center gap-3 mb-3 flex-wrap">
           <div className="flex items-center gap-2">
             <Checkbox
@@ -243,7 +292,78 @@ const NotificationsTab = ({ onUnreadCountChange, onNavigate }: Props) => {
         </div>
       )}
 
-      {loading ? (
+      {isSentView ? (
+        /* ── Sent Notifications View ── */
+        sentLoading ? (
+          <Card className="bg-card border-border">
+            <CardContent className="py-12 text-center text-muted-foreground">Loading sent notifications...</CardContent>
+          </Card>
+        ) : sentNotifications.length === 0 ? (
+          <Card className="bg-card border-border">
+            <CardContent className="py-12 flex flex-col items-center gap-3">
+              <Send className="h-10 w-10 text-muted-foreground/30" />
+              <p className="text-muted-foreground">No notifications sent yet.</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-2 max-w-4xl">
+            {sentNotifications.map(n => {
+              const isExpanded = expanded === n.id;
+              return (
+                <Card
+                  key={n.id}
+                  className="bg-card border-border transition-all cursor-pointer hover:border-primary/30"
+                  onClick={() => setExpanded(isExpanded ? null : n.id)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="mt-0.5 shrink-0 text-primary">
+                        <Send className="h-4 w-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0 gap-1">
+                            {n.target_user_id ? (
+                              <><User className="h-2.5 w-2.5" /> {n.target_name}</>
+                            ) : (
+                              <><Users className="h-2.5 w-2.5" /> All Users</>
+                            )}
+                          </Badge>
+                          <span className="text-[11px] text-muted-foreground">
+                            {format(new Date(n.created_at), "MMM dd, yyyy · h:mm a")}
+                          </span>
+                        </div>
+                        <p className="text-sm font-medium text-foreground">{n.title}</p>
+                        {isExpanded && (
+                          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="mt-2">
+                            <p className="text-sm text-muted-foreground whitespace-pre-line">{n.body}</p>
+                            {n.image_url && (
+                              <img src={n.image_url} alt="" className="mt-3 rounded-lg max-h-48 object-cover border border-border" />
+                            )}
+                          </motion.div>
+                        )}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 shrink-0 text-muted-foreground active:text-destructive sm:hover:text-destructive"
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          await supabase.from("customer_notifications").delete().eq("id", n.id);
+                          setSentNotifications(prev => prev.filter(s => s.id !== n.id));
+                          toast.success("Sent notification deleted");
+                        }}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )
+      ) : loading ? (
         <Card className="bg-card border-border">
           <CardContent className="py-12 text-center text-muted-foreground">Loading notifications...</CardContent>
         </Card>
