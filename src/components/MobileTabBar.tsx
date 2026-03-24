@@ -38,11 +38,19 @@ const IconProfile = ({ className }: { className?: string }) => (
   </svg>
 );
 
+const IconClubs = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 21V7l9-4 9 4v14" />
+    <path d="M9 21V13h6v8" />
+    <line x1="3" y1="10" x2="21" y2="10" />
+  </svg>
+);
+
 const TABS = [
   { to: "/", label: "Home", Icon: IconHome },
   { to: "/book", label: "Book", Icon: IconBook },
   { to: "/community", label: "Your Space", Icon: IconCommunity },
-  { to: "/clubs", label: "Clubs & Academies", Icon: ClubsIcon },
+  { to: "/clubs", label: "Clubs", Icon: IconClubs },
   { to: "/profile", label: "Profile", Icon: IconProfile },
 ];
 
