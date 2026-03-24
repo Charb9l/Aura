@@ -166,7 +166,7 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
     // Apply search
     if (logSearch) {
       const q = logSearch.toLowerCase();
-      combined = combined.filter(e => e.full_name.toLowerCase().includes(q) || e.email.toLowerCase().includes(q) || (e.phone || "").toLowerCase().includes(q) || e.activity_name.toLowerCase().includes(q));
+      combined = combined.filter(e => e.full_name.toLowerCase().includes(q) || e.email.toLowerCase().includes(q) || (e.phone || "").toLowerCase().includes(q) || e.activity_name.toLowerCase().includes(q) || ((e as any).booking_number && `#${(e as any).booking_number}`.includes(q)));
     }
     // Apply activity filter
     if (logActivityFilter !== "all") {
