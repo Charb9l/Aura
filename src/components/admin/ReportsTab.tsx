@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import ManualExport from "./ManualExport";
 
-const EXAMPLE_PROMPTS = [
+const MEGA_PROMPTS = [
   "How many bookings did I get this month?",
   "Show me revenue breakdown by activity for the last 30 days",
   "List the top 10 customers by number of bookings",
@@ -19,9 +19,20 @@ const EXAMPLE_PROMPTS = [
   "How many new users signed up this month?",
 ];
 
+const CLUB_PROMPTS = [
+  "How many bookings did my club get this month?",
+  "Show me revenue breakdown by activity for the last 30 days",
+  "What are my club's most popular time slots?",
+];
+
 type Mode = "ai" | "manual";
 
-const ReportsTab = () => {
+interface Props {
+  myClubId?: string | null;
+}
+
+const ReportsTab = ({ myClubId }: Props) => {
+  const isMasterAdmin = !myClubId;
   const [mode, setMode] = useState<Mode>("ai");
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
@@ -30,6 +41,8 @@ const ReportsTab = () => {
     csv_headers: string[];
     csv_rows: string[][];
   } | null>(null);
+
+  const examplePrompts = isMasterAdmin ? MEGA_PROMPTS : CLUB_PROMPTS;
 
   const handleGenerate = async (text?: string) => {
     const query = text || prompt;
@@ -41,9 +54,10 @@ const ReportsTab = () => {
     setResult(null);
 
     try {
-      const { data, error } = await supabase.functions.invoke("ai-report", {
-        body: { prompt: query },
-      });
+      const body: Record<string, any> = { prompt: query };
+      if (myClubId) body.club_id = myClubId;
+
+      const { data, error } = await supabase.functions.invoke("ai-report", { body });
 
       if (error) {
         toast.error(error.message || "Failed to generate report");
@@ -86,7 +100,9 @@ const ReportsTab = () => {
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="reports">
       <h1 className="font-heading text-2xl md:text-4xl font-bold text-foreground mb-2">Reports</h1>
       <p className="text-muted-foreground mb-6">
-        Generate and download booking reports using smart generation or manual field selection.
+        {isMasterAdmin
+          ? "Generate and download booking reports using smart generation or manual field selection."
+          : "Generate and download reports for your club's bookings and activities."}
       </p>
 
       {/* Mode toggle */}
@@ -112,7 +128,7 @@ const ReportsTab = () => {
       </div>
 
       {mode === "manual" ? (
-        <ManualExport />
+        <ManualExport myClubId={myClubId} />
       ) : (
         <div className="grid gap-6 max-w-4xl">
           {/* Prompt input */}
@@ -125,7 +141,9 @@ const ReportsTab = () => {
             </CardHeader>
             <CardContent>
               <Textarea
-                placeholder="e.g. How many bookings did I get between January 1 and March 1?"
+                placeholder={isMasterAdmin
+                  ? "e.g. How many bookings did I get between January 1 and March 1?"
+                  : "e.g. How many bookings did my club get this month?"}
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 className="min-h-[80px] bg-secondary border-border resize-none mb-3"
@@ -138,7 +156,7 @@ const ReportsTab = () => {
               />
               <div className="flex items-center justify-between">
                 <div className="flex flex-wrap gap-1.5">
-                  {EXAMPLE_PROMPTS.slice(0, 3).map((ex) => (
+                  {examplePrompts.slice(0, 3).map((ex) => (
                     <button
                       key={ex}
                       onClick={() => {

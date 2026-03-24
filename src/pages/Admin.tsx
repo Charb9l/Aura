@@ -544,7 +544,7 @@ const AdminDashboard = () => {
         {activeTab === "featured" && <FeaturedClubsTab />}
         {activeTab === "matchmaker" && <MatchmakerTab />}
         {activeTab === "settings" && <SettingsTab />}
-        {activeTab === "reports" && <ReportsTab />}
+        {activeTab === "reports" && <ReportsTab myClubId={myClubId} />}
         {activeTab === "nudges" && !myClubId && <NudgesTab />}
         {activeTab === "notifications" && (
           <NotificationsTab
