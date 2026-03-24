@@ -49,6 +49,8 @@ interface PriceRule {
   uses_per_customer: number;
   start_date: string | null;
   end_date: string | null;
+  created_by: string | null;
+  creator_name?: string;
 }
 
 interface UserPromotion {
@@ -155,11 +157,19 @@ const PromotionsTab = ({ allUsers, clubs, myClubId }: Props) => {
       .sort((a, b) => b.completedLevels - a.completedLevels || b.totalShowBookings - a.totalShowBookings);
     setBadgeLeaders(badgeList);
 
-    // Price rules
+    // Price rules — resolve creator names for mega admin
     const ruleClubs = (ruleClubsRes.data || []) as any[];
-    const rules: PriceRule[] = ((rulesRes.data || []) as any[]).map(r => ({
+    const rulesRaw = (rulesRes.data || []) as any[];
+    const creatorIds = [...new Set(rulesRaw.map(r => r.created_by).filter(Boolean))] as string[];
+    let creatorMap: Record<string, string> = {};
+    if (creatorIds.length > 0) {
+      const { data: profiles } = await supabase.from("profiles").select("user_id, full_name").in("user_id", creatorIds);
+      (profiles || []).forEach((p: any) => { creatorMap[p.user_id] = p.full_name || "Unknown"; });
+    }
+    const rules: PriceRule[] = rulesRaw.map(r => ({
       ...r,
       clubs: ruleClubs.filter(rc => rc.price_rule_id === r.id).map(rc => rc.club_id),
+      creator_name: r.created_by ? creatorMap[r.created_by] || "Unknown" : null,
     }));
     setPriceRules(rules);
     setUserPromotions((promosRes.data || []) as UserPromotion[]);
@@ -214,6 +224,7 @@ const PromotionsTab = ({ allUsers, clubs, myClubId }: Props) => {
       uses_per_customer: Number(ruleUsesPerCustomer) || 1,
       start_date: ruleStartDate ? format(ruleStartDate, "yyyy-MM-dd") : null,
       end_date: ruleEndDate ? format(ruleEndDate, "yyyy-MM-dd") : null,
+      created_by: adminUser?.id || null,
     } as any).select().single();
     if (error || !rule) { toast.error("Failed to create rule"); setRuleSaving(false); return; }
     // Add clubs — club admins auto-assign their own club
@@ -465,6 +476,11 @@ const PromotionsTab = ({ allUsers, clubs, myClubId }: Props) => {
                         {(rule.start_date || rule.end_date) && (
                           <span className="text-xs text-muted-foreground">
                             {rule.start_date ? format(new Date(rule.start_date + "T00:00"), "MMM d, yyyy") : "—"} → {rule.end_date ? format(new Date(rule.end_date + "T00:00"), "MMM d, yyyy") : "No end"}
+                          </span>
+                        )}
+                        {isMasterAdmin && rule.creator_name && (
+                          <span className="text-xs text-muted-foreground italic">
+                            Created by {rule.creator_name} on {format(new Date(rule.created_at), "MMM d, yyyy")}
                           </span>
                         )}
                       </div>
