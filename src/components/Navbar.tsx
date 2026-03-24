@@ -118,8 +118,8 @@ const Navbar = () => {
           <span className="text-3xl sm:text-2xl font-bold mobile-logo-glow">{platformName.line1}</span>
           {platformName.line2 && (
             <>
-              <br className="hidden sm:block" />
-              <span className="hidden sm:inline text-[9px] font-body font-medium tracking-[0.25em] text-muted-foreground uppercase">{platformName.line2}</span>
+              <br />
+              <span className="text-[8px] sm:text-[9px] font-body font-medium tracking-[0.25em] text-muted-foreground uppercase">{platformName.line2}</span>
             </>
           )}
         </Link>
