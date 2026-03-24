@@ -287,8 +287,8 @@ const PromotionsTab = ({ allUsers, clubs, myClubId }: Props) => {
 
       <Tabs value={subTab} onValueChange={setSubTab} className="space-y-6">
         <TabsList className="bg-secondary/50">
-          <TabsTrigger value="loyalty" className="gap-2"><Trophy className="h-4 w-4" /> Loyalty Leaderboard</TabsTrigger>
-          <TabsTrigger value="badges" className="gap-2"><Medal className="h-4 w-4" /> Tracker Leaderboard</TabsTrigger>
+          {isMasterAdmin && <TabsTrigger value="loyalty" className="gap-2"><Trophy className="h-4 w-4" /> Loyalty Leaderboard</TabsTrigger>}
+          {isMasterAdmin && <TabsTrigger value="badges" className="gap-2"><Medal className="h-4 w-4" /> Tracker Leaderboard</TabsTrigger>}
           <TabsTrigger value="rules" className="gap-2"><Gift className="h-4 w-4" /> Price Rules</TabsTrigger>
         </TabsList>
 
