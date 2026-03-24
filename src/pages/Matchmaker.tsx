@@ -153,7 +153,7 @@ const MatchmakerPage = () => {
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0">
       <Navbar />
-      <div className="pt-28 sm:pt-32 pb-16 container mx-auto px-4 sm:px-6">
+      <div className="page-offset-top pb-16 container mx-auto px-4 sm:px-6">
         {/* Hero */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}

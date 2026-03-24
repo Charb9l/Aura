@@ -98,7 +98,7 @@ const LoyaltyPage = () => {
       <Navbar />
 
       {/* Hero */}
-      <section className="relative pt-28 pb-12 overflow-hidden">
+      <section className="relative page-offset-top pb-12 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-20 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
         </div>

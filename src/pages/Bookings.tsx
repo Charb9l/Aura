@@ -103,7 +103,7 @@ const BookingsPage = () => {
   return (
     <div className="min-h-screen pb-20 md:pb-0">
       <Navbar />
-      <div className="container mx-auto px-6 pt-28 pb-16 max-w-3xl">
+      <div className="container mx-auto px-6 page-offset-top pb-16 max-w-3xl">
         <MobileBackButton fallbackPath="/profile" />
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
