@@ -211,11 +211,6 @@ const Navbar = () => {
 
         {/* Mobile/Tablet: hamburger only (profile moved to bottom tab bar on small mobile) */}
         <div className="flex lg:hidden items-center gap-1">
-          {!user && (
-            <Link to="/auth" className="rounded-full bg-primary text-primary-foreground p-2.5 transition-all active:bg-primary/90 min-h-[44px] min-w-[44px] flex items-center justify-center shadow-sm">
-              <LogIn className="h-5 w-5" />
-            </Link>
-          )}
           <button onClick={() => setMobileOpen(!mobileOpen)} className="hidden sm:flex p-2.5 text-muted-foreground active:text-foreground transition-colors min-h-[44px] min-w-[44px] items-center justify-center">
             {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
