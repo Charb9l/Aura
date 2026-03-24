@@ -58,7 +58,7 @@ const HeroSection = () => {
   };
 
   return (
-    <section className="relative flex flex-col items-center pt-[calc(7rem+env(safe-area-inset-top))] pb-6 md:pt-[calc(8rem+env(safe-area-inset-top))] md:pb-8 overflow-hidden">
+    <section className="relative flex flex-col items-center page-offset-top pb-6 md:pb-8 overflow-hidden">
       {/* Content */}
       <div className="relative z-10 container mx-auto px-6 flex flex-col items-center text-center gap-6 md:gap-8">
         {/* Subtitle only */}
