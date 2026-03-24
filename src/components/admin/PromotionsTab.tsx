@@ -49,6 +49,8 @@ interface PriceRule {
   uses_per_customer: number;
   start_date: string | null;
   end_date: string | null;
+  created_by: string | null;
+  creator_name?: string;
 }
 
 interface UserPromotion {
