@@ -136,7 +136,7 @@ const AcademyRegistrationsDialog = ({ open, onOpenChange }: Props) => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {registrations.map(r => (
+                    {filtered.map(r => (
                       <TableRow
                         key={r.id}
                         className="border-border cursor-pointer hover:bg-secondary/50"
@@ -164,10 +164,14 @@ const AcademyRegistrationsDialog = ({ open, onOpenChange }: Props) => {
                         </TableCell>
                       </TableRow>
                     ))}
+                    {filtered.length === 0 && (
+                      <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">No registrations for this academy.</TableCell></TableRow>
+                    )}
                   </TableBody>
                 </Table>
               </div>
-            )}
+              );
+            })()}
           </div>
         ) : (
           <div className="space-y-6">
