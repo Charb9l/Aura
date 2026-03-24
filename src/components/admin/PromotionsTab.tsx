@@ -81,6 +81,7 @@ const PromotionsTab = ({ allUsers, clubs, myClubId }: Props) => {
   const [loading, setLoading] = useState(true);
   const [priceRules, setPriceRules] = useState<PriceRule[]>([]);
   const [userPromotions, setUserPromotions] = useState<UserPromotion[]>([]);
+  const [detailRule, setDetailRule] = useState<PriceRule | null>(null);
 
   // Promotion dialog
   const [promoDialogOpen, setPromoDialogOpen] = useState(false);
@@ -461,7 +462,7 @@ const PromotionsTab = ({ allUsers, clubs, myClubId }: Props) => {
           ) : (
             <div className="space-y-4">
               {priceRules.map(rule => (
-                <Card key={rule.id} className={cn("bg-card border-border", !rule.active && "opacity-60")}>
+                <Card key={rule.id} className={cn("bg-card border-border", !rule.active && "opacity-60", isMasterAdmin && "cursor-pointer")} onClick={() => isMasterAdmin && setDetailRule(rule)}>
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3 flex-wrap">
@@ -484,7 +485,7 @@ const PromotionsTab = ({ allUsers, clubs, myClubId }: Props) => {
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3" onClick={e => e.stopPropagation()}>
                         <div className="flex items-center gap-2">
                           <Label className="text-xs text-muted-foreground">Active</Label>
                           <Switch checked={rule.active} onCheckedChange={(v) => toggleRuleActive(rule.id, v)} />
@@ -496,7 +497,7 @@ const PromotionsTab = ({ allUsers, clubs, myClubId }: Props) => {
                     </div>
                   </CardHeader>
                   {isMasterAdmin && (
-                  <CardContent>
+                  <CardContent onClick={e => e.stopPropagation()}>
                     <Label className="text-xs text-muted-foreground mb-2 block">Participating Clubs</Label>
                     <Popover>
                       <PopoverTrigger asChild>
@@ -715,6 +716,70 @@ const PromotionsTab = ({ allUsers, clubs, myClubId }: Props) => {
               {ruleSaving ? "Creating..." : "Create Rule"}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Price Rule Detail Dialog (mega admin only) */}
+      <Dialog open={!!detailRule} onOpenChange={(open) => { if (!open) setDetailRule(null); }}>
+        <DialogContent className="bg-card border-border max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="font-heading">{detailRule?.name}</DialogTitle>
+          </DialogHeader>
+          {detailRule && (() => {
+            const status = getRuleStatus(detailRule);
+            const participatingClubs = clubs.filter(c => detailRule.clubs.includes(c.id));
+            return (
+              <div className="space-y-4 pt-2">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Discount</p>
+                    <p className="text-sm font-medium text-foreground">{formatDiscount(detailRule.discount_type, detailRule.discount_value)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Status</p>
+                    <Badge className={cn("text-xs", status.color)}>{status.label}</Badge>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Max Total Uses</p>
+                    <p className="text-sm text-foreground">{detailRule.max_total_uses ?? "Unlimited"}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Uses per Customer</p>
+                    <p className="text-sm text-foreground">{detailRule.uses_per_customer}×</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Activation Date</p>
+                    <p className="text-sm text-foreground">{detailRule.start_date ? format(new Date(detailRule.start_date + "T00:00"), "MMM d, yyyy") : "Immediate"}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Deactivation Date</p>
+                    <p className="text-sm text-foreground">{detailRule.end_date ? format(new Date(detailRule.end_date + "T00:00"), "MMM d, yyyy") : "No end date"}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Created By</p>
+                    <p className="text-sm text-foreground">{detailRule.creator_name || "System / Mega Admin"}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Created On</p>
+                    <p className="text-sm text-foreground">{format(new Date(detailRule.created_at), "MMM d, yyyy 'at' h:mm a")}</p>
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-xs text-muted-foreground mb-2">Participating Clubs ({participatingClubs.length})</p>
+                  {participatingClubs.length > 0 ? (
+                    <div className="flex flex-wrap gap-1.5">
+                      {participatingClubs.map(c => (
+                        <Badge key={c.id} variant="secondary" className="text-xs">{c.name}</Badge>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No clubs assigned</p>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
         </DialogContent>
       </Dialog>
     </motion.div>
