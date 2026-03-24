@@ -206,10 +206,10 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
   const handleCreateAdmin = async (e: React.FormEvent) => {
     e.preventDefault();
     setCreatingAdmin(true);
-    const { data, error } = await supabase.functions.invoke("manage-admin", { body: { email: newAdminEmail, password: newAdminPassword, full_name: newAdminName, phone: newAdminPhone, club_id: (newAdminClubId && newAdminClubId !== "none") ? newAdminClubId : null } });
+    const { data, error } = await supabase.functions.invoke("manage-admin", { body: { email: newAdminEmail, password: newAdminPassword, full_name: newAdminName, phone: newAdminPhone, club_id: (newAdminClubId && newAdminClubId !== "none") ? newAdminClubId : null, admin_code: (newAdminClubId && newAdminClubId !== "none") ? newAdminCode : null } });
     setCreatingAdmin(false);
     if (error || data?.error) { toast.error(data?.error || error?.message || "Failed"); }
-    else { toast.success(`Admin created for ${newAdminEmail}`); setNewAdminName(""); setNewAdminEmail(""); setNewAdminPassword(""); setNewAdminPhone(""); setNewAdminClubId("none"); setShowCreateAdmin(false); onAdminCreated(); }
+    else { toast.success(`Admin created for ${newAdminEmail}`); setNewAdminName(""); setNewAdminEmail(""); setNewAdminPassword(""); setNewAdminPhone(""); setNewAdminClubId("none"); setNewAdminCode(""); setShowCreateAdmin(false); onAdminCreated(); }
   };
 
   const openFormerDialog = async (type: "customer" | "admin") => {
