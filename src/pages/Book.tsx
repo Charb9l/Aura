@@ -407,7 +407,7 @@ const BookPage = () => {
       court_type: selectedActivity === "basketball" ? courtType : null,
       discount_type: discountType,
       price: currentPrice,
-    }).select("id").single();
+    }).select("id, booking_number").single();
 
     setSubmitting(false);
     if (error) {
