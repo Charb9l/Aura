@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminRole } from "@/hooks/useAdminRole";
+import { ProfileIcon } from "@/components/icons/BrandIcons";
 
 
 const IconHome = ({ className }: { className?: string }) => (
