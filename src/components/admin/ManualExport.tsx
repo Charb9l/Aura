@@ -108,6 +108,9 @@ const ManualExport = ({ myClubId }: Props) => {
       if (dateTo) query = query.lte("booking_date", dateTo);
       if (selectedActivities.size > 0) {
         query = query.in("activity", Array.from(selectedActivities));
+      } else if (clubActivitySlugs) {
+        // Club admin: restrict to their club's activities
+        query = query.in("activity", clubActivitySlugs);
       }
 
       const { data, error } = await query;
