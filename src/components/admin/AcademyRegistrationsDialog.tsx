@@ -42,6 +42,7 @@ const AcademyRegistrationsDialog = ({ open, onOpenChange }: Props) => {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Registration | null>(null);
   const [saving, setSaving] = useState(false);
+  const [filterAcademy, setFilterAcademy] = useState("all");
 
   useEffect(() => {
     if (!open) return;
@@ -100,11 +101,29 @@ const AcademyRegistrationsDialog = ({ open, onOpenChange }: Props) => {
 
         {!selected ? (
           <div className="space-y-4">
+            {!loading && registrations.length > 0 && (() => {
+              const academyNames = [...new Set(registrations.map(r => r.club_name))].sort();
+              return academyNames.length > 1 ? (
+                <Select value={filterAcademy} onValueChange={setFilterAcademy}>
+                  <SelectTrigger className="w-[220px] h-9 bg-secondary border-border">
+                    <SelectValue placeholder="All Academies" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-card border-border z-50">
+                    <SelectItem value="all">All Academies</SelectItem>
+                    {academyNames.map(name => (
+                      <SelectItem key={name} value={name}>{name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : null;
+            })()}
             {loading ? (
               <p className="text-muted-foreground text-center py-8">Loading...</p>
             ) : registrations.length === 0 ? (
               <p className="text-muted-foreground text-center py-8">No registrations yet.</p>
-            ) : (
+            ) : (() => {
+              const filtered = filterAcademy === "all" ? registrations : registrations.filter(r => r.club_name === filterAcademy);
+              return (
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
@@ -117,7 +136,7 @@ const AcademyRegistrationsDialog = ({ open, onOpenChange }: Props) => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {registrations.map(r => (
+                    {filtered.map(r => (
                       <TableRow
                         key={r.id}
                         className="border-border cursor-pointer hover:bg-secondary/50"
@@ -145,10 +164,14 @@ const AcademyRegistrationsDialog = ({ open, onOpenChange }: Props) => {
                         </TableCell>
                       </TableRow>
                     ))}
+                    {filtered.length === 0 && (
+                      <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">No registrations for this academy.</TableCell></TableRow>
+                    )}
                   </TableBody>
                 </Table>
               </div>
-            )}
+              );
+            })()}
           </div>
         ) : (
           <div className="space-y-6">
