@@ -216,10 +216,11 @@ const PromotionsTab = ({ allUsers, clubs, myClubId }: Props) => {
       end_date: ruleEndDate ? format(ruleEndDate, "yyyy-MM-dd") : null,
     } as any).select().single();
     if (error || !rule) { toast.error("Failed to create rule"); setRuleSaving(false); return; }
-    // Add clubs
-    if (ruleSelectedClubs.size > 0) {
+    // Add clubs — club admins auto-assign their own club
+    const clubsToAssign = myClubId ? [myClubId] : Array.from(ruleSelectedClubs);
+    if (clubsToAssign.length > 0) {
       await supabase.from("price_rule_clubs").insert(
-        Array.from(ruleSelectedClubs).map(cid => ({ price_rule_id: (rule as any).id, club_id: cid })) as any
+        clubsToAssign.map(cid => ({ price_rule_id: (rule as any).id, club_id: cid })) as any
       );
     }
     setRuleSaving(false);
