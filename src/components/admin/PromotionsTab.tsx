@@ -478,6 +478,11 @@ const PromotionsTab = ({ allUsers, clubs, myClubId }: Props) => {
                             {rule.start_date ? format(new Date(rule.start_date + "T00:00"), "MMM d, yyyy") : "—"} → {rule.end_date ? format(new Date(rule.end_date + "T00:00"), "MMM d, yyyy") : "No end"}
                           </span>
                         )}
+                        {isMasterAdmin && rule.creator_name && (
+                          <span className="text-xs text-muted-foreground italic">
+                            Created by {rule.creator_name} on {format(new Date(rule.created_at), "MMM d, yyyy")}
+                          </span>
+                        )}
                       </div>
                       <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2">
