@@ -29,6 +29,7 @@ const TYPE_CONFIG: Record<string, { icon: typeof Bell; color: string; label: str
   booking_cancelled: { icon: XCircle, color: "text-destructive", label: "Cancelled" },
   academy_registration: { icon: GraduationCap, color: "text-purple-400", label: "Academy" },
   partner_request: { icon: Handshake, color: "text-teal-400", label: "Partner" },
+  price_rule_created: { icon: Tag, color: "text-amber-400", label: "Price Rule" },
 };
 
 interface Props {
