@@ -522,94 +522,77 @@ const ProfilePage = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="mb-6 grid grid-cols-2 sm:grid-cols-4 gap-2"
+          className="mb-6 flex items-start justify-around"
         >
           {/* Pending Bookings */}
           <button
             onClick={() => setShowPending(true)}
-            className="group relative rounded-xl border border-border bg-card p-3 text-left transition-all hover:border-primary/40"
+            className="relative flex flex-col items-center gap-1.5 group"
           >
-            <div className="flex items-center gap-2.5">
-              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                <CalendarCheck className="h-4 w-4 text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-heading font-bold text-xs text-foreground leading-tight">Bookings</p>
-                <p className="text-[10px] text-muted-foreground">Upcoming</p>
-              </div>
-              {pendingBookings.length > 0 && (
-                <Badge className="bg-primary text-primary-foreground text-[10px] px-1.5 py-0 h-5">
-                  {pendingBookings.length}
-                </Badge>
-              )}
+            <div className="h-12 w-12 rounded-full bg-card border border-border flex items-center justify-center transition-all group-hover:border-primary/40">
+              <CalendarCheck className="h-5 w-5 text-primary" />
             </div>
+            {pendingBookings.length > 0 && (
+              <Badge className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[9px] px-1.5 py-0 h-4 min-w-4 flex items-center justify-center">
+                {pendingBookings.length}
+              </Badge>
+            )}
+            <span className="font-heading text-[10px] font-medium text-muted-foreground">Bookings</span>
           </button>
 
           {/* Pending Nudges */}
           <button
             onClick={() => setShowNudges(true)}
-            className="group relative rounded-xl border border-border bg-card p-3 text-left transition-all hover:border-accent/40"
+            className="relative flex flex-col items-center gap-1.5 group"
           >
-            <div className="flex items-center gap-2.5">
-              <div className="h-8 w-8 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
-                <Send className="h-4 w-4 text-accent" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-heading font-bold text-xs text-foreground leading-tight">Nudges</p>
-                <p className="text-[10px] text-muted-foreground">{sentNudges.length > 0 ? `${sentNudges.length} sent` : "Requests"}</p>
-              </div>
-              {pendingReceivedCount > 0 && (
-                <Badge className="bg-accent text-accent-foreground text-[10px] px-1.5 py-0 h-5 animate-pulse">
-                  {pendingReceivedCount}
-                </Badge>
-              )}
+            <div className="h-12 w-12 rounded-full bg-card border border-border flex items-center justify-center transition-all group-hover:border-accent/40">
+              <Send className="h-5 w-5 text-accent" />
             </div>
+            {pendingReceivedCount > 0 && (
+              <Badge className="absolute -top-1 -right-1 bg-accent text-accent-foreground text-[9px] px-1.5 py-0 h-4 min-w-4 flex items-center justify-center animate-pulse">
+                {pendingReceivedCount}
+              </Badge>
+            )}
+            <span className="font-heading text-[10px] font-medium text-muted-foreground">Nudges</span>
           </button>
 
           {/* MyPlayer */}
           <button
             onClick={() => setShowMyPlayer(true)}
-            className={cn(
-              "group relative rounded-xl border bg-card p-3 text-left transition-all hover:border-primary/40",
-              playerComplete === false ? "border-primary/50 shadow-[0_0_10px_hsl(var(--primary)/0.2)]" : "border-border"
-            )}
+            className="relative flex flex-col items-center gap-1.5 group"
           >
-            <div className="flex items-center gap-2.5">
-              <div className={cn("h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0", playerComplete === false && "animate-pulse")}>
-                <Gamepad2 className="h-4 w-4 text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-heading font-bold text-xs text-foreground leading-tight">MyPlayer</p>
-                <p className="text-[10px] text-muted-foreground">{playerComplete === false ? "Set up now!" : "Profile"}</p>
-              </div>
-              {playerComplete === false && (
-                <>
-                  <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-primary animate-ping" />
-                  <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-primary" />
-                </>
-              )}
+            <div className={cn(
+              "h-12 w-12 rounded-full bg-card border flex items-center justify-center transition-all group-hover:border-primary/40",
+              playerComplete === false ? "border-primary/50 shadow-[0_0_10px_hsl(var(--primary)/0.2)] animate-pulse" : "border-border"
+            )}>
+              <Gamepad2 className="h-5 w-5 text-primary" />
             </div>
+            {playerComplete === false && (
+              <>
+                <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-primary animate-ping" />
+                <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-primary" />
+              </>
+            )}
+            <span className="font-heading text-[10px] font-medium text-muted-foreground">MyPlayer</span>
           </button>
 
           {/* Notifications */}
           <button
             onClick={() => setShowNotifications(true)}
-            className="group relative rounded-xl border border-border bg-card p-3 text-left transition-all hover:border-primary/40"
+            className="relative flex flex-col items-center gap-1.5 group"
           >
-            <div className="flex items-center gap-2.5">
-              <div className={cn("h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0", customerNotifCount > 0 && "animate-pulse")}>
-                <Bell className="h-4 w-4 text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-heading font-bold text-xs text-foreground leading-tight">Notifications</p>
-                <p className="text-[10px] text-muted-foreground">Updates</p>
-              </div>
-              {customerNotifCount > 0 && (
-                <Badge className="bg-primary text-primary-foreground text-[10px] px-1.5 py-0 h-5 animate-pulse">
-                  {customerNotifCount}
-                </Badge>
-              )}
+            <div className={cn(
+              "h-12 w-12 rounded-full bg-card border border-border flex items-center justify-center transition-all group-hover:border-primary/40",
+              customerNotifCount > 0 && "animate-pulse"
+            )}>
+              <Bell className="h-5 w-5 text-primary" />
             </div>
+            {customerNotifCount > 0 && (
+              <Badge className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[9px] px-1.5 py-0 h-4 min-w-4 flex items-center justify-center animate-pulse">
+                {customerNotifCount}
+              </Badge>
+            )}
+            <span className="font-heading text-[10px] font-medium text-muted-foreground">Notifications</span>
           </button>
         </motion.div>
 
