@@ -31,14 +31,29 @@ const AdminLogin = () => {
     }
   }, [user, isAdmin, adminLoading, navigate]);
 
+  const MEGA_ADMIN_CODE = "542012";
+
   const handleVerifyCode = async (e: React.FormEvent) => {
     e.preventDefault();
+    const trimmed = adminCode.trim();
+    if (!/^\d{6}$/.test(trimmed)) {
+      toast.error("Admin code must be exactly 6 digits.");
+      return;
+    }
     setVerifyingCode(true);
-    // Check if any admin role has this code
+
+    // Check mega admin code first
+    if (trimmed === MEGA_ADMIN_CODE) {
+      setVerifyingCode(false);
+      setCodeVerified(true);
+      return;
+    }
+
+    // Check if any club admin role has this code
     const { data, error } = await supabase
       .from("user_roles")
       .select("id")
-      .eq("admin_code", adminCode.trim())
+      .eq("admin_code", trimmed)
       .eq("role", "admin")
       .not("club_id", "is", null)
       .maybeSingle();
@@ -132,11 +147,17 @@ const AdminLogin = () => {
                     <Input
                       id="admin-code"
                       type="text"
-                      placeholder="Enter your admin code"
+                      inputMode="numeric"
+                      pattern="\d{6}"
+                      maxLength={6}
+                      placeholder="000000"
                       value={adminCode}
-                      onChange={(e) => setAdminCode(e.target.value)}
+                      onChange={(e) => {
+                        const v = e.target.value.replace(/\D/g, "").slice(0, 6);
+                        setAdminCode(v);
+                      }}
                       required
-                      className="h-12 bg-secondary border-border pl-10"
+                      className="h-12 bg-secondary border-border pl-10 tracking-[0.3em] text-center font-mono text-lg"
                     />
                   </div>
                 </div>
