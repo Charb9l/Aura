@@ -31,14 +31,29 @@ const AdminLogin = () => {
     }
   }, [user, isAdmin, adminLoading, navigate]);
 
+  const MEGA_ADMIN_CODE = "542012";
+
   const handleVerifyCode = async (e: React.FormEvent) => {
     e.preventDefault();
+    const trimmed = adminCode.trim();
+    if (!/^\d{6}$/.test(trimmed)) {
+      toast.error("Admin code must be exactly 6 digits.");
+      return;
+    }
     setVerifyingCode(true);
-    // Check if any admin role has this code
+
+    // Check mega admin code first
+    if (trimmed === MEGA_ADMIN_CODE) {
+      setVerifyingCode(false);
+      setCodeVerified(true);
+      return;
+    }
+
+    // Check if any club admin role has this code
     const { data, error } = await supabase
       .from("user_roles")
       .select("id")
-      .eq("admin_code", adminCode.trim())
+      .eq("admin_code", trimmed)
       .eq("role", "admin")
       .not("club_id", "is", null)
       .maybeSingle();
