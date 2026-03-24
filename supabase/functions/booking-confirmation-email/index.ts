@@ -33,12 +33,37 @@ Deno.serve(async (req) => {
       });
     }
 
+    const callerId = claimsData.user.id;
+
     const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
     if (!RESEND_API_KEY) {
       throw new Error("RESEND_API_KEY is not configured");
     }
 
-    const { full_name, email, activity_name, booking_date, booking_time, court_type } = await req.json();
+    const { booking_id } = await req.json();
+    if (!booking_id) {
+      return new Response(JSON.stringify({ error: "booking_id is required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Fetch booking from DB — only allow if it belongs to the caller
+    const { data: booking, error: bookingError } = await supabase
+      .from("bookings")
+      .select("full_name, email, activity_name, booking_date, booking_time, court_type")
+      .eq("id", booking_id)
+      .eq("user_id", callerId)
+      .single();
+
+    if (bookingError || !booking) {
+      return new Response(JSON.stringify({ error: "Booking not found or access denied" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const { full_name, email, activity_name, booking_date, booking_time, court_type } = booking;
 
     const courtLine = court_type ? `<p style="margin:0 0 8px"><strong>Court:</strong> ${court_type === "full" ? "Full Court" : "Half Court"}</p>` : "";
 
@@ -94,8 +119,7 @@ Deno.serve(async (req) => {
     });
   } catch (err) {
     console.error("Error sending confirmation email:", err);
-    const message = err instanceof Error ? err.message : "Unknown error";
-    return new Response(JSON.stringify({ error: message }), {
+    return new Response(JSON.stringify({ error: "Failed to send email" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

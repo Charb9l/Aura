@@ -394,7 +394,7 @@ const BookPage = () => {
       consumePromo = true;
     }
 
-    const { error } = await supabase.from("bookings").insert({
+    const { data: insertedBooking, error } = await supabase.from("bookings").insert({
       user_id: user.id,
       activity: selectedActivity,
       activity_name: activityName,
@@ -406,21 +406,14 @@ const BookPage = () => {
       court_type: selectedActivity === "basketball" ? courtType : null,
       discount_type: discountType,
       price: currentPrice,
-    });
+    }).select("id").single();
 
     setSubmitting(false);
     if (error) {
       toast.error("Booking failed: " + error.message);
     } else {
       supabase.functions.invoke("booking-confirmation-email", {
-        body: {
-          full_name: profileName,
-          email: profileEmail,
-          activity_name: activityName,
-          booking_date: format(date, "PPP"),
-          booking_time: selectedTime,
-          court_type: selectedActivity === "basketball" ? courtType : null,
-        },
+        body: { booking_id: insertedBooking.id },
       });
 
       // Decrement admin promo uses if consumed
@@ -434,13 +427,12 @@ const BookPage = () => {
       // Deduct loyalty points when a loyalty reward is consumed
       if (clubReward?.reward && resolvedClubId) {
         const pointsToDeduct = clubReward.reward === "free" ? -10 : -5;
-        await supabase.from("loyalty_point_adjustments").insert({
-          user_id: user.id,
-          club_id: resolvedClubId,
-          points: pointsToDeduct,
-          reason: `Loyalty reward redeemed (${clubReward.reward === "free" ? "Free session" : "50% off"})`,
-          adjusted_by: user.id,
-        } as any);
+        await supabase.rpc("adjust_loyalty_points" as any, {
+          _user_id: user.id,
+          _club_id: resolvedClubId,
+          _points: pointsToDeduct,
+          _reason: `Loyalty reward redeemed (${clubReward.reward === "free" ? "Free session" : "50% off"})`,
+        });
       }
 
       setSubmitted(true);
