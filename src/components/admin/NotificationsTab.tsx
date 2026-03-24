@@ -238,6 +238,9 @@ const NotificationsTab = ({ onUnreadCountChange, onNavigate }: Props) => {
             <SelectItem value="daily_report">Daily Reports</SelectItem>
             <SelectItem value="booking_cancelled">Cancellations</SelectItem>
             <SelectItem value="price_rule_created">Price Rules</SelectItem>
+            <SelectItem value="sent">
+              <span className="flex items-center gap-1.5"><Send className="h-3 w-3" /> Sent Notifications</span>
+            </SelectItem>
           </SelectContent>
         </Select>
         {unreadCount > 0 && (
