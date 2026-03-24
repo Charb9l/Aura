@@ -289,7 +289,78 @@ const NotificationsTab = ({ onUnreadCountChange, onNavigate }: Props) => {
         </div>
       )}
 
-      {loading ? (
+      {isSentView ? (
+        /* ── Sent Notifications View ── */
+        sentLoading ? (
+          <Card className="bg-card border-border">
+            <CardContent className="py-12 text-center text-muted-foreground">Loading sent notifications...</CardContent>
+          </Card>
+        ) : sentNotifications.length === 0 ? (
+          <Card className="bg-card border-border">
+            <CardContent className="py-12 flex flex-col items-center gap-3">
+              <Send className="h-10 w-10 text-muted-foreground/30" />
+              <p className="text-muted-foreground">No notifications sent yet.</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-2 max-w-4xl">
+            {sentNotifications.map(n => {
+              const isExpanded = expanded === n.id;
+              return (
+                <Card
+                  key={n.id}
+                  className="bg-card border-border transition-all cursor-pointer hover:border-primary/30"
+                  onClick={() => setExpanded(isExpanded ? null : n.id)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="mt-0.5 shrink-0 text-primary">
+                        <Send className="h-4 w-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0 gap-1">
+                            {n.target_user_id ? (
+                              <><User className="h-2.5 w-2.5" /> {n.target_name}</>
+                            ) : (
+                              <><Users className="h-2.5 w-2.5" /> All Users</>
+                            )}
+                          </Badge>
+                          <span className="text-[11px] text-muted-foreground">
+                            {format(new Date(n.created_at), "MMM dd, yyyy · h:mm a")}
+                          </span>
+                        </div>
+                        <p className="text-sm font-medium text-foreground">{n.title}</p>
+                        {isExpanded && (
+                          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="mt-2">
+                            <p className="text-sm text-muted-foreground whitespace-pre-line">{n.body}</p>
+                            {n.image_url && (
+                              <img src={n.image_url} alt="" className="mt-3 rounded-lg max-h-48 object-cover border border-border" />
+                            )}
+                          </motion.div>
+                        )}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 shrink-0 text-muted-foreground active:text-destructive sm:hover:text-destructive"
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          await supabase.from("customer_notifications").delete().eq("id", n.id);
+                          setSentNotifications(prev => prev.filter(s => s.id !== n.id));
+                          toast.success("Sent notification deleted");
+                        }}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )
+      ) : loading ? (
         <Card className="bg-card border-border">
           <CardContent className="py-12 text-center text-muted-foreground">Loading notifications...</CardContent>
         </Card>
