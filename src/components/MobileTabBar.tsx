@@ -60,7 +60,9 @@ const MobileTabBar = () => {
         {TABS.map((tab) => {
           const isActive = tab.to === "/"
             ? location.pathname === "/"
-            : location.pathname.startsWith(tab.to);
+            : tab.to === "/clubs"
+              ? location.pathname === "/clubs" || location.pathname === "/academy"
+              : location.pathname.startsWith(tab.to);
           return (
             <Link
               key={tab.to}
