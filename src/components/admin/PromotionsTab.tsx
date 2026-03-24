@@ -643,6 +643,7 @@ const PromotionsTab = ({ allUsers, clubs, myClubId }: Props) => {
               <Input type="number" value={ruleUsesPerCustomer} onChange={e => setRuleUsesPerCustomer(e.target.value)} min={1} />
               <p className="text-xs text-muted-foreground mt-1">How many times each customer can benefit from this rule.</p>
             </div>
+            {isMasterAdmin && (
             <div>
               <Label className="text-sm mb-2 block">Participating Clubs</Label>
               <Popover>
@@ -690,6 +691,7 @@ const PromotionsTab = ({ allUsers, clubs, myClubId }: Props) => {
                 </PopoverContent>
               </Popover>
             </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRuleDialogOpen(false)}>Cancel</Button>
