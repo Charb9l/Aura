@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminRole } from "@/hooks/useAdminRole";
+import { ProfileIcon } from "@/components/icons/BrandIcons";
 
 
 const IconHome = ({ className }: { className?: string }) => (
@@ -32,10 +33,7 @@ const IconCommunity = ({ className }: { className?: string }) => (
 );
 
 const IconProfile = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="8" r="4" />
-    <path d="M5 21v-2a5 5 0 0110 0v2" />
-  </svg>
+  <ProfileIcon className={className} />
 );
 
 const IconClubs = ({ className }: { className?: string }) => (

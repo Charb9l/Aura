@@ -93,3 +93,19 @@ export const LoyaltyIcon = ({ className }: IconProps) => (
     <path d="M12 6.5l.8 1.6 1.7.2-1.2 1.2.3 1.7-1.6-.8-1.6.8.3-1.7-1.2-1.2 1.7-.2z" fill="currentColor" fillOpacity="0.2" strokeWidth="0.8" />
   </svg>
 );
+
+/**
+ * Custom SVG icon for Profile.
+ * A person silhouette with a subtle gear accent — conveys identity & settings.
+ */
+export const ProfileIcon = ({ className }: IconProps) => (
+  <svg viewBox="0 0 24 24" fill="none" className={cn("shrink-0", className)} stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    {/* Head */}
+    <circle cx="12" cy="8" r="3.5" fill="currentColor" fillOpacity="0.06" />
+    {/* Body / shoulders arc */}
+    <path d="M4 21v-1a7 7 0 0114 0v1" />
+    {/* Subtle badge / verification accent */}
+    <circle cx="18.5" cy="5.5" r="3" fill="currentColor" fillOpacity="0.08" />
+    <path d="M17.5 5.5l.7.7 1.3-1.4" strokeWidth="1.4" />
+  </svg>
+);
