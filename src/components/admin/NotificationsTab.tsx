@@ -194,6 +194,7 @@ const NotificationsTab = ({ onUnreadCountChange, onNavigate }: Props) => {
             <SelectItem value="unmarked_booking">Unmarked Bookings</SelectItem>
             <SelectItem value="daily_report">Daily Reports</SelectItem>
             <SelectItem value="booking_cancelled">Cancellations</SelectItem>
+            <SelectItem value="price_rule_created">Price Rules</SelectItem>
           </SelectContent>
         </Select>
         {unreadCount > 0 && (
