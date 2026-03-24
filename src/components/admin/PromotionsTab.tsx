@@ -497,7 +497,7 @@ const PromotionsTab = ({ allUsers, clubs, myClubId }: Props) => {
                     </div>
                   </CardHeader>
                   {isMasterAdmin && (
-                  <CardContent>
+                  <CardContent onClick={e => e.stopPropagation()}>
                     <Label className="text-xs text-muted-foreground mb-2 block">Participating Clubs</Label>
                     <Popover>
                       <PopoverTrigger asChild>
