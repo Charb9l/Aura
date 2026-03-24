@@ -260,7 +260,7 @@ const NotificationsTab = ({ onUnreadCountChange, onNavigate }: Props) => {
       }} />
 
       {/* Bulk actions bar */}
-      {filtered.length > 0 && (
+      {!isSentView && filtered.length > 0 && (
         <div className="flex items-center gap-3 mb-3 flex-wrap">
           <div className="flex items-center gap-2">
             <Checkbox
