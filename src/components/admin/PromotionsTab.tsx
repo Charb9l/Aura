@@ -81,6 +81,7 @@ const PromotionsTab = ({ allUsers, clubs, myClubId }: Props) => {
   const [loading, setLoading] = useState(true);
   const [priceRules, setPriceRules] = useState<PriceRule[]>([]);
   const [userPromotions, setUserPromotions] = useState<UserPromotion[]>([]);
+  const [detailRule, setDetailRule] = useState<PriceRule | null>(null);
 
   // Promotion dialog
   const [promoDialogOpen, setPromoDialogOpen] = useState(false);
