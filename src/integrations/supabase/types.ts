@@ -1175,6 +1175,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      adjust_loyalty_points: {
+        Args: {
+          _club_id: string
+          _points: number
+          _reason?: string
+          _user_id: string
+        }
+        Returns: undefined
+      }
       get_booked_slots:
         | {
             Args: { _activity: string; _booking_date: string }
