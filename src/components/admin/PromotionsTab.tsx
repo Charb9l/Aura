@@ -482,13 +482,19 @@ const PromotionsTab = ({ allUsers, clubs, myClubId }: Props) => {
                         )}
                       </div>
                       <div className="flex items-center gap-3" onClick={e => e.stopPropagation()}>
-                        <div className="flex items-center gap-2">
-                          <Label className="text-xs text-muted-foreground">Active</Label>
-                          <Switch checked={rule.active} onCheckedChange={(v) => toggleRuleActive(rule.id, v)} />
-                        </div>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => deleteRule(rule.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        {(isMasterAdmin || rule.created_by === adminUser?.id) ? (
+                          <>
+                            <div className="flex items-center gap-2">
+                              <Label className="text-xs text-muted-foreground">Active</Label>
+                              <Switch checked={rule.active} onCheckedChange={(v) => toggleRuleActive(rule.id, v)} />
+                            </div>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => deleteRule(rule.id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </>
+                        ) : (
+                          <Badge variant="secondary" className="text-xs">View Only</Badge>
+                        )}
                       </div>
                     </div>
                   </CardHeader>
