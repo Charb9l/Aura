@@ -15,6 +15,7 @@ export interface BookingRow {
   attendance_status?: string | null;
   created_by?: string | null;
   price?: number | null;
+  booking_number?: number | null;
 }
 
 export interface ProfileRow {
