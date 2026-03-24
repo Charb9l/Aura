@@ -166,7 +166,7 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
     // Apply search
     if (logSearch) {
       const q = logSearch.toLowerCase();
-      combined = combined.filter(e => e.full_name.toLowerCase().includes(q) || e.email.toLowerCase().includes(q) || (e.phone || "").toLowerCase().includes(q) || e.activity_name.toLowerCase().includes(q));
+      combined = combined.filter(e => e.full_name.toLowerCase().includes(q) || e.email.toLowerCase().includes(q) || (e.phone || "").toLowerCase().includes(q) || e.activity_name.toLowerCase().includes(q) || ((e as any).booking_number && `#${(e as any).booking_number}`.includes(q)));
     }
     // Apply activity filter
     if (logActivityFilter !== "all") {
@@ -254,6 +254,7 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[50px]"></TableHead>
+                    <TableHead>#</TableHead>
                     <TableHead>Customer</TableHead>
                     <TableHead>Activity</TableHead>
                     <TableHead>Date</TableHead>
@@ -283,6 +284,9 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
                             <Eye className="h-3.5 w-3.5" />
                           </Button>
                         )}
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground font-mono">
+                        {(entry as any).booking_number ? `#${(entry as any).booking_number}` : "—"}
                       </TableCell>
                       <TableCell>
                         <div>
@@ -426,7 +430,9 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
       <Dialog open={!!selectedBooking} onOpenChange={(o) => !o && setSelectedBooking(null)}>
         <DialogContent className="bg-card border-border max-w-md">
           <DialogHeader>
-            <DialogTitle className="font-heading">Booking Details</DialogTitle>
+            <DialogTitle className="font-heading">
+              Booking Details {selectedBooking?.booking_number ? <span className="text-muted-foreground font-mono text-sm ml-2">#{selectedBooking.booking_number}</span> : ""}
+            </DialogTitle>
           </DialogHeader>
           {selectedBooking && (
             <div className="space-y-4 pt-2">

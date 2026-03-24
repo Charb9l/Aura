@@ -201,6 +201,7 @@ export type Database = {
           activity_name: string
           booking_date: string
           booking_id: string
+          booking_number: number | null
           booking_time: string
           court_type: string | null
           created_at: string
@@ -220,6 +221,7 @@ export type Database = {
           activity_name: string
           booking_date: string
           booking_id: string
+          booking_number?: number | null
           booking_time: string
           court_type?: string | null
           created_at: string
@@ -239,6 +241,7 @@ export type Database = {
           activity_name?: string
           booking_date?: string
           booking_id?: string
+          booking_number?: number | null
           booking_time?: string
           court_type?: string | null
           created_at?: string
@@ -261,6 +264,7 @@ export type Database = {
           activity_name: string
           attendance_status: string | null
           booking_date: string
+          booking_number: number | null
           booking_time: string
           court_type: string | null
           created_at: string
@@ -279,6 +283,7 @@ export type Database = {
           activity_name: string
           attendance_status?: string | null
           booking_date: string
+          booking_number?: number | null
           booking_time: string
           court_type?: string | null
           created_at?: string
@@ -297,6 +302,7 @@ export type Database = {
           activity_name?: string
           attendance_status?: string | null
           booking_date?: string
+          booking_number?: number | null
           booking_time?: string
           court_type?: string | null
           created_at?: string

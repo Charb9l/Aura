@@ -88,6 +88,7 @@ const BookPage = () => {
   const [date, setDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [confirmedBookingNumber, setConfirmedBookingNumber] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
   const [clubs, setClubs] = useState<{ id: string; name: string; offerings: string[]; logo_url: string | null }[]>([]);
@@ -406,7 +407,7 @@ const BookPage = () => {
       court_type: selectedActivity === "basketball" ? courtType : null,
       discount_type: discountType,
       price: currentPrice,
-    }).select("id").single();
+    }).select("id, booking_number").single();
 
     setSubmitting(false);
     if (error) {
@@ -435,6 +436,7 @@ const BookPage = () => {
         });
       }
 
+      setConfirmedBookingNumber(insertedBooking?.booking_number ?? null);
       setSubmitted(true);
     }
   };
@@ -453,6 +455,9 @@ const BookPage = () => {
           <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center">
             <CheckCircle2 className="h-20 w-20 text-primary mx-auto mb-6" />
             <h1 className="font-heading text-2xl sm:text-4xl font-bold text-foreground mb-3">Booking Confirmed!</h1>
+            {confirmedBookingNumber && (
+              <p className="text-primary font-mono text-lg font-semibold mb-2">Booking #{confirmedBookingNumber}</p>
+            )}
             <p className="text-muted-foreground text-lg mb-2">
               {offering?.name || selectedActivity} — {date && format(date, "PPP")} at {selectedTime}
             </p>

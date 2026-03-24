@@ -15,6 +15,7 @@ export interface BookingRow {
   attendance_status?: string | null;
   created_by?: string | null;
   price?: number | null;
+  booking_number?: number | null;
 }
 
 export interface ProfileRow {
@@ -62,6 +63,7 @@ export interface AuditLogRow {
   deleted_at: string;
   created_at: string;
   created_by: string | null;
+  booking_number?: number | null;
 }
 
 export interface ActivityRow {
