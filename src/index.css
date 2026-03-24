@@ -160,6 +160,12 @@
     border-bottom: 1px solid hsl(var(--border));
   }
 
+  @media (max-width: 639px) {
+    .glass {
+      border-bottom: none;
+    }
+  }
+
   .glass-card {
     background: hsl(0 0% 12% / 0.95);
     backdrop-filter: blur(20px);
