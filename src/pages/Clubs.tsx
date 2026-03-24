@@ -238,6 +238,7 @@ const ClubsPage = () => {
       </section>
 
       <div className="container mx-auto px-6 pb-16">
+        <ClubsAcademyToggle />
         <MobileBackButton fallbackPath="/" />
 
         {/* Filters */}
