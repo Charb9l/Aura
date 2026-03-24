@@ -209,15 +209,8 @@ const Navbar = () => {
           )}
         </div>
 
-        {/* Mobile/Tablet: hamburger + profile */}
+        {/* Mobile/Tablet: hamburger only (profile moved to bottom tab bar on small mobile) */}
         <div className="flex lg:hidden items-center gap-1">
-          {user && (
-            <Link to="/profile" className={cn("text-muted-foreground active:text-foreground transition-colors p-2 relative min-h-[44px] min-w-[44px] flex items-center justify-center", showGlow && "text-primary")}>
-              {showGlow && <span className="absolute top-1 right-1 h-2.5 w-2.5 rounded-full bg-accent animate-ping" />}
-              {showGlow && <span className="absolute top-1 right-1 h-2.5 w-2.5 rounded-full bg-accent" />}
-              <AvatarDisplay size="md" />
-            </Link>
-          )}
           {!user && (
             <Link to="/auth" className="rounded-full bg-primary text-primary-foreground p-2.5 transition-all active:bg-primary/90 min-h-[44px] min-w-[44px] flex items-center justify-center shadow-sm">
               <LogIn className="h-5 w-5" />

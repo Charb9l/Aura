@@ -14,6 +14,7 @@ import Navbar from "@/components/Navbar";
 import GalleryMosaic from "@/components/GalleryMosaic";
 import PartnerRequestForm from "@/components/PartnerRequestForm";
 import MobileBackButton from "@/components/MobileBackButton";
+import ClubsAcademyToggle from "@/components/ClubsAcademyToggle";
 
 interface Club {
   id: string;
@@ -237,6 +238,7 @@ const ClubsPage = () => {
       </section>
 
       <div className="container mx-auto px-6 pb-16">
+        <ClubsAcademyToggle />
         <MobileBackButton fallbackPath="/" />
 
         {/* Filters */}
