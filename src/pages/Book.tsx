@@ -436,6 +436,7 @@ const BookPage = () => {
         });
       }
 
+      setConfirmedBookingNumber(insertedBooking?.booking_number ?? null);
       setSubmitted(true);
     }
   };
