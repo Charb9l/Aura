@@ -118,8 +118,8 @@ const Navbar = () => {
           <span className="text-2xl font-bold">{platformName.line1}</span>
           {platformName.line2 && (
             <>
-              <br />
-              <span className="text-[9px] font-body font-medium tracking-[0.25em] text-muted-foreground uppercase">{platformName.line2}</span>
+              <br className="hidden sm:block" />
+              <span className="hidden sm:inline text-[9px] font-body font-medium tracking-[0.25em] text-muted-foreground uppercase">{platformName.line2}</span>
             </>
           )}
         </Link>
