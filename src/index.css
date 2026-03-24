@@ -98,6 +98,17 @@
   .safe-y { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
   .safe-all { padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
 
+  /* Navbar is fixed and grows by safe-area-inset-top in standalone/native mode.
+     Pages using pt-28/pt-32 need extra top offset to clear the taller navbar. */
+  .page-offset-top {
+    padding-top: calc(7rem + env(safe-area-inset-top));
+  }
+  @media (min-width: 640px) {
+    .page-offset-top {
+      padding-top: calc(8rem + env(safe-area-inset-top));
+    }
+  }
+
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
     font-weight: 600;
