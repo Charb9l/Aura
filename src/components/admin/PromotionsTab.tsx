@@ -157,11 +157,19 @@ const PromotionsTab = ({ allUsers, clubs, myClubId }: Props) => {
       .sort((a, b) => b.completedLevels - a.completedLevels || b.totalShowBookings - a.totalShowBookings);
     setBadgeLeaders(badgeList);
 
-    // Price rules
+    // Price rules — resolve creator names for mega admin
     const ruleClubs = (ruleClubsRes.data || []) as any[];
-    const rules: PriceRule[] = ((rulesRes.data || []) as any[]).map(r => ({
+    const rulesRaw = (rulesRes.data || []) as any[];
+    const creatorIds = [...new Set(rulesRaw.map(r => r.created_by).filter(Boolean))] as string[];
+    let creatorMap: Record<string, string> = {};
+    if (creatorIds.length > 0) {
+      const { data: profiles } = await supabase.from("profiles").select("user_id, full_name").in("user_id", creatorIds);
+      (profiles || []).forEach((p: any) => { creatorMap[p.user_id] = p.full_name || "Unknown"; });
+    }
+    const rules: PriceRule[] = rulesRaw.map(r => ({
       ...r,
       clubs: ruleClubs.filter(rc => rc.price_rule_id === r.id).map(rc => rc.club_id),
+      creator_name: r.created_by ? creatorMap[r.created_by] || "Unknown" : null,
     }));
     setPriceRules(rules);
     setUserPromotions((promosRes.data || []) as UserPromotion[]);
