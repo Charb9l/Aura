@@ -88,6 +88,7 @@ const BookPage = () => {
   const [date, setDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [confirmedBookingNumber, setConfirmedBookingNumber] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
   const [clubs, setClubs] = useState<{ id: string; name: string; offerings: string[]; logo_url: string | null }[]>([]);
