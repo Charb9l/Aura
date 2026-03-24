@@ -163,6 +163,9 @@
   @media (max-width: 639px) {
     .glass {
       border-bottom: none;
+      background: hsl(var(--background));
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
     }
   }
 
