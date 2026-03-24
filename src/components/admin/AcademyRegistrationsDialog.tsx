@@ -42,6 +42,7 @@ const AcademyRegistrationsDialog = ({ open, onOpenChange }: Props) => {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Registration | null>(null);
   const [saving, setSaving] = useState(false);
+  const [filterAcademy, setFilterAcademy] = useState("all");
 
   useEffect(() => {
     if (!open) return;
