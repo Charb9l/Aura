@@ -254,6 +254,7 @@ const BookingsCalendarTab = ({ bookings, clubs, isMasterAdmin, onDeleteBooking, 
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[50px]"></TableHead>
+                    <TableHead>#</TableHead>
                     <TableHead>Customer</TableHead>
                     <TableHead>Activity</TableHead>
                     <TableHead>Date</TableHead>
