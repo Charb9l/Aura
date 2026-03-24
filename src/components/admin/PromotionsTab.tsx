@@ -65,6 +65,7 @@ interface UserPromotion {
 interface Props {
   allUsers: UserWithEmail[];
   clubs: ClubRow[];
+  myClubId?: string | null;
 }
 
 const LEVEL_NAMES = ["Rookie", "Athlete", "Legend"];
