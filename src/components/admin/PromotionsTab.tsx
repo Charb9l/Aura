@@ -216,6 +216,7 @@ const PromotionsTab = ({ allUsers, clubs, myClubId }: Props) => {
       uses_per_customer: Number(ruleUsesPerCustomer) || 1,
       start_date: ruleStartDate ? format(ruleStartDate, "yyyy-MM-dd") : null,
       end_date: ruleEndDate ? format(ruleEndDate, "yyyy-MM-dd") : null,
+      created_by: adminUser?.id || null,
     } as any).select().single();
     if (error || !rule) { toast.error("Failed to create rule"); setRuleSaving(false); return; }
     // Add clubs — club admins auto-assign their own club
