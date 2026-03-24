@@ -485,7 +485,7 @@ const PromotionsTab = ({ allUsers, clubs, myClubId }: Props) => {
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3" onClick={e => e.stopPropagation()}>
                         <div className="flex items-center gap-2">
                           <Label className="text-xs text-muted-foreground">Active</Label>
                           <Switch checked={rule.active} onCheckedChange={(v) => toggleRuleActive(rule.id, v)} />
