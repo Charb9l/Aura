@@ -479,6 +479,7 @@ const PromotionsTab = ({ allUsers, clubs, myClubId }: Props) => {
                       </div>
                     </div>
                   </CardHeader>
+                  {isMasterAdmin && (
                   <CardContent>
                     <Label className="text-xs text-muted-foreground mb-2 block">Participating Clubs</Label>
                     <Popover>
@@ -498,10 +499,8 @@ const PromotionsTab = ({ allUsers, clubs, myClubId }: Props) => {
                             onClick={async () => {
                               const allSelected = rule.clubs.length === clubs.length;
                               if (allSelected) {
-                                // Untick all
                                 for (const cid of [...rule.clubs]) await toggleRuleClub(rule.id, cid, true);
                               } else {
-                                // Tick all
                                 for (const club of clubs) {
                                   if (!rule.clubs.includes(club.id)) await toggleRuleClub(rule.id, club.id, false);
                                 }
@@ -525,6 +524,7 @@ const PromotionsTab = ({ allUsers, clubs, myClubId }: Props) => {
                       </PopoverContent>
                     </Popover>
                   </CardContent>
+                  )}
                 </Card>
               ))}
             </div>
