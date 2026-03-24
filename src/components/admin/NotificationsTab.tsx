@@ -78,6 +78,34 @@ const NotificationsTab = ({ onUnreadCountChange, onNavigate }: Props) => {
 
   useEffect(() => { fetchNotifications(); }, [fetchNotifications]);
 
+  const fetchSentNotifications = useCallback(async () => {
+    setSentLoading(true);
+    const { data } = await supabase
+      .from("customer_notifications")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(200);
+    if (!data) { setSentLoading(false); return; }
+    const targetIds = [...new Set(data.filter(n => n.target_user_id).map(n => n.target_user_id!))];
+    let nameMap = new Map<string, string>();
+    if (targetIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, full_name")
+        .in("user_id", targetIds);
+      if (profiles) profiles.forEach(p => { if (p.full_name) nameMap.set(p.user_id, p.full_name); });
+    }
+    setSentNotifications(data.map(n => ({
+      ...n,
+      target_name: n.target_user_id ? (nameMap.get(n.target_user_id) || "Unknown user") : undefined,
+    })));
+    setSentLoading(false);
+  }, []);
+
+  useEffect(() => {
+    if (isSentView && sentNotifications.length === 0) fetchSentNotifications();
+  }, [isSentView, fetchSentNotifications]);
+
   useEffect(() => {
     const channel = supabase
       .channel("admin-notifications")
