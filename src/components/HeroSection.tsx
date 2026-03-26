@@ -3,7 +3,11 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { CalendarDays, GraduationCap, LayoutGrid, Heart, Dumbbell, Trophy } from "lucide-react";
 import FeaturedClubsStrip from "@/components/FeaturedClubsStrip";
+import HeroProgressCard from "@/components/HeroProgressCard";
+import LiveFeatureIcons from "@/components/LiveFeatureIcons";
+import LiveActivityStrip from "@/components/LiveActivityStrip";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { ClubsIcon, AcademiesIcon, MatchmakerIcon, HabitTrackerIcon, LoyaltyIcon } from "@/components/icons/BrandIcons";
 
 interface HeroButton { to: string; label: string; glow?: boolean; }
@@ -17,6 +21,7 @@ interface HeroContent {
 }
 
 const HeroSection = () => {
+  const { user } = useAuth();
   const [content, setContent] = useState<HeroContent | null>(null);
 
   useEffect(() => {
@@ -32,6 +37,10 @@ const HeroSection = () => {
   const showScrollIndicator = content?.show_scroll_indicator ?? false;
   const image1 = content?.landing_image_1;
   const image2 = content?.landing_image_2;
+
+  // Filter out loyalty/matchmaker/habits from CMS buttons when user is logged in (shown as live icons instead)
+  const liveRoutes = new Set(["/loyalty", "/matchmaker", "/habits"]);
+  const filteredActions = user ? actions.filter(a => !liveRoutes.has(a.to)) : actions;
 
   const routeIconMap: Record<string, React.ReactNode> = {
     "/book": <CalendarDays className="h-6 w-6" />,
@@ -61,20 +70,27 @@ const HeroSection = () => {
     <section className="relative flex flex-col items-center page-offset-top pb-6 md:pb-8 overflow-hidden">
       {/* Content */}
       <div className="relative z-10 container mx-auto px-6 flex flex-col items-center text-center gap-6 md:gap-8">
-        {/* Subtitle only */}
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="text-xs uppercase tracking-[0.3em] text-primary font-semibold"
-        >
-          {subtitle}
-        </motion.p>
+        {/* Personalized progress card for logged-in users, subtitle for guests */}
+        {user ? (
+          <HeroProgressCard />
+        ) : (
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="text-xs uppercase tracking-[0.3em] text-primary font-semibold"
+          >
+            {subtitle}
+          </motion.p>
+        )}
 
-        {/* Action Buttons */}
-        {actions.length > 0 && (
+        {/* Live Feature Icons for logged-in users */}
+        {user && <LiveFeatureIcons />}
+
+        {/* Action Buttons (remaining CMS buttons) */}
+        {filteredActions.length > 0 && (
           <div className="flex flex-wrap justify-center gap-4 w-full max-w-sm lg:max-w-lg mx-auto">
-            {actions.map((action) => {
+            {filteredActions.map((action) => {
               const icon = routeIconMap[action.to] || getFallbackIcon(action.label);
               return (
                 <motion.div
@@ -96,6 +112,9 @@ const HeroSection = () => {
             })}
           </div>
         )}
+
+        {/* Live Activity Strip for logged-in users */}
+        {user && <LiveActivityStrip />}
 
         {/* Two Rectangle Image Bubbles */}
         {(image1 || image2) && (

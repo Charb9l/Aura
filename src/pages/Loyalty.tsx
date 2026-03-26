@@ -1,12 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { ArrowRight, ChevronRight, Trophy } from "lucide-react";
+import { ArrowRight, ChevronRight, Trophy, Flame, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRewards } from "@/hooks/useRewards";
 import { LoyaltyIcon } from "@/components/icons/BrandIcons";
+import { startOfWeek, subWeeks, parseISO } from "date-fns";
 
 interface OfferingItem {
   id: string;
@@ -53,6 +55,7 @@ const STEP_ICONS = [
 
 const LoyaltyPage = () => {
   const { user } = useAuth();
+  const { rewards, loaded: rewardsLoaded } = useRewards();
   const [title, setTitle] = useState("Book More. Earn More.");
   const [subtitle, setSubtitle] = useState("Every booking earns you a point. Stack them up and unlock exclusive discounts — or go big and play for free.");
   const [tagline, setTagline] = useState("Summit Rewards Program");
@@ -66,6 +69,13 @@ const LoyaltyPage = () => {
   const [milestone5, setMilestone5] = useState("50% Off");
   const [milestone10, setMilestone10] = useState("Free Session");
   const [offerings, setOfferings] = useState<OfferingItem[]>([]);
+  const [streakWeeks, setStreakWeeks] = useState<boolean[]>([false, false, false]);
+  const [animateKey, setAnimateKey] = useState(0);
+
+  useEffect(() => {
+    // Trigger re-animation every time page opens
+    setAnimateKey(k => k + 1);
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -92,6 +102,50 @@ const LoyaltyPage = () => {
     };
     fetchData();
   }, []);
+
+  // Calculate streak weeks
+  useEffect(() => {
+    if (!user) return;
+    const calcStreak = async () => {
+      const { data } = await supabase
+        .from("bookings")
+        .select("booking_date")
+        .eq("user_id", user.id)
+        .eq("attendance_status", "show")
+        .order("booking_date", { ascending: false });
+      if (!data) return;
+
+      const now = new Date();
+      const weeks: boolean[] = [];
+      for (let w = 0; w < 3; w++) {
+        const weekStart = startOfWeek(subWeeks(now, 2 - w), { weekStartsOn: 1 });
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekEnd.getDate() + 6);
+        const hasBooking = data.some(b => {
+          const d = parseISO(b.booking_date);
+          return d >= weekStart && d <= weekEnd;
+        });
+        weeks.push(hasBooking);
+      }
+      setStreakWeeks(weeks);
+    };
+    calcStreak();
+  }, [user]);
+
+  // Best club progress for the journey section
+  const bestClub = useMemo(() => {
+    if (!rewardsLoaded) return null;
+    return rewards.filter(r => r.points > 0).sort((a, b) => b.points - a.points)[0] || null;
+  }, [rewards, rewardsLoaded]);
+
+  const progressPct = bestClub ? (bestClub.points / 10) * 100 : 0;
+
+  const milestoneText = useMemo(() => {
+    if (!bestClub || bestClub.points === 0) return "Book your first session to start earning";
+    if (bestClub.points < 5) return `${5 - bestClub.points} more booking${5 - bestClub.points > 1 ? "s" : ""} until 50% off`;
+    if (bestClub.points < 10) return `${10 - bestClub.points} more booking${10 - bestClub.points > 1 ? "s" : ""} until FREE session`;
+    return "🎉 You've unlocked a FREE session!";
+  }, [bestClub]);
 
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0">
@@ -181,10 +235,11 @@ const LoyaltyPage = () => {
         </div>
       </section>
 
-      {/* Progress tracker */}
+      {/* Progress tracker — shows distance to next milestone */}
       <section className="border-t border-border/50">
         <div className="container mx-auto px-6 py-12">
           <motion.div
+            key={animateKey}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -195,18 +250,33 @@ const LoyaltyPage = () => {
               <div className="h-px flex-1 bg-gradient-to-l from-primary/30 to-transparent" />
             </div>
 
+            {/* Milestone distance text */}
+            {user && rewardsLoaded && (
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3, duration: 0.5 }}
+                className="text-center text-lg sm:text-xl font-heading font-light text-foreground mb-6"
+              >
+                {milestoneText}
+              </motion.p>
+            )}
+
             <div className="max-w-4xl mx-auto">
               <div className="relative">
                 <div className="flex items-center justify-between mb-3">
                   {Array.from({ length: 10 }, (_, i) => {
                     const isMilestone5 = i === 4;
                     const isMilestone10 = i === 9;
+                    const isFilled = bestClub ? i < bestClub.points : false;
                     return (
                       <div key={i} className="flex flex-col items-center">
                         <div
                           className={`
                             w-7 h-7 sm:w-9 sm:h-9 flex items-center justify-center text-[10px] sm:text-xs font-medium transition-all
-                            ${isMilestone5
+                            ${isFilled
+                              ? "border-2 border-primary bg-primary/20 text-primary"
+                              : isMilestone5
                               ? "border-2 border-primary bg-primary/10 text-primary"
                               : isMilestone10
                               ? "border-2 border-primary bg-primary text-primary-foreground"
@@ -221,16 +291,28 @@ const LoyaltyPage = () => {
                   })}
                 </div>
 
-                <div className="h-[2px] bg-border/40 relative">
+                {/* Animated progress bar with gold glow */}
+                <div className="h-[3px] bg-border/40 relative rounded-full overflow-hidden">
                   <motion.div
+                    key={`progress-${animateKey}`}
                     initial={{ width: 0 }}
-                    whileInView={{ width: "50%" }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
-                    className="absolute left-0 top-0 h-full bg-gradient-to-r from-primary/60 to-primary"
+                    animate={{ width: `${progressPct}%` }}
+                    transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                    className="absolute left-0 top-0 h-full bg-gradient-to-r from-primary/60 to-primary rounded-full"
                   />
+                  {progressPct > 0 && (
+                    <motion.div
+                      key={`glow-${animateKey}`}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: [0, 1, 0.6, 1, 0.6] }}
+                      transition={{ duration: 2, delay: 0.6, repeat: Infinity, repeatType: "reverse" }}
+                      className="absolute top-1/2 -translate-y-1/2 h-3 w-3 rounded-full bg-primary shadow-[0_0_12px_4px_hsl(var(--primary)/0.5)]"
+                      style={{ left: `${progressPct}%`, transform: "translate(-50%, -50%)" }}
+                    />
+                  )}
                 </div>
 
+                {/* Milestone labels */}
                 <div className="flex justify-between mt-3">
                   <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/50">Start</span>
                   <span className="text-[10px] uppercase tracking-[0.2em] text-primary/80">{milestone5}</span>
@@ -241,6 +323,63 @@ const LoyaltyPage = () => {
           </motion.div>
         </div>
       </section>
+
+      {/* Streak Bonus Section */}
+      {user && (
+        <section className="border-t border-border/50">
+          <div className="container mx-auto px-6 py-10">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+            >
+              <div className="flex items-center gap-4 mb-8">
+                <div className="h-px flex-1 bg-gradient-to-r from-primary/30 to-transparent" />
+                <span className="text-[10px] uppercase tracking-[0.4em] text-primary font-medium whitespace-nowrap">Streak Bonus</span>
+                <div className="h-px flex-1 bg-gradient-to-l from-primary/30 to-transparent" />
+              </div>
+
+              <div className="max-w-lg mx-auto rounded-2xl border border-border bg-card/50 p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-xl border border-primary/30 bg-primary/10 flex items-center justify-center">
+                    <Flame className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-foreground">Book 3 weeks straight → earn 2x points that week</h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">Consistency is rewarded. Keep your streak alive!</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 justify-center">
+                  {["Week 1", "Week 2", "Week 3"].map((label, i) => {
+                    const done = streakWeeks[i];
+                    const isCurrent = !done && (i === 0 || streakWeeks[i - 1]);
+                    return (
+                      <div key={label} className="flex flex-col items-center gap-1.5">
+                        <div
+                          className={`w-10 h-10 rounded-lg border-2 flex items-center justify-center transition-all ${
+                            done
+                              ? "border-primary bg-primary/15 text-primary"
+                              : isCurrent
+                              ? "border-primary/50 bg-primary/5 text-primary/60 animate-pulse"
+                              : "border-border text-muted-foreground/40"
+                          }`}
+                        >
+                          {done ? <Check className="h-5 w-5" /> : <span className="text-xs font-medium">{i + 1}</span>}
+                        </div>
+                        <span className={`text-[9px] uppercase tracking-wider ${done ? "text-primary" : "text-muted-foreground/60"}`}>
+                          {done ? "✓" : isCurrent ? "Now" : label.split(" ")[1]}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </section>
+      )}
 
       {/* Activities marquee */}
       {offerings.length > 0 && (
