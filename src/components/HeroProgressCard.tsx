@@ -1,7 +1,8 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useRewards } from "@/hooks/useRewards";
-import { usePlayerProfile } from "@/hooks/usePlayerProfile";
 import { motion } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState } from "react";
 
 const getGreeting = () => {
   const h = new Date().getHours();
