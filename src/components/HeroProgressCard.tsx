@@ -14,11 +14,15 @@ const getGreeting = () => {
 const HeroProgressCard = () => {
   const { user } = useAuth();
   const { rewards, loaded } = useRewards();
-  const { profile } = usePlayerProfile();
+  const [firstName, setFirstName] = useState("there");
 
-  if (!user || !loaded) return null;
-
-  const firstName = profile?.full_name?.split(" ")[0] || "there";
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("profiles").select("full_name").eq("user_id", user.id).single()
+      .then(({ data }) => {
+        if (data?.full_name) setFirstName(data.full_name.split(" ")[0]);
+      });
+  }, [user]);
 
   // Find the club closest to a reward
   const bestClub = rewards
