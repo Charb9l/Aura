@@ -6,6 +6,7 @@ import FeaturedClubsStrip from "@/components/FeaturedClubsStrip";
 import HeroProgressCard from "@/components/HeroProgressCard";
 import LiveFeatureIcons from "@/components/LiveFeatureIcons";
 import LiveActivityStrip from "@/components/LiveActivityStrip";
+import MatchmakingSocialCard from "@/components/MatchmakingSocialCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { ClubsIcon, AcademiesIcon, MatchmakerIcon, HabitTrackerIcon, LoyaltyIcon } from "@/components/icons/BrandIcons";
