@@ -414,21 +414,37 @@ const MatchmakerPage = () => {
                         {/* Header — name + avatar only, no contact info */}
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex items-center gap-3">
-                            <div
-                              className="h-11 w-11 rounded-full flex items-center justify-center text-white font-bold text-lg shrink-0"
-                              style={{
-                                backgroundColor: primaryColor
-                                  ? `hsl(${primaryColor})`
-                                  : "hsl(var(--primary))",
-                              }}
-                            >
-                              {match.display_name[0]}
-                            </div>
+                            {avatarMap[match.user_id] ? (
+                              <img
+                                src={avatarMap[match.user_id]!}
+                                alt={match.display_name}
+                                className="h-11 w-11 rounded-full object-cover border-2 border-border shrink-0"
+                              />
+                            ) : (
+                              <div className="relative h-11 w-11 rounded-full bg-muted/40 flex flex-col items-center justify-center shrink-0 border border-border">
+                                <svg className="h-5 w-5 text-muted-foreground/50" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                                <Camera className="h-2.5 w-2.5 text-muted-foreground/40 absolute bottom-0.5 right-0.5" />
+                              </div>
+                            )}
                             <div>
-                              <p className="font-heading font-semibold text-foreground">{match.display_name}</p>
-                              <p className="text-xs text-muted-foreground">
-                                {match.sports.length} sport{match.sports.length > 1 ? "s" : ""}
+                              <div className="flex items-center gap-1.5">
+                                <p className="font-heading font-semibold text-foreground">{match.display_name}</p>
+                                {activityMap[match.user_id]?.active && (
+                                  <span className="relative flex h-2 w-2">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                                  </span>
+                                )}
+                              </div>
+                              {!avatarMap[match.user_id] && (
+                                <p className="text-[9px] text-primary/70 font-medium">Add photo</p>
+                              )}
+                              <p className="text-[10px]" style={{ color: activityMap[match.user_id]?.active ? "hsl(142 60% 50%)" : "hsl(var(--muted-foreground))" }}>
+                                {activityMap[match.user_id]?.lastActive || `${match.sports.length} sport${match.sports.length > 1 ? "s" : ""}`}
                               </p>
+                              {!avatarMap[match.user_id] && (
+                                <p className="text-[9px] text-primary/50 italic">Players with photos get 3x more matches.</p>
+                              )}
                             </div>
                           </div>
 
