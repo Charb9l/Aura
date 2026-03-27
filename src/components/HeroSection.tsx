@@ -114,6 +114,8 @@ const HeroSection = () => {
           </div>
         )}
 
+        {user && <MatchmakingSocialCard />}
+
         {/* Live Activity Strip for logged-in users */}
         {user && <LiveActivityStrip />}
 
