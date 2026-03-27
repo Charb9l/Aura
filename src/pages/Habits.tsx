@@ -465,11 +465,34 @@ const HabitsPage = () => {
     );
   }
 
+  const getAuraLevel = (score: number): { name: string; color: string } => {
+    if (score >= 81) return { name: "Elite Aura", color: "text-amber-300" };
+    if (score >= 61) return { name: "Gold Performer", color: "text-primary" };
+    if (score >= 41) return { name: "Bronze Contender", color: "text-amber-600" };
+    if (score >= 21) return { name: "Rising Athlete", color: "text-emerald-400" };
+    return { name: "Rookie", color: "text-muted-foreground" };
+  };
+
+  const auraLevel = getAuraLevel(wellnessScore);
+  const nextAuraThresholds = [21, 41, 61, 81, 101];
+  const nextThreshold = nextAuraThresholds.find(t => t > wellnessScore) || 101;
+  const nextAuraName = getAuraLevel(nextThreshold).name;
+
   const getScoreColor = (score: number) => {
     if (score >= 80) return "text-green-400";
     if (score >= 50) return "text-amber-400";
     return "text-muted-foreground";
   };
+
+  // Personality label based on time distribution
+  const getPersonalityLabel = () => {
+    const { morning, afternoon, evening } = timeDistribution;
+    if (morning >= afternoon && morning >= evening && morning > 0) return { label: "You're an Early Bird ☀️", bg: "bg-amber-500/10 border-amber-500/30", text: "text-amber-400" };
+    if (afternoon >= morning && afternoon >= evening && afternoon > 0) return { label: "You're a Midday Mover ⚡", bg: "bg-orange-500/10 border-orange-500/30", text: "text-orange-400" };
+    if (evening > 0) return { label: "You're an Evening Athlete 🌙", bg: "bg-indigo-500/10 border-indigo-500/30", text: "text-indigo-400" };
+    return null;
+  };
+  const personalityLabel = getPersonalityLabel();
 
   return (
     <div className="min-h-screen pb-20 md:pb-0">
