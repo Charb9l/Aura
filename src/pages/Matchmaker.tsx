@@ -129,9 +129,40 @@ const MatchmakerPage = () => {
     });
 
     const result = await res.json();
-    setMatches(result.matches || []);
+    const matchList: MatchProfile[] = result.matches || [];
+    setMatches(matchList);
     if (result.offerings) setOfferings(result.offerings);
     if (result.locations) setLocations(result.locations);
+
+    // Fetch avatars and activity for matched users
+    if (matchList.length > 0) {
+      const userIds = matchList.map(m => m.user_id);
+      const [profilesRes, bookingsRes] = await Promise.all([
+        supabase.from("profiles").select("user_id, avatar_url").in("user_id", userIds),
+        supabase.from("bookings").select("user_id, created_at").in("user_id", userIds).order("created_at", { ascending: false }),
+      ]);
+      const aMap: Record<string, string | null> = {};
+      (profilesRes.data || []).forEach(p => { aMap[p.user_id] = p.avatar_url; });
+      setAvatarMap(aMap);
+
+      const now = new Date();
+      const actMap: Record<string, { active: boolean; lastActive: string }> = {};
+      userIds.forEach(uid => {
+        const userBookings = (bookingsRes.data || []).filter(b => b.user_id === uid);
+        if (userBookings.length > 0) {
+          const lastDate = new Date(userBookings[0].created_at);
+          const diffDays = Math.floor((now.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+          actMap[uid] = {
+            active: diffDays <= 7,
+            lastActive: diffDays <= 7 ? "Active this week" : diffDays <= 14 ? "Last active 2 weeks ago" : `Last active ${Math.floor(diffDays / 7)} weeks ago`,
+          };
+        } else {
+          actMap[uid] = { active: false, lastActive: "New player" };
+        }
+      });
+      setActivityMap(actMap);
+    }
+
     setLoading(false);
   };
 
