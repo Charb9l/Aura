@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
-import { Sparkles, MapPin, Trophy, Filter, Zap, Star, ArrowRight, Gauge, Swords, CalendarClock, Target, Send, ChevronRight, type LucideIcon } from "lucide-react";
+import { Sparkles, MapPin, Trophy, Filter, Zap, Star, ArrowRight, Gauge, Swords, CalendarClock, Target, Send, ChevronRight, Camera, type LucideIcon } from "lucide-react";
 import { MatchmakerIcon } from "@/components/icons/BrandIcons";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -65,6 +65,8 @@ const MatchmakerPage = () => {
   const [pageTitle, setPageTitle] = useState("Find Your Match");
   const [pageSubtitle, setPageSubtitle] = useState("Get matched with players who share your sports, skill level, and preferred location. Your next opponent or partner is just a click away.");
   const [criteria, setCriteria] = useState<{ emoji: string; label: string; use_gold?: boolean }[]>([]);
+  const [avatarMap, setAvatarMap] = useState<Record<string, string | null>>({});
+  const [activityMap, setActivityMap] = useState<Record<string, { active: boolean; lastActive: string }>>({});
 
   // Nudge state
   const { sendNudge, sentNudges } = useNudges();
@@ -127,9 +129,40 @@ const MatchmakerPage = () => {
     });
 
     const result = await res.json();
-    setMatches(result.matches || []);
+    const matchList: MatchProfile[] = result.matches || [];
+    setMatches(matchList);
     if (result.offerings) setOfferings(result.offerings);
     if (result.locations) setLocations(result.locations);
+
+    // Fetch avatars and activity for matched users
+    if (matchList.length > 0) {
+      const userIds = matchList.map(m => m.user_id);
+      const [profilesRes, bookingsRes] = await Promise.all([
+        supabase.from("profiles").select("user_id, avatar_url").in("user_id", userIds),
+        supabase.from("bookings").select("user_id, created_at").in("user_id", userIds).order("created_at", { ascending: false }),
+      ]);
+      const aMap: Record<string, string | null> = {};
+      (profilesRes.data || []).forEach(p => { aMap[p.user_id] = p.avatar_url; });
+      setAvatarMap(aMap);
+
+      const now = new Date();
+      const actMap: Record<string, { active: boolean; lastActive: string }> = {};
+      userIds.forEach(uid => {
+        const userBookings = (bookingsRes.data || []).filter(b => b.user_id === uid);
+        if (userBookings.length > 0) {
+          const lastDate = new Date(userBookings[0].created_at);
+          const diffDays = Math.floor((now.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+          actMap[uid] = {
+            active: diffDays <= 7,
+            lastActive: diffDays <= 7 ? "Active this week" : diffDays <= 14 ? "Last active 2 weeks ago" : `Last active ${Math.floor(diffDays / 7)} weeks ago`,
+          };
+        } else {
+          actMap[uid] = { active: false, lastActive: "New player" };
+        }
+      });
+      setActivityMap(actMap);
+    }
+
     setLoading(false);
   };
 
@@ -381,21 +414,37 @@ const MatchmakerPage = () => {
                         {/* Header — name + avatar only, no contact info */}
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex items-center gap-3">
-                            <div
-                              className="h-11 w-11 rounded-full flex items-center justify-center text-white font-bold text-lg shrink-0"
-                              style={{
-                                backgroundColor: primaryColor
-                                  ? `hsl(${primaryColor})`
-                                  : "hsl(var(--primary))",
-                              }}
-                            >
-                              {match.display_name[0]}
-                            </div>
+                            {avatarMap[match.user_id] ? (
+                              <img
+                                src={avatarMap[match.user_id]!}
+                                alt={match.display_name}
+                                className="h-11 w-11 rounded-full object-cover border-2 border-border shrink-0"
+                              />
+                            ) : (
+                              <div className="relative h-11 w-11 rounded-full bg-muted/40 flex flex-col items-center justify-center shrink-0 border border-border">
+                                <svg className="h-5 w-5 text-muted-foreground/50" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                                <Camera className="h-2.5 w-2.5 text-muted-foreground/40 absolute bottom-0.5 right-0.5" />
+                              </div>
+                            )}
                             <div>
-                              <p className="font-heading font-semibold text-foreground">{match.display_name}</p>
-                              <p className="text-xs text-muted-foreground">
-                                {match.sports.length} sport{match.sports.length > 1 ? "s" : ""}
+                              <div className="flex items-center gap-1.5">
+                                <p className="font-heading font-semibold text-foreground">{match.display_name}</p>
+                                {activityMap[match.user_id]?.active && (
+                                  <span className="relative flex h-2 w-2">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                                  </span>
+                                )}
+                              </div>
+                              {!avatarMap[match.user_id] && (
+                                <p className="text-[9px] text-primary/70 font-medium">Add photo</p>
+                              )}
+                              <p className="text-[10px]" style={{ color: activityMap[match.user_id]?.active ? "hsl(142 60% 50%)" : "hsl(var(--muted-foreground))" }}>
+                                {activityMap[match.user_id]?.lastActive || `${match.sports.length} sport${match.sports.length > 1 ? "s" : ""}`}
                               </p>
+                              {!avatarMap[match.user_id] && (
+                                <p className="text-[9px] text-primary/50 italic">Players with photos get 3x more matches.</p>
+                              )}
                             </div>
                           </div>
 

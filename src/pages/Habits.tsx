@@ -465,11 +465,34 @@ const HabitsPage = () => {
     );
   }
 
+  const getAuraLevel = (score: number): { name: string; color: string } => {
+    if (score >= 81) return { name: "Elite Aura", color: "text-amber-300" };
+    if (score >= 61) return { name: "Gold Performer", color: "text-primary" };
+    if (score >= 41) return { name: "Bronze Contender", color: "text-amber-600" };
+    if (score >= 21) return { name: "Rising Athlete", color: "text-emerald-400" };
+    return { name: "Rookie", color: "text-muted-foreground" };
+  };
+
+  const auraLevel = getAuraLevel(wellnessScore);
+  const nextAuraThresholds = [21, 41, 61, 81, 101];
+  const nextThreshold = nextAuraThresholds.find(t => t > wellnessScore) || 101;
+  const nextAuraName = getAuraLevel(nextThreshold).name;
+
   const getScoreColor = (score: number) => {
     if (score >= 80) return "text-green-400";
     if (score >= 50) return "text-amber-400";
     return "text-muted-foreground";
   };
+
+  // Personality label based on time distribution
+  const getPersonalityLabel = () => {
+    const { morning, afternoon, evening } = timeDistribution;
+    if (morning >= afternoon && morning >= evening && morning > 0) return { label: "You're an Early Bird ☀️", bg: "bg-amber-500/10 border-amber-500/30", text: "text-amber-400" };
+    if (afternoon >= morning && afternoon >= evening && afternoon > 0) return { label: "You're a Midday Mover ⚡", bg: "bg-orange-500/10 border-orange-500/30", text: "text-orange-400" };
+    if (evening > 0) return { label: "You're an Evening Athlete 🌙", bg: "bg-indigo-500/10 border-indigo-500/30", text: "text-indigo-400" };
+    return null;
+  };
+  const personalityLabel = getPersonalityLabel();
 
   return (
     <div className="min-h-screen pb-20 md:pb-0">
@@ -599,7 +622,17 @@ const HabitsPage = () => {
             </Card>
           </motion.div>
 
-          {/* Quick stats strip — SWAPPED: Levels first, Week Streak last */}
+          {/* Personality Label */}
+          {personalityLabel && completedBookings.length > 0 && (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }} className="mb-6">
+              <div className={cn("rounded-xl border p-4 text-center", personalityLabel.bg)}>
+                <p className={cn("text-lg font-heading font-bold", personalityLabel.text)}>{personalityLabel.label}</p>
+                <p className="text-[11px] text-muted-foreground mt-1">Based on your session history</p>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Quick stats strip */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
             className="flex flex-wrap items-center justify-center gap-6 sm:gap-10 mb-10 py-4 px-6 rounded-xl border border-border bg-card/50"
           >
@@ -607,7 +640,6 @@ const HabitsPage = () => {
             <div className="text-center relative">
               <button onClick={() => setShowLevelInfo(prev => !prev)} className="hover:opacity-80 transition-opacity group">
                 <div className="relative flex items-center justify-center gap-1.5 mb-0.5">
-                  {/* Ping ring */}
                   <span className="absolute inset-0 rounded-full animate-ping bg-primary/20 pointer-events-none" />
                   <span className="relative flex items-center gap-1.5">
                     {completedLevels === 0 && <Shield className="h-4 w-4 text-primary animate-pulse" />}
@@ -654,22 +686,48 @@ const HabitsPage = () => {
               </AnimatePresence>
             </div>
             <div className="h-8 w-px bg-border hidden sm:block" />
+
+            {/* Aura Score — branded level name */}
             <div className="text-center">
-              <div className={`text-2xl font-bold ${getScoreColor(wellnessScore)}`}>{wellnessScore}</div>
-              <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Wellness Score</p>
+              <div className={cn("text-lg font-heading font-bold", auraLevel.color)}>{auraLevel.name}</div>
+              <div className={cn("text-xs font-medium", getScoreColor(wellnessScore))}>{wellnessScore}/100</div>
+              <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Aura Score</p>
+              {wellnessScore < 100 && (
+                <p className="text-[9px] text-primary/60 mt-0.5 italic">Keep going — you're close to {nextAuraName}.</p>
+              )}
             </div>
             <div className="h-8 w-px bg-border hidden sm:block" />
+
+            {/* Sessions — achievement style */}
             <div className="text-center">
               <span className="text-2xl font-bold text-foreground">{completedBookings.length}</span>
-              <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Sessions</p>
+              <p className="text-[11px] text-muted-foreground uppercase tracking-wider">
+                {completedBookings.length === 1 ? "Session" : "Sessions"} this month 🚀
+              </p>
+              {completedBookings.length > 0 && (
+                <p className="text-[9px] text-primary/60 italic">You're building momentum!</p>
+              )}
             </div>
             <div className="h-8 w-px bg-border hidden sm:block" />
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-1.5 mb-0.5">
-                <Flame className="h-4 w-4 text-orange-400" />
-                <span className="text-2xl font-bold text-foreground">{currentStreak}</span>
-              </div>
-              <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Week Streak</p>
+
+            {/* Week Streak — empty state when 0 */}
+            <div className="text-center max-w-[140px]">
+              {currentStreak > 0 ? (
+                <>
+                  <div className="flex items-center justify-center gap-1.5 mb-0.5">
+                    <Flame className="h-4 w-4 text-orange-400" />
+                    <span className="text-2xl font-bold text-foreground">{currentStreak}</span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Week Streak</p>
+                </>
+              ) : (
+                <>
+                  <Flame className="h-5 w-5 text-muted-foreground/30 mx-auto mb-1" />
+                  <p className="text-[10px] text-muted-foreground leading-snug">
+                    Start your streak this week — book your first session to light the flame 🔥
+                  </p>
+                </>
+              )}
             </div>
           </motion.div>
 
