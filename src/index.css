@@ -68,6 +68,7 @@
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-body);
+    background: radial-gradient(ellipse at 50% 0%, hsl(0 0% 10%) 0%, hsl(0 0% 5%) 60%, hsl(0 0% 4%) 100%);
     font-weight: 400;
     letter-spacing: -0.01em;
     -webkit-font-smoothing: antialiased;
