@@ -122,7 +122,7 @@ const BadgeLevelSection = ({ level, li, defaultOpen }: { level: BadgeLevelData; 
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-1">
-                  <h3 className={cn("font-heading text-lg font-bold", levelComplete ? colors.text : "text-foreground")}>
+                  <h3 className={cn("font-heading text-lg font-bold -tracking-tight", levelComplete ? "text-metallic" : "text-foreground")}>
                     {level.name}
                   </h3>
                   <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform duration-300", isOpen && "rotate-180")} />
