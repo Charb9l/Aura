@@ -448,20 +448,94 @@ const BookPage = () => {
 
   if (submitted) {
     const offering = offerings.find(o => o.slug === selectedActivity);
+    const clubReward = resolvedClubId ? getRewardForClub(resolvedClubId) : undefined;
+    const clubName = clubs.find(c => c.id === resolvedClubId)?.name;
+
+    // Loyalty progress info
+    const rewardInfo = rewards.find(r => r.clubId === resolvedClubId);
+    const pts = rewardInfo?.points || 0;
+    let loyaltyLine = "";
+    if (pts < 5) {
+      const away = 5 - pts;
+      loyaltyLine = `⚡ +1 point earned — you're now ${away} away from 50% off your next session!`;
+    } else if (pts < 10) {
+      const away = 10 - pts;
+      loyaltyLine = `⚡ +1 point earned — you're now ${away} away from a FREE session!`;
+    } else {
+      loyaltyLine = "🎉 You've unlocked a FREE session!";
+    }
+    const progressPct = (pts / 10) * 100;
+
     return (
       <div className="min-h-screen">
         <Navbar />
         <div className="flex min-h-screen items-center justify-center px-6 page-offset-top">
-          <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center">
-            <CheckCircle2 className="h-20 w-20 text-primary mx-auto mb-6" />
-            <h1 className="font-heading text-2xl sm:text-4xl font-bold text-foreground mb-3">Booking Confirmed!</h1>
-            {confirmedBookingNumber && (
-              <p className="text-primary font-mono text-lg font-semibold mb-2">Booking #{confirmedBookingNumber}</p>
-            )}
-            <p className="text-muted-foreground text-lg mb-2">
-              {offering?.name || selectedActivity} — {date && format(date, "PPP")} at {selectedTime}
-            </p>
-            <p className="text-muted-foreground">We'll send a confirmation to {profileEmail}</p>
+          <motion.div
+            initial={{ scale: 0.7, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 200, damping: 20 }}
+            className="text-center max-w-md w-full"
+          >
+            {/* Animated checkmark with gold glow */}
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 300, delay: 0.2 }}
+              className="relative mx-auto mb-6 h-24 w-24"
+            >
+              <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
+              <div className="relative h-24 w-24 rounded-full bg-primary/10 border-2 border-primary flex items-center justify-center shadow-[0_0_30px_hsl(43_50%_58%/0.4)]">
+                <CheckCircle2 className="h-12 w-12 text-primary" />
+              </div>
+            </motion.div>
+
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+              <h1 className="font-heading text-2xl sm:text-4xl font-bold text-foreground mb-3">Booking Confirmed!</h1>
+              {confirmedBookingNumber && (
+                <p className="text-primary font-mono text-lg font-semibold mb-3">Booking #{confirmedBookingNumber}</p>
+              )}
+              <div className="rounded-xl border border-border bg-card p-4 mb-4 text-left space-y-1.5">
+                <p className="text-sm text-muted-foreground">
+                  <span className="text-foreground font-medium">{offering?.name || selectedActivity}</span>
+                  {clubName && <> at <span className="text-foreground font-medium">{clubName}</span></>}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {date && format(date, "PPP")} at {selectedTime}
+                </p>
+              </div>
+            </motion.div>
+
+            {/* Loyalty progress */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+              className="rounded-xl border border-primary/20 bg-primary/5 p-4 mb-4"
+            >
+              <p className="text-sm font-medium text-foreground mb-2">{loyaltyLine}</p>
+              <div className="h-2.5 rounded-full bg-secondary overflow-hidden">
+                <motion.div
+                  className="h-full rounded-full bg-primary"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progressPct}%` }}
+                  transition={{ duration: 0.8, delay: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                />
+              </div>
+              <div className="flex justify-between mt-1.5 text-[10px] text-muted-foreground">
+                <span>0</span>
+                <span className="text-primary font-medium">5 pts → 50% off</span>
+                <span className="text-primary font-medium">10 pts → FREE</span>
+              </div>
+            </motion.div>
+
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.9 }}
+              className="text-xs text-muted-foreground"
+            >
+              A confirmation has been sent to {profileEmail}
+            </motion.p>
           </motion.div>
         </div>
       </div>
