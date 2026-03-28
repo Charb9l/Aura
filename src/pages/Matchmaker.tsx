@@ -405,12 +405,22 @@ const MatchmakerPage = () => {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95 }}
                         transition={{ delay: idx * 0.05 }}
-                        className="rounded-xl border border-border bg-card p-5 hover:border-muted-foreground/30 transition-all group"
+                        className="relative rounded-xl bg-black/40 backdrop-blur-xl border-0 border-t-[0.5px] border-l-[0.5px] border-white/[0.12] p-5 transition-all duration-500 ease-out group overflow-hidden hover:scale-[1.02]"
                         style={{
-                          boxShadow: cardGlow,
-                          borderColor: primaryColor ? `hsl(${primaryColor} / 0.2)` : undefined,
+                          boxShadow: primaryColor
+                            ? `0 0 24px hsl(${primaryColor} / 0.12), 0 8px 32px -8px hsl(0 0% 0% / 0.5)`
+                            : `0 8px 32px -8px hsl(0 0% 0% / 0.5)`,
                         }}
                       >
+                        {/* Animated mesh gradient background */}
+                        <div
+                          className="absolute inset-0 opacity-[0.04] group-hover:opacity-[0.08] transition-opacity duration-700 pointer-events-none rounded-xl"
+                          style={{
+                            background: primaryColor
+                              ? `radial-gradient(ellipse at 20% 50%, hsl(${primaryColor} / 0.4), transparent 60%), radial-gradient(ellipse at 80% 20%, hsl(var(--primary) / 0.3), transparent 50%)`
+                              : `radial-gradient(ellipse at 20% 50%, hsl(240 60% 40% / 0.4), transparent 60%), radial-gradient(ellipse at 80% 20%, hsl(var(--primary) / 0.3), transparent 50%)`,
+                          }}
+                        />
                         {/* Header — name + avatar only, no contact info */}
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex items-center gap-3">
