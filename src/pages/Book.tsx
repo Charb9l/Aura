@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
-import { CalendarClock, Clock, CheckCircle2, User, Mail, Phone, Gift, Sparkles, MapPin } from "lucide-react";
+import { CalendarClock, Clock, CheckCircle2, User, Mail, Phone, Gift, Sparkles, MapPin, Trophy, Flame } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -99,7 +99,7 @@ const BookPage = () => {
   const [pageSubtitle, setPageSubtitle] = useState("Select your activity, date and time.");
   const [maxClubsGrid, setMaxClubsGrid] = useState(3);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const { activeRewards, getRewardForClub, hasRewards } = useRewards();
+  const { rewards, activeRewards, getRewardForClub, hasRewards } = useRewards();
   // Hero pictures
   const [heroPictures, setHeroPictures] = useState<{ image: string; alt: string }[]>([]);
   const [heroCycleIndex, setHeroCycleIndex] = useState(0);
@@ -448,20 +448,94 @@ const BookPage = () => {
 
   if (submitted) {
     const offering = offerings.find(o => o.slug === selectedActivity);
+    const clubReward = resolvedClubId ? getRewardForClub(resolvedClubId) : undefined;
+    const clubName = clubs.find(c => c.id === resolvedClubId)?.name;
+
+    // Loyalty progress info
+    const rewardInfo = rewards.find(r => r.clubId === resolvedClubId);
+    const pts = rewardInfo?.points || 0;
+    let loyaltyLine = "";
+    if (pts < 5) {
+      const away = 5 - pts;
+      loyaltyLine = `⚡ +1 point earned — you're now ${away} away from 50% off your next session!`;
+    } else if (pts < 10) {
+      const away = 10 - pts;
+      loyaltyLine = `⚡ +1 point earned — you're now ${away} away from a FREE session!`;
+    } else {
+      loyaltyLine = "🎉 You've unlocked a FREE session!";
+    }
+    const progressPct = (pts / 10) * 100;
+
     return (
       <div className="min-h-screen">
         <Navbar />
         <div className="flex min-h-screen items-center justify-center px-6 page-offset-top">
-          <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center">
-            <CheckCircle2 className="h-20 w-20 text-primary mx-auto mb-6" />
-            <h1 className="font-heading text-2xl sm:text-4xl font-bold text-foreground mb-3">Booking Confirmed!</h1>
-            {confirmedBookingNumber && (
-              <p className="text-primary font-mono text-lg font-semibold mb-2">Booking #{confirmedBookingNumber}</p>
-            )}
-            <p className="text-muted-foreground text-lg mb-2">
-              {offering?.name || selectedActivity} — {date && format(date, "PPP")} at {selectedTime}
-            </p>
-            <p className="text-muted-foreground">We'll send a confirmation to {profileEmail}</p>
+          <motion.div
+            initial={{ scale: 0.7, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 200, damping: 20 }}
+            className="text-center max-w-md w-full"
+          >
+            {/* Animated checkmark with gold glow */}
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 300, delay: 0.2 }}
+              className="relative mx-auto mb-6 h-24 w-24"
+            >
+              <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
+              <div className="relative h-24 w-24 rounded-full bg-primary/10 border-2 border-primary flex items-center justify-center shadow-[0_0_30px_hsl(43_50%_58%/0.4)]">
+                <CheckCircle2 className="h-12 w-12 text-primary" />
+              </div>
+            </motion.div>
+
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+              <h1 className="font-heading text-2xl sm:text-4xl font-bold text-foreground mb-3">Booking Confirmed!</h1>
+              {confirmedBookingNumber && (
+                <p className="text-primary font-mono text-lg font-semibold mb-3">Booking #{confirmedBookingNumber}</p>
+              )}
+              <div className="rounded-xl border border-border bg-card p-4 mb-4 text-left space-y-1.5">
+                <p className="text-sm text-muted-foreground">
+                  <span className="text-foreground font-medium">{offering?.name || selectedActivity}</span>
+                  {clubName && <> at <span className="text-foreground font-medium">{clubName}</span></>}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {date && format(date, "PPP")} at {selectedTime}
+                </p>
+              </div>
+            </motion.div>
+
+            {/* Loyalty progress */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+              className="rounded-xl border border-primary/20 bg-primary/5 p-4 mb-4"
+            >
+              <p className="text-sm font-medium text-foreground mb-2">{loyaltyLine}</p>
+              <div className="h-2.5 rounded-full bg-secondary overflow-hidden">
+                <motion.div
+                  className="h-full rounded-full bg-primary"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progressPct}%` }}
+                  transition={{ duration: 0.8, delay: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                />
+              </div>
+              <div className="flex justify-between mt-1.5 text-[10px] text-muted-foreground">
+                <span>0</span>
+                <span className="text-primary font-medium">5 pts → 50% off</span>
+                <span className="text-primary font-medium">10 pts → FREE</span>
+              </div>
+            </motion.div>
+
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.9 }}
+              className="text-xs text-muted-foreground"
+            >
+              A confirmation has been sent to {profileEmail}
+            </motion.p>
           </motion.div>
         </div>
       </div>
@@ -825,9 +899,47 @@ const BookPage = () => {
 
             <div>
               <Label className="text-sm font-medium text-muted-foreground mb-4 block">Select Time</Label>
+
+              {/* Loyalty reminder nudge */}
+              {user && resolvedClubId && (() => {
+                const clubReward = getRewardForClub(resolvedClubId);
+                const allRewards = activeRewards;
+                // Find the club's reward data from the full rewards list
+                const rewardData = allRewards.find(r => r.clubId === resolvedClubId) || { points: 0 };
+                const pts = (rewardData as any).points || 0;
+                if (pts >= 3 && pts < 5) {
+                  return (
+                    <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="mb-3">
+                      <div className="rounded-xl border border-primary/30 bg-primary/5 px-3 py-2 flex items-center gap-2">
+                        <Trophy className="h-4 w-4 text-primary shrink-0" />
+                        <p className="text-xs text-foreground">
+                          Book now — you're <span className="font-bold text-primary">{5 - pts}</span> session{5 - pts > 1 ? "s" : ""} away from 50% off! 🏆
+                        </p>
+                      </div>
+                    </motion.div>
+                  );
+                }
+                if (pts >= 8 && pts < 10) {
+                  return (
+                    <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="mb-3">
+                      <div className="rounded-xl border border-primary/30 bg-primary/5 px-3 py-2 flex items-center gap-2">
+                        <Trophy className="h-4 w-4 text-primary shrink-0" />
+                        <p className="text-xs text-foreground">
+                          Book now — you're <span className="font-bold text-primary">{10 - pts}</span> session{10 - pts > 1 ? "s" : ""} away from a FREE session! 🏆
+                        </p>
+                      </div>
+                    </motion.div>
+                  );
+                }
+                return null;
+              })()}
+
               <div className="grid grid-cols-4 gap-2">
                 {timeSlots.map((time) => {
                   const isBooked = bookedSlots.includes(time);
+                  // Availability signals — deterministic based on slot data
+                  const hour = parseInt(time);
+                  const isPeakHour = (hour >= 17 && hour <= 20) || hour === 10;
                   return (
                     <button
                       type="button"
@@ -835,9 +947,9 @@ const BookPage = () => {
                       onClick={() => selectedActivity && !isBooked && setSelectedTime(time)}
                       disabled={!selectedActivity || isBooked}
                       className={cn(
-                        "flex items-center justify-center gap-1 rounded-lg border px-3 py-2.5 text-sm font-medium transition-all",
+                        "relative flex flex-col items-center justify-center gap-0.5 rounded-lg border px-3 py-2.5 text-sm font-medium transition-all",
                         isBooked
-                          ? "border-border bg-muted text-muted-foreground/40 cursor-not-allowed opacity-50 line-through"
+                          ? "border-border bg-muted text-muted-foreground/40 cursor-not-allowed opacity-50"
                           : !selectedActivity
                             ? "border-border text-muted-foreground/40 cursor-not-allowed opacity-50"
                             : selectedTime !== time
@@ -846,8 +958,18 @@ const BookPage = () => {
                       )}
                       style={selectedTime === time && !isBooked && selectedActivity ? brand.bg10 : undefined}
                     >
-                      <Clock className="h-3 w-3" />
-                      {time}
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {isBooked ? <span className="line-through">{time}</span> : time}
+                      </div>
+                      {isBooked && (
+                        <span className="text-[8px] font-semibold uppercase tracking-wider text-muted-foreground/60">Full</span>
+                      )}
+                      {!isBooked && isPeakHour && selectedActivity && (
+                        <span className="text-[8px] font-semibold uppercase tracking-wider text-orange-400 flex items-center gap-0.5">
+                          <Flame className="h-2 w-2" /> Popular
+                        </span>
+                      )}
                     </button>
                   );
                 })}

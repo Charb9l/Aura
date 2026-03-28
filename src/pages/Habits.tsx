@@ -125,10 +125,7 @@ const BadgeLevelSection = ({ level, li, defaultOpen }: { level: BadgeLevelData; 
                   <h3 className={cn("font-heading text-lg font-bold", levelComplete ? colors.text : "text-foreground")}>
                     {level.name}
                   </h3>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-muted-foreground">{levelEarned}/{level.badges.length}</span>
-                    <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform duration-300", isOpen && "rotate-180")} />
-                  </div>
+                  <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform duration-300", isOpen && "rotate-180")} />
                 </div>
                 <div className="h-2 rounded-full bg-secondary overflow-hidden">
                   <motion.div
@@ -148,6 +145,23 @@ const BadgeLevelSection = ({ level, li, defaultOpen }: { level: BadgeLevelData; 
             </div>
           </div>
         </button>
+
+        {/* Motivating progress banner below level header */}
+        <div className="px-5 sm:px-6 pb-3">
+          <div className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-2.5">
+            <p className="text-sm text-foreground text-center">
+              {levelComplete ? (
+                <span className="font-semibold text-emerald-400">🏆 All {level.badges.length} badges unlocked — Level complete!</span>
+              ) : (
+                <>
+                  You've unlocked <span className="font-bold text-primary">{levelEarned} of {level.badges.length}</span> {level.name.split("—")[1]?.trim() || level.name} badges
+                  {levelEarned > 0 && <span className="text-primary font-medium"> — keep going!</span>}
+                </>
+              )}
+            </p>
+          </div>
+        </div>
+
         <AnimatePresence initial={false}>
           {isOpen && (
             <motion.div
@@ -168,17 +182,21 @@ const BadgeLevelSection = ({ level, li, defaultOpen }: { level: BadgeLevelData; 
                       className={cn(
                         "relative p-3 rounded-xl border text-center transition-all",
                         badge.earned
-                          ? `${colors.border} shadow-sm`
+                          ? "border-primary/60 bg-primary/10 shadow-[0_0_16px_hsl(38_70%_50%/0.25)]"
                           : "border-border bg-secondary/20 opacity-50"
                       )}
+                      style={badge.earned ? {
+                        backgroundImage: "linear-gradient(135deg, hsl(38 70% 50% / 0.08) 0%, transparent 50%, hsl(38 70% 50% / 0.12) 100%)",
+                        animation: "shimmer 3s ease-in-out infinite",
+                      } : undefined}
                     >
                       <div className={cn(
                         "mx-auto mb-2 h-8 w-8 rounded-lg flex items-center justify-center",
-                        badge.earned ? `${colors.text}` : "text-muted-foreground"
+                        badge.earned ? "text-primary bg-primary/20" : "text-muted-foreground"
                       )}>
                         {badge.icon}
                       </div>
-                      <p className="text-xs font-semibold text-foreground leading-tight">{badge.title}</p>
+                      <p className={cn("text-xs font-semibold leading-tight", badge.earned ? "text-primary" : "text-foreground")}>{badge.title}</p>
                       <p className="text-[10px] text-muted-foreground mt-0.5 leading-tight">{badge.description}</p>
                       {!badge.earned && (
                         <div className="mt-2">
@@ -189,7 +207,7 @@ const BadgeLevelSection = ({ level, li, defaultOpen }: { level: BadgeLevelData; 
                         </div>
                       )}
                       {badge.earned && (
-                        <div className={cn("absolute -top-1 -right-1 h-5 w-5 rounded-full flex items-center justify-center shadow-sm", colors.bg)}>
+                        <div className="absolute -top-1 -right-1 h-5 w-5 rounded-full flex items-center justify-center shadow-[0_0_8px_hsl(38_70%_50%/0.5)] bg-primary">
                           <span className="text-[10px] text-primary-foreground font-bold">✓</span>
                         </div>
                       )}
