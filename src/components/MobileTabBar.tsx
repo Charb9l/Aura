@@ -61,7 +61,9 @@ const MobileTabBar = () => {
   if (!isSmallMobile || location.pathname.startsWith("/admin")) return null;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/95 backdrop-blur-xl pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_20px_-4px_hsl(220_25%_12%/0.06)]">
+    <nav className="fixed bottom-3 left-3 right-3 z-50 rounded-2xl bg-white/[0.05] backdrop-blur-2xl pb-[env(safe-area-inset-bottom)] shadow-[0_0_40px_rgba(124,58,237,0.08),0_-4px_20px_rgba(0,0,0,0.3)]"
+      style={{ border: 'none' }}
+    >
       <div className="flex items-center justify-around h-16">
         {TABS.map((tab) => {
           const isActive = tab.to === "/"
@@ -74,13 +76,19 @@ const MobileTabBar = () => {
               key={tab.to}
               to={tab.to}
               className={cn(
-                "flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-colors relative",
+                "flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-all duration-300 relative",
                 isActive ? "text-primary" : "text-muted-foreground"
               )}
             >
-              
-              <tab.Icon className="h-5 w-5" />
-              <span className="text-[10px] font-semibold">{tab.label}</span>
+              {isActive && (
+                <motion.div
+                  layoutId="tab-glow"
+                  className="absolute inset-0 rounded-xl bg-primary/[0.08]"
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                />
+              )}
+              <tab.Icon className={cn("h-5 w-5 relative z-10", isActive && "drop-shadow-[0_0_8px_rgba(124,58,237,0.5)]")} />
+              <span className={cn("text-[10px] font-semibold relative z-10", isActive && "text-primary")}>{tab.label}</span>
             </Link>
           );
         })}

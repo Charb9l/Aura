@@ -35,12 +35,11 @@ const HeroSection = () => {
   }, []);
 
   const subtitle = content?.hero_subtitle || "Movement & Mindfulness";
-  const actions = content?.hero_buttons?.map((b, i) => ({ ...b, delay: 0.3 + i * 0.1 })) || [];
+  const actions = content?.hero_buttons?.map((b, i) => ({ ...b, delay: 0.15 + i * 0.05 })) || [];
   const showScrollIndicator = content?.show_scroll_indicator ?? false;
   const image1 = content?.landing_image_1;
   const image2 = content?.landing_image_2;
 
-  // Filter out loyalty/matchmaker/habits from CMS buttons when user is logged in (shown as live icons instead)
   const liveRoutes = new Set(["/loyalty", "/matchmaker", "/habits"]);
   const filteredActions = user ? actions.filter(a => !liveRoutes.has(a.to)) : actions;
 
@@ -69,27 +68,27 @@ const HeroSection = () => {
   };
 
   return (
-    <section className="relative flex flex-col items-center page-offset-top pb-6 md:pb-8 overflow-hidden" style={{ background: 'radial-gradient(ellipse at 50% 0%, hsl(0 0% 12%) 0%, hsl(0 0% 5%) 70%)' }}>
+    <section className="relative flex flex-col items-center page-offset-top pb-6 md:pb-8 overflow-hidden">
+      {/* Subtle mesh gradient background */}
+      <div className="absolute inset-0 mesh-gradient-purple opacity-40 pointer-events-none" />
+      
       {/* Content */}
       <div className="relative z-10 container mx-auto px-6 flex flex-col items-center text-center gap-6 md:gap-8">
-        {/* Personalized progress card for logged-in users, subtitle for guests */}
         {user ? (
           <HeroProgressCard />
         ) : (
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-xs uppercase tracking-[0.3em] text-primary font-semibold"
+            transition={{ duration: 0.6, delay: 0.05 }}
+            className="font-label text-xs uppercase tracking-[0.3em] text-primary font-semibold"
           >
             {subtitle}
           </motion.p>
         )}
 
-        {/* Live Feature Icons for logged-in users */}
         {user && <LiveFeatureIcons />}
 
-        {/* Action Buttons (remaining CMS buttons) */}
         {filteredActions.length > 0 && (
           <div className="flex flex-wrap justify-center gap-4 w-full max-w-sm lg:max-w-lg mx-auto">
             {filteredActions.map((action) => {
@@ -104,11 +103,11 @@ const HeroSection = () => {
                 >
                   <Link
                     to={action.to}
-                    className="group relative flex items-center justify-center rounded-2xl w-16 h-16 lg:w-20 lg:h-20 transition-all duration-500 ease-out bg-black/40 backdrop-blur-xl border-0 border-t-[0.5px] border-l-[0.5px] border-white/[0.12] shadow-[0_8px_32px_-8px_hsl(0_0%_0%/0.5)] hover:shadow-[0_0_24px_hsl(var(--primary)/0.15),0_8px_40px_-12px_hsl(0_0%_0%/0.5)] hover:border-t-primary/30 hover:scale-105 hover:-translate-y-1"
+                    className="group relative flex items-center justify-center rounded-2xl w-16 h-16 lg:w-20 lg:h-20 transition-all duration-500 bg-white/[0.04] backdrop-blur-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] hover:shadow-[0_0_24px_rgba(124,58,237,0.2)] hover:bg-white/[0.07] hover:scale-105 hover:-translate-y-1"
                   >
                     <span className="text-primary group-hover:scale-110 transition-transform duration-500">{icon}</span>
                   </Link>
-                  <span className="font-label text-[9px] font-semibold uppercase tracking-[0.15em] text-foreground/50 leading-tight text-center max-w-[72px]">{action.label}</span>
+                  <span className="font-label text-[9px] font-semibold uppercase tracking-[0.15em] text-foreground/40 leading-tight text-center max-w-[72px]">{action.label}</span>
                 </motion.div>
               );
             })}
@@ -116,43 +115,37 @@ const HeroSection = () => {
         )}
 
         {user && <NextBadgeCard />}
-
         {user && <MatchmakingSocialCard />}
-
-        {/* Live Activity Strip for logged-in users */}
         {user && <LiveActivityStrip />}
 
-        {/* Two Rectangle Image Bubbles */}
         {(image1 || image2) && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
             className="grid grid-cols-2 gap-3 w-full max-w-lg lg:max-w-4xl"
           >
             {image1 && (
-              <div className="rounded-2xl overflow-hidden aspect-[4/3] lg:aspect-[16/7] border border-border shadow-sm">
+              <div className="rounded-2xl overflow-hidden aspect-[4/3] lg:aspect-[16/7] shadow-lg">
                 <img src={image1} alt="Featured" className="w-full h-full object-cover" />
               </div>
             )}
             {image2 && (
-              <div className="rounded-2xl overflow-hidden aspect-[4/3] lg:aspect-[16/7] border border-border shadow-sm">
+              <div className="rounded-2xl overflow-hidden aspect-[4/3] lg:aspect-[16/7] shadow-lg">
                 <img src={image2} alt="Featured" className="w-full h-full object-cover" />
               </div>
             )}
           </motion.div>
         )}
 
-        {/* Featured Partners Strip */}
         <FeaturedClubsStrip variant="hero" />
       </div>
 
-      {/* Scroll indicator */}
       {showScrollIndicator && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 1.2, duration: 1 }}
+          transition={{ delay: 0.8, duration: 1 }}
           className="mt-6"
         >
           <motion.svg

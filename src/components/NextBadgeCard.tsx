@@ -70,7 +70,6 @@ const NextBadgeCard = () => {
     const evening = completed.filter(b => { const h = parseInt(b.booking_time); return h >= 17; }).length;
     const afternoon = completed.filter(b => { const h = parseInt(b.booking_time); return h >= 12 && h < 17; }).length;
 
-    // Streak calc
     const weekSet = new Set<string>();
     completed.forEach(b => {
       const ws = startOfWeek(parseISO(b.booking_date), { weekStartsOn: 1 });
@@ -115,11 +114,11 @@ const NextBadgeCard = () => {
     <motion.div
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.3 }}
+      transition={{ duration: 0.5, delay: 0.15 }}
       className="w-full max-w-sm lg:max-w-lg mx-auto"
     >
-      <div className="rounded-2xl bg-black/40 backdrop-blur-xl border-0 border-t-[0.5px] border-l-[0.5px] border-white/[0.12] shadow-[0_8px_32px_-8px_hsl(0_0%_0%/0.5)] p-4 flex items-center gap-3 card-premium">
-        <div className="h-11 w-11 rounded-xl bg-primary/15 flex items-center justify-center shrink-0 text-primary" style={{ boxShadow: '0 0 16px hsl(var(--primary) / 0.2)' }}>
+      <div className="rounded-2xl bg-white/[0.04] backdrop-blur-2xl p-4 flex items-center gap-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] card-hover">
+        <div className="h-11 w-11 rounded-xl bg-primary/15 flex items-center justify-center shrink-0 text-primary glow-violet-subtle">
           {ICON_MAP[nextBadge.icon] || <Star className="h-5 w-5" />}
         </div>
         <div className="flex-1 min-w-0">
@@ -129,14 +128,10 @@ const NextBadgeCard = () => {
           <div className="mt-1.5 flex items-center gap-2">
             <div className="flex-1 h-[3px] rounded-full bg-white/[0.06] overflow-hidden">
               <motion.div
-                className="h-full rounded-full"
+                className="h-full rounded-full liquid-fill"
                 initial={{ width: 0 }}
                 animate={{ width: `${pct}%` }}
                 transition={{ duration: 0.6, ease: "easeOut" }}
-                style={{
-                  background: `linear-gradient(90deg, hsl(var(--primary)), hsl(var(--primary) / 0.15))`,
-                  boxShadow: `0 0 12px hsl(var(--primary) / 0.5)`,
-                }}
               />
             </div>
             <span className="font-label text-[10px] font-medium text-muted-foreground">{nextBadge.progress}/{nextBadge.target}</span>
@@ -144,7 +139,7 @@ const NextBadgeCard = () => {
         </div>
         <Link
           to="/book"
-          className="shrink-0 text-[10px] font-bold uppercase tracking-wider btn-ghost-gold rounded-lg px-3 py-1.5"
+          className="shrink-0 text-[10px] font-bold uppercase tracking-wider btn-ghost-violet rounded-lg px-3 py-1.5"
         >
           Book
         </Link>
