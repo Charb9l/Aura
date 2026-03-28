@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminRole } from "@/hooks/useAdminRole";
+import { useAvatar, getInitials } from "@/hooks/useAvatar";
 import { ProfileIcon } from "@/components/icons/BrandIcons";
 
 
@@ -32,10 +33,6 @@ const IconCommunity = ({ className }: { className?: string }) => (
   </svg>
 );
 
-const IconProfile = ({ className }: { className?: string }) => (
-  <ProfileIcon className={className} />
-);
-
 const IconClubs = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <path d="M3 21V7l9-4 9 4v14" />
@@ -49,8 +46,38 @@ const TABS = [
   { to: "/book", label: "Book", Icon: IconBook },
   { to: "/community", label: "Your Space", Icon: IconCommunity },
   { to: "/clubs", label: "Clubs", Icon: IconClubs },
-  { to: "/profile", label: "Profile", Icon: IconProfile },
+  { to: "/profile", label: "Profile", Icon: null as any },
 ];
+
+const ProfileTabIcon = ({ isActive }: { isActive: boolean }) => {
+  const { avatarUrl } = useAvatar();
+  const { user } = useAuth();
+  const initials = getInitials(user?.user_metadata?.full_name, user?.email);
+
+  if (avatarUrl) {
+    return (
+      <div className={cn(
+        "h-6 w-6 rounded-full overflow-hidden relative z-10 ring-2 transition-all duration-300",
+        isActive ? "ring-primary drop-shadow-[0_0_8px_rgba(124,58,237,0.5)]" : "ring-transparent"
+      )}>
+        <img src={avatarUrl} alt="Profile" className="h-full w-full object-cover" />
+      </div>
+    );
+  }
+
+  if (initials) {
+    return (
+      <div className={cn(
+        "h-6 w-6 rounded-full flex items-center justify-center bg-primary/20 text-[9px] font-bold text-primary relative z-10 ring-2 transition-all duration-300",
+        isActive ? "ring-primary drop-shadow-[0_0_8px_rgba(124,58,237,0.5)]" : "ring-transparent"
+      )}>
+        {initials}
+      </div>
+    );
+  }
+
+  return <ProfileIcon className={cn("h-5 w-5 relative z-10", isActive && "drop-shadow-[0_0_8px_rgba(124,58,237,0.5)]")} />;
+};
 
 const MobileTabBar = () => {
   const location = useLocation();
@@ -71,6 +98,9 @@ const MobileTabBar = () => {
             : tab.to === "/clubs"
               ? location.pathname === "/clubs" || location.pathname === "/academy"
               : location.pathname.startsWith(tab.to);
+
+          const isProfile = tab.to === "/profile";
+
           return (
             <Link
               key={tab.to}
@@ -87,7 +117,11 @@ const MobileTabBar = () => {
                   transition={{ type: "spring", stiffness: 400, damping: 30 }}
                 />
               )}
-              <tab.Icon className={cn("h-5 w-5 relative z-10", isActive && "drop-shadow-[0_0_8px_rgba(124,58,237,0.5)]")} />
+              {isProfile ? (
+                <ProfileTabIcon isActive={isActive} />
+              ) : (
+                <tab.Icon className={cn("h-5 w-5 relative z-10", isActive && "drop-shadow-[0_0_8px_rgba(124,58,237,0.5)]")} />
+              )}
               <span className={cn("text-[10px] font-semibold relative z-10", isActive && "text-primary")}>{tab.label}</span>
             </Link>
           );
