@@ -136,7 +136,7 @@ const BadgeLevelSection = ({ level, li, defaultOpen }: { level: BadgeLevelData; 
                   />
                 </div>
                 {levelComplete && (
-                  <p className="text-xs font-semibold text-emerald-400 mt-2 flex items-center gap-1">
+                  <p className="text-xs font-semibold text-primary mt-2 flex items-center gap-1">
                     <Gift className="h-3.5 w-3.5" />
                     Level complete — +1 free loyalty point earned!
                   </p>
