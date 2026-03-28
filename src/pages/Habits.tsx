@@ -81,10 +81,10 @@ const getIcon = (name: string, cls: string) => (ICON_MAP[name] || ICON_MAP.star)
 
 const LEVEL_COLORS = [
   { text: "text-primary", border: "border-primary/40 bg-primary/5", bg: "bg-primary", ring: "ring-primary/20" },
-  { text: "text-accent", border: "border-accent/40 bg-accent/5", bg: "bg-accent", ring: "ring-accent/20" },
-  { text: "text-amber-400", border: "border-amber-400/40 bg-amber-400/5", bg: "bg-amber-400", ring: "ring-amber-400/20" },
-  { text: "text-emerald-400", border: "border-emerald-400/40 bg-emerald-400/5", bg: "bg-emerald-400", ring: "ring-emerald-400/20" },
-  { text: "text-rose-400", border: "border-rose-400/40 bg-rose-400/5", bg: "bg-rose-400", ring: "ring-rose-400/20" },
+  { text: "text-violet-light", border: "border-violet-light/40 bg-violet-light/5", bg: "bg-violet-light", ring: "ring-violet-light/20" },
+  { text: "text-purple-400", border: "border-purple-400/40 bg-purple-400/5", bg: "bg-purple-400", ring: "ring-purple-400/20" },
+  { text: "text-indigo-400", border: "border-indigo-400/40 bg-indigo-400/5", bg: "bg-indigo-400", ring: "ring-indigo-400/20" },
+  { text: "text-fuchsia-400", border: "border-fuchsia-400/40 bg-fuchsia-400/5", bg: "bg-fuchsia-400", ring: "ring-fuchsia-400/20" },
 ];
 
 interface BadgeLevelData {
