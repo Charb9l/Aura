@@ -47,9 +47,9 @@ interface Location {
 }
 
 const MATCH_BADGE = {
-  perfect: { label: "Perfect Match", icon: Zap, color: "48 90% 50%", bg: "48 90% 50%" },
-  good: { label: "Great Match", icon: Star, color: "142 60% 45%", bg: "142 60% 45%" },
-  "sport-only": { label: "Same Sport", icon: Star, color: "212 70% 55%", bg: "212 70% 55%" },
+  perfect: { label: "Perfect Match", icon: Zap, color: "263 70% 58%", bg: "263 70% 58%" },
+  good: { label: "Great Match", icon: Star, color: "270 60% 55%", bg: "270 60% 55%" },
+  "sport-only": { label: "Same Sport", icon: Star, color: "240 60% 55%", bg: "240 60% 55%" },
 };
 
 const MatchmakerPage = () => {
