@@ -184,7 +184,7 @@ const MatchmakerPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20 md:pb-0">
+    <div className="min-h-screen pb-20 md:pb-0" style={{ background: 'radial-gradient(ellipse at 50% 0%, hsl(260 30% 10%) 0%, hsl(240 20% 5%) 50%, hsl(240 25% 3%) 100%)' }}>
       <Navbar />
       <div className="page-offset-top pb-16 container mx-auto px-4 sm:px-6">
         {/* Hero */}
