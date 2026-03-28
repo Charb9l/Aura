@@ -428,7 +428,8 @@ const MatchmakerPage = () => {
                               <img
                                 src={avatarMap[match.user_id]!}
                                 alt={match.display_name}
-                                className="h-11 w-11 rounded-full object-cover border-2 border-border shrink-0"
+                                className="h-11 w-11 rounded-full object-cover border-2 shrink-0"
+                                style={{ borderColor: primaryColor ? `hsl(${primaryColor} / 0.4)` : 'hsl(var(--border))', boxShadow: primaryColor ? `0 0 12px hsl(${primaryColor} / 0.25)` : undefined }}
                               />
                             ) : (
                               <div className="relative h-11 w-11 rounded-full bg-muted/40 flex flex-col items-center justify-center shrink-0 border border-border">
