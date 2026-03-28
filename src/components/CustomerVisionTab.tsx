@@ -1195,6 +1195,24 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
                     <Input value={loyaltyCtaSubtitle} onChange={(e) => setLoyaltyCtaSubtitle(e.target.value)} placeholder="Sign up, book your first session..." className="h-9 bg-secondary border-border text-sm" />
                   </div>
                 </div>
+
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground mb-3 block">🔥 Streak Bonus Section</Label>
+                  <div className="space-y-2">
+                    <div>
+                      <Label className="text-xs font-medium text-muted-foreground mb-1 block">Section Title</Label>
+                      <Input value={loyaltyStreakTitle} onChange={(e) => setLoyaltyStreakTitle(e.target.value)} placeholder="Streak Bonus" className="h-9 bg-secondary border-border text-sm" />
+                    </div>
+                    <div>
+                      <Label className="text-xs font-medium text-muted-foreground mb-1 block">Main Description</Label>
+                      <Input value={loyaltyStreakDesc} onChange={(e) => setLoyaltyStreakDesc(e.target.value)} placeholder="Book 3 weeks straight → earn 2x points that week" className="h-9 bg-secondary border-border text-sm" />
+                    </div>
+                    <div>
+                      <Label className="text-xs font-medium text-muted-foreground mb-1 block">Subtitle</Label>
+                      <Input value={loyaltyStreakSubtitle} onChange={(e) => setLoyaltyStreakSubtitle(e.target.value)} placeholder="Consistency is rewarded. Keep your streak alive!" className="h-9 bg-secondary border-border text-sm" />
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
