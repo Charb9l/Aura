@@ -385,7 +385,7 @@ const MatchmakerPage = () => {
                 <p className="text-muted-foreground">Try removing filters, or check back later as more players join.</p>
               </motion.div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 relative">
                 <AnimatePresence mode="popLayout">
                   {matches.map((match, idx) => {
                     const badge = MATCH_BADGE[match.best_match];
