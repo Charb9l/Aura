@@ -17,7 +17,6 @@ const LiveActivityStrip = () => {
     const fetchRecent = async () => {
       const activities: ActivityItem[] = [];
 
-      // Recent bookings (public info only — activity name, no PII)
       const { data: bookings } = await supabase
         .from("bookings")
         .select("id, full_name, activity_name, created_at")
@@ -36,7 +35,6 @@ const LiveActivityStrip = () => {
         }
       }
 
-      // Recent badge achievements
       const { data: badges } = await supabase
         .from("badge_point_assignments")
         .select("id, user_id, badge_level, created_at")
@@ -62,7 +60,6 @@ const LiveActivityStrip = () => {
         }
       }
 
-      // Sort by recency (already mostly sorted, just interleave)
       setItems(activities.slice(0, 6));
     };
 
@@ -75,15 +72,16 @@ const LiveActivityStrip = () => {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ delay: 0.6, duration: 0.5 }}
+      transition={{ delay: 0.35, duration: 0.5 }}
       className="w-full max-w-sm lg:max-w-lg mx-auto"
     >
       <div className="flex items-center gap-2 mb-2">
-        <span className="relative flex h-2 w-2">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+        {/* Breathing violet pulse dot */}
+        <span className="relative flex h-2.5 w-2.5">
+          <span className="pulse-dot absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary" />
         </span>
-        <span className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground font-medium">Live Activity</span>
+        <span className="font-label text-[9px] uppercase tracking-[0.2em] text-muted-foreground font-semibold">Pulse Feed</span>
       </div>
       <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
         {items.map((item, i) => (
@@ -91,10 +89,10 @@ const LiveActivityStrip = () => {
             key={item.id}
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.7 + i * 0.08, duration: 0.4 }}
-            className="flex items-center gap-2.5 rounded-xl bg-card/80 border border-border/60 px-3 py-2 shrink-0 min-w-[200px]"
+            transition={{ delay: 0.4 + i * 0.05, duration: 0.4 }}
+            className="flex items-center gap-2.5 rounded-xl bg-white/[0.04] backdrop-blur-2xl px-3 py-2 shrink-0 min-w-[200px] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] card-hover"
           >
-            <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold shrink-0">
+            <div className="w-7 h-7 rounded-full bg-primary/15 flex items-center justify-center text-primary text-[10px] font-bold shrink-0 glow-violet-subtle">
               {item.initials}
             </div>
             <div className="min-w-0">

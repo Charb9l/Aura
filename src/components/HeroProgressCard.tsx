@@ -24,7 +24,6 @@ const HeroProgressCard = () => {
       });
   }, [user]);
 
-  // Find the club closest to a reward
   const bestClub = rewards
     .filter((r) => r.points > 0)
     .sort((a, b) => b.points - a.points)[0];
@@ -46,16 +45,20 @@ const HeroProgressCard = () => {
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.1 }}
-      className="w-full max-w-sm lg:max-w-lg mx-auto text-center"
+      transition={{ duration: 0.5, delay: 0.05 }}
+      className="w-full max-w-sm lg:max-w-lg mx-auto text-center relative"
     >
-      <p className="text-lg sm:text-xl font-heading font-light text-foreground leading-snug">
-        {getGreeting()},{" "}
-        <span className="text-primary font-medium">{firstName}</span>
-      </p>
-      <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed font-light">
-        {nudgeText}
-      </p>
+      {/* Mesh gradient behind greeting */}
+      <div className="absolute inset-0 -mx-8 -my-4 mesh-gradient-purple opacity-60 rounded-3xl pointer-events-none" />
+      <div className="relative z-10">
+        <p className="text-lg sm:text-xl font-heading font-light text-foreground leading-snug -tracking-tight">
+          {getGreeting()},{" "}
+          <span className="text-primary font-semibold">{firstName}</span>
+        </p>
+        <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed font-light">
+          {nudgeText}
+        </p>
+      </div>
     </motion.div>
   );
 };

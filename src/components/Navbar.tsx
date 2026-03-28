@@ -114,8 +114,8 @@ const Navbar = () => {
     >
       <div className="container mx-auto flex items-center justify-between sm:justify-between justify-center px-4 sm:px-8 py-5 sm:py-4 relative">
         {/* Logo */}
-        <Link to="/" className="font-heading tracking-tight text-foreground shrink-0 sm:static absolute left-1/2 -translate-x-1/2 sm:translate-x-0 sm:left-auto text-center sm:text-left leading-none">
-          <span className="text-3xl sm:text-2xl font-bold mobile-logo-glow" style={{ textShadow: '0 0 20px hsl(var(--primary) / 0.4), 0 0 40px hsl(var(--primary) / 0.2)' }}>{platformName.line1}</span>
+        <Link to="/" className="font-heading -tracking-tight text-foreground shrink-0 sm:static absolute left-1/2 -translate-x-1/2 sm:translate-x-0 sm:left-auto text-center sm:text-left leading-none">
+          <span className="text-3xl sm:text-2xl font-bold mobile-logo-glow">{platformName.line1}</span>
           {platformName.line2 && (
             <>
               <br />

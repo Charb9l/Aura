@@ -81,10 +81,10 @@ const getIcon = (name: string, cls: string) => (ICON_MAP[name] || ICON_MAP.star)
 
 const LEVEL_COLORS = [
   { text: "text-primary", border: "border-primary/40 bg-primary/5", bg: "bg-primary", ring: "ring-primary/20" },
-  { text: "text-accent", border: "border-accent/40 bg-accent/5", bg: "bg-accent", ring: "ring-accent/20" },
-  { text: "text-amber-400", border: "border-amber-400/40 bg-amber-400/5", bg: "bg-amber-400", ring: "ring-amber-400/20" },
-  { text: "text-emerald-400", border: "border-emerald-400/40 bg-emerald-400/5", bg: "bg-emerald-400", ring: "ring-emerald-400/20" },
-  { text: "text-rose-400", border: "border-rose-400/40 bg-rose-400/5", bg: "bg-rose-400", ring: "ring-rose-400/20" },
+  { text: "text-violet-light", border: "border-violet-light/40 bg-violet-light/5", bg: "bg-violet-light", ring: "ring-violet-light/20" },
+  { text: "text-purple-400", border: "border-purple-400/40 bg-purple-400/5", bg: "bg-purple-400", ring: "ring-purple-400/20" },
+  { text: "text-indigo-400", border: "border-indigo-400/40 bg-indigo-400/5", bg: "bg-indigo-400", ring: "ring-indigo-400/20" },
+  { text: "text-fuchsia-400", border: "border-fuchsia-400/40 bg-fuchsia-400/5", bg: "bg-fuchsia-400", ring: "ring-fuchsia-400/20" },
 ];
 
 interface BadgeLevelData {
@@ -105,11 +105,11 @@ const BadgeLevelSection = ({ level, li, defaultOpen }: { level: BadgeLevelData; 
     <motion.div
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.2 + li * 0.15, duration: 0.5 }}
+      transition={{ delay: 0.1 + li * 0.05, duration: 0.5 }}
     >
       <div className={cn(
-        "rounded-2xl border overflow-hidden transition-all duration-300",
-        levelComplete ? colors.border : "border-border bg-card"
+        "rounded-2xl overflow-hidden transition-all duration-300 bg-white/[0.04] backdrop-blur-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]",
+        levelComplete && "glow-violet"
       )}>
         <button onClick={() => setIsOpen(o => !o)} className="w-full text-left">
           <div className="p-5 sm:p-6">
@@ -122,21 +122,21 @@ const BadgeLevelSection = ({ level, li, defaultOpen }: { level: BadgeLevelData; 
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-1">
-                  <h3 className={cn("font-heading text-lg font-bold", levelComplete ? colors.text : "text-foreground")}>
+                  <h3 className={cn("font-heading text-lg font-bold -tracking-tight", levelComplete ? "text-metallic" : "text-foreground")}>
                     {level.name}
                   </h3>
                   <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform duration-300", isOpen && "rotate-180")} />
                 </div>
-                <div className="h-2 rounded-full bg-secondary overflow-hidden">
+                <div className="h-[3px] rounded-full bg-white/[0.06] overflow-hidden">
                   <motion.div
-                    className={cn("h-full rounded-full", colors.bg)}
+                    className="h-full rounded-full liquid-fill"
                     initial={{ width: 0 }}
                     animate={{ width: `${progressPct}%` }}
-                    transition={{ duration: 1, delay: 0.4 + li * 0.2, ease: "easeOut" }}
+                    transition={{ duration: 1, delay: 0.2 + li * 0.05, ease: "easeOut" }}
                   />
                 </div>
                 {levelComplete && (
-                  <p className="text-xs font-semibold text-emerald-400 mt-2 flex items-center gap-1">
+                  <p className="text-xs font-semibold text-primary mt-2 flex items-center gap-1">
                     <Gift className="h-3.5 w-3.5" />
                     Level complete — +1 free loyalty point earned!
                   </p>
@@ -148,7 +148,7 @@ const BadgeLevelSection = ({ level, li, defaultOpen }: { level: BadgeLevelData; 
 
         {/* Motivating progress banner below level header */}
         <div className="px-5 sm:px-6 pb-3">
-          <div className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-2.5">
+          <div className="rounded-xl bg-primary/[0.08] px-4 py-2.5">
             <p className="text-sm text-foreground text-center">
               {levelComplete ? (
                 <span className="font-semibold text-emerald-400">🏆 All {level.badges.length} badges unlocked — Level complete!</span>
@@ -178,36 +178,37 @@ const BadgeLevelSection = ({ level, li, defaultOpen }: { level: BadgeLevelData; 
                       key={badge.id}
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: bi * 0.04 }}
+                      transition={{ delay: bi * 0.05 }}
                       className={cn(
-                        "relative p-3 rounded-xl border text-center transition-all",
+                        "relative flex flex-col items-center p-3 rounded-xl text-center transition-all",
                         badge.earned
-                          ? "border-primary/60 bg-primary/10 shadow-[0_0_16px_hsl(38_70%_50%/0.25)]"
-                          : "border-border bg-secondary/20 opacity-50"
+                          ? "bg-white/[0.06]"
+                          : "bg-white/[0.02] opacity-40"
                       )}
-                      style={badge.earned ? {
-                        backgroundImage: "linear-gradient(135deg, hsl(38 70% 50% / 0.08) 0%, transparent 50%, hsl(38 70% 50% / 0.12) 100%)",
-                        animation: "shimmer 3s ease-in-out infinite",
-                      } : undefined}
                     >
+                      {/* Orb badge */}
                       <div className={cn(
-                        "mx-auto mb-2 h-8 w-8 rounded-lg flex items-center justify-center",
-                        badge.earned ? "text-primary bg-primary/20" : "text-muted-foreground"
+                        "mx-auto mb-2 h-12 w-12 flex items-center justify-center",
+                        badge.earned ? "badge-orb" : "rounded-full bg-white/[0.04]"
                       )}>
-                        {badge.icon}
+                        <span className={badge.earned ? "text-primary" : "text-muted-foreground"}>
+                          {badge.icon}
+                        </span>
                       </div>
                       <p className={cn("text-xs font-semibold leading-tight", badge.earned ? "text-primary" : "text-foreground")}>{badge.title}</p>
                       <p className="text-[10px] text-muted-foreground mt-0.5 leading-tight">{badge.description}</p>
                       {!badge.earned && (
-                        <div className="mt-2">
-                          <div className="h-1 rounded-full bg-secondary overflow-hidden">
-                            <div className={cn("h-full rounded-full", colors.bg)} style={{ width: `${(badge.progress / badge.target) * 100}%` }} />
+                        <div className="mt-2 w-full">
+                          <div className="h-[3px] rounded-full bg-white/[0.06] overflow-hidden">
+                            <div className="h-full rounded-full liquid-fill" style={{ width: `${(badge.progress / badge.target) * 100}%` }} />
                           </div>
                           <p className="text-[10px] text-muted-foreground mt-0.5">{badge.progress}/{badge.target}</p>
                         </div>
                       )}
                       {badge.earned && (
-                        <div className="absolute -top-1 -right-1 h-5 w-5 rounded-full flex items-center justify-center shadow-[0_0_8px_hsl(38_70%_50%/0.5)] bg-primary">
+                        <div className="absolute -top-1 -right-1 h-5 w-5 rounded-full flex items-center justify-center bg-primary glow-violet"
+                          style={{ animation: "glitch-shimmer 3s ease-in-out infinite" }}
+                        >
                           <span className="text-[10px] text-primary-foreground font-bold">✓</span>
                         </div>
                       )}
@@ -484,10 +485,10 @@ const HabitsPage = () => {
   }
 
   const getAuraLevel = (score: number): { name: string; color: string } => {
-    if (score >= 81) return { name: "Elite Aura", color: "text-amber-300" };
+    if (score >= 81) return { name: "Elite Aura", color: "text-violet-light" };
     if (score >= 61) return { name: "Gold Performer", color: "text-primary" };
-    if (score >= 41) return { name: "Bronze Contender", color: "text-amber-600" };
-    if (score >= 21) return { name: "Rising Athlete", color: "text-emerald-400" };
+    if (score >= 41) return { name: "Bronze Contender", color: "text-purple-400" };
+    if (score >= 21) return { name: "Rising Athlete", color: "text-indigo-400" };
     return { name: "Rookie", color: "text-muted-foreground" };
   };
 
@@ -497,29 +498,29 @@ const HabitsPage = () => {
   const nextAuraName = getAuraLevel(nextThreshold).name;
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return "text-green-400";
-    if (score >= 50) return "text-amber-400";
+    if (score >= 80) return "text-primary";
+    if (score >= 50) return "text-purple-400";
     return "text-muted-foreground";
   };
 
   // Personality label based on time distribution
-  const getPersonalityLabel = () => {
-    const { morning, afternoon, evening } = timeDistribution;
-    if (morning >= afternoon && morning >= evening && morning > 0) return { label: "You're an Early Bird ☀️", bg: "bg-amber-500/10 border-amber-500/30", text: "text-amber-400" };
-    if (afternoon >= morning && afternoon >= evening && afternoon > 0) return { label: "You're a Midday Mover ⚡", bg: "bg-orange-500/10 border-orange-500/30", text: "text-orange-400" };
-    if (evening > 0) return { label: "You're an Evening Athlete 🌙", bg: "bg-indigo-500/10 border-indigo-500/30", text: "text-indigo-400" };
-    return null;
+    const getPersonalityLabel = () => {
+      const { morning, afternoon, evening } = timeDistribution;
+      if (morning >= afternoon && morning >= evening && morning > 0) return { label: "You're an Early Bird ☀️", bg: "bg-purple-500/10 border-purple-500/30", text: "text-purple-300" };
+      if (afternoon >= morning && afternoon >= evening && afternoon > 0) return { label: "You're a Midday Mover ⚡", bg: "bg-violet-500/10 border-violet-500/30", text: "text-violet-400" };
+      if (evening > 0) return { label: "You're an Evening Athlete 🌙", bg: "bg-indigo-500/10 border-indigo-500/30", text: "text-indigo-400" };
+      return null;
   };
   const personalityLabel = getPersonalityLabel();
 
   return (
-    <div className="min-h-screen pb-20 md:pb-0">
-      <Navbar />
+      <div className="min-h-screen pb-20 md:pb-0" style={{ background: 'radial-gradient(ellipse at 50% 0%, hsl(260 30% 10%) 0%, hsl(240 20% 5%) 50%, hsl(240 25% 3%) 100%)' }}>
+        <Navbar />
       <div className="container mx-auto px-4 sm:px-6 page-offset-top pb-20">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           {/* Header */}
           <div className="text-center mb-6">
-            <h1 className="font-heading text-2xl sm:text-4xl md:text-5xl font-bold text-foreground mb-3">
+            <h1 className="font-heading text-2xl sm:text-4xl md:text-5xl font-bold text-foreground mb-3 -tracking-tight">
               {cmsContent.title || "Habit Tracker"}
             </h1>
             <p className="text-muted-foreground max-w-2xl mx-auto mb-8">
@@ -541,8 +542,8 @@ const HabitsPage = () => {
                     { label: "Session Patterns" },
                   ];
                   const badges = (cmsContent.feature_badges && cmsContent.feature_badges.length > 0) ? cmsContent.feature_badges : defaultBadges;
-                  const defaultHues = [160, 200, 280, 40, 340];
-                  const goldHue = 43;
+                  const defaultHues = [260, 280, 240, 300, 220];
+                  const violetHue = 263;
                   const iconMap: Record<string, React.ReactNode> = {
                     Streaks: <Flame className="h-2.5 w-2.5 lg:h-3.5 lg:w-3.5" />,
                     Badges: <Trophy className="h-2.5 w-2.5 lg:h-3.5 lg:w-3.5" />,
@@ -551,7 +552,7 @@ const HabitsPage = () => {
                     "Session Patterns": <Clock className="h-2.5 w-2.5 lg:h-3.5 lg:w-3.5" />,
                   };
                   return badges.map((c, i) => {
-                    const hue = c.use_gold ? goldHue : defaultHues[i % defaultHues.length];
+                    const hue = c.use_gold ? violetHue : defaultHues[i % defaultHues.length];
                     return (
                       <motion.div
                         key={i}
@@ -607,9 +608,9 @@ const HabitsPage = () => {
           <>
           {/* Session Times — moved right after subtitle */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mb-8">
-            <Card className="bg-black/40 backdrop-blur-xl border-0 border-t-[0.5px] border-l-[0.5px] border-white/[0.12]">
+            <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
+                <CardTitle className="text-base flex items-center gap-2 -tracking-tight">
                   <Clock className="h-4 w-4 text-primary" />
                   Session Times
                 </CardTitle>
@@ -617,24 +618,24 @@ const HabitsPage = () => {
               <CardContent className="space-y-4">
                 <div>
                   <div className="flex items-center justify-between text-sm mb-1">
-                    <span className="flex items-center gap-1.5 text-muted-foreground"><Sun className="h-3.5 w-3.5 text-amber-400" /> Morning</span>
+                    <span className="flex items-center gap-1.5 text-muted-foreground"><Sun className="h-3.5 w-3.5 text-purple-300" /> Morning</span>
                     <span className="font-medium text-foreground">{timeDistribution.morning}</span>
                   </div>
-                  <Progress value={(timeDistribution.morning / timeDistribution.total) * 100} className="h-2" />
+                  <Progress value={(timeDistribution.morning / timeDistribution.total) * 100} className="h-[3px]" />
                 </div>
                 <div>
                   <div className="flex items-center justify-between text-sm mb-1">
-                    <span className="flex items-center gap-1.5 text-muted-foreground"><TrendingUp className="h-3.5 w-3.5 text-orange-400" /> Afternoon</span>
+                    <span className="flex items-center gap-1.5 text-muted-foreground"><TrendingUp className="h-3.5 w-3.5 text-violet-400" /> Afternoon</span>
                     <span className="font-medium text-foreground">{timeDistribution.afternoon}</span>
                   </div>
-                  <Progress value={(timeDistribution.afternoon / timeDistribution.total) * 100} className="h-2" />
+                  <Progress value={(timeDistribution.afternoon / timeDistribution.total) * 100} className="h-[3px]" />
                 </div>
                 <div>
                   <div className="flex items-center justify-between text-sm mb-1">
                     <span className="flex items-center gap-1.5 text-muted-foreground"><Moon className="h-3.5 w-3.5 text-indigo-400" /> Evening</span>
                     <span className="font-medium text-foreground">{timeDistribution.evening}</span>
                   </div>
-                  <Progress value={(timeDistribution.evening / timeDistribution.total) * 100} className="h-2" />
+                  <Progress value={(timeDistribution.evening / timeDistribution.total) * 100} className="h-[3px]" />
                 </div>
               </CardContent>
             </Card>
@@ -642,17 +643,17 @@ const HabitsPage = () => {
 
           {/* Personality Label */}
           {personalityLabel && completedBookings.length > 0 && (
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }} className="mb-6">
-              <div className={cn("rounded-xl border p-4 text-center", personalityLabel.bg)}>
-                <p className={cn("text-lg font-heading font-bold", personalityLabel.text)}>{personalityLabel.label}</p>
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mb-6">
+              <div className={cn("rounded-xl p-4 text-center bg-white/[0.04] backdrop-blur-2xl", personalityLabel.bg)}>
+                <p className={cn("text-lg font-heading font-bold -tracking-tight", personalityLabel.text)}>{personalityLabel.label}</p>
                 <p className="text-[11px] text-muted-foreground mt-1">Based on your session history</p>
               </div>
             </motion.div>
           )}
 
           {/* Quick stats strip */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-            className="flex flex-wrap items-center justify-center gap-6 sm:gap-10 mb-10 py-4 px-6 rounded-xl bg-black/40 backdrop-blur-xl border-0 border-t-[0.5px] border-l-[0.5px] border-white/[0.12] shadow-[0_8px_32px_-8px_hsl(0_0%_0%/0.5)]"
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+            className="flex flex-wrap items-center justify-center gap-6 sm:gap-10 mb-10 py-4 px-6 rounded-xl bg-white/[0.04] backdrop-blur-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
           >
             {/* Levels — with glow/ping animation */}
             <div className="text-center relative">
@@ -760,13 +761,15 @@ const HabitsPage = () => {
             ))}
           </div>
 
-          {/* Insights — full width */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="mt-6">
-            <Card className="bg-black/40 backdrop-blur-xl border-0 border-t-[0.5px] border-l-[0.5px] border-white/[0.12]">
+          {/* AURA AI Smart Insights */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mt-6">
+            <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-primary" />
-                  Insights
+                <CardTitle className="text-base flex items-center gap-2 -tracking-tight">
+                  <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center glow-violet-subtle">
+                    <Sparkles className="h-3.5 w-3.5 text-primary" />
+                  </div>
+                  <span className="text-metallic font-label text-xs uppercase tracking-[0.15em]">AURA AI Suggests</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -776,8 +779,8 @@ const HabitsPage = () => {
                       key={i}
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.7 + i * 0.08 }}
-                      className="p-3 rounded-lg bg-secondary/50 border border-border text-sm text-foreground"
+                      transition={{ delay: 0.35 + i * 0.05 }}
+                      className="p-3 rounded-lg bg-white/[0.04] text-sm text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
                     >
                       {tip}
                     </motion.div>
