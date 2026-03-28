@@ -193,7 +193,7 @@ const MatchmakerPage = () => {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-6"
         >
-          <h1 className="font-heading text-3xl sm:text-5xl md:text-6xl font-bold text-foreground mb-4">
+          <h1 className="font-heading text-3xl sm:text-5xl md:text-6xl font-bold text-foreground mb-4 -tracking-tight">
             {pageTitle}
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground max-w-xl mx-auto mb-8">
