@@ -825,9 +825,47 @@ const BookPage = () => {
 
             <div>
               <Label className="text-sm font-medium text-muted-foreground mb-4 block">Select Time</Label>
+
+              {/* Loyalty reminder nudge */}
+              {user && resolvedClubId && (() => {
+                const clubReward = getRewardForClub(resolvedClubId);
+                const allRewards = activeRewards;
+                // Find the club's reward data from the full rewards list
+                const rewardData = allRewards.find(r => r.clubId === resolvedClubId) || { points: 0 };
+                const pts = (rewardData as any).points || 0;
+                if (pts >= 3 && pts < 5) {
+                  return (
+                    <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="mb-3">
+                      <div className="rounded-xl border border-primary/30 bg-primary/5 px-3 py-2 flex items-center gap-2">
+                        <Trophy className="h-4 w-4 text-primary shrink-0" />
+                        <p className="text-xs text-foreground">
+                          Book now — you're <span className="font-bold text-primary">{5 - pts}</span> session{5 - pts > 1 ? "s" : ""} away from 50% off! 🏆
+                        </p>
+                      </div>
+                    </motion.div>
+                  );
+                }
+                if (pts >= 8 && pts < 10) {
+                  return (
+                    <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="mb-3">
+                      <div className="rounded-xl border border-primary/30 bg-primary/5 px-3 py-2 flex items-center gap-2">
+                        <Trophy className="h-4 w-4 text-primary shrink-0" />
+                        <p className="text-xs text-foreground">
+                          Book now — you're <span className="font-bold text-primary">{10 - pts}</span> session{10 - pts > 1 ? "s" : ""} away from a FREE session! 🏆
+                        </p>
+                      </div>
+                    </motion.div>
+                  );
+                }
+                return null;
+              })()}
+
               <div className="grid grid-cols-4 gap-2">
                 {timeSlots.map((time) => {
                   const isBooked = bookedSlots.includes(time);
+                  // Availability signals — deterministic based on slot data
+                  const hour = parseInt(time);
+                  const isPeakHour = (hour >= 17 && hour <= 20) || hour === 10;
                   return (
                     <button
                       type="button"
@@ -835,9 +873,9 @@ const BookPage = () => {
                       onClick={() => selectedActivity && !isBooked && setSelectedTime(time)}
                       disabled={!selectedActivity || isBooked}
                       className={cn(
-                        "flex items-center justify-center gap-1 rounded-lg border px-3 py-2.5 text-sm font-medium transition-all",
+                        "relative flex flex-col items-center justify-center gap-0.5 rounded-lg border px-3 py-2.5 text-sm font-medium transition-all",
                         isBooked
-                          ? "border-border bg-muted text-muted-foreground/40 cursor-not-allowed opacity-50 line-through"
+                          ? "border-border bg-muted text-muted-foreground/40 cursor-not-allowed opacity-50"
                           : !selectedActivity
                             ? "border-border text-muted-foreground/40 cursor-not-allowed opacity-50"
                             : selectedTime !== time
@@ -846,8 +884,18 @@ const BookPage = () => {
                       )}
                       style={selectedTime === time && !isBooked && selectedActivity ? brand.bg10 : undefined}
                     >
-                      <Clock className="h-3 w-3" />
-                      {time}
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {isBooked ? <span className="line-through">{time}</span> : time}
+                      </div>
+                      {isBooked && (
+                        <span className="text-[8px] font-semibold uppercase tracking-wider text-muted-foreground/60">Full</span>
+                      )}
+                      {!isBooked && isPeakHour && selectedActivity && (
+                        <span className="text-[8px] font-semibold uppercase tracking-wider text-orange-400 flex items-center gap-0.5">
+                          <Flame className="h-2 w-2" /> Popular
+                        </span>
+                      )}
                     </button>
                   );
                 })}
