@@ -148,7 +148,7 @@ const BadgeLevelSection = ({ level, li, defaultOpen }: { level: BadgeLevelData; 
 
         {/* Motivating progress banner below level header */}
         <div className="px-5 sm:px-6 pb-3">
-          <div className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-2.5">
+          <div className="rounded-xl bg-primary/[0.08] px-4 py-2.5">
             <p className="text-sm text-foreground text-center">
               {levelComplete ? (
                 <span className="font-semibold text-emerald-400">🏆 All {level.badges.length} badges unlocked — Level complete!</span>
