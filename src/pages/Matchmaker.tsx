@@ -404,32 +404,28 @@ const MatchmakerPage = () => {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95 }}
                         transition={{ delay: idx * 0.05 }}
-                        className="relative rounded-xl bg-black/40 backdrop-blur-xl border-0 border-t-[0.5px] border-l-[0.5px] border-white/[0.12] p-5 transition-all duration-500 ease-out group overflow-hidden hover:scale-[1.02]"
-                        style={{
-                          boxShadow: primaryColor
-                            ? `0 0 24px hsl(${primaryColor} / 0.12), 0 8px 32px -8px hsl(0 0% 0% / 0.5)`
-                            : `0 8px 32px -8px hsl(0 0% 0% / 0.5)`,
-                        }}
+                        className="relative rounded-2xl bg-white/[0.04] backdrop-blur-2xl p-5 transition-all duration-500 ease-out group overflow-hidden card-hover shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
                       >
-                        {/* Animated mesh gradient background */}
+                        {/* Mesh gradient background */}
                         <div
-                          className="absolute inset-0 opacity-[0.04] group-hover:opacity-[0.08] transition-opacity duration-700 pointer-events-none rounded-xl"
+                          className="absolute inset-0 opacity-[0.06] group-hover:opacity-[0.12] transition-opacity duration-700 pointer-events-none rounded-2xl"
                           style={{
-                            background: primaryColor
-                              ? `radial-gradient(ellipse at 20% 50%, hsl(${primaryColor} / 0.4), transparent 60%), radial-gradient(ellipse at 80% 20%, hsl(var(--primary) / 0.3), transparent 50%)`
-                              : `radial-gradient(ellipse at 20% 50%, hsl(240 60% 40% / 0.4), transparent 60%), radial-gradient(ellipse at 80% 20%, hsl(var(--primary) / 0.3), transparent 50%)`,
+                            background: `radial-gradient(ellipse at 20% 50%, rgba(124,58,237,0.4), transparent 60%), radial-gradient(ellipse at 80% 20%, rgba(30,27,75,0.5), transparent 50%)`,
                           }}
                         />
-                        {/* Header — name + avatar only, no contact info */}
-                        <div className="flex items-start justify-between mb-4">
+                        {/* Header */}
+                        <div className="flex items-start justify-between mb-4 relative z-10">
                           <div className="flex items-center gap-3">
                             {avatarMap[match.user_id] ? (
-                              <img
-                                src={avatarMap[match.user_id]!}
-                                alt={match.display_name}
-                                className="h-11 w-11 rounded-full object-cover border-2 shrink-0"
-                                style={{ borderColor: primaryColor ? `hsl(${primaryColor} / 0.4)` : 'hsl(var(--border))', boxShadow: primaryColor ? `0 0 12px hsl(${primaryColor} / 0.25)` : undefined }}
-                              />
+                              <div className="relative">
+                                {/* Compatibility ring */}
+                                <div className="absolute -inset-1 rounded-full" style={{ background: `conic-gradient(from 0deg, hsl(${badge.color}), transparent 70%, hsl(${badge.color}))`, opacity: 0.5 }} />
+                                <img
+                                  src={avatarMap[match.user_id]!}
+                                  alt={match.display_name}
+                                  className="relative h-11 w-11 rounded-full object-cover border-2 border-white/10 shrink-0"
+                                />
+                              </div>
                             ) : (
                               <div className="relative h-11 w-11 rounded-full bg-muted/40 flex flex-col items-center justify-center shrink-0 border border-border">
                                 <svg className="h-5 w-5 text-muted-foreground/50" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
