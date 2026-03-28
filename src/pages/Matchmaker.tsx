@@ -525,10 +525,13 @@ const MatchmakerPage = () => {
                                     variant={alreadySent ? "secondary" : "default"}
                                     disabled={alreadySent}
                                     onClick={() => setNudgeDialog({ match, sport })}
-                                    className="gap-1.5 shrink-0 ml-2"
+                                    className={cn(
+                                      "gap-1.5 shrink-0 ml-2 transition-all duration-400",
+                                      !alreadySent && "btn-ghost-violet border hover:scale-105 active:scale-95"
+                                    )}
                                   >
                                     <Send className="h-3 w-3" />
-                                    {alreadySent ? "Nudged" : "Nudge"}
+                                    {alreadySent ? "Nudged" : "Pulse"}
                                   </Button>
                                 </div>
                               </div>
