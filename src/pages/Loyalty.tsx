@@ -71,6 +71,9 @@ const LoyaltyPage = () => {
   const [offerings, setOfferings] = useState<OfferingItem[]>([]);
   const [streakWeeks, setStreakWeeks] = useState<boolean[]>([false, false, false]);
   const [animateKey, setAnimateKey] = useState(0);
+  const [streakTitle, setStreakTitle] = useState("Streak Bonus");
+  const [streakDesc, setStreakDesc] = useState("Book 3 weeks straight → earn 2x points that week");
+  const [streakSubtitle, setStreakSubtitle] = useState("Consistency is rewarded. Keep your streak alive!");
 
   useEffect(() => {
     // Trigger re-animation every time page opens
