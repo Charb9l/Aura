@@ -510,6 +510,9 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
   const [loyaltyCtaSubtitle, setLoyaltyCtaSubtitle] = useState("Sign up, book your first session, and watch your points grow.");
   const [loyaltyMilestone5, setLoyaltyMilestone5] = useState("50% Off");
   const [loyaltyMilestone10, setLoyaltyMilestone10] = useState("Free Session");
+  const [loyaltyStreakTitle, setLoyaltyStreakTitle] = useState("Streak Bonus");
+  const [loyaltyStreakDesc, setLoyaltyStreakDesc] = useState("Book 3 weeks straight → earn 2x points that week");
+  const [loyaltyStreakSubtitle, setLoyaltyStreakSubtitle] = useState("Consistency is rewarded. Keep your streak alive!");
 
   useEffect(() => {
     const fetchAll = async () => {
