@@ -100,6 +100,9 @@ const LoyaltyPage = () => {
         if (c.cta_subtitle) setCtaSubtitle(c.cta_subtitle);
         if (c.milestone_5) setMilestone5(c.milestone_5);
         if (c.milestone_10) setMilestone10(c.milestone_10);
+        if (c.streak_title) setStreakTitle(c.streak_title);
+        if (c.streak_desc) setStreakDesc(c.streak_desc);
+        if (c.streak_subtitle) setStreakSubtitle(c.streak_subtitle);
       }
       if (offeringsRes.data) setOfferings(offeringsRes.data);
     };
