@@ -485,10 +485,10 @@ const HabitsPage = () => {
   }
 
   const getAuraLevel = (score: number): { name: string; color: string } => {
-    if (score >= 81) return { name: "Elite Aura", color: "text-amber-300" };
+    if (score >= 81) return { name: "Elite Aura", color: "text-violet-light" };
     if (score >= 61) return { name: "Gold Performer", color: "text-primary" };
-    if (score >= 41) return { name: "Bronze Contender", color: "text-amber-600" };
-    if (score >= 21) return { name: "Rising Athlete", color: "text-emerald-400" };
+    if (score >= 41) return { name: "Bronze Contender", color: "text-purple-400" };
+    if (score >= 21) return { name: "Rising Athlete", color: "text-indigo-400" };
     return { name: "Rookie", color: "text-muted-foreground" };
   };
 
