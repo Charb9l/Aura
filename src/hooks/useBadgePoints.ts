@@ -29,11 +29,10 @@ export const useBadgePoints = () => {
 
   const assignPoint = async (clubId: string, badgeLevel: number) => {
     if (!user) return false;
-    const { error } = await supabase.from("badge_point_assignments").insert({
-      user_id: user.id,
-      club_id: clubId,
-      badge_level: badgeLevel,
-    } as any);
+    const { data, error } = await supabase.rpc("assign_badge_point" as any, {
+      _club_id: clubId,
+      _badge_level: badgeLevel,
+    });
     if (error) return false;
     await fetchAssignments();
     return true;

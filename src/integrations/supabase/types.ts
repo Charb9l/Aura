@@ -1190,6 +1190,22 @@ export type Database = {
         }
         Returns: undefined
       }
+      assign_badge_point: {
+        Args: { _badge_level: number; _club_id: string }
+        Returns: boolean
+      }
+      create_booking: {
+        Args: {
+          _activity: string
+          _activity_name: string
+          _booking_date: string
+          _booking_time: string
+          _club_id?: string
+          _court_type?: string
+          _discount_type?: string
+        }
+        Returns: Json
+      }
       get_booked_slots:
         | {
             Args: { _activity: string; _booking_date: string }

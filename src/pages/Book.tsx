@@ -395,19 +395,17 @@ const BookPage = () => {
       consumePromo = true;
     }
 
-    const { data: insertedBooking, error } = await supabase.from("bookings").insert({
-      user_id: user.id,
-      activity: selectedActivity,
-      activity_name: activityName,
-      booking_date: format(date, "yyyy-MM-dd"),
-      booking_time: selectedTime,
-      full_name: profileName,
-      email: profileEmail,
-      phone: profilePhone,
-      court_type: selectedActivity === "basketball" ? courtType : null,
-      discount_type: discountType,
-      price: currentPrice,
-    }).select("id, booking_number").single();
+    const { data: rpcResult, error } = await supabase.rpc("create_booking" as any, {
+      _activity: selectedActivity,
+      _activity_name: activityName,
+      _booking_date: format(date, "yyyy-MM-dd"),
+      _booking_time: selectedTime,
+      _court_type: selectedActivity === "basketball" ? courtType : null,
+      _discount_type: discountType,
+      _club_id: resolvedClubId || null,
+    });
+
+    const insertedBooking = rpcResult as any;
 
     setSubmitting(false);
     if (error) {
