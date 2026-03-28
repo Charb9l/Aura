@@ -542,8 +542,8 @@ const HabitsPage = () => {
                     { label: "Session Patterns" },
                   ];
                   const badges = (cmsContent.feature_badges && cmsContent.feature_badges.length > 0) ? cmsContent.feature_badges : defaultBadges;
-                  const defaultHues = [160, 200, 280, 40, 340];
-                  const goldHue = 43;
+                  const defaultHues = [260, 280, 240, 300, 220];
+                  const violetHue = 263;
                   const iconMap: Record<string, React.ReactNode> = {
                     Streaks: <Flame className="h-2.5 w-2.5 lg:h-3.5 lg:w-3.5" />,
                     Badges: <Trophy className="h-2.5 w-2.5 lg:h-3.5 lg:w-3.5" />,
@@ -552,7 +552,7 @@ const HabitsPage = () => {
                     "Session Patterns": <Clock className="h-2.5 w-2.5 lg:h-3.5 lg:w-3.5" />,
                   };
                   return badges.map((c, i) => {
-                    const hue = c.use_gold ? goldHue : defaultHues[i % defaultHues.length];
+                    const hue = c.use_gold ? violetHue : defaultHues[i % defaultHues.length];
                     return (
                       <motion.div
                         key={i}
