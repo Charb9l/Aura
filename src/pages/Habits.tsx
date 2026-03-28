@@ -762,7 +762,7 @@ const HabitsPage = () => {
 
           {/* Insights — full width */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="mt-6">
-            <Card className="bg-card border-border">
+            <Card className="bg-black/40 backdrop-blur-xl border-0 border-t-[0.5px] border-l-[0.5px] border-white/[0.12]">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-primary" />
