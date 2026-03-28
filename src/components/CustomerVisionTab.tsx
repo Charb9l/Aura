@@ -541,6 +541,11 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
       setFeaturedAcademyId(content.featured_academy_id || "");
       setFeaturedClubId2(content.featured_club_id_2 || "");
       setFeaturedAcademyId2(content.featured_academy_id_2 || "");
+      setFeatureIconLabels(content.feature_icon_labels || { loyalty: "Aura Loyalty", matchmaking: "Matchmaking", habits: "Habits" });
+      setPulseFeedLabel(content.pulse_feed_label || "Pulse Feed");
+      setGreetingMorning(content.greeting_morning || "Good morning");
+      setGreetingAfternoon(content.greeting_afternoon || "Good afternoon");
+      setGreetingEvening(content.greeting_evening || "Good evening");
       // Fetch clubs for selectors
       supabase.from("clubs").select("id, name, has_academy").eq("published", true).order("name").then(({ data }) => {
         if (data) setAllClubs(data as any[]);
