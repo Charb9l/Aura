@@ -50,7 +50,9 @@ const TABS = [
 ];
 
 const ProfileTabIcon = ({ isActive }: { isActive: boolean }) => {
-  const { avatarUrl, initials } = useAvatar();
+  const { avatarUrl } = useAvatar();
+  const { user } = useAuth();
+  const initials = getInitials(user?.user_metadata?.full_name, user?.email);
 
   if (avatarUrl) {
     return (
