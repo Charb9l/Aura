@@ -57,7 +57,7 @@ const MatchmakingSocialCard = () => {
       transition={{ duration: 0.5, delay: 0.4 }}
       className="w-full max-w-sm lg:max-w-lg mx-auto"
     >
-      <div className="rounded-2xl border border-border bg-card/90 p-4 space-y-3">
+      <div className="rounded-2xl bg-black/40 backdrop-blur-xl border-0 border-t-[0.5px] border-l-[0.5px] border-white/[0.12] shadow-[0_8px_32px_-8px_hsl(0_0%_0%/0.5)] p-4 space-y-3 card-premium">
         <div className="flex items-start gap-3">
           <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
             <MapPin className="h-4 w-4 text-primary" />

@@ -104,11 +104,11 @@ const HeroSection = () => {
                 >
                   <Link
                     to={action.to}
-                    className="group relative flex items-center justify-center rounded-2xl w-16 h-16 lg:w-20 lg:h-20 transition-all duration-300 bg-card border border-border shadow-sm hover:shadow-lg hover:border-primary/40 hover:-translate-y-1"
+                    className="group relative flex items-center justify-center rounded-2xl w-16 h-16 lg:w-20 lg:h-20 transition-all duration-500 ease-out bg-black/40 backdrop-blur-xl border-0 border-t-[0.5px] border-l-[0.5px] border-white/[0.12] shadow-[0_8px_32px_-8px_hsl(0_0%_0%/0.5)] hover:shadow-[0_0_24px_hsl(var(--primary)/0.15),0_8px_40px_-12px_hsl(0_0%_0%/0.5)] hover:border-t-primary/30 hover:scale-105 hover:-translate-y-1"
                   >
-                    <span className="text-primary group-hover:scale-110 transition-transform">{icon}</span>
+                    <span className="text-primary group-hover:scale-110 transition-transform duration-500">{icon}</span>
                   </Link>
-                  <span className="text-[9px] font-semibold uppercase tracking-[0.1em] text-foreground/60 leading-tight text-center max-w-[72px]">{action.label}</span>
+                  <span className="font-label text-[9px] font-semibold uppercase tracking-[0.15em] text-foreground/50 leading-tight text-center max-w-[72px]">{action.label}</span>
                 </motion.div>
               );
             })}
