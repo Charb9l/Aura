@@ -549,7 +549,7 @@ const MatchmakerPage = () => {
 
         {/* Nudge confirmation dialog */}
         <Dialog open={!!nudgeDialog} onOpenChange={(o) => !o && setNudgeDialog(null)}>
-          <DialogContent className="bg-card border-border max-w-md">
+          <DialogContent className="bg-white/[0.06] backdrop-blur-2xl border-white/10 max-w-md">
             <DialogHeader>
               <DialogTitle className="font-heading text-xl flex items-center gap-2">
                 <Send className="h-5 w-5 text-primary" /> Send a Nudge
