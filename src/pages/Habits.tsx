@@ -105,11 +105,11 @@ const BadgeLevelSection = ({ level, li, defaultOpen }: { level: BadgeLevelData; 
     <motion.div
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.2 + li * 0.15, duration: 0.5 }}
+      transition={{ delay: 0.1 + li * 0.05, duration: 0.5 }}
     >
       <div className={cn(
-        "rounded-2xl border overflow-hidden transition-all duration-300",
-        levelComplete ? colors.border : "border-border bg-card"
+        "rounded-2xl overflow-hidden transition-all duration-300 bg-white/[0.04] backdrop-blur-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]",
+        levelComplete && "glow-violet"
       )}>
         <button onClick={() => setIsOpen(o => !o)} className="w-full text-left">
           <div className="p-5 sm:p-6">
