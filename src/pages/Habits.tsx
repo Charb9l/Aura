@@ -498,8 +498,8 @@ const HabitsPage = () => {
   const nextAuraName = getAuraLevel(nextThreshold).name;
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return "text-green-400";
-    if (score >= 50) return "text-amber-400";
+    if (score >= 80) return "text-primary";
+    if (score >= 50) return "text-purple-400";
     return "text-muted-foreground";
   };
 
