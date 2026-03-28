@@ -358,7 +358,7 @@ const MatchmakerPage = () => {
             {loading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <div key={i} className="rounded-xl bg-black/40 backdrop-blur-xl border-0 border-t-[0.5px] border-l-[0.5px] border-white/[0.12] p-6 space-y-4 animate-pulse h-52">
+                  <div key={i} className="rounded-xl bg-white/[0.04] backdrop-blur-2xl p-6 space-y-4 animate-pulse h-52 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
                     <div className="flex items-center gap-3">
                       <div className="h-11 w-11 rounded-full bg-muted" />
                       <div className="space-y-2 flex-1">
