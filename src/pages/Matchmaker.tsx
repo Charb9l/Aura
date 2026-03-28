@@ -208,9 +208,8 @@ const MatchmakerPage = () => {
             >
               <div className="mx-auto flex flex-wrap justify-center gap-2 sm:gap-3 px-1">
                 {criteria.map((c, i) => {
-                  const goldHue = 43;
-                  const hues = [160, 200, 280, 40, 340];
-                  const hue = c.use_gold ? goldHue : hues[i % hues.length];
+                  const hues = [260, 280, 240, 300, 220];
+                  const hue = c.use_gold ? 263 : hues[i % hues.length];
 
                   const iconMap: Record<string, LucideIcon> = {
                     skill: Gauge, level: Gauge,
