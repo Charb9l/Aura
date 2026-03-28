@@ -127,12 +127,12 @@ const BadgeLevelSection = ({ level, li, defaultOpen }: { level: BadgeLevelData; 
                   </h3>
                   <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform duration-300", isOpen && "rotate-180")} />
                 </div>
-                <div className="h-2 rounded-full bg-secondary overflow-hidden">
+                <div className="h-[3px] rounded-full bg-white/[0.06] overflow-hidden">
                   <motion.div
-                    className={cn("h-full rounded-full", colors.bg)}
+                    className="h-full rounded-full liquid-fill"
                     initial={{ width: 0 }}
                     animate={{ width: `${progressPct}%` }}
-                    transition={{ duration: 1, delay: 0.4 + li * 0.2, ease: "easeOut" }}
+                    transition={{ duration: 1, delay: 0.2 + li * 0.05, ease: "easeOut" }}
                   />
                 </div>
                 {levelComplete && (
