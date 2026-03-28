@@ -13,7 +13,6 @@ const LiveFeatureIcons = () => {
   const [matchCount, setMatchCount] = useState<number | null>(null);
   const [streak, setStreak] = useState<number | null>(null);
 
-  // Best loyalty progress
   const loyaltyLabel = useMemo(() => {
     if (!rewardsLoaded || !user) return null;
     const best = rewards.filter(r => r.points > 0).sort((a, b) => b.points - a.points)[0];
@@ -23,14 +22,12 @@ const LiveFeatureIcons = () => {
     return "Reward!";
   }, [rewards, rewardsLoaded, user]);
 
-  // Matchmaker count
   useEffect(() => {
     if (!user) return;
     supabase.from("player_selections").select("user_id", { count: "exact", head: true })
       .then(({ count }) => setMatchCount(count ?? 0));
   }, [user]);
 
-  // Habit streak
   useEffect(() => {
     if (!user) return;
     const calcStreak = async () => {
@@ -90,19 +87,19 @@ const LiveFeatureIcons = () => {
           key={item.to}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 + i * 0.1 }}
+          transition={{ duration: 0.5, delay: 0.1 + i * 0.05 }}
           className="flex flex-col items-center gap-1.5"
         >
           <Link
             to={item.to}
-            className="group relative flex flex-col items-center justify-center rounded-2xl w-20 h-20 lg:w-24 lg:h-24 transition-all duration-500 ease-out bg-black/40 backdrop-blur-xl border-0 border-t-[0.5px] border-l-[0.5px] border-white/[0.12] shadow-[0_8px_32px_-8px_hsl(0_0%_0%/0.5)] hover:shadow-[0_0_24px_hsl(var(--primary)/0.15),0_8px_40px_-12px_hsl(0_0%_0%/0.5)] hover:border-t-primary/30 hover:scale-105 hover:-translate-y-1"
+            className="group relative flex flex-col items-center justify-center rounded-2xl w-20 h-20 lg:w-24 lg:h-24 transition-all duration-500 ease-out bg-white/[0.04] backdrop-blur-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] hover:shadow-[0_0_24px_rgba(124,58,237,0.2)] hover:bg-white/[0.07] hover:scale-105 hover:-translate-y-1"
           >
             <span className="text-primary group-hover:scale-110 transition-transform duration-500">{item.icon}</span>
             {item.stat && (
               <span className="text-[8px] font-semibold text-primary/80 mt-1 leading-none">{item.stat}</span>
             )}
           </Link>
-          <span className="font-label text-[9px] font-semibold uppercase tracking-[0.15em] text-foreground/50 leading-tight text-center max-w-[80px]">
+          <span className="font-label text-[9px] font-semibold uppercase tracking-[0.15em] text-foreground/40 leading-tight text-center max-w-[80px]">
             {item.label}
           </span>
         </motion.div>

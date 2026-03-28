@@ -20,13 +20,11 @@ const MatchmakingSocialCard = () => {
   useEffect(() => {
     if (!user) return;
     const fetch = async () => {
-      // Get recent player selections count (active matchmakers)
       const { count } = await supabase
         .from("player_selections")
         .select("*", { count: "exact", head: true });
       setPlayerCount(count || 0);
 
-      // Get a recent booking with name for social proof
       const { data } = await supabase
         .from("bookings")
         .select("full_name, activity_name, created_at")
@@ -54,12 +52,12 @@ const MatchmakingSocialCard = () => {
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.4 }}
+      transition={{ duration: 0.5, delay: 0.25 }}
       className="w-full max-w-sm lg:max-w-lg mx-auto"
     >
-      <div className="rounded-2xl bg-black/40 backdrop-blur-xl border-0 border-t-[0.5px] border-l-[0.5px] border-white/[0.12] shadow-[0_8px_32px_-8px_hsl(0_0%_0%/0.5)] p-4 space-y-3 card-premium">
+      <div className="rounded-2xl bg-white/[0.04] backdrop-blur-2xl p-4 space-y-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] card-hover">
         <div className="flex items-start gap-3">
-          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 glow-violet-subtle">
             <MapPin className="h-4 w-4 text-primary" />
           </div>
           <div className="flex-1 min-w-0">
@@ -81,7 +79,7 @@ const MatchmakingSocialCard = () => {
           </div>
         </div>
         <Link to="/matchmaker">
-          <Button size="sm" className="w-full gap-1.5 h-8 text-xs btn-ghost-gold border rounded-lg">
+          <Button size="sm" className="w-full gap-1.5 h-8 text-xs btn-ghost-violet border rounded-lg">
             View Matches <ArrowRight className="h-3 w-3" />
           </Button>
         </Link>
