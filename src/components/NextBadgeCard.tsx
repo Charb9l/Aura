@@ -118,8 +118,8 @@ const NextBadgeCard = () => {
       transition={{ duration: 0.5, delay: 0.3 }}
       className="w-full max-w-sm lg:max-w-lg mx-auto"
     >
-      <div className="rounded-2xl border border-primary/30 bg-card p-4 flex items-center gap-3">
-        <div className="h-11 w-11 rounded-xl bg-primary/15 flex items-center justify-center shrink-0 text-primary">
+      <div className="rounded-2xl bg-black/40 backdrop-blur-xl border-0 border-t-[0.5px] border-l-[0.5px] border-white/[0.12] shadow-[0_8px_32px_-8px_hsl(0_0%_0%/0.5)] p-4 flex items-center gap-3 card-premium">
+        <div className="h-11 w-11 rounded-xl bg-primary/15 flex items-center justify-center shrink-0 text-primary" style={{ boxShadow: '0 0 16px hsl(var(--primary) / 0.2)' }}>
           {ICON_MAP[nextBadge.icon] || <Star className="h-5 w-5" />}
         </div>
         <div className="flex-1 min-w-0">
@@ -127,20 +127,24 @@ const NextBadgeCard = () => {
             You're <span className="text-primary font-bold">{remaining}</span> {nextBadge.metric === "sessions" ? "session" : "step"}{remaining > 1 ? "s" : ""} away from <span className="font-semibold text-foreground">{nextBadge.title}</span> ⚡
           </p>
           <div className="mt-1.5 flex items-center gap-2">
-            <div className="flex-1 h-1.5 rounded-full bg-secondary overflow-hidden">
+            <div className="flex-1 h-[3px] rounded-full bg-white/[0.06] overflow-hidden">
               <motion.div
-                className="h-full rounded-full bg-primary"
+                className="h-full rounded-full"
                 initial={{ width: 0 }}
                 animate={{ width: `${pct}%` }}
                 transition={{ duration: 0.6, ease: "easeOut" }}
+                style={{
+                  background: `linear-gradient(90deg, hsl(var(--primary)), hsl(var(--primary) / 0.15))`,
+                  boxShadow: `0 0 12px hsl(var(--primary) / 0.5)`,
+                }}
               />
             </div>
-            <span className="text-[10px] font-medium text-muted-foreground">{nextBadge.progress}/{nextBadge.target}</span>
+            <span className="font-label text-[10px] font-medium text-muted-foreground">{nextBadge.progress}/{nextBadge.target}</span>
           </div>
         </div>
         <Link
           to="/book"
-          className="shrink-0 text-[10px] font-bold uppercase tracking-wider text-primary border border-primary/30 rounded-lg px-3 py-1.5 hover:bg-primary/10 transition-colors"
+          className="shrink-0 text-[10px] font-bold uppercase tracking-wider btn-ghost-gold rounded-lg px-3 py-1.5"
         >
           Book
         </Link>
