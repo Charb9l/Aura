@@ -608,9 +608,9 @@ const HabitsPage = () => {
           <>
           {/* Session Times — moved right after subtitle */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mb-8">
-            <Card className="bg-black/40 backdrop-blur-xl border-0 border-t-[0.5px] border-l-[0.5px] border-white/[0.12]">
+            <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
+                <CardTitle className="text-base flex items-center gap-2 -tracking-tight">
                   <Clock className="h-4 w-4 text-primary" />
                   Session Times
                 </CardTitle>
@@ -618,24 +618,24 @@ const HabitsPage = () => {
               <CardContent className="space-y-4">
                 <div>
                   <div className="flex items-center justify-between text-sm mb-1">
-                    <span className="flex items-center gap-1.5 text-muted-foreground"><Sun className="h-3.5 w-3.5 text-amber-400" /> Morning</span>
+                    <span className="flex items-center gap-1.5 text-muted-foreground"><Sun className="h-3.5 w-3.5 text-purple-300" /> Morning</span>
                     <span className="font-medium text-foreground">{timeDistribution.morning}</span>
                   </div>
-                  <Progress value={(timeDistribution.morning / timeDistribution.total) * 100} className="h-2" />
+                  <Progress value={(timeDistribution.morning / timeDistribution.total) * 100} className="h-[3px]" />
                 </div>
                 <div>
                   <div className="flex items-center justify-between text-sm mb-1">
-                    <span className="flex items-center gap-1.5 text-muted-foreground"><TrendingUp className="h-3.5 w-3.5 text-orange-400" /> Afternoon</span>
+                    <span className="flex items-center gap-1.5 text-muted-foreground"><TrendingUp className="h-3.5 w-3.5 text-violet-400" /> Afternoon</span>
                     <span className="font-medium text-foreground">{timeDistribution.afternoon}</span>
                   </div>
-                  <Progress value={(timeDistribution.afternoon / timeDistribution.total) * 100} className="h-2" />
+                  <Progress value={(timeDistribution.afternoon / timeDistribution.total) * 100} className="h-[3px]" />
                 </div>
                 <div>
                   <div className="flex items-center justify-between text-sm mb-1">
                     <span className="flex items-center gap-1.5 text-muted-foreground"><Moon className="h-3.5 w-3.5 text-indigo-400" /> Evening</span>
                     <span className="font-medium text-foreground">{timeDistribution.evening}</span>
                   </div>
-                  <Progress value={(timeDistribution.evening / timeDistribution.total) * 100} className="h-2" />
+                  <Progress value={(timeDistribution.evening / timeDistribution.total) * 100} className="h-[3px]" />
                 </div>
               </CardContent>
             </Card>
