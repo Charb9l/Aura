@@ -342,7 +342,7 @@ const LoyaltyPage = () => {
             >
               <div className="flex items-center gap-4 mb-8">
                 <div className="h-px flex-1 bg-gradient-to-r from-primary/30 to-transparent" />
-                <span className="text-[10px] uppercase tracking-[0.4em] text-primary font-medium whitespace-nowrap">Streak Bonus</span>
+                <span className="text-[10px] uppercase tracking-[0.4em] text-primary font-medium whitespace-nowrap">{streakTitle}</span>
                 <div className="h-px flex-1 bg-gradient-to-l from-primary/30 to-transparent" />
               </div>
 
@@ -352,8 +352,8 @@ const LoyaltyPage = () => {
                     <Flame className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-medium text-foreground">Book 3 weeks straight → earn 2x points that week</h3>
-                    <p className="text-xs text-muted-foreground mt-0.5">Consistency is rewarded. Keep your streak alive!</p>
+                    <h3 className="text-sm font-medium text-foreground">{streakDesc}</h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">{streakSubtitle}</p>
                   </div>
                 </div>
 
