@@ -81,7 +81,7 @@ const MatchmakingSocialCard = () => {
           </div>
         </div>
         <Link to="/matchmaker">
-          <Button size="sm" className="w-full gap-1.5 h-8 text-xs">
+          <Button size="sm" className="w-full gap-1.5 h-8 text-xs btn-ghost-gold border rounded-lg">
             View Matches <ArrowRight className="h-3 w-3" />
           </Button>
         </Link>
