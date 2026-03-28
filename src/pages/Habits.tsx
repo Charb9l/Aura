@@ -504,12 +504,12 @@ const HabitsPage = () => {
   };
 
   // Personality label based on time distribution
-  const getPersonalityLabel = () => {
-    const { morning, afternoon, evening } = timeDistribution;
-    if (morning >= afternoon && morning >= evening && morning > 0) return { label: "You're an Early Bird ☀️", bg: "bg-amber-500/10 border-amber-500/30", text: "text-amber-400" };
-    if (afternoon >= morning && afternoon >= evening && afternoon > 0) return { label: "You're a Midday Mover ⚡", bg: "bg-orange-500/10 border-orange-500/30", text: "text-orange-400" };
-    if (evening > 0) return { label: "You're an Evening Athlete 🌙", bg: "bg-indigo-500/10 border-indigo-500/30", text: "text-indigo-400" };
-    return null;
+    const getPersonalityLabel = () => {
+      const { morning, afternoon, evening } = timeDistribution;
+      if (morning >= afternoon && morning >= evening && morning > 0) return { label: "You're an Early Bird ☀️", bg: "bg-purple-500/10 border-purple-500/30", text: "text-purple-300" };
+      if (afternoon >= morning && afternoon >= evening && afternoon > 0) return { label: "You're a Midday Mover ⚡", bg: "bg-violet-500/10 border-violet-500/30", text: "text-violet-400" };
+      if (evening > 0) return { label: "You're an Evening Athlete 🌙", bg: "bg-indigo-500/10 border-indigo-500/30", text: "text-indigo-400" };
+      return null;
   };
   const personalityLabel = getPersonalityLabel();
 
