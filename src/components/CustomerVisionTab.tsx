@@ -927,6 +927,52 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
               </div>
             </div>
 
+            {/* Feature Icons Labels */}
+            <div className="border-t border-border pt-6">
+              <h3 className="text-base font-heading font-semibold text-foreground mb-1">🎯 Live Feature Icons</h3>
+              <p className="text-xs text-muted-foreground mb-4">Labels for the 3 live stats icons shown to logged-in users (Loyalty, Matchmaking, Habits).</p>
+              <div className="space-y-3">
+                <div>
+                  <Label className="text-xs font-medium text-muted-foreground mb-1 block">Loyalty Icon Label</Label>
+                  <Input value={featureIconLabels.loyalty} onChange={(e) => setFeatureIconLabels(prev => ({ ...prev, loyalty: e.target.value }))} placeholder="Aura Loyalty" className="h-9 bg-secondary border-border text-sm" />
+                </div>
+                <div>
+                  <Label className="text-xs font-medium text-muted-foreground mb-1 block">Matchmaking Icon Label</Label>
+                  <Input value={featureIconLabels.matchmaking} onChange={(e) => setFeatureIconLabels(prev => ({ ...prev, matchmaking: e.target.value }))} placeholder="Matchmaking" className="h-9 bg-secondary border-border text-sm" />
+                </div>
+                <div>
+                  <Label className="text-xs font-medium text-muted-foreground mb-1 block">Habits Icon Label</Label>
+                  <Input value={featureIconLabels.habits} onChange={(e) => setFeatureIconLabels(prev => ({ ...prev, habits: e.target.value }))} placeholder="Habits" className="h-9 bg-secondary border-border text-sm" />
+                </div>
+              </div>
+            </div>
+
+            {/* Pulse Feed Label */}
+            <div className="border-t border-border pt-6">
+              <h3 className="text-base font-heading font-semibold text-foreground mb-1">📡 Pulse Feed</h3>
+              <p className="text-xs text-muted-foreground mb-4">Label for the live activity feed strip shown on the home page.</p>
+              <Input value={pulseFeedLabel} onChange={(e) => setPulseFeedLabel(e.target.value)} placeholder="Pulse Feed" className="h-9 bg-secondary border-border text-sm" />
+            </div>
+
+            {/* Greeting Customization */}
+            <div className="border-t border-border pt-6">
+              <h3 className="text-base font-heading font-semibold text-foreground mb-1">👋 Greeting Text</h3>
+              <p className="text-xs text-muted-foreground mb-4">Customize the greeting shown to logged-in users based on time of day.</p>
+              <div className="space-y-3">
+                <div>
+                  <Label className="text-xs font-medium text-muted-foreground mb-1 block">Morning (before 12pm)</Label>
+                  <Input value={greetingMorning} onChange={(e) => setGreetingMorning(e.target.value)} placeholder="Good morning" className="h-9 bg-secondary border-border text-sm" />
+                </div>
+                <div>
+                  <Label className="text-xs font-medium text-muted-foreground mb-1 block">Afternoon (12pm - 5pm)</Label>
+                  <Input value={greetingAfternoon} onChange={(e) => setGreetingAfternoon(e.target.value)} placeholder="Good afternoon" className="h-9 bg-secondary border-border text-sm" />
+                </div>
+                <div>
+                  <Label className="text-xs font-medium text-muted-foreground mb-1 block">Evening (after 5pm)</Label>
+                  <Input value={greetingEvening} onChange={(e) => setGreetingEvening(e.target.value)} placeholder="Good evening" className="h-9 bg-secondary border-border text-sm" />
+                </div>
+              </div>
+            </div>
 
             <Button onClick={handleSaveHome} disabled={saving} className="w-full h-10 text-sm font-semibold glow">
               {saving ? "Saving..." : "Save Changes"}
