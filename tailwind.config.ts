@@ -14,8 +14,9 @@ export default {
     },
     extend: {
       fontFamily: {
-        heading: ['Outfit', 'sans-serif'],
+        heading: ['Cormorant Garamond', 'Outfit', 'serif'],
         body: ['Plus Jakarta Sans', 'sans-serif'],
+        label: ['Outfit', 'sans-serif'],
       },
       fontSize: {
         'xs': ['0.7rem', { lineHeight: '1rem' }],
