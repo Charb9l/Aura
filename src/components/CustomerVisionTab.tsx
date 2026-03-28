@@ -644,6 +644,9 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
       content.cta_subtitle = loyaltyCtaSubtitle;
       content.milestone_5 = loyaltyMilestone5;
       content.milestone_10 = loyaltyMilestone10;
+      content.streak_title = loyaltyStreakTitle;
+      content.streak_desc = loyaltyStreakDesc;
+      content.streak_subtitle = loyaltyStreakSubtitle;
     }
     saveContent(slug, content);
   };
