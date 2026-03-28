@@ -99,7 +99,7 @@ const BookPage = () => {
   const [pageSubtitle, setPageSubtitle] = useState("Select your activity, date and time.");
   const [maxClubsGrid, setMaxClubsGrid] = useState(3);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const { activeRewards, getRewardForClub, hasRewards } = useRewards();
+  const { rewards, activeRewards, getRewardForClub, hasRewards } = useRewards();
   // Hero pictures
   const [heroPictures, setHeroPictures] = useState<{ image: string; alt: string }[]>([]);
   const [heroCycleIndex, setHeroCycleIndex] = useState(0);
