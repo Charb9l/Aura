@@ -488,6 +488,13 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
   const [habitsBadges, setHabitsBadges] = useState<{ label: string; use_gold?: boolean }[]>([]);
   const [maxClubsGrid, setMaxClubsGrid] = useState<number>(3);
 
+  // Home — Feature Icons, Pulse Feed, Matchmaking, Greeting
+  const [featureIconLabels, setFeatureIconLabels] = useState({ loyalty: "Aura Loyalty", matchmaking: "Matchmaking", habits: "Habits" });
+  const [pulseFeedLabel, setPulseFeedLabel] = useState("Pulse Feed");
+  const [greetingMorning, setGreetingMorning] = useState("Good morning");
+  const [greetingAfternoon, setGreetingAfternoon] = useState("Good afternoon");
+  const [greetingEvening, setGreetingEvening] = useState("Good evening");
+
   // Loyalty-specific state
   const [loyaltyTagline, setLoyaltyTagline] = useState("");
   const [loyaltySteps, setLoyaltySteps] = useState<{ title: string; desc: string }[]>([
@@ -503,6 +510,9 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
   const [loyaltyCtaSubtitle, setLoyaltyCtaSubtitle] = useState("Sign up, book your first session, and watch your points grow.");
   const [loyaltyMilestone5, setLoyaltyMilestone5] = useState("50% Off");
   const [loyaltyMilestone10, setLoyaltyMilestone10] = useState("Free Session");
+  const [loyaltyStreakTitle, setLoyaltyStreakTitle] = useState("Streak Bonus");
+  const [loyaltyStreakDesc, setLoyaltyStreakDesc] = useState("Book 3 weeks straight → earn 2x points that week");
+  const [loyaltyStreakSubtitle, setLoyaltyStreakSubtitle] = useState("Consistency is rewarded. Keep your streak alive!");
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -531,6 +541,11 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
       setFeaturedAcademyId(content.featured_academy_id || "");
       setFeaturedClubId2(content.featured_club_id_2 || "");
       setFeaturedAcademyId2(content.featured_academy_id_2 || "");
+      setFeatureIconLabels(content.feature_icon_labels || { loyalty: "Aura Loyalty", matchmaking: "Matchmaking", habits: "Habits" });
+      setPulseFeedLabel(content.pulse_feed_label || "Pulse Feed");
+      setGreetingMorning(content.greeting_morning || "Good morning");
+      setGreetingAfternoon(content.greeting_afternoon || "Good afternoon");
+      setGreetingEvening(content.greeting_evening || "Good evening");
       // Fetch clubs for selectors
       supabase.from("clubs").select("id, name, has_academy").eq("published", true).order("name").then(({ data }) => {
         if (data) setAllClubs(data as any[]);
@@ -557,6 +572,9 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
         setLoyaltyCtaSubtitle(content.cta_subtitle || "Sign up, book your first session, and watch your points grow.");
         setLoyaltyMilestone5(content.milestone_5 || "50% Off");
         setLoyaltyMilestone10(content.milestone_10 || "Free Session");
+        setLoyaltyStreakTitle(content.streak_title || "Streak Bonus");
+        setLoyaltyStreakDesc(content.streak_desc || "Book 3 weeks straight → earn 2x points that week");
+        setLoyaltyStreakSubtitle(content.streak_subtitle || "Consistency is rewarded. Keep your streak alive!");
       }
     }
     setEditingPage(slug);
@@ -592,6 +610,11 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
       featured_academy_id: featuredAcademyId,
       featured_club_id_2: featuredClubId2,
       featured_academy_id_2: featuredAcademyId2,
+      feature_icon_labels: featureIconLabels,
+      pulse_feed_label: pulseFeedLabel,
+      greeting_morning: greetingMorning,
+      greeting_afternoon: greetingAfternoon,
+      greeting_evening: greetingEvening,
     });
   };
 
@@ -621,6 +644,9 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
       content.cta_subtitle = loyaltyCtaSubtitle;
       content.milestone_5 = loyaltyMilestone5;
       content.milestone_10 = loyaltyMilestone10;
+      content.streak_title = loyaltyStreakTitle;
+      content.streak_desc = loyaltyStreakDesc;
+      content.streak_subtitle = loyaltyStreakSubtitle;
     }
     saveContent(slug, content);
   };
@@ -901,6 +927,52 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
               </div>
             </div>
 
+            {/* Feature Icons Labels */}
+            <div className="border-t border-border pt-6">
+              <h3 className="text-base font-heading font-semibold text-foreground mb-1">🎯 Live Feature Icons</h3>
+              <p className="text-xs text-muted-foreground mb-4">Labels for the 3 live stats icons shown to logged-in users (Loyalty, Matchmaking, Habits).</p>
+              <div className="space-y-3">
+                <div>
+                  <Label className="text-xs font-medium text-muted-foreground mb-1 block">Loyalty Icon Label</Label>
+                  <Input value={featureIconLabels.loyalty} onChange={(e) => setFeatureIconLabels(prev => ({ ...prev, loyalty: e.target.value }))} placeholder="Aura Loyalty" className="h-9 bg-secondary border-border text-sm" />
+                </div>
+                <div>
+                  <Label className="text-xs font-medium text-muted-foreground mb-1 block">Matchmaking Icon Label</Label>
+                  <Input value={featureIconLabels.matchmaking} onChange={(e) => setFeatureIconLabels(prev => ({ ...prev, matchmaking: e.target.value }))} placeholder="Matchmaking" className="h-9 bg-secondary border-border text-sm" />
+                </div>
+                <div>
+                  <Label className="text-xs font-medium text-muted-foreground mb-1 block">Habits Icon Label</Label>
+                  <Input value={featureIconLabels.habits} onChange={(e) => setFeatureIconLabels(prev => ({ ...prev, habits: e.target.value }))} placeholder="Habits" className="h-9 bg-secondary border-border text-sm" />
+                </div>
+              </div>
+            </div>
+
+            {/* Pulse Feed Label */}
+            <div className="border-t border-border pt-6">
+              <h3 className="text-base font-heading font-semibold text-foreground mb-1">📡 Pulse Feed</h3>
+              <p className="text-xs text-muted-foreground mb-4">Label for the live activity feed strip shown on the home page.</p>
+              <Input value={pulseFeedLabel} onChange={(e) => setPulseFeedLabel(e.target.value)} placeholder="Pulse Feed" className="h-9 bg-secondary border-border text-sm" />
+            </div>
+
+            {/* Greeting Customization */}
+            <div className="border-t border-border pt-6">
+              <h3 className="text-base font-heading font-semibold text-foreground mb-1">👋 Greeting Text</h3>
+              <p className="text-xs text-muted-foreground mb-4">Customize the greeting shown to logged-in users based on time of day.</p>
+              <div className="space-y-3">
+                <div>
+                  <Label className="text-xs font-medium text-muted-foreground mb-1 block">Morning (before 12pm)</Label>
+                  <Input value={greetingMorning} onChange={(e) => setGreetingMorning(e.target.value)} placeholder="Good morning" className="h-9 bg-secondary border-border text-sm" />
+                </div>
+                <div>
+                  <Label className="text-xs font-medium text-muted-foreground mb-1 block">Afternoon (12pm - 5pm)</Label>
+                  <Input value={greetingAfternoon} onChange={(e) => setGreetingAfternoon(e.target.value)} placeholder="Good afternoon" className="h-9 bg-secondary border-border text-sm" />
+                </div>
+                <div>
+                  <Label className="text-xs font-medium text-muted-foreground mb-1 block">Evening (after 5pm)</Label>
+                  <Input value={greetingEvening} onChange={(e) => setGreetingEvening(e.target.value)} placeholder="Good evening" className="h-9 bg-secondary border-border text-sm" />
+                </div>
+              </div>
+            </div>
 
             <Button onClick={handleSaveHome} disabled={saving} className="w-full h-10 text-sm font-semibold glow">
               {saving ? "Saving..." : "Save Changes"}
@@ -1121,6 +1193,24 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
                     <Input value={loyaltyCtaTagline} onChange={(e) => setLoyaltyCtaTagline(e.target.value)} placeholder="Begin Today" className="h-9 bg-secondary border-border text-sm" />
                     <Input value={loyaltyCtaHeading} onChange={(e) => setLoyaltyCtaHeading(e.target.value)} placeholder="Ready to Start Earning?" className="h-9 bg-secondary border-border text-sm" />
                     <Input value={loyaltyCtaSubtitle} onChange={(e) => setLoyaltyCtaSubtitle(e.target.value)} placeholder="Sign up, book your first session..." className="h-9 bg-secondary border-border text-sm" />
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground mb-3 block">🔥 Streak Bonus Section</Label>
+                  <div className="space-y-2">
+                    <div>
+                      <Label className="text-xs font-medium text-muted-foreground mb-1 block">Section Title</Label>
+                      <Input value={loyaltyStreakTitle} onChange={(e) => setLoyaltyStreakTitle(e.target.value)} placeholder="Streak Bonus" className="h-9 bg-secondary border-border text-sm" />
+                    </div>
+                    <div>
+                      <Label className="text-xs font-medium text-muted-foreground mb-1 block">Main Description</Label>
+                      <Input value={loyaltyStreakDesc} onChange={(e) => setLoyaltyStreakDesc(e.target.value)} placeholder="Book 3 weeks straight → earn 2x points that week" className="h-9 bg-secondary border-border text-sm" />
+                    </div>
+                    <div>
+                      <Label className="text-xs font-medium text-muted-foreground mb-1 block">Subtitle</Label>
+                      <Input value={loyaltyStreakSubtitle} onChange={(e) => setLoyaltyStreakSubtitle(e.target.value)} placeholder="Consistency is rewarded. Keep your streak alive!" className="h-9 bg-secondary border-border text-sm" />
+                    </div>
                   </div>
                 </div>
               </div>

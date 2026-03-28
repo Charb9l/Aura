@@ -12,8 +12,18 @@ interface ActivityItem {
 
 const LiveActivityStrip = () => {
   const [items, setItems] = useState<ActivityItem[]>([]);
+  const [feedLabel, setFeedLabel] = useState("Pulse Feed");
 
   useEffect(() => {
+    // Load CMS label
+    supabase.from("page_content").select("content").eq("page_slug", "home").maybeSingle()
+      .then(({ data }) => {
+        if (data?.content) {
+          const c = data.content as Record<string, any>;
+          if (c.pulse_feed_label) setFeedLabel(c.pulse_feed_label);
+        }
+      });
+
     const fetchRecent = async () => {
       const activities: ActivityItem[] = [];
 
@@ -81,7 +91,7 @@ const LiveActivityStrip = () => {
           <span className="pulse-dot absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
           <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary" />
         </span>
-        <span className="font-label text-[9px] uppercase tracking-[0.2em] text-muted-foreground font-semibold">Pulse Feed</span>
+        <span className="font-label text-[9px] uppercase tracking-[0.2em] text-muted-foreground font-semibold">{feedLabel}</span>
       </div>
       <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
         {items.map((item, i) => (
