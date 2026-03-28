@@ -178,36 +178,37 @@ const BadgeLevelSection = ({ level, li, defaultOpen }: { level: BadgeLevelData; 
                       key={badge.id}
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: bi * 0.04 }}
+                      transition={{ delay: bi * 0.05 }}
                       className={cn(
-                        "relative p-3 rounded-xl border text-center transition-all",
+                        "relative flex flex-col items-center p-3 rounded-xl text-center transition-all",
                         badge.earned
-                          ? "border-primary/60 bg-primary/10 shadow-[0_0_16px_hsl(38_70%_50%/0.25)]"
-                          : "border-border bg-secondary/20 opacity-50"
+                          ? "bg-white/[0.06]"
+                          : "bg-white/[0.02] opacity-40"
                       )}
-                      style={badge.earned ? {
-                        backgroundImage: "linear-gradient(135deg, hsl(38 70% 50% / 0.08) 0%, transparent 50%, hsl(38 70% 50% / 0.12) 100%)",
-                        animation: "shimmer 3s ease-in-out infinite",
-                      } : undefined}
                     >
+                      {/* Orb badge */}
                       <div className={cn(
-                        "mx-auto mb-2 h-8 w-8 rounded-lg flex items-center justify-center",
-                        badge.earned ? "text-primary bg-primary/20" : "text-muted-foreground"
+                        "mx-auto mb-2 h-12 w-12 flex items-center justify-center",
+                        badge.earned ? "badge-orb" : "rounded-full bg-white/[0.04]"
                       )}>
-                        {badge.icon}
+                        <span className={badge.earned ? "text-primary" : "text-muted-foreground"}>
+                          {badge.icon}
+                        </span>
                       </div>
                       <p className={cn("text-xs font-semibold leading-tight", badge.earned ? "text-primary" : "text-foreground")}>{badge.title}</p>
                       <p className="text-[10px] text-muted-foreground mt-0.5 leading-tight">{badge.description}</p>
                       {!badge.earned && (
-                        <div className="mt-2">
-                          <div className="h-1 rounded-full bg-secondary overflow-hidden">
-                            <div className={cn("h-full rounded-full", colors.bg)} style={{ width: `${(badge.progress / badge.target) * 100}%` }} />
+                        <div className="mt-2 w-full">
+                          <div className="h-[3px] rounded-full bg-white/[0.06] overflow-hidden">
+                            <div className="h-full rounded-full liquid-fill" style={{ width: `${(badge.progress / badge.target) * 100}%` }} />
                           </div>
                           <p className="text-[10px] text-muted-foreground mt-0.5">{badge.progress}/{badge.target}</p>
                         </div>
                       )}
                       {badge.earned && (
-                        <div className="absolute -top-1 -right-1 h-5 w-5 rounded-full flex items-center justify-center shadow-[0_0_8px_hsl(38_70%_50%/0.5)] bg-primary">
+                        <div className="absolute -top-1 -right-1 h-5 w-5 rounded-full flex items-center justify-center bg-primary glow-violet"
+                          style={{ animation: "glitch-shimmer 3s ease-in-out infinite" }}
+                        >
                           <span className="text-[10px] text-primary-foreground font-bold">✓</span>
                         </div>
                       )}
