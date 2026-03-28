@@ -45,8 +45,9 @@
     --sidebar-border: 40 15% 20%;
     --sidebar-ring: 43 50% 58%;
 
-    --font-heading: 'Outfit', sans-serif;
+    --font-heading: 'Cormorant Garamond', 'Outfit', serif;
     --font-body: 'Plus Jakarta Sans', sans-serif;
+    --font-label: 'Outfit', sans-serif;
 
     --gold: 43 50% 58%;
     --gold-light: 43 45% 72%;
