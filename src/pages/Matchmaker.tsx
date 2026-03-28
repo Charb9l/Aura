@@ -531,7 +531,7 @@ const MatchmakerPage = () => {
                                     )}
                                   >
                                     <Send className="h-3 w-3" />
-                                    {alreadySent ? "Nudged" : "Pulse"}
+                                    {alreadySent ? "Nudged" : "Nudge"}
                                   </Button>
                                 </div>
                               </div>
