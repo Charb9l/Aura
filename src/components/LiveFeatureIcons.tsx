@@ -5,13 +5,31 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRewards } from "@/hooks/useRewards";
 import { supabase } from "@/integrations/supabase/client";
 import { LoyaltyIcon, MatchmakerIcon, HabitTrackerIcon } from "@/components/icons/BrandIcons";
-import { differenceInDays, parseISO, startOfWeek, subWeeks } from "date-fns";
+import { startOfWeek, subWeeks, parseISO } from "date-fns";
 
 const LiveFeatureIcons = () => {
   const { user } = useAuth();
   const { rewards, loaded: rewardsLoaded } = useRewards();
   const [matchCount, setMatchCount] = useState<number | null>(null);
   const [streak, setStreak] = useState<number | null>(null);
+  const [labels, setLabels] = useState({ loyalty: "Aura Loyalty", matchmaking: "Matchmaking", habits: "Habits" });
+
+  // Load CMS labels
+  useEffect(() => {
+    supabase.from("page_content").select("content").eq("page_slug", "home").maybeSingle()
+      .then(({ data }) => {
+        if (data?.content) {
+          const c = data.content as Record<string, any>;
+          if (c.feature_icon_labels) {
+            setLabels({
+              loyalty: c.feature_icon_labels.loyalty || "Aura Loyalty",
+              matchmaking: c.feature_icon_labels.matchmaking || "Matchmaking",
+              habits: c.feature_icon_labels.habits || "Habits",
+            });
+          }
+        }
+      });
+  }, []);
 
   const loyaltyLabel = useMemo(() => {
     if (!rewardsLoaded || !user) return null;
@@ -63,19 +81,19 @@ const LiveFeatureIcons = () => {
     {
       to: "/loyalty",
       icon: <LoyaltyIcon className="h-6 w-6" />,
-      label: "Aura Loyalty",
+      label: labels.loyalty,
       stat: loyaltyLabel,
     },
     {
       to: "/matchmaker",
       icon: <MatchmakerIcon className="h-6 w-6" />,
-      label: "Matchmaking",
+      label: labels.matchmaking,
       stat: matchCount !== null ? `${matchCount} player${matchCount !== 1 ? "s" : ""}` : null,
     },
     {
       to: "/habits",
       icon: <HabitTrackerIcon className="h-6 w-6" />,
-      label: "Habits",
+      label: labels.habits,
       stat: streak !== null ? (streak > 0 ? `🔥 ${streak}-week streak` : "Start streak") : null,
     },
   ];

@@ -4,17 +4,11 @@ import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 
-const getGreeting = () => {
-  const h = new Date().getHours();
-  if (h < 12) return "Good morning";
-  if (h < 17) return "Good afternoon";
-  return "Good evening";
-};
-
 const HeroProgressCard = () => {
   const { user } = useAuth();
   const { rewards, loaded } = useRewards();
   const [firstName, setFirstName] = useState("there");
+  const [greetings, setGreetings] = useState({ morning: "Good morning", afternoon: "Good afternoon", evening: "Good evening" });
 
   useEffect(() => {
     if (!user) return;
@@ -23,6 +17,27 @@ const HeroProgressCard = () => {
         if (data?.full_name) setFirstName(data.full_name.split(" ")[0]);
       });
   }, [user]);
+
+  useEffect(() => {
+    supabase.from("page_content").select("content").eq("page_slug", "home").maybeSingle()
+      .then(({ data }) => {
+        if (data?.content) {
+          const c = data.content as Record<string, any>;
+          setGreetings({
+            morning: c.greeting_morning || "Good morning",
+            afternoon: c.greeting_afternoon || "Good afternoon",
+            evening: c.greeting_evening || "Good evening",
+          });
+        }
+      });
+  }, []);
+
+  const getGreeting = () => {
+    const h = new Date().getHours();
+    if (h < 12) return greetings.morning;
+    if (h < 17) return greetings.afternoon;
+    return greetings.evening;
+  };
 
   const bestClub = rewards
     .filter((r) => r.points > 0)
