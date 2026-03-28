@@ -514,8 +514,8 @@ const HabitsPage = () => {
   const personalityLabel = getPersonalityLabel();
 
   return (
-    <div className="min-h-screen pb-20 md:pb-0">
-      <Navbar />
+      <div className="min-h-screen pb-20 md:pb-0" style={{ background: 'radial-gradient(ellipse at 50% 0%, hsl(260 30% 10%) 0%, hsl(240 20% 5%) 50%, hsl(240 25% 3%) 100%)' }}>
+        <Navbar />
       <div className="container mx-auto px-4 sm:px-6 page-offset-top pb-20">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           {/* Header */}
