@@ -761,13 +761,15 @@ const HabitsPage = () => {
             ))}
           </div>
 
-          {/* Insights — full width */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="mt-6">
-            <Card className="bg-black/40 backdrop-blur-xl border-0 border-t-[0.5px] border-l-[0.5px] border-white/[0.12]">
+          {/* AURA AI Smart Insights */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mt-6">
+            <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-primary" />
-                  Insights
+                <CardTitle className="text-base flex items-center gap-2 -tracking-tight">
+                  <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center glow-violet-subtle">
+                    <Sparkles className="h-3.5 w-3.5 text-primary" />
+                  </div>
+                  <span className="text-metallic font-label text-xs uppercase tracking-[0.15em]">AURA AI Suggests</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -777,8 +779,8 @@ const HabitsPage = () => {
                       key={i}
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.7 + i * 0.08 }}
-                      className="p-3 rounded-lg bg-secondary/50 border border-border text-sm text-foreground"
+                      transition={{ delay: 0.35 + i * 0.05 }}
+                      className="p-3 rounded-lg bg-white/[0.04] text-sm text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
                     >
                       {tip}
                     </motion.div>
