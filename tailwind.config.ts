@@ -14,9 +14,9 @@ export default {
     },
     extend: {
       fontFamily: {
-        heading: ['Cormorant Garamond', 'Outfit', 'serif'],
+        heading: ['Inter', 'sans-serif'],
         body: ['Plus Jakarta Sans', 'sans-serif'],
-        label: ['Outfit', 'sans-serif'],
+        label: ['Inter', 'sans-serif'],
       },
       fontSize: {
         'xs': ['0.7rem', { lineHeight: '1rem' }],
@@ -56,9 +56,11 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        gold: {
-          DEFAULT: "hsl(var(--gold))",
-          light: "hsl(var(--gold-light))",
+        violet: {
+          DEFAULT: "#7C3AED",
+          deep: "#1E1B4B",
+          light: "#E9D5FF",
+          glow: "rgba(124,58,237,0.3)",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
