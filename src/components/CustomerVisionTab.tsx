@@ -572,6 +572,9 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
         setLoyaltyCtaSubtitle(content.cta_subtitle || "Sign up, book your first session, and watch your points grow.");
         setLoyaltyMilestone5(content.milestone_5 || "50% Off");
         setLoyaltyMilestone10(content.milestone_10 || "Free Session");
+        setLoyaltyStreakTitle(content.streak_title || "Streak Bonus");
+        setLoyaltyStreakDesc(content.streak_desc || "Book 3 weeks straight → earn 2x points that week");
+        setLoyaltyStreakSubtitle(content.streak_subtitle || "Consistency is rewarded. Keep your streak alive!");
       }
     }
     setEditingPage(slug);
