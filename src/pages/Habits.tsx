@@ -643,9 +643,9 @@ const HabitsPage = () => {
 
           {/* Personality Label */}
           {personalityLabel && completedBookings.length > 0 && (
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }} className="mb-6">
-              <div className={cn("rounded-xl border p-4 text-center", personalityLabel.bg)}>
-                <p className={cn("text-lg font-heading font-bold", personalityLabel.text)}>{personalityLabel.label}</p>
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mb-6">
+              <div className={cn("rounded-xl p-4 text-center bg-white/[0.04] backdrop-blur-2xl", personalityLabel.bg)}>
+                <p className={cn("text-lg font-heading font-bold -tracking-tight", personalityLabel.text)}>{personalityLabel.label}</p>
                 <p className="text-[11px] text-muted-foreground mt-1">Based on your session history</p>
               </div>
             </motion.div>
