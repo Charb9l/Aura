@@ -610,6 +610,11 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
       featured_academy_id: featuredAcademyId,
       featured_club_id_2: featuredClubId2,
       featured_academy_id_2: featuredAcademyId2,
+      feature_icon_labels: featureIconLabels,
+      pulse_feed_label: pulseFeedLabel,
+      greeting_morning: greetingMorning,
+      greeting_afternoon: greetingAfternoon,
+      greeting_evening: greetingEvening,
     });
   };
 
