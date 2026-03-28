@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminRole } from "@/hooks/useAdminRole";
-import { useAvatar } from "@/hooks/useAvatar";
+import { useAvatar, getInitials } from "@/hooks/useAvatar";
 import { ProfileIcon } from "@/components/icons/BrandIcons";
 
 
