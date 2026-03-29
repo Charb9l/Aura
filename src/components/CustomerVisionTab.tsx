@@ -781,7 +781,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
             {/* Landing Images */}
             <div className="border-t border-border pt-6">
               <h3 className="text-base font-heading font-semibold text-foreground mb-1">📷 Landing Images</h3>
-              <p className="text-xs text-muted-foreground mb-4">Two rectangular image bubbles displayed under the action buttons on the landing page.</p>
+              <p className="text-xs text-muted-foreground mb-4">Two rectangular image bubbles displayed on the landing page.</p>
               <div className="grid grid-cols-2 gap-4">
                 {[1, 2].map((num) => {
                   const imgUrl = num === 1 ? landingImage1 : landingImage2;

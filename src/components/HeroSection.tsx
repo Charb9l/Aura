@@ -30,7 +30,7 @@ const HeroSection = () => {
   }, []);
 
   const subtitle = content?.hero_subtitle || "Movement & Mindfulness";
-  const actions = content?.hero_buttons?.map((b, i) => ({ ...b, delay: 0.15 + i * 0.05 })) || [];
+  
   const showScrollIndicator = content?.show_scroll_indicator ?? false;
   const image1 = content?.landing_image_1;
   const image2 = content?.landing_image_2;
