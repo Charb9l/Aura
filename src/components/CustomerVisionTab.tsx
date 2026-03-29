@@ -490,6 +490,9 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
   const [habitsBadges, setHabitsBadges] = useState<{ label: string; use_gold?: boolean }[]>([]);
   const [maxClubsGrid, setMaxClubsGrid] = useState<number>(3);
 
+  // Your Space categories
+  const [spaceCategories, setSpaceCategories] = useState<{ title: string; subtitle: string; to: string; image_url: string }[]>([]);
+
   // Home — Feature Icons, Pulse Feed, Matchmaking, Greeting
   const [featureIconLabels, setFeatureIconLabels] = useState({ loyalty: "Aura Loyalty", matchmaking: "Matchmaking", habits: "Habits" });
   const [pulseFeedLabel, setPulseFeedLabel] = useState("Pulse Feed");
