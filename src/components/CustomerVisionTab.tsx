@@ -64,6 +64,7 @@ interface OfferingRow {
 const PAGES = [
   { name: "Loyalty Program", slug: "loyalty", description: "Loyalty page main title and subtitle" },
   { name: "Main Page", slug: "home", description: "Hero section, text, action buttons, and activity section" },
+  { name: "Your Space", slug: "community", description: "Your Space hub — categories, titles, images, and redirects" },
 ];
 
 // === Pictures Manager ===

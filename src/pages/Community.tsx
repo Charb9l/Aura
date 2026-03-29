@@ -1,41 +1,51 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import MobileBackButton from "@/components/MobileBackButton";
 import { motion } from "framer-motion";
-import { MatchmakerIcon, HabitTrackerIcon, LoyaltyIcon } from "@/components/icons/BrandIcons";
+import { supabase } from "@/integrations/supabase/client";
 
-const FEATURES = [
-  {
-    to: "/loyalty",
-    label: "Loyalty",
-    description: "Earn rewards & badges",
-    icon: <LoyaltyIcon className="w-7 h-7" />,
-  },
-  {
-    to: "/matchmaker",
-    label: "Matchmaker",
-    description: "Find your perfect partner",
-    icon: <MatchmakerIcon className="w-7 h-7" />,
-  },
-  {
-    to: "/habits",
-    label: "Habit Tracker",
-    description: "Track your fitness habits",
-    icon: <HabitTrackerIcon className="w-7 h-7" />,
-  },
-];
+interface SpaceCategory {
+  title: string;
+  subtitle: string;
+  to: string;
+  image_url: string;
+}
+
+interface SpaceContent {
+  title: string;
+  subtitle: string;
+  categories: SpaceCategory[];
+}
 
 const container = {
   hidden: {},
-  show: { transition: { staggerChildren: 0.1 } },
+  show: { transition: { staggerChildren: 0.08, delayChildren: 0.05 } },
 };
 
 const item = {
-  hidden: { opacity: 0, y: 16 },
-  show: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 300, damping: 24 } },
+  hidden: { opacity: 0, scale: 0.9 },
+  show: { opacity: 1, scale: 1, transition: { type: "spring" as const, stiffness: 300, damping: 24 } },
 };
 
 const Community = () => {
+  const [content, setContent] = useState<SpaceContent | null>(null);
+
+  useEffect(() => {
+    supabase
+      .from("page_content")
+      .select("content")
+      .eq("page_slug", "community")
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.content) setContent(data.content as unknown as SpaceContent);
+      });
+  }, []);
+
+  const title = content?.title || "Your Space";
+  const subtitle = content?.subtitle || "EVERYTHING IN ONE PLACE";
+  const categories = content?.categories || [];
+
   return (
     <div className="min-h-screen pb-24 md:pb-0">
       <Navbar />
@@ -43,32 +53,58 @@ const Community = () => {
         <MobileBackButton fallbackPath="/" />
       </div>
 
-      <div className="max-w-lg mx-auto px-4 page-offset-top pb-8">
-        <h1 className="text-2xl font-heading tracking-wide text-foreground mb-1">Your Space</h1>
-        <p className="text-xs text-muted-foreground mb-6 tracking-wider uppercase">Everything in one place</p>
+      <div className="max-w-lg mx-auto px-6 page-offset-top pb-8 flex flex-col items-center">
+        <motion.h1
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-3xl font-heading font-bold tracking-tight text-foreground text-center"
+        >
+          {title}
+        </motion.h1>
+        <motion.p
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.05 }}
+          className="text-[10px] text-primary font-semibold tracking-[0.3em] uppercase mt-1.5 mb-8 text-center"
+        >
+          {subtitle}
+        </motion.p>
 
         <motion.div
-          className="flex flex-col gap-3"
+          className="grid grid-cols-2 gap-4 w-full"
           variants={container}
           initial="hidden"
           animate="show"
         >
-          {FEATURES.map((f) => (
-            <motion.div key={f.to} variants={item}>
+          {categories.map((cat, i) => (
+            <motion.div key={i} variants={item}>
               <Link
-                to={f.to}
-                className="group flex items-center gap-4 rounded-2xl border border-border bg-card px-5 py-4 transition-all duration-300 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5 active:scale-[0.98]"
+                to={cat.to}
+                className="group flex flex-col items-center text-center"
               >
-                <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-primary/10 text-primary shrink-0 transition-transform duration-300 group-hover:scale-110">
-                  {f.icon}
+                {/* Oval image */}
+                <div className="relative w-full aspect-[4/3] rounded-[2rem] overflow-hidden bg-white/[0.04] backdrop-blur-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] transition-all duration-500 group-hover:shadow-[0_0_24px_rgba(124,58,237,0.25)] group-hover:scale-[1.03]">
+                  {cat.image_url ? (
+                    <img
+                      src={cat.image_url}
+                      alt={cat.title}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-muted-foreground/30 text-4xl">
+                      ✦
+                    </div>
+                  )}
+                  {/* Gradient overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
+                  {/* Text overlay at bottom */}
+                  <div className="absolute bottom-0 left-0 right-0 p-3">
+                    <p className="text-sm font-semibold text-foreground leading-tight">{cat.title}</p>
+                    <p className="text-[10px] text-foreground/50 mt-0.5">{cat.subtitle}</p>
+                  </div>
                 </div>
-                <div className="flex flex-col min-w-0">
-                  <span className="text-sm font-semibold tracking-wide text-foreground">{f.label}</span>
-                  <span className="text-xs text-muted-foreground">{f.description}</span>
-                </div>
-                <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 text-muted-foreground/50 ml-auto shrink-0" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M9 18l6-6-6-6" />
-                </svg>
               </Link>
             </motion.div>
           ))}
