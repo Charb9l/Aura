@@ -99,7 +99,7 @@ const LiveFeatureIcons = () => {
   ];
 
   return (
-    <div className="flex justify-center gap-4 w-full max-w-sm lg:max-w-lg mx-auto">
+    <div className="flex justify-center gap-6 w-full max-w-sm lg:max-w-lg mx-auto">
       {items.map((item, i) => (
         <motion.div
           key={item.to}
@@ -110,9 +110,11 @@ const LiveFeatureIcons = () => {
         >
           <Link
             to={item.to}
-            className="group relative flex flex-col items-center justify-center rounded-2xl w-20 h-20 lg:w-24 lg:h-24 transition-all duration-500 ease-out bg-white/[0.04] backdrop-blur-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] hover:shadow-[0_0_24px_rgba(124,58,237,0.2)] hover:bg-white/[0.07] hover:scale-105 hover:-translate-y-1"
+            className="group flex flex-col items-center justify-center text-primary hover:scale-110 hover:-translate-y-1 transition-all duration-500 ease-out"
           >
-            <span className="text-primary group-hover:scale-110 transition-transform duration-500">{item.icon}</span>
+            <span className="h-10 w-10 lg:h-12 lg:w-12 flex items-center justify-center drop-shadow-[0_0_8px_hsl(var(--primary)/0.3)] group-hover:drop-shadow-[0_0_16px_hsl(var(--primary)/0.5)] transition-all duration-500">
+              {item.icon}
+            </span>
             {item.stat && (
               <span className="text-[8px] font-semibold text-primary/80 mt-1 leading-none">{item.stat}</span>
             )}
