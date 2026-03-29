@@ -1,11 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { CalendarDays, GraduationCap, LayoutGrid, Heart, Dumbbell, Trophy } from "lucide-react";
+import { CalendarDays, GraduationCap, LayoutGrid, Heart, Dumbbell, Trophy, ChevronLeft, ChevronRight } from "lucide-react";
 import FeaturedClubsStrip from "@/components/FeaturedClubsStrip";
 import HeroProgressCard from "@/components/HeroProgressCard";
 import LiveFeatureIcons from "@/components/LiveFeatureIcons";
 import LiveActivityStrip from "@/components/LiveActivityStrip";
+import useEmblaCarousel from "embla-carousel-react";
 
 import NextBadgeCard from "@/components/NextBadgeCard";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +21,7 @@ interface HeroContent {
   show_scroll_indicator?: boolean;
   landing_image_1?: string;
   landing_image_2?: string;
+  landing_images?: string[];
 }
 
 const HeroSection = () => {
