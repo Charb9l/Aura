@@ -30,22 +30,7 @@ const LiveActivityStrip = () => {
     const fetchAll = async () => {
       const activities: ActivityItem[] = [];
 
-      // Matchmaking teaser
-      if (user) {
-        const { count } = await supabase
-          .from("player_selections")
-          .select("*", { count: "exact", head: true });
-        const playerCount = count || 0;
-        if (playerCount > 0) {
-          activities.push({
-            id: "match-highlight",
-            text: `${playerCount} player${playerCount !== 1 ? "s" : ""} looking to play`,
-            initials: "⚡",
-            time: "Match now",
-            link: "/matchmaker",
-          });
-        }
-      }
+      // (matchmaking teaser removed – pulse feed shows only customer activity)
 
       // Recent bookings
       const { data: bookings } = await supabase
