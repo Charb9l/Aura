@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { motion } from "framer-motion";
 import { Pencil, History, Eye, Trophy, Swords, MapPin, CalendarClock, Target, Star, UserPlus, Trash2, Clock, Check, Plus, Minus, Ban, CheckCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
