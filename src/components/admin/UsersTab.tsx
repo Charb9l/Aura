@@ -355,8 +355,8 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
           onClick={() => setSubTab("admins")}
           className="gap-2"
         >
-          Club Admins
-          <Badge variant="secondary" className="text-xs ml-1">{adminUsers.length}</Badge>
+Club Admins
+          <Badge variant="secondary" className="text-xs ml-1">{filteredAdminUsers.length}</Badge>
         </Button>
       </div>
 
