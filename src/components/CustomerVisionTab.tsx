@@ -658,6 +658,9 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
       content.streak_desc = loyaltyStreakDesc;
       content.streak_subtitle = loyaltyStreakSubtitle;
     }
+    if (slug === "community") {
+      content.categories = spaceCategories;
+    }
     saveContent(slug, content);
   };
 
