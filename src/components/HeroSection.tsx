@@ -39,8 +39,29 @@ const HeroSection = () => {
   const subtitle = content?.hero_subtitle || "Movement & Mindfulness";
   const actions = content?.hero_buttons?.map((b, i) => ({ ...b, delay: 0.15 + i * 0.05 })) || [];
   const showScrollIndicator = content?.show_scroll_indicator ?? false;
-  const image1 = content?.landing_image_1;
-  const image2 = content?.landing_image_2;
+
+  // Build carousel images: prefer new array, fallback to legacy fields
+  const carouselImages: string[] = content?.landing_images?.length
+    ? content.landing_images
+    : [content?.landing_image_1, content?.landing_image_2].filter(Boolean) as string[];
+
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: "start", slidesToScroll: 2 });
+  const [canScrollPrev, setCanScrollPrev] = useState(false);
+  const [canScrollNext, setCanScrollNext] = useState(false);
+
+  const onSelect = useCallback(() => {
+    if (!emblaApi) return;
+    setCanScrollPrev(emblaApi.canScrollPrev());
+    setCanScrollNext(emblaApi.canScrollNext());
+  }, [emblaApi]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    onSelect();
+    emblaApi.on("select", onSelect);
+    emblaApi.on("reInit", onSelect);
+    return () => { emblaApi.off("select", onSelect); emblaApi.off("reInit", onSelect); };
+  }, [emblaApi, onSelect]);
 
   const liveRoutes = new Set(["/loyalty", "/matchmaker", "/habits"]);
   const filteredActions = user ? actions.filter(a => !liveRoutes.has(a.to)) : actions;
