@@ -70,6 +70,7 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
   const [editAdminPhone, setEditAdminPhone] = useState("");
   const [editAdminPassword, setEditAdminPassword] = useState("");
   const [editAdminClubId, setEditAdminClubId] = useState("");
+  const [editAdminCode, setEditAdminCode] = useState("");
   const [editAdminSaving, setEditAdminSaving] = useState(false);
 
   // Create admin
