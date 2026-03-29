@@ -1,11 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { CalendarDays, GraduationCap, LayoutGrid, Heart, Dumbbell, Trophy } from "lucide-react";
+import { CalendarDays, GraduationCap, LayoutGrid, Heart, Dumbbell, Trophy, ChevronLeft, ChevronRight } from "lucide-react";
 import FeaturedClubsStrip from "@/components/FeaturedClubsStrip";
 import HeroProgressCard from "@/components/HeroProgressCard";
 import LiveFeatureIcons from "@/components/LiveFeatureIcons";
 import LiveActivityStrip from "@/components/LiveActivityStrip";
+import useEmblaCarousel from "embla-carousel-react";
 
 import NextBadgeCard from "@/components/NextBadgeCard";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +21,7 @@ interface HeroContent {
   show_scroll_indicator?: boolean;
   landing_image_1?: string;
   landing_image_2?: string;
+  landing_images?: string[];
 }
 
 const HeroSection = () => {
@@ -37,8 +39,29 @@ const HeroSection = () => {
   const subtitle = content?.hero_subtitle || "Movement & Mindfulness";
   const actions = content?.hero_buttons?.map((b, i) => ({ ...b, delay: 0.15 + i * 0.05 })) || [];
   const showScrollIndicator = content?.show_scroll_indicator ?? false;
-  const image1 = content?.landing_image_1;
-  const image2 = content?.landing_image_2;
+
+  // Build carousel images: prefer new array, fallback to legacy fields
+  const carouselImages: string[] = content?.landing_images?.length
+    ? content.landing_images
+    : [content?.landing_image_1, content?.landing_image_2].filter(Boolean) as string[];
+
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: "start", slidesToScroll: 2 });
+  const [canScrollPrev, setCanScrollPrev] = useState(false);
+  const [canScrollNext, setCanScrollNext] = useState(false);
+
+  const onSelect = useCallback(() => {
+    if (!emblaApi) return;
+    setCanScrollPrev(emblaApi.canScrollPrev());
+    setCanScrollNext(emblaApi.canScrollNext());
+  }, [emblaApi]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    onSelect();
+    emblaApi.on("select", onSelect);
+    emblaApi.on("reInit", onSelect);
+    return () => { emblaApi.off("select", onSelect); emblaApi.off("reInit", onSelect); };
+  }, [emblaApi, onSelect]);
 
   const liveRoutes = new Set(["/loyalty", "/matchmaker", "/habits"]);
   const filteredActions = user ? actions.filter(a => !liveRoutes.has(a.to)) : actions;
@@ -117,21 +140,40 @@ const HeroSection = () => {
         {user && <NextBadgeCard />}
         {user && <LiveActivityStrip />}
 
-        {(image1 || image2) && (
+        {carouselImages.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="grid grid-cols-2 gap-3 w-full max-w-lg lg:max-w-4xl"
+            className="relative w-full max-w-lg lg:max-w-4xl"
           >
-            {image1 && (
-              <div className="rounded-2xl overflow-hidden aspect-[4/3] lg:aspect-[16/7] shadow-lg">
-                <img src={image1} alt="Featured" className="w-full h-full object-cover" />
+            <div className="overflow-hidden rounded-2xl" ref={emblaRef}>
+              <div className="flex gap-3">
+                {carouselImages.map((url, i) => (
+                  <div key={i} className="flex-[0_0_calc(50%-6px)] min-w-0">
+                    <div className="rounded-2xl overflow-hidden aspect-[4/3] lg:aspect-[16/7] shadow-lg">
+                      <img src={url} alt={`Featured ${i + 1}`} className="w-full h-full object-cover" loading="lazy" />
+                    </div>
+                  </div>
+                ))}
               </div>
-            )}
-            {image2 && (
-              <div className="rounded-2xl overflow-hidden aspect-[4/3] lg:aspect-[16/7] shadow-lg">
-                <img src={image2} alt="Featured" className="w-full h-full object-cover" />
+            </div>
+            {carouselImages.length > 2 && (
+              <div className="flex justify-center gap-2 mt-3">
+                <button
+                  onClick={() => emblaApi?.scrollPrev()}
+                  disabled={!canScrollPrev}
+                  className="rounded-full bg-white/[0.06] backdrop-blur-xl p-2 text-foreground/60 hover:text-foreground hover:bg-white/[0.1] transition-all disabled:opacity-30"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => emblaApi?.scrollNext()}
+                  disabled={!canScrollNext}
+                  className="rounded-full bg-white/[0.06] backdrop-blur-xl p-2 text-foreground/60 hover:text-foreground hover:bg-white/[0.1] transition-all disabled:opacity-30"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
               </div>
             )}
           </motion.div>
