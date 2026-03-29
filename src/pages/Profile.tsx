@@ -562,18 +562,20 @@ const ProfilePage = () => {
             className="relative flex flex-col items-center gap-1.5 group"
           >
             <div className={cn(
-              "h-12 w-12 rounded-full bg-card border flex items-center justify-center transition-all group-hover:border-primary/40",
-              playerComplete === false ? "border-primary/50 shadow-[0_0_10px_hsl(var(--primary)/0.2)] animate-pulse" : "border-border"
+              "h-12 w-12 rounded-full bg-card border flex items-center justify-center transition-all group-hover:border-amber-400/60",
+              playerComplete === false
+                ? "border-amber-400/60 shadow-[0_0_14px_rgba(251,191,36,0.35)] animate-pulse"
+                : "border-amber-400/40 shadow-[0_0_10px_rgba(251,191,36,0.2)]"
             )}>
-              <Gamepad2 className="h-5 w-5 text-primary" />
+              <Gamepad2 className="h-5 w-5 text-amber-400 drop-shadow-[0_0_4px_rgba(251,191,36,0.5)]" />
             </div>
             {playerComplete === false && (
               <>
-                <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-primary animate-ping" />
-                <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-primary" />
+                <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-amber-400 animate-ping" />
+                <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-amber-400" />
               </>
             )}
-            <span className="font-heading text-[10px] font-medium text-muted-foreground">MyPlayer</span>
+            <span className="font-heading text-[10px] font-medium text-amber-400/80">MyPlayer</span>
           </button>
 
           {/* Notifications */}
