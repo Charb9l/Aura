@@ -524,9 +524,24 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
             <div><Label>Phone</Label><PhoneInput value={newAdminPhone} onChange={setNewAdminPhone} className="mt-1" /></div>
             <div><Label>Assign Club</Label><Select value={newAdminClubId} onValueChange={setNewAdminClubId}><SelectTrigger className="h-9 bg-secondary border-border mt-1 text-sm"><SelectValue placeholder="All Clubs (Master Admin)" /></SelectTrigger><SelectContent className="bg-card border-border z-50"><SelectItem value="none">All Clubs (Master Admin)</SelectItem>{clubs.sort((a, b) => a.name.localeCompare(b.name)).map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent></Select></div>
             {newAdminClubId && newAdminClubId !== "none" && (
-              <div><Label>Admin Code</Label><Input placeholder="Enter a unique code for this admin" value={newAdminCode} onChange={(e) => setNewAdminCode(e.target.value)} required className="h-9 bg-secondary border-border mt-1 text-sm" /></div>
+              <div>
+                <Label>Admin Code <span className="text-xs text-muted-foreground">(6-digit numeric)</span></Label>
+                <Input
+                  value={newAdminCode}
+                  onChange={(e) => { const v = e.target.value.replace(/\D/g, "").slice(0, 6); setNewAdminCode(v); }}
+                  placeholder="e.g. 123456"
+                  maxLength={6}
+                  inputMode="numeric"
+                  pattern="[0-9]{6}"
+                  required
+                  className="h-9 bg-secondary border-border mt-1 text-sm font-mono tracking-widest"
+                />
+                {newAdminCode && newAdminCode.length !== 6 && (
+                  <p className="text-[11px] text-destructive mt-1">Must be exactly 6 digits</p>
+                )}
+              </div>
             )}
-            <Button type="submit" disabled={creatingAdmin} className="w-full h-10 text-sm font-semibold glow"><UserPlus className="h-4 w-4 mr-2" />{creatingAdmin ? "Creating..." : "Create Admin"}</Button>
+            <Button type="submit" disabled={creatingAdmin || (newAdminClubId !== "none" && newAdminCode.length !== 6)} className="w-full h-10 text-sm font-semibold glow"><UserPlus className="h-4 w-4 mr-2" />{creatingAdmin ? "Creating..." : "Create Admin"}</Button>
           </form>
         </DialogContent>
       </Dialog>
