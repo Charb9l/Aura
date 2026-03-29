@@ -26,6 +26,7 @@ const SettingsTab = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [saving, setSaving] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(true);
+  const [adminCode, setAdminCode] = useState("");
 
   // Locations management state
   const [newLocationName, setNewLocationName] = useState("");
@@ -46,6 +47,16 @@ const SettingsTab = () => {
       if (data) {
         setFullName(data.full_name || "");
         setPhone(data.phone || "");
+      }
+      // Fetch admin code
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("admin_code")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+      if (roleData) {
+        setAdminCode(roleData.admin_code || "");
       }
       setLoadingProfile(false);
     };
@@ -95,6 +106,18 @@ const SettingsTab = () => {
       }
     }
 
+    // Save admin code via edge function
+    if (adminCode.length === 6) {
+      const { error: codeErr } = await supabase.functions.invoke("admin-users", {
+        body: { action: "update", user_id: user.id, admin_code: adminCode },
+      });
+      if (codeErr) {
+        toast.error("Failed to update admin code");
+        setSaving(false);
+        return;
+      }
+    }
+
     setSaving(false);
     setNewPassword("");
     setConfirmPassword("");
@@ -135,6 +158,23 @@ const SettingsTab = () => {
                 <div>
                   <Label htmlFor="acc-phone">Phone</Label>
                   <PhoneInput id="acc-phone" value={phone} onChange={setPhone} className="mt-1" />
+                </div>
+                <div className="border-t border-border pt-4 mt-4">
+                  <p className="text-sm font-medium text-foreground mb-3">Admin Login Code</p>
+                  <div>
+                    <Label htmlFor="acc-admin-code">6-Digit Code</Label>
+                    <Input
+                      id="acc-admin-code"
+                      value={adminCode}
+                      onChange={(e) => { const v = e.target.value.replace(/\D/g, "").slice(0, 6); setAdminCode(v); }}
+                      placeholder="000000"
+                      maxLength={6}
+                      inputMode="numeric"
+                      pattern="[0-9]{6}"
+                      className="h-12 bg-secondary border-border mt-1 font-mono tracking-widest text-center text-lg"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1.5">This code is required to log in to the admin panel.</p>
+                  </div>
                 </div>
                 <div className="border-t border-border pt-4 mt-4">
                   <p className="text-sm font-medium text-foreground mb-3">Change Password</p>
