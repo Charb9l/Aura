@@ -883,7 +883,6 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
                 <p className="text-sm text-muted-foreground text-center py-4">No carousel images yet. Upload some above.</p>
               )}
             </div>
-            </div>
 
             {/* Featured Club & Academy Selection */}
             <div className="border-t border-border pt-6">
