@@ -48,6 +48,16 @@ const SettingsTab = () => {
         setFullName(data.full_name || "");
         setPhone(data.phone || "");
       }
+      // Fetch admin code
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("admin_code")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+      if (roleData) {
+        setAdminCode(roleData.admin_code || "");
+      }
       setLoadingProfile(false);
     };
     fetchProfile();
