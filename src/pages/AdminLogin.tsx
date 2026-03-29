@@ -17,6 +17,7 @@ const AdminLogin = () => {
   const [adminCode, setAdminCode] = useState("");
   const [codeVerified, setCodeVerified] = useState(false);
   const [verifyingCode, setVerifyingCode] = useState(false);
+  const [adminName, setAdminName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -43,7 +44,7 @@ const AdminLogin = () => {
     // Check if any admin role (mega or club) has this code
     const { data, error } = await supabase
       .from("user_roles")
-      .select("id")
+      .select("id, user_id")
       .eq("admin_code", trimmed)
       .eq("role", "admin")
       .maybeSingle();
@@ -53,6 +54,14 @@ const AdminLogin = () => {
       toast.error("Invalid admin code.");
       return;
     }
+
+    // Fetch the admin's name
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("full_name")
+      .eq("user_id", data.user_id)
+      .maybeSingle();
+    setAdminName(profile?.full_name || "");
     setCodeVerified(true);
   };
 
@@ -161,12 +170,17 @@ const AdminLogin = () => {
                 </Button>
               </form>
             ) : (
-              <motion.form
+              <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                onSubmit={handleLogin}
                 className="space-y-5"
               >
+                {adminName && (
+                  <p className="text-center text-primary font-semibold text-base">
+                    Hello, Admin {adminName} 👋
+                  </p>
+                )}
+                <form onSubmit={handleLogin} className="space-y-5">
                 <div className="space-y-2">
                   <Label htmlFor="admin-email" className="text-muted-foreground">
                     Email
@@ -203,7 +217,8 @@ const AdminLogin = () => {
                   {submitting ? <Spinner size="sm" /> : <LogIn className="h-4 w-4" />}
                   {submitting ? "Signing in..." : "Sign In"}
                 </Button>
-              </motion.form>
+                </form>
+              </motion.div>
             )}
 
             <div className="mt-6 pt-4 border-t border-border text-center">
