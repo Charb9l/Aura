@@ -65,11 +65,11 @@ Deno.serve(async (req) => {
         });
       }
 
-      let adminRoles: { user_id: string; club_id: string | null }[] = [];
+      let adminRoles: { user_id: string; club_id: string | null; admin_code: string | null }[] = [];
       if (action === "list-admins") {
         const { data: roles } = await adminClient
           .from("user_roles")
-          .select("user_id, club_id")
+          .select("user_id, club_id, admin_code")
           .eq("role", "admin");
         adminRoles = roles || [];
       }
