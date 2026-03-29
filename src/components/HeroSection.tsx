@@ -12,7 +12,6 @@ import { useAuth } from "@/contexts/AuthContext";
 
 interface HeroContent {
   hero_subtitle: string;
-  hero_buttons: HeroButton[];
   show_scroll_indicator?: boolean;
   landing_image_1?: string;
   landing_image_2?: string;
