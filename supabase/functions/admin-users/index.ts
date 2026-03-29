@@ -93,6 +93,7 @@ Deno.serve(async (req) => {
         created_at: profileMap.get(u.id)?.created_at || u.created_at,
         club_id: adminClubMap.get(u.id) || null,
         suspended: profileMap.get(u.id)?.suspended || false,
+        admin_code: adminCodeMap.get(u.id) || null,
       }));
 
       if (adminUserIds) {

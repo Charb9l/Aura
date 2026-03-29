@@ -33,6 +33,7 @@ export interface UserWithEmail {
   created_at: string;
   club_id?: string | null;
   suspended?: boolean;
+  admin_code?: string | null;
 }
 
 export interface ClubRow {
