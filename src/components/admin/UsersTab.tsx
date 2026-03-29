@@ -445,7 +445,7 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
                 <TableBody>
                   {(() => {
                     const q = adminSearch.toLowerCase();
-                    const filtered = adminUsers.filter(u => !q || (u.full_name || "").toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || (u.phone || "").toLowerCase().includes(q)).sort((a, b) => (a.full_name || a.email || "").localeCompare(b.full_name || b.email || ""));
+                    const filtered = filteredAdminUsers.filter(u => !q || (u.full_name || "").toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || (u.phone || "").toLowerCase().includes(q)).sort((a, b) => (a.full_name || a.email || "").localeCompare(b.full_name || b.email || ""));
                     return filtered.length === 0 ? (
                       <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">{adminSearch ? "No admins match." : "No admins yet."}</TableCell></TableRow>
                     ) : filtered.map(u => (
