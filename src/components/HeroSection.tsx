@@ -140,21 +140,40 @@ const HeroSection = () => {
         {user && <NextBadgeCard />}
         {user && <LiveActivityStrip />}
 
-        {(image1 || image2) && (
+        {carouselImages.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="grid grid-cols-2 gap-3 w-full max-w-lg lg:max-w-4xl"
+            className="relative w-full max-w-lg lg:max-w-4xl"
           >
-            {image1 && (
-              <div className="rounded-2xl overflow-hidden aspect-[4/3] lg:aspect-[16/7] shadow-lg">
-                <img src={image1} alt="Featured" className="w-full h-full object-cover" />
+            <div className="overflow-hidden rounded-2xl" ref={emblaRef}>
+              <div className="flex gap-3">
+                {carouselImages.map((url, i) => (
+                  <div key={i} className="flex-[0_0_calc(50%-6px)] min-w-0">
+                    <div className="rounded-2xl overflow-hidden aspect-[4/3] lg:aspect-[16/7] shadow-lg">
+                      <img src={url} alt={`Featured ${i + 1}`} className="w-full h-full object-cover" loading="lazy" />
+                    </div>
+                  </div>
+                ))}
               </div>
-            )}
-            {image2 && (
-              <div className="rounded-2xl overflow-hidden aspect-[4/3] lg:aspect-[16/7] shadow-lg">
-                <img src={image2} alt="Featured" className="w-full h-full object-cover" />
+            </div>
+            {carouselImages.length > 2 && (
+              <div className="flex justify-center gap-2 mt-3">
+                <button
+                  onClick={() => emblaApi?.scrollPrev()}
+                  disabled={!canScrollPrev}
+                  className="rounded-full bg-white/[0.06] backdrop-blur-xl p-2 text-foreground/60 hover:text-foreground hover:bg-white/[0.1] transition-all disabled:opacity-30"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => emblaApi?.scrollNext()}
+                  disabled={!canScrollNext}
+                  className="rounded-full bg-white/[0.06] backdrop-blur-xl p-2 text-foreground/60 hover:text-foreground hover:bg-white/[0.1] transition-all disabled:opacity-30"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
               </div>
             )}
           </motion.div>
