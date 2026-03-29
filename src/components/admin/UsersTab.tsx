@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { motion } from "framer-motion";
 import { Pencil, History, Eye, Trophy, Swords, MapPin, CalendarClock, Target, Star, UserPlus, Trash2, Clock, Check, Plus, Minus, Ban, CheckCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,6 +52,7 @@ interface BadgeAssignment {
 }
 
 const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, onDeleteAdmin, onAdminCreated, isMasterAdmin, initialViewUserId, onInitialViewHandled }: UsersTabProps) => {
+  const { user: currentUser } = useAuth();
   const [subTab, setSubTab] = useState<"customers" | "admins">("customers");
   const [userSearch, setUserSearch] = useState("");
   const [adminSearch, setAdminSearch] = useState("");
@@ -155,7 +157,8 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
     }
   }, [initialViewUserId, allUsers, adminUsers]);
 
-  const customers = allUsers.filter(u => !adminUsers.some(a => a.user_id === u.user_id && a.club_id));
+  const customers = allUsers.filter(u => u.user_id !== currentUser?.id && !adminUsers.some(a => a.user_id === u.user_id && a.club_id));
+  const filteredAdminUsers = useMemo(() => adminUsers.filter(u => u.user_id !== currentUser?.id), [adminUsers, currentUser?.id]);
 
   const openEditDialog = (u: UserWithEmail) => {
     setEditUser(u); setEditName(u.full_name || ""); setEditEmail(u.email); setEditPhone(u.phone || ""); setEditPassword("");
@@ -442,7 +445,7 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
                 <TableBody>
                   {(() => {
                     const q = adminSearch.toLowerCase();
-                    const filtered = adminUsers.filter(u => !q || (u.full_name || "").toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || (u.phone || "").toLowerCase().includes(q)).sort((a, b) => (a.full_name || a.email || "").localeCompare(b.full_name || b.email || ""));
+                    const filtered = filteredAdminUsers.filter(u => !q || (u.full_name || "").toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || (u.phone || "").toLowerCase().includes(q)).sort((a, b) => (a.full_name || a.email || "").localeCompare(b.full_name || b.email || ""));
                     return filtered.length === 0 ? (
                       <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">{adminSearch ? "No admins match." : "No admins yet."}</TableCell></TableRow>
                     ) : filtered.map(u => (
