@@ -80,19 +80,19 @@ const LiveFeatureIcons = () => {
   const items = [
     {
       to: "/loyalty",
-      icon: <LoyaltyIcon className="h-6 w-6" />,
+      icon: <LoyaltyIcon className="h-9 w-9 lg:h-11 lg:w-11" />,
       label: labels.loyalty,
       stat: loyaltyLabel,
     },
     {
       to: "/matchmaker",
-      icon: <MatchmakerIcon className="h-6 w-6" />,
+      icon: <MatchmakerIcon className="h-9 w-9 lg:h-11 lg:w-11" />,
       label: labels.matchmaking,
       stat: matchCount !== null ? `${matchCount} player${matchCount !== 1 ? "s" : ""}` : null,
     },
     {
       to: "/habits",
-      icon: <HabitTrackerIcon className="h-6 w-6" />,
+      icon: <HabitTrackerIcon className="h-9 w-9 lg:h-11 lg:w-11" />,
       label: labels.habits,
       stat: streak !== null ? (streak > 0 ? `🔥 ${streak}-week streak` : "Start streak") : null,
     },
