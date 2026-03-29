@@ -30,8 +30,6 @@ const LiveActivityStrip = () => {
     const fetchAll = async () => {
       const activities: ActivityItem[] = [];
 
-      // (matchmaking teaser removed – pulse feed shows only customer activity)
-
       // Recent bookings
       const { data: bookings } = await supabase
         .from("bookings")
@@ -81,6 +79,15 @@ const LiveActivityStrip = () => {
     };
 
     fetchAll();
+
+    // Real-time: refresh feed when new bookings or badges arrive
+    const channel = supabase
+      .channel("pulse-feed-realtime")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "bookings" }, () => fetchAll())
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "badge_point_assignments" }, () => fetchAll())
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, [user]);
 
   if (items.length === 0) return null;
