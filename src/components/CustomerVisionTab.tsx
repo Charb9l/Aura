@@ -473,12 +473,13 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
   const [showScrollIndicator, setShowScrollIndicator] = useState(false);
   const [landingImage1, setLandingImage1] = useState("");
   const [landingImage2, setLandingImage2] = useState("");
+  const [landingImages, setLandingImages] = useState<string[]>([]);
   const [featuredClubId, setFeaturedClubId] = useState("");
   const [featuredAcademyId, setFeaturedAcademyId] = useState("");
   const [featuredClubId2, setFeaturedClubId2] = useState("");
   const [featuredAcademyId2, setFeaturedAcademyId2] = useState("");
   const [allClubs, setAllClubs] = useState<{ id: string; name: string; has_academy: boolean }[]>([]);
-  const [uploadingLanding, setUploadingLanding] = useState<1 | 2 | null>(null);
+  const [uploadingLanding, setUploadingLanding] = useState<number | null>(null);
 
   // Generic page state
   const [pageTitle, setPageTitle] = useState("");
