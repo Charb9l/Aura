@@ -188,10 +188,11 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
     if (editAdminPhone !== (editAdmin.phone || "")) body.phone = editAdminPhone;
     if (editAdminPassword) body.password = editAdminPassword;
     body.club_id = (editAdminClubId && editAdminClubId !== "none") ? editAdminClubId : null;
+    body.admin_code = (editAdminClubId && editAdminClubId !== "none" && editAdminCode) ? editAdminCode : null;
     const { data, error } = await supabase.functions.invoke("admin-users", { body });
     setEditAdminSaving(false);
     if (error || data?.error) { toast.error(data?.error || error?.message || "Update failed"); }
-    else { toast.success("Admin updated"); onUpdateAdmin(editAdmin.user_id, { full_name: editAdminName, email: editAdminEmail, phone: editAdminPhone, club_id: (editAdminClubId && editAdminClubId !== "none") ? editAdminClubId : null }); setEditAdmin(null); }
+    else { toast.success("Admin updated"); onUpdateAdmin(editAdmin.user_id, { full_name: editAdminName, email: editAdminEmail, phone: editAdminPhone, club_id: (editAdminClubId && editAdminClubId !== "none") ? editAdminClubId : null, admin_code: (editAdminClubId && editAdminClubId !== "none") ? editAdminCode : null }); setEditAdmin(null); }
   };
 
   const handleDeleteAdmin = async () => {
