@@ -563,6 +563,9 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
       setMatchCriteria([...(content.criteria || [])]);
       setHabitsBadges([...(content.feature_badges || [])]);
       setMaxClubsGrid(content.max_clubs_grid ?? 3);
+      if (slug === "community") {
+        setSpaceCategories(content.categories || []);
+      }
       if (slug === "loyalty") {
         setLoyaltyTagline(content.tagline || "Summit Rewards Program");
         setLoyaltySteps(content.steps?.length ? [...content.steps] : [
