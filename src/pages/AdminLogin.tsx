@@ -44,7 +44,7 @@ const AdminLogin = () => {
     // Check if any admin role (mega or club) has this code
     const { data, error } = await supabase
       .from("user_roles")
-      .select("id")
+      .select("id, user_id")
       .eq("admin_code", trimmed)
       .eq("role", "admin")
       .maybeSingle();
@@ -54,6 +54,14 @@ const AdminLogin = () => {
       toast.error("Invalid admin code.");
       return;
     }
+
+    // Fetch the admin's name
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("full_name")
+      .eq("user_id", data.user_id)
+      .maybeSingle();
+    setAdminName(profile?.full_name || "");
     setCodeVerified(true);
   };
 
