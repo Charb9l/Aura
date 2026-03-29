@@ -1,14 +1,14 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { ArrowRight, ChevronRight, Trophy, Flame, Check } from "lucide-react";
+import { ArrowRight, Trophy, Flame, Check, Gift, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRewards } from "@/hooks/useRewards";
-import { LoyaltyIcon } from "@/components/icons/BrandIcons";
 import { startOfWeek, subWeeks, parseISO } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface OfferingItem {
   id: string;
@@ -17,40 +17,9 @@ interface OfferingItem {
 }
 
 const DEFAULT_STEPS = [
-  { title: "BOOK & EARN", desc: "Every session booked through the app earns you 1 point for that activity." },
-  { title: "5 PTS → 50% OFF", desc: "Reach 5 points in any activity and your next booking is half price." },
-  { title: "10 PTS → FREE", desc: "Save up to 10 points and get a completely free booking — any activity." },
-];
-
-/** Custom step icons — inline SVGs matching the premium aesthetic */
-const StepBookIcon = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <polygon points="12,2 14.5,8.5 21.5,8.5 16,12.5 18,19.5 12,15.5 6,19.5 8,12.5 2.5,8.5 9.5,8.5" fill="currentColor" fillOpacity="0.08" />
-    <polygon points="12,2 14.5,8.5 21.5,8.5 16,12.5 18,19.5 12,15.5 6,19.5 8,12.5 2.5,8.5 9.5,8.5" />
-  </svg>
-);
-
-const StepRewardIcon = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="4" y="10" width="16" height="11" rx="2" />
-    <path d="M12 10V4" />
-    <path d="M8 4c0 0 0 3 4 6" />
-    <path d="M16 4c0 0 0 3-4 6" />
-    <line x1="4" y1="15" x2="20" y2="15" />
-  </svg>
-);
-
-const StepFreeIcon = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" fill="currentColor" fillOpacity="0.08" />
-    <path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" />
-  </svg>
-);
-
-const STEP_ICONS = [
-  <StepBookIcon className="h-5 w-5" />,
-  <StepRewardIcon className="h-5 w-5" />,
-  <StepFreeIcon className="h-5 w-5" />,
+  { title: "BOOK & EARN", desc: "Every session earns 1 point." },
+  { title: "5 PTS → 50% OFF", desc: "Half price on your next booking." },
+  { title: "10 PTS → FREE", desc: "Completely free booking." },
 ];
 
 const LoyaltyPage = () => {
@@ -60,25 +29,15 @@ const LoyaltyPage = () => {
   const [subtitle, setSubtitle] = useState("Every booking earns you a point. Stack them up and unlock exclusive discounts — or go big and play for free.");
   const [tagline, setTagline] = useState("Summit Rewards Program");
   const [steps, setSteps] = useState(DEFAULT_STEPS);
-  const [sectionHow, setSectionHow] = useState("How It Works");
-  const [sectionJourney, setSectionJourney] = useState("Your Journey");
-  const [sectionActivities, setSectionActivities] = useState("Every Activity Counts");
-  const [ctaTagline, setCtaTagline] = useState("Begin Today");
   const [ctaHeading, setCtaHeading] = useState("Ready to Start Earning?");
   const [ctaSubtitle, setCtaSubtitle] = useState("Sign up, book your first session, and watch your points grow.");
   const [milestone5, setMilestone5] = useState("50% Off");
   const [milestone10, setMilestone10] = useState("Free Session");
   const [offerings, setOfferings] = useState<OfferingItem[]>([]);
   const [streakWeeks, setStreakWeeks] = useState<boolean[]>([false, false, false]);
-  const [animateKey, setAnimateKey] = useState(0);
   const [streakTitle, setStreakTitle] = useState("Streak Bonus");
   const [streakDesc, setStreakDesc] = useState("Book 3 weeks straight → earn 2x points that week");
   const [streakSubtitle, setStreakSubtitle] = useState("Consistency is rewarded. Keep your streak alive!");
-
-  useEffect(() => {
-    // Trigger re-animation every time page opens
-    setAnimateKey(k => k + 1);
-  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -92,10 +51,6 @@ const LoyaltyPage = () => {
         if (c.subtitle) setSubtitle(c.subtitle);
         if (c.tagline) setTagline(c.tagline);
         if (c.steps?.length) setSteps(c.steps);
-        if (c.section_how) setSectionHow(c.section_how);
-        if (c.section_journey) setSectionJourney(c.section_journey);
-        if (c.section_activities) setSectionActivities(c.section_activities);
-        if (c.cta_tagline) setCtaTagline(c.cta_tagline);
         if (c.cta_heading) setCtaHeading(c.cta_heading);
         if (c.cta_subtitle) setCtaSubtitle(c.cta_subtitle);
         if (c.milestone_5) setMilestone5(c.milestone_5);
@@ -138,191 +93,43 @@ const LoyaltyPage = () => {
     calcStreak();
   }, [user]);
 
-  // Best club progress for the journey section
-  const bestClub = useMemo(() => {
-    if (!rewardsLoaded) return null;
-    return rewards.filter(r => r.points > 0).sort((a, b) => b.points - a.points)[0] || null;
+  // Clubs with points for per-club progress
+  const clubsWithPoints = useMemo(() => {
+    if (!rewardsLoaded) return [];
+    return rewards.filter(r => r.points > 0).sort((a, b) => b.points - a.points);
   }, [rewards, rewardsLoaded]);
-
-  const progressPct = bestClub ? (bestClub.points / 10) * 100 : 0;
-
-  const milestoneText = useMemo(() => {
-    if (!bestClub || bestClub.points === 0) return "Book your first session to start earning";
-    if (bestClub.points < 5) return `${5 - bestClub.points} more booking${5 - bestClub.points > 1 ? "s" : ""} until 50% off`;
-    if (bestClub.points < 10) return `${10 - bestClub.points} more booking${10 - bestClub.points > 1 ? "s" : ""} until FREE session`;
-    return "🎉 You've unlocked a FREE session!";
-  }, [bestClub]);
 
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0">
       <Navbar />
 
-      {/* Hero */}
-      <section className="relative page-offset-top pb-12 overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-20 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
-        </div>
-
-        <div className="container mx-auto px-6 relative">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-            className="max-w-4xl mx-auto flex flex-col md:flex-row items-center md:items-end gap-6 md:gap-12"
-          >
-            <div className="flex-1 text-center md:text-left">
-              <span className="inline-block text-[10px] uppercase tracking-[0.35em] text-primary font-medium mb-4">
-                {tagline}
-              </span>
-              <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl font-light text-foreground leading-[0.95]">
-                {title.split(". ").length > 1 ? (
-                  <>
-                    {title.split(". ")[0]}.{" "}
-                    <span className="text-primary italic">{title.split(". ").slice(1).join(". ")}</span>
-                  </>
-                ) : (
-                  <span className="text-primary italic">{title}</span>
-                )}
-              </h1>
-              <p className="text-muted-foreground text-sm max-w-md mt-3 leading-relaxed font-light md:mx-0 mx-auto">
-                {subtitle}
-              </p>
-            </div>
-
-            <Link to="/profile" className="shrink-0">
-              <Button
-                variant="outline"
-                className="h-10 px-6 text-[10px] uppercase tracking-[0.2em] font-medium border-primary/40 text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-500"
-              >
-                View My Loyalty
-                <ChevronRight className="ml-2 h-3 w-3" />
-              </Button>
-            </Link>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* How it works */}
-      <section className="border-t border-border/50">
+      {/* Compact Banner */}
+      <section className="relative page-offset-top pb-6 overflow-hidden">
         <div className="container mx-auto px-6">
-          <div className="py-10">
-            <motion.div
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              className="flex items-center gap-4 mb-8"
-            >
-              <div className="h-px flex-1 bg-gradient-to-r from-primary/30 to-transparent" />
-              <span className="text-[10px] uppercase tracking-[0.4em] text-primary font-medium whitespace-nowrap">{sectionHow}</span>
-              <div className="h-px flex-1 bg-gradient-to-l from-primary/30 to-transparent" />
-            </motion.div>
-
-            <div className="grid md:grid-cols-3 gap-0 md:divide-x md:divide-border/30">
-              {steps.map((step, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.1, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                  className="relative px-6 py-4 group"
-                >
-                  <div className="flex items-center gap-3 mb-2.5">
-                    <div className="w-8 h-8 border border-primary/30 flex items-center justify-center text-primary shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-500">
-                      {STEP_ICONS[i] || <StepBookIcon className="h-5 w-5" />}
-                    </div>
-                    <h3 className="text-xs uppercase tracking-[0.25em] font-medium text-foreground">{step.title}</h3>
-                  </div>
-                  <p className="text-muted-foreground text-sm leading-relaxed font-light pl-11">{step.desc}</p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Progress tracker — shows distance to next milestone */}
-      <section className="border-t border-border/50">
-        <div className="container mx-auto px-6 py-12">
           <motion.div
-            key={animateKey}
             initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="rounded-2xl border border-border/40 bg-card/50 backdrop-blur-2xl p-5 sm:p-6 overflow-hidden relative"
           >
-            <div className="flex items-center gap-4 mb-8">
-              <div className="h-px flex-1 bg-gradient-to-r from-primary/30 to-transparent" />
-              <span className="text-[10px] uppercase tracking-[0.4em] text-primary font-medium whitespace-nowrap">{sectionJourney}</span>
-              <div className="h-px flex-1 bg-gradient-to-l from-primary/30 to-transparent" />
-            </div>
+            {/* Decorative glow */}
+            <div className="absolute -top-20 -right-20 w-40 h-40 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
 
-            {/* Milestone distance text */}
-            {user && rewardsLoaded && (
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.3, duration: 0.5 }}
-                className="text-center text-lg sm:text-xl font-heading font-light text-foreground mb-6"
-              >
-                {milestoneText}
-              </motion.p>
-            )}
-
-            <div className="max-w-4xl mx-auto">
-              <div className="relative">
-                <div className="flex items-center justify-between mb-3">
-                  {Array.from({ length: 10 }, (_, i) => {
-                    const isMilestone5 = i === 4;
-                    const isMilestone10 = i === 9;
-                    const isFilled = bestClub ? i < bestClub.points : false;
-                    return (
-                      <div key={i} className="flex flex-col items-center">
-                        <div
-                          className={`
-                            w-7 h-7 sm:w-9 sm:h-9 flex items-center justify-center text-[10px] sm:text-xs font-medium transition-all
-                            ${isFilled
-                              ? "border-2 border-primary bg-primary/20 text-primary"
-                              : isMilestone5
-                              ? "border-2 border-primary bg-primary/10 text-primary"
-                              : isMilestone10
-                              ? "border-2 border-primary bg-primary text-primary-foreground"
-                              : "border border-border/60 text-muted-foreground/60 hover:border-primary/30 hover:text-primary/50"
-                            }
-                          `}
-                        >
-                          {i + 1}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Animated progress bar with gold glow */}
-                <div className="h-[3px] bg-border/40 relative rounded-full overflow-hidden">
-                  <motion.div
-                    key={`progress-${animateKey}`}
-                    initial={{ width: 0 }}
-                    animate={{ width: `${progressPct}%` }}
-                    transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                    className="absolute left-0 top-0 h-full bg-gradient-to-r from-primary/60 to-primary rounded-full"
-                  />
-                  {progressPct > 0 && (
-                    <motion.div
-                      key={`glow-${animateKey}`}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: [0, 1, 0.6, 1, 0.6] }}
-                      transition={{ duration: 2, delay: 0.6, repeat: Infinity, repeatType: "reverse" }}
-                      className="absolute top-1/2 -translate-y-1/2 h-3 w-3 rounded-full bg-primary shadow-[0_0_12px_4px_hsl(var(--primary)/0.5)]"
-                      style={{ left: `${progressPct}%`, transform: "translate(-50%, -50%)" }}
-                    />
-                  )}
-                </div>
-
-                {/* Milestone labels */}
-                <div className="flex justify-between mt-3">
-                  <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/50">Start</span>
-                  <span className="text-[10px] uppercase tracking-[0.2em] text-primary/80">{milestone5}</span>
-                  <span className="text-[10px] uppercase tracking-[0.2em] text-primary font-medium">{milestone10}</span>
+            <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+                <Trophy className="h-6 w-6 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <span className="text-[10px] uppercase tracking-[0.3em] text-primary font-medium">{tagline}</span>
+                <h1 className="font-heading text-xl sm:text-2xl font-bold text-foreground mt-0.5 -tracking-tight">
+                  {title}
+                </h1>
+                <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
+                  {steps.map((step, i) => (
+                    <span key={i} className="text-[11px] text-muted-foreground">
+                      <span className="text-primary font-medium">{step.title}</span> — {step.desc}
+                    </span>
+                  ))}
                 </div>
               </div>
             </div>
@@ -330,7 +137,126 @@ const LoyaltyPage = () => {
         </div>
       </section>
 
-      {/* Streak Bonus Section */}
+      {/* Per-Club Loyalty Progress */}
+      {user && rewardsLoaded && (
+        <section className="border-t border-border/50">
+          <div className="container mx-auto px-6 py-8">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="h-px flex-1 bg-gradient-to-r from-primary/30 to-transparent" />
+              <span className="text-[10px] uppercase tracking-[0.4em] text-primary font-medium whitespace-nowrap">Your Progress</span>
+              <div className="h-px flex-1 bg-gradient-to-l from-primary/30 to-transparent" />
+            </div>
+
+            {clubsWithPoints.length === 0 ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center py-12"
+              >
+                <p className="text-muted-foreground mb-4">No loyalty points yet. Book a session to start earning!</p>
+                <Link to="/book">
+                  <Button className="glow">Book Now <ArrowRight className="ml-2 h-4 w-4" /></Button>
+                </Link>
+              </motion.div>
+            ) : (
+              <div className="grid md:grid-cols-2 gap-5">
+                {clubsWithPoints.map((club, idx) => {
+                  const rawPoints = club.points;
+                  const cyclePoints = rawPoints % 10;
+                  const completedCycles = Math.floor(rawPoints / 10);
+                  const at10 = cyclePoints === 0 && rawPoints > 0 && completedCycles > 0;
+                  const countdownTo5 = cyclePoints < 5 ? 5 - cyclePoints : null;
+                  const countdownTo10 = cyclePoints >= 5 && cyclePoints < 10 ? 10 - cyclePoints : null;
+
+                  return (
+                    <motion.div
+                      key={club.clubId}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.05 }}
+                      className="rounded-2xl border border-border/40 bg-card/50 backdrop-blur-2xl p-5 overflow-hidden"
+                    >
+                      <div className="flex items-center gap-3 mb-4">
+                        {club.clubLogo ? (
+                          <img
+                            src={club.clubLogo}
+                            alt={club.clubName}
+                            className="w-10 h-10 rounded-lg object-contain bg-secondary p-1"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-primary/15 text-primary font-bold text-sm shrink-0">
+                            {club.clubName.charAt(0)}
+                          </div>
+                        )}
+                        <div className="flex-1">
+                          <p className="font-heading font-bold text-foreground text-sm">{club.clubName}</p>
+                          <p className="text-xs text-muted-foreground">{rawPoints} point{rawPoints !== 1 ? "s" : ""} earned</p>
+                        </div>
+                        {cyclePoints >= 5 && cyclePoints < 10 && (
+                          <span className="flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-primary/10 text-primary">
+                            <Gift className="h-3 w-3" /> 50% off!
+                          </span>
+                        )}
+                        {(at10 || cyclePoints === 10) && (
+                          <span className="flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-accent/10 text-accent">
+                            <Zap className="h-3 w-3" /> FREE!
+                          </span>
+                        )}
+                      </div>
+
+                      {/* 10-stage tracker */}
+                      <div className="flex items-center gap-1.5 mb-3">
+                        {Array.from({ length: 10 }, (_, i) => {
+                          const filled = i < cyclePoints;
+                          const is5Mark = i === 4;
+                          const is10Mark = i === 9;
+
+                          return (
+                            <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                              <motion.div
+                                initial={{ scale: 0.8 }}
+                                animate={{ scale: 1 }}
+                                transition={{ delay: 0.1 + i * 0.03 }}
+                                className={cn(
+                                  "w-full h-8 rounded-md flex items-center justify-center text-[10px] font-bold transition-all",
+                                  filled
+                                    ? "bg-primary text-primary-foreground"
+                                    : "border border-border text-muted-foreground/40"
+                                )}
+                              >
+                                {is5Mark && !filled && <Gift className="h-3 w-3" />}
+                                {is10Mark && !filled && <Zap className="h-3 w-3" />}
+                                {filled && (i + 1)}
+                                {!filled && !is5Mark && !is10Mark && (i + 1)}
+                              </motion.div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Countdown text */}
+                      <div className="flex justify-between text-[10px] text-muted-foreground">
+                        <span>{cyclePoints}/10 this cycle</span>
+                        {countdownTo5 && (
+                          <span className="text-primary/70">{countdownTo5} more → {milestone5}</span>
+                        )}
+                        {countdownTo10 && (
+                          <span className="text-primary font-medium">{countdownTo10} more → {milestone10}</span>
+                        )}
+                        {(at10 || cyclePoints >= 10) && (
+                          <span className="text-accent font-medium">🎉 Reward unlocked!</span>
+                        )}
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Streak Bonus */}
       {user && (
         <section className="border-t border-border/50">
           <div className="container mx-auto px-6 py-10">
@@ -346,7 +272,7 @@ const LoyaltyPage = () => {
                 <div className="h-px flex-1 bg-gradient-to-l from-primary/30 to-transparent" />
               </div>
 
-              <div className="max-w-lg mx-auto rounded-2xl border border-border bg-card/50 p-6">
+              <div className="max-w-lg mx-auto rounded-2xl border border-border/40 bg-card/50 backdrop-blur-2xl p-6">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 rounded-xl border border-primary/30 bg-primary/10 flex items-center justify-center">
                     <Flame className="h-5 w-5 text-primary" />
@@ -393,7 +319,7 @@ const LoyaltyPage = () => {
           <div className="container mx-auto px-6 mb-8">
             <div className="flex items-center gap-4">
               <div className="h-px flex-1 bg-gradient-to-r from-primary/30 to-transparent" />
-              <span className="text-[10px] uppercase tracking-[0.4em] text-primary font-medium whitespace-nowrap">{sectionActivities}</span>
+              <span className="text-[10px] uppercase tracking-[0.4em] text-primary font-medium whitespace-nowrap">Every Activity Counts</span>
               <div className="h-px flex-1 bg-gradient-to-l from-primary/30 to-transparent" />
             </div>
           </div>
@@ -432,51 +358,41 @@ const LoyaltyPage = () => {
         </section>
       )}
 
-      {/* CTA */}
-      <section className="border-t border-border/50">
-        <div className="container mx-auto px-6 py-14 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <span className="text-[10px] uppercase tracking-[0.4em] text-primary font-medium mb-6 inline-block">{ctaTagline}</span>
-            <h2 className="font-heading text-3xl md:text-5xl font-light text-foreground mb-4">
-              {ctaHeading.includes(" ") ? (
-                <>
-                  {ctaHeading.split(" ").slice(0, -1).join(" ")}{" "}
-                  <span className="text-primary italic">{ctaHeading.split(" ").slice(-1)}</span>
-                </>
-              ) : (
-                ctaHeading
-              )}
-            </h2>
-            {!user && (
-              <>
-                <p className="text-muted-foreground text-sm font-light mb-10 max-w-md mx-auto">
-                  {ctaSubtitle}
-                </p>
-                <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <Link to="/auth">
-                    <Button
-                      variant="outline"
-                      className="h-11 px-8 text-xs uppercase tracking-[0.2em] font-medium border-border/60 text-foreground hover:border-primary/50 hover:text-primary transition-all duration-500"
-                    >
-                      Create Account
-                    </Button>
-                  </Link>
-                  <Link to="/book">
-                    <Button className="h-11 px-8 text-xs uppercase tracking-[0.2em] font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-500">
-                      Book Now
-                      <ArrowRight className="ml-2 h-3.5 w-3.5" />
-                    </Button>
-                  </Link>
-                </div>
-              </>
-            )}
-          </motion.div>
-        </div>
-      </section>
+      {/* CTA for non-logged-in users */}
+      {!user && (
+        <section className="border-t border-border/50">
+          <div className="container mx-auto px-6 py-14 text-center">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            >
+              <h2 className="font-heading text-3xl md:text-5xl font-light text-foreground mb-4">
+                {ctaHeading}
+              </h2>
+              <p className="text-muted-foreground text-sm font-light mb-10 max-w-md mx-auto">
+                {ctaSubtitle}
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Link to="/auth">
+                  <Button
+                    variant="outline"
+                    className="h-11 px-8 text-xs uppercase tracking-[0.2em] font-medium border-border/60 text-foreground hover:border-primary/50 hover:text-primary transition-all duration-500"
+                  >
+                    Create Account
+                  </Button>
+                </Link>
+                <Link to="/book">
+                  <Button className="h-11 px-8 text-xs uppercase tracking-[0.2em] font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-500">
+                    Book Now
+                    <ArrowRight className="ml-2 h-3.5 w-3.5" />
+                  </Button>
+                </Link>
+              </div>
+            </motion.div>
+          </div>
+        </section>
+      )}
 
       <footer className="border-t border-border/30 py-10">
         <div className="container mx-auto px-6 text-center text-[11px] uppercase tracking-[0.25em] text-muted-foreground/40">
