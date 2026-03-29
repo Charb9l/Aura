@@ -148,6 +148,23 @@ const SettingsTab = () => {
                   <PhoneInput id="acc-phone" value={phone} onChange={setPhone} className="mt-1" />
                 </div>
                 <div className="border-t border-border pt-4 mt-4">
+                  <p className="text-sm font-medium text-foreground mb-3">Admin Login Code</p>
+                  <div>
+                    <Label htmlFor="acc-admin-code">6-Digit Code</Label>
+                    <Input
+                      id="acc-admin-code"
+                      value={adminCode}
+                      onChange={(e) => { const v = e.target.value.replace(/\D/g, "").slice(0, 6); setAdminCode(v); }}
+                      placeholder="000000"
+                      maxLength={6}
+                      inputMode="numeric"
+                      pattern="[0-9]{6}"
+                      className="h-12 bg-secondary border-border mt-1 font-mono tracking-widest text-center text-lg"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1.5">This code is required to log in to the admin panel.</p>
+                  </div>
+                </div>
+                <div className="border-t border-border pt-4 mt-4">
                   <p className="text-sm font-medium text-foreground mb-3">Change Password</p>
                   <div className="space-y-3">
                     <div>
