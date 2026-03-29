@@ -507,10 +507,6 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
     { title: "5 PTS → 50% OFF", desc: "Reach 5 points in any activity and your next booking is half price." },
     { title: "10 PTS → FREE", desc: "Save up to 10 points and get a completely free booking — any activity." },
   ]);
-  const [loyaltySectionHow, setLoyaltySectionHow] = useState("How It Works");
-  const [loyaltySectionJourney, setLoyaltySectionJourney] = useState("Your Journey");
-  const [loyaltySectionActivities, setLoyaltySectionActivities] = useState("Every Activity Counts");
-  const [loyaltyCtaTagline, setLoyaltyCtaTagline] = useState("Begin Today");
   const [loyaltyCtaHeading, setLoyaltyCtaHeading] = useState("Ready to Start Earning?");
   const [loyaltyCtaSubtitle, setLoyaltyCtaSubtitle] = useState("Sign up, book your first session, and watch your points grow.");
   const [loyaltyMilestone5, setLoyaltyMilestone5] = useState("50% Off");
@@ -573,10 +569,6 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
           { title: "5 PTS → 50% OFF", desc: "Reach 5 points in any activity and your next booking is half price." },
           { title: "10 PTS → FREE", desc: "Save up to 10 points and get a completely free booking — any activity." },
         ]);
-        setLoyaltySectionHow(content.section_how || "How It Works");
-        setLoyaltySectionJourney(content.section_journey || "Your Journey");
-        setLoyaltySectionActivities(content.section_activities || "Every Activity Counts");
-        setLoyaltyCtaTagline(content.cta_tagline || "Begin Today");
         setLoyaltyCtaHeading(content.cta_heading || "Ready to Start Earning?");
         setLoyaltyCtaSubtitle(content.cta_subtitle || "Sign up, book your first session, and watch your points grow.");
         setLoyaltyMilestone5(content.milestone_5 || "50% Off");
@@ -646,10 +638,6 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
     if (slug === "loyalty") {
       content.tagline = loyaltyTagline;
       content.steps = loyaltySteps;
-      content.section_how = loyaltySectionHow;
-      content.section_journey = loyaltySectionJourney;
-      content.section_activities = loyaltySectionActivities;
-      content.cta_tagline = loyaltyCtaTagline;
       content.cta_heading = loyaltyCtaHeading;
       content.cta_subtitle = loyaltyCtaSubtitle;
       content.milestone_5 = loyaltyMilestone5;
@@ -1180,12 +1168,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
                 </div>
 
                 <div>
-                  <Label className="text-sm font-medium text-muted-foreground mb-3 block">How It Works — Section Title</Label>
-                  <Input value={loyaltySectionHow} onChange={(e) => setLoyaltySectionHow(e.target.value)} className="h-9 bg-secondary border-border text-sm" />
-                </div>
-
-                <div>
-                  <Label className="text-sm font-medium text-muted-foreground mb-3 block">Steps (3 cards)</Label>
+                  <Label className="text-sm font-medium text-muted-foreground mb-3 block">Banner Steps (3 cards)</Label>
                   <div className="space-y-3">
                     {loyaltySteps.map((step, i) => (
                       <div key={i} className="p-3 rounded-lg border border-border bg-secondary/50 space-y-2">
@@ -1195,11 +1178,6 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
                       </div>
                     ))}
                   </div>
-                </div>
-
-                <div>
-                  <Label className="text-sm font-medium text-muted-foreground mb-3 block">Journey Section Title</Label>
-                  <Input value={loyaltySectionJourney} onChange={(e) => setLoyaltySectionJourney(e.target.value)} className="h-9 bg-secondary border-border text-sm" />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
@@ -1214,14 +1192,8 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
                 </div>
 
                 <div>
-                  <Label className="text-sm font-medium text-muted-foreground mb-3 block">Activities Section Title</Label>
-                  <Input value={loyaltySectionActivities} onChange={(e) => setLoyaltySectionActivities(e.target.value)} className="h-9 bg-secondary border-border text-sm" />
-                </div>
-
-                <div>
-                  <Label className="text-sm font-medium text-muted-foreground mb-3 block">CTA Section</Label>
+                  <Label className="text-sm font-medium text-muted-foreground mb-3 block">CTA Section (for non-logged-in users)</Label>
                   <div className="space-y-2">
-                    <Input value={loyaltyCtaTagline} onChange={(e) => setLoyaltyCtaTagline(e.target.value)} placeholder="Begin Today" className="h-9 bg-secondary border-border text-sm" />
                     <Input value={loyaltyCtaHeading} onChange={(e) => setLoyaltyCtaHeading(e.target.value)} placeholder="Ready to Start Earning?" className="h-9 bg-secondary border-border text-sm" />
                     <Input value={loyaltyCtaSubtitle} onChange={(e) => setLoyaltyCtaSubtitle(e.target.value)} placeholder="Sign up, book your first session..." className="h-9 bg-secondary border-border text-sm" />
                   </div>
