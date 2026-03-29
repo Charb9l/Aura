@@ -234,13 +234,18 @@ Deno.serve(async (req) => {
         await adminClient.from("profiles").update(profileUpdate).eq("user_id", user_id);
       }
 
-      // Update club assignment if provided
-      if (club_id !== undefined) {
-        await adminClient
-          .from("user_roles")
-          .update({ club_id: club_id || null })
-          .eq("user_id", user_id)
-          .eq("role", "admin");
+      // Update club assignment and admin_code if provided
+      if (club_id !== undefined || body.admin_code !== undefined) {
+        const roleUpdate: Record<string, unknown> = {};
+        if (club_id !== undefined) roleUpdate.club_id = club_id || null;
+        if (body.admin_code !== undefined) roleUpdate.admin_code = body.admin_code || null;
+        if (Object.keys(roleUpdate).length > 0) {
+          await adminClient
+            .from("user_roles")
+            .update(roleUpdate)
+            .eq("user_id", user_id)
+            .eq("role", "admin");
+        }
       }
 
       return new Response(JSON.stringify({ success: true }), {
