@@ -157,7 +157,8 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
     }
   }, [initialViewUserId, allUsers, adminUsers]);
 
-  const customers = allUsers.filter(u => !adminUsers.some(a => a.user_id === u.user_id && a.club_id));
+  const customers = allUsers.filter(u => u.user_id !== currentUser?.id && !adminUsers.some(a => a.user_id === u.user_id && a.club_id));
+  const filteredAdminUsers = useMemo(() => adminUsers.filter(u => u.user_id !== currentUser?.id), [adminUsers, currentUser?.id]);
 
   const openEditDialog = (u: UserWithEmail) => {
     setEditUser(u); setEditName(u.full_name || ""); setEditEmail(u.email); setEditPhone(u.phone || ""); setEditPassword("");
