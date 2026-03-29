@@ -1120,104 +1120,25 @@ const ProfilePage = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Loyalty Trackers */}
+        {/* Loyalty — moved to /loyalty page */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
           className="mb-10"
         >
-          <div className="flex items-center gap-3 mb-6">
-            <Trophy className="h-6 w-6 text-primary" />
-            <h2 className="font-heading text-xl font-bold text-foreground">Loyalty Progress</h2>
-            <Link to="/loyalty" className="ml-auto text-sm text-primary hover:underline flex items-center gap-1">
-              How it works <ArrowRight className="h-3 w-3" />
-            </Link>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-5">
-            {clubs.filter(club => (effectiveClubPoints[club.id] || 0) > 0).map((club, idx) => {
-              const rawPoints = effectiveClubPoints[club.id] || 0;
-              const cyclePoints = rawPoints % 10; // resets after 10
-              const completedCycles = Math.floor(rawPoints / 10);
-              const at10 = cyclePoints === 0 && rawPoints > 0 && completedCycles > 0;
-
-              return (
-                <motion.div
-                  key={club.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.15 + idx * 0.05 }}
-                  className="rounded-2xl border border-border bg-card p-5 overflow-hidden"
-                >
-                  <div className="flex items-center gap-3 mb-4">
-                    {club.logo_url ? (
-                      <img
-                        src={club.logo_url}
-                        alt={club.name}
-                        className="w-10 h-10 rounded-lg object-contain bg-secondary p-1"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-primary/15 text-primary font-bold text-sm shrink-0">
-                        {club.name.charAt(0)}
-                      </div>
-                    )}
-                    <div className="flex-1">
-                      <p className="font-heading font-bold text-foreground text-sm">{club.name}</p>
-                      <p className="text-xs text-muted-foreground">{rawPoints} total booking{rawPoints !== 1 ? "s" : ""}</p>
-                    </div>
-                    {cyclePoints >= 5 && cyclePoints < 10 && (
-                      <span className="flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-primary/10 text-primary">
-                        <Gift className="h-3 w-3" /> 50% off available!
-                      </span>
-                    )}
-                  </div>
-
-                  {/* 10-stage tracker */}
-                  <div className="flex items-center gap-1.5 mb-3">
-                    {Array.from({ length: 10 }, (_, i) => {
-                      const filled = i < cyclePoints;
-                      const is5Mark = i === 4;
-                      const is10Mark = i === 9;
-
-                      return (
-                        <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                          <motion.div
-                            initial={{ scale: 0.8 }}
-                            animate={{ scale: 1 }}
-                            transition={{ delay: 0.2 + i * 0.03 }}
-                            className={cn(
-                              "w-full h-8 rounded-md flex items-center justify-center text-[10px] font-bold transition-all relative",
-                              filled
-                                ? "bg-primary text-primary-foreground"
-                                : "border border-border text-muted-foreground/40"
-                            )}
-                          >
-                            {is5Mark && !filled && <Gift className="h-3 w-3" />}
-                            {is10Mark && !filled && <Zap className="h-3 w-3" />}
-                            {filled && (i + 1)}
-                            {!filled && !is5Mark && !is10Mark && (i + 1)}
-                          </motion.div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  <div className="flex justify-between text-[10px] text-muted-foreground">
-                    <span>{cyclePoints}/10 this cycle</span>
-                    <div className="flex gap-3">
-                      <span className={cn(cyclePoints >= 5 ? "text-primary font-medium" : "")}>
-                        5 = 50% off
-                      </span>
-                      <span className={cn(cyclePoints >= 10 || at10 ? "text-accent font-medium" : "")}>
-                        10 = FREE
-                      </span>
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
+          <Link to="/loyalty" className="block rounded-2xl border border-border bg-card/50 backdrop-blur-xl p-5 hover:border-primary/30 transition-all duration-500 group">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                <Trophy className="h-5 w-5 text-primary" />
+              </div>
+              <div className="flex-1">
+                <p className="font-heading font-bold text-foreground text-sm">Loyalty Progress</p>
+                <p className="text-xs text-muted-foreground">View your points & rewards</p>
+              </div>
+              <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+            </div>
+          </Link>
         </motion.div>
 
         {/* Quick stats + Book button */}
