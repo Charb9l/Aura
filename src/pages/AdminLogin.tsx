@@ -217,7 +217,8 @@ const AdminLogin = () => {
                   {submitting ? <Spinner size="sm" /> : <LogIn className="h-4 w-4" />}
                   {submitting ? "Signing in..." : "Sign In"}
                 </Button>
-              </motion.form>
+                </form>
+              </motion.div>
             )}
 
             <div className="mt-6 pt-4 border-t border-border text-center">
