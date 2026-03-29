@@ -1168,12 +1168,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
                 </div>
 
                 <div>
-                  <Label className="text-sm font-medium text-muted-foreground mb-3 block">How It Works — Section Title</Label>
-                  <Input value={loyaltySectionHow} onChange={(e) => setLoyaltySectionHow(e.target.value)} className="h-9 bg-secondary border-border text-sm" />
-                </div>
-
-                <div>
-                  <Label className="text-sm font-medium text-muted-foreground mb-3 block">Steps (3 cards)</Label>
+                  <Label className="text-sm font-medium text-muted-foreground mb-3 block">Banner Steps (3 cards)</Label>
                   <div className="space-y-3">
                     {loyaltySteps.map((step, i) => (
                       <div key={i} className="p-3 rounded-lg border border-border bg-secondary/50 space-y-2">
@@ -1183,11 +1178,6 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
                       </div>
                     ))}
                   </div>
-                </div>
-
-                <div>
-                  <Label className="text-sm font-medium text-muted-foreground mb-3 block">Journey Section Title</Label>
-                  <Input value={loyaltySectionJourney} onChange={(e) => setLoyaltySectionJourney(e.target.value)} className="h-9 bg-secondary border-border text-sm" />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
@@ -1202,14 +1192,8 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
                 </div>
 
                 <div>
-                  <Label className="text-sm font-medium text-muted-foreground mb-3 block">Activities Section Title</Label>
-                  <Input value={loyaltySectionActivities} onChange={(e) => setLoyaltySectionActivities(e.target.value)} className="h-9 bg-secondary border-border text-sm" />
-                </div>
-
-                <div>
-                  <Label className="text-sm font-medium text-muted-foreground mb-3 block">CTA Section</Label>
+                  <Label className="text-sm font-medium text-muted-foreground mb-3 block">CTA Section (for non-logged-in users)</Label>
                   <div className="space-y-2">
-                    <Input value={loyaltyCtaTagline} onChange={(e) => setLoyaltyCtaTagline(e.target.value)} placeholder="Begin Today" className="h-9 bg-secondary border-border text-sm" />
                     <Input value={loyaltyCtaHeading} onChange={(e) => setLoyaltyCtaHeading(e.target.value)} placeholder="Ready to Start Earning?" className="h-9 bg-secondary border-border text-sm" />
                     <Input value={loyaltyCtaSubtitle} onChange={(e) => setLoyaltyCtaSubtitle(e.target.value)} placeholder="Sign up, book your first session..." className="h-9 bg-secondary border-border text-sm" />
                   </div>
