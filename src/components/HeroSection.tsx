@@ -145,9 +145,20 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="relative w-full max-w-lg lg:max-w-4xl"
+            className="relative w-full max-w-lg lg:max-w-4xl flex items-center gap-2"
           >
-            <div className="overflow-hidden rounded-2xl" ref={emblaRef}>
+            {/* Left arrow — desktop only */}
+            {carouselImages.length > 2 && (
+              <button
+                onClick={() => emblaApi?.scrollPrev()}
+                disabled={!canScrollPrev}
+                className="hidden lg:flex shrink-0 rounded-full bg-white/[0.06] backdrop-blur-xl p-2 text-foreground/60 hover:text-foreground hover:bg-white/[0.1] transition-all disabled:opacity-30"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+            )}
+
+            <div className="overflow-hidden rounded-2xl flex-1" ref={emblaRef}>
               <div className="flex gap-3">
                 {carouselImages.map((url, i) => (
                   <div key={i} className="flex-[0_0_calc(50%-6px)] min-w-0">
@@ -158,23 +169,16 @@ const HeroSection = () => {
                 ))}
               </div>
             </div>
+
+            {/* Right arrow — desktop only */}
             {carouselImages.length > 2 && (
-              <div className="flex justify-center gap-2 mt-3">
-                <button
-                  onClick={() => emblaApi?.scrollPrev()}
-                  disabled={!canScrollPrev}
-                  className="rounded-full bg-white/[0.06] backdrop-blur-xl p-2 text-foreground/60 hover:text-foreground hover:bg-white/[0.1] transition-all disabled:opacity-30"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={() => emblaApi?.scrollNext()}
-                  disabled={!canScrollNext}
-                  className="rounded-full bg-white/[0.06] backdrop-blur-xl p-2 text-foreground/60 hover:text-foreground hover:bg-white/[0.1] transition-all disabled:opacity-30"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-              </div>
+              <button
+                onClick={() => emblaApi?.scrollNext()}
+                disabled={!canScrollNext}
+                className="hidden lg:flex shrink-0 rounded-full bg-white/[0.06] backdrop-blur-xl p-2 text-foreground/60 hover:text-foreground hover:bg-white/[0.1] transition-all disabled:opacity-30"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
             )}
           </motion.div>
         )}
