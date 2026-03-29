@@ -1247,7 +1247,94 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
               </div>
             )}
 
-            {editingPage && !["loyalty", "habits", "matchmaker"].includes(editingPage) && (
+            {/* Your Space Categories Editor */}
+            {editingPage === "community" && (
+              <div className="border-t border-border pt-6">
+                <div className="flex items-center justify-between mb-3">
+                  <Label className="text-sm font-medium text-muted-foreground">Categories</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSpaceCategories(prev => [...prev, { title: "", subtitle: "", to: "/", image_url: "" }])}
+                    className="gap-1.5 text-xs"
+                  >
+                    <Plus className="h-3.5 w-3.5" /> Add Category
+                  </Button>
+                </div>
+                <div className="space-y-4">
+                  {spaceCategories.map((cat, i) => (
+                    <div key={i} className="p-3 rounded-lg border border-border bg-secondary/50 space-y-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-muted-foreground">#{i + 1}</span>
+                        <div className="flex gap-1 ml-auto shrink-0">
+                          <Button type="button" variant="ghost" size="icon" className="h-6 w-6" disabled={i === 0} onClick={() => { const arr = [...spaceCategories]; [arr[i - 1], arr[i]] = [arr[i], arr[i - 1]]; setSpaceCategories(arr); }}><ArrowUp className="h-3 w-3" /></Button>
+                          <Button type="button" variant="ghost" size="icon" className="h-6 w-6" disabled={i === spaceCategories.length - 1} onClick={() => { const arr = [...spaceCategories]; [arr[i], arr[i + 1]] = [arr[i + 1], arr[i]]; setSpaceCategories(arr); }}><ArrowDown className="h-3 w-3" /></Button>
+                          <Button type="button" variant="ghost" size="icon" onClick={() => setSpaceCategories(prev => prev.filter((_, idx) => idx !== i))} className="h-6 w-6 text-destructive hover:text-destructive hover:bg-destructive/10"><Trash2 className="h-3.5 w-3.5" /></Button>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Input
+                          value={cat.title}
+                          onChange={(e) => setSpaceCategories(prev => prev.map((c, idx) => idx === i ? { ...c, title: e.target.value } : c))}
+                          placeholder="Title (e.g. Loyalty)"
+                          className="h-8 bg-background border-border text-xs"
+                        />
+                        <Input
+                          value={cat.subtitle}
+                          onChange={(e) => setSpaceCategories(prev => prev.map((c, idx) => idx === i ? { ...c, subtitle: e.target.value } : c))}
+                          placeholder="Subtitle"
+                          className="h-8 bg-background border-border text-xs"
+                        />
+                      </div>
+                      <Input
+                        value={cat.to}
+                        onChange={(e) => setSpaceCategories(prev => prev.map((c, idx) => idx === i ? { ...c, to: e.target.value } : c))}
+                        placeholder="Redirect path (e.g. /loyalty)"
+                        className="h-8 bg-background border-border text-xs font-mono"
+                      />
+                      {/* Image */}
+                      {cat.image_url ? (
+                        <div className="relative rounded-lg overflow-hidden border border-border aspect-[4/3] w-24 group">
+                          <img src={cat.image_url} alt={cat.title} className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-background/0 group-hover:bg-background/60 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                            <button onClick={() => setSpaceCategories(prev => prev.map((c, idx) => idx === i ? { ...c, image_url: "" } : c))} className="rounded-full bg-destructive p-1.5 text-destructive-foreground shadow-lg">
+                              <Trash2 className="h-3 w-3" />
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div>
+                          <button
+                            onClick={() => document.getElementById(`space-cat-img-${i}`)?.click()}
+                            className="border-2 border-dashed border-border rounded-lg w-24 aspect-[4/3] flex flex-col items-center justify-center cursor-pointer hover:border-muted-foreground/50 transition-all"
+                          >
+                            <Upload className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-[9px] text-muted-foreground mt-0.5">Image</span>
+                          </button>
+                        </div>
+                      )}
+                      <input id={`space-cat-img-${i}`} type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        const uid = crypto.randomUUID();
+                        const ext = file.name.split(".").pop() || "jpg";
+                        const filePath = `space-${uid}.${ext}`;
+                        const { error } = await supabase.storage.from("hero-pictures").upload(filePath, file, { cacheControl: "3600" });
+                        if (error) { toast.error("Upload failed"); return; }
+                        const { data: urlData } = supabase.storage.from("hero-pictures").getPublicUrl(filePath);
+                        setSpaceCategories(prev => prev.map((c, idx) => idx === i ? { ...c, image_url: urlData.publicUrl } : c));
+                        toast.success("Image uploaded");
+                        e.target.value = "";
+                      }} />
+                    </div>
+                  ))}
+                  {spaceCategories.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No categories yet. Click "Add Category".</p>}
+                </div>
+              </div>
+            )}
+
+            {editingPage && !["loyalty", "habits", "matchmaker", "community"].includes(editingPage) && (
               <div className="border-t border-border pt-6">
                 <PagePicturesManager pageSlug={editingPage} />
               </div>
