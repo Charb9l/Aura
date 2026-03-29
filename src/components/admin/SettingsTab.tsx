@@ -26,6 +26,7 @@ const SettingsTab = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [saving, setSaving] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(true);
+  const [adminCode, setAdminCode] = useState("");
 
   // Locations management state
   const [newLocationName, setNewLocationName] = useState("");
