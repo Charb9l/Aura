@@ -9,9 +9,6 @@ import MatchmakingSocialCard from "@/components/MatchmakingSocialCard";
 import NextBadgeCard from "@/components/NextBadgeCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { ClubsIcon, AcademiesIcon, MatchmakerIcon, HabitTrackerIcon, LoyaltyIcon } from "@/components/icons/BrandIcons";
-
-interface HeroButton { to: string; label: string; glow?: boolean; }
 
 interface HeroContent {
   hero_subtitle: string;
