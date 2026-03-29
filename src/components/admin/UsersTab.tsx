@@ -490,7 +490,24 @@ const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, on
             </div>
             <div><Label>New Password <span className="text-xs text-muted-foreground">(leave empty to keep)</span></Label><Input type="password" placeholder="••••••••" value={editAdminPassword} onChange={(e) => setEditAdminPassword(e.target.value)} className="h-9 bg-secondary border-border mt-1 text-sm" /></div>
             <div><Label>Assigned Club</Label><Select value={editAdminClubId} onValueChange={setEditAdminClubId}><SelectTrigger className="h-9 bg-secondary border-border mt-1 text-sm"><SelectValue placeholder="All Clubs (Master Admin)" /></SelectTrigger><SelectContent className="bg-card border-border z-50"><SelectItem value="none">All Clubs (Master Admin)</SelectItem>{clubs.sort((a, b) => a.name.localeCompare(b.name)).map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent></Select></div>
-            <Button onClick={handleSaveAdmin} disabled={editAdminSaving} className="w-full h-10 text-sm font-semibold glow">{editAdminSaving ? "Saving..." : "Save Changes"}</Button>
+            {editAdminClubId && editAdminClubId !== "none" && (
+              <div>
+                <Label>Admin Code <span className="text-xs text-muted-foreground">(6-digit numeric)</span></Label>
+                <Input
+                  value={editAdminCode}
+                  onChange={(e) => { const v = e.target.value.replace(/\D/g, "").slice(0, 6); setEditAdminCode(v); }}
+                  placeholder="e.g. 123456"
+                  maxLength={6}
+                  inputMode="numeric"
+                  pattern="[0-9]{6}"
+                  className="h-9 bg-secondary border-border mt-1 text-sm font-mono tracking-widest"
+                />
+                {editAdminCode && editAdminCode.length !== 6 && (
+                  <p className="text-[11px] text-destructive mt-1">Must be exactly 6 digits</p>
+                )}
+              </div>
+            )}
+            <Button onClick={handleSaveAdmin} disabled={editAdminSaving || (editAdminClubId && editAdminClubId !== "none" && editAdminCode.length !== 6)} className="w-full h-10 text-sm font-semibold glow">{editAdminSaving ? "Saving..." : "Save Changes"}</Button>
             <Button variant="destructive" onClick={handleDeleteAdmin} disabled={editAdminSaving} className="w-full h-10 text-sm font-semibold"><Trash2 className="h-4 w-4 mr-2" /> Delete Admin</Button>
           </div>
         </DialogContent>
