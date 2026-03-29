@@ -507,10 +507,6 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
     { title: "5 PTS → 50% OFF", desc: "Reach 5 points in any activity and your next booking is half price." },
     { title: "10 PTS → FREE", desc: "Save up to 10 points and get a completely free booking — any activity." },
   ]);
-  const [loyaltySectionHow, setLoyaltySectionHow] = useState("How It Works");
-  const [loyaltySectionJourney, setLoyaltySectionJourney] = useState("Your Journey");
-  const [loyaltySectionActivities, setLoyaltySectionActivities] = useState("Every Activity Counts");
-  const [loyaltyCtaTagline, setLoyaltyCtaTagline] = useState("Begin Today");
   const [loyaltyCtaHeading, setLoyaltyCtaHeading] = useState("Ready to Start Earning?");
   const [loyaltyCtaSubtitle, setLoyaltyCtaSubtitle] = useState("Sign up, book your first session, and watch your points grow.");
   const [loyaltyMilestone5, setLoyaltyMilestone5] = useState("50% Off");
