@@ -45,7 +45,7 @@ const HeroSection = () => {
     ? content.landing_images
     : [content?.landing_image_1, content?.landing_image_2].filter(Boolean) as string[];
 
-  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: "start", slidesToScroll: 2 });
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: "start", slidesToScroll: 2, dragFree: true });
   const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(false);
 
