@@ -63,7 +63,7 @@ interface OfferingRow {
 
 const PAGES = [
   { name: "Loyalty Program", slug: "loyalty", description: "Loyalty page main title and subtitle" },
-  { name: "Main Page", slug: "home", description: "Hero section, text, and landing images" },
+  { name: "Main Page", slug: "home", description: "Hero section, text, action buttons, and activity section" },
 ];
 
 // === Pictures Manager ===
@@ -724,6 +724,41 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
               <Input value={heroSubtitle} onChange={(e) => setHeroSubtitle(e.target.value)} placeholder="e.g. Movement & Mindfulness" className="h-9 bg-secondary border-border text-sm" />
             </div>
 
+            {/* Action Buttons */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <Label className="text-sm font-medium text-muted-foreground">Action Buttons</Label>
+                <Button type="button" variant="outline" size="sm" onClick={addButton} className="gap-1.5 text-xs"><Plus className="h-3.5 w-3.5" /> Add Button</Button>
+              </div>
+              <div className="space-y-3">
+                {heroButtons.map((btn, i) => (
+                  <div key={i} className="p-2.5 rounded-lg border border-border bg-secondary/50 space-y-2">
+                    <div className="flex items-center gap-1.5">
+                      <Button type="button" variant="ghost" size="icon" className="h-6 w-6" disabled={i === 0} onClick={() => { const arr = [...heroButtons]; [arr[i - 1], arr[i]] = [arr[i], arr[i - 1]]; setHeroButtons(arr); }}><ArrowUp className="h-3 w-3" /></Button>
+                      <Button type="button" variant="ghost" size="icon" className="h-6 w-6" disabled={i === heroButtons.length - 1} onClick={() => { const arr = [...heroButtons]; [arr[i], arr[i + 1]] = [arr[i + 1], arr[i]]; setHeroButtons(arr); }}><ArrowDown className="h-3 w-3" /></Button>
+                      <button
+                        type="button"
+                        onClick={() => toggleButtonGlow(i)}
+                        className={cn(
+                          "px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border transition-all ml-auto",
+                          btn.glow
+                            ? "border-amber-400/60 bg-amber-400/15 text-amber-300 shadow-[0_0_12px_hsl(43_96%_56%/0.35)]"
+                            : "border-border text-muted-foreground hover:border-muted-foreground/50"
+                        )}
+                      >
+                        ✦ Glow
+                      </button>
+                      <Button type="button" variant="ghost" size="icon" onClick={() => removeButton(i)} className="h-6 w-6 shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"><Trash2 className="h-3.5 w-3.5" /></Button>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Input value={btn.label} onChange={(e) => updateButton(i, "label", e.target.value)} placeholder="Button label" className="h-8 bg-background border-border text-xs" />
+                      <Input value={btn.to} onChange={(e) => updateButton(i, "to", e.target.value)} placeholder="Link path (e.g. /book)" className="h-8 bg-background border-border text-xs font-mono" />
+                    </div>
+                  </div>
+                ))}
+                {heroButtons.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No buttons yet.</p>}
+              </div>
+            </div>
 
             {/* Navigation Menu Order */}
             <div className="border-t border-border pt-6">
@@ -781,7 +816,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
             {/* Landing Images */}
             <div className="border-t border-border pt-6">
               <h3 className="text-base font-heading font-semibold text-foreground mb-1">📷 Landing Images</h3>
-              <p className="text-xs text-muted-foreground mb-4">Two rectangular image bubbles displayed on the landing page.</p>
+              <p className="text-xs text-muted-foreground mb-4">Two rectangular image bubbles displayed under the action buttons on the landing page.</p>
               <div className="grid grid-cols-2 gap-4">
                 {[1, 2].map((num) => {
                   const imgUrl = num === 1 ? landingImage1 : landingImage2;
