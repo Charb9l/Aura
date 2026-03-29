@@ -99,31 +99,37 @@ const LiveFeatureIcons = () => {
   ];
 
   return (
-    <div className="flex justify-center gap-6 w-full max-w-sm lg:max-w-lg mx-auto">
-      {items.map((item, i) => (
-        <motion.div
-          key={item.to}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 + i * 0.05 }}
-          className="flex flex-col items-center gap-1.5"
-        >
-          <Link
-            to={item.to}
-            className="group flex flex-col items-center justify-center text-primary hover:scale-110 hover:-translate-y-1 transition-all duration-500 ease-out"
+    <div className="flex items-center justify-center w-full">
+      <div className="grid grid-cols-3 gap-0 w-[240px] lg:w-[300px]">
+        {items.map((item, i) => (
+          <motion.div
+            key={item.to}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 + i * 0.06 }}
+            className="flex flex-col items-center gap-1"
           >
-            <span className="h-10 w-10 lg:h-12 lg:w-12 flex items-center justify-center drop-shadow-[0_0_8px_hsl(var(--primary)/0.3)] group-hover:drop-shadow-[0_0_16px_hsl(var(--primary)/0.5)] transition-all duration-500">
-              {item.icon}
+            <Link
+              to={item.to}
+              className="group flex flex-col items-center justify-center text-primary transition-all duration-500 ease-out"
+            >
+              <motion.span
+                animate={{ y: [0, -3, 0] }}
+                transition={{ duration: 2, repeat: Infinity, delay: i * 0.6, ease: "easeInOut" }}
+                className="h-8 w-8 lg:h-10 lg:w-10 flex items-center justify-center drop-shadow-[0_0_6px_hsl(var(--primary)/0.35)] group-hover:drop-shadow-[0_0_14px_hsl(var(--primary)/0.55)] group-hover:scale-115 transition-all duration-500"
+              >
+                {item.icon}
+              </motion.span>
+              {item.stat && (
+                <span className="text-[7px] font-semibold text-primary/80 mt-0.5 leading-none">{item.stat}</span>
+              )}
+            </Link>
+            <span className="font-label text-[8px] font-semibold uppercase tracking-[0.12em] text-foreground/40 leading-tight text-center">
+              {item.label}
             </span>
-            {item.stat && (
-              <span className="text-[8px] font-semibold text-primary/80 mt-1 leading-none">{item.stat}</span>
-            )}
-          </Link>
-          <span className="font-label text-[9px] font-semibold uppercase tracking-[0.15em] text-foreground/40 leading-tight text-center max-w-[80px]">
-            {item.label}
-          </span>
-        </motion.div>
-      ))}
+          </motion.div>
+        ))}
+      </div>
     </div>
   );
 };
