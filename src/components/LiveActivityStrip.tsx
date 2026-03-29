@@ -11,7 +11,6 @@ interface ActivityItem {
   text: string;
   initials: string;
   time: string;
-  highlight?: boolean;
   link?: string;
 }
 
