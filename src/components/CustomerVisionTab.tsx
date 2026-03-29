@@ -608,6 +608,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
       show_scroll_indicator: showScrollIndicator,
       landing_image_1: landingImage1,
       landing_image_2: landingImage2,
+      landing_images: landingImages,
       featured_club_id: featuredClubId,
       featured_academy_id: featuredAcademyId,
       featured_club_id_2: featuredClubId2,
