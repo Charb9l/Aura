@@ -63,30 +63,6 @@ const HeroSection = () => {
 
         {user && <LiveFeatureIcons />}
 
-        {filteredActions.length > 0 && (
-          <div className="flex flex-wrap justify-center gap-4 w-full max-w-sm lg:max-w-lg mx-auto">
-            {filteredActions.map((action) => {
-              const icon = routeIconMap[action.to] || getFallbackIcon(action.label);
-              return (
-                <motion.div
-                  key={action.to}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: action.delay }}
-                  className="flex flex-col items-center gap-2"
-                >
-                  <Link
-                    to={action.to}
-                    className="group relative flex items-center justify-center rounded-2xl w-16 h-16 lg:w-20 lg:h-20 transition-all duration-500 bg-white/[0.04] backdrop-blur-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] hover:shadow-[0_0_24px_rgba(124,58,237,0.2)] hover:bg-white/[0.07] hover:scale-105 hover:-translate-y-1"
-                  >
-                    <span className="text-primary group-hover:scale-110 transition-transform duration-500">{icon}</span>
-                  </Link>
-                  <span className="font-label text-[9px] font-semibold uppercase tracking-[0.15em] text-foreground/40 leading-tight text-center max-w-[72px]">{action.label}</span>
-                </motion.div>
-              );
-            })}
-          </div>
-        )}
 
         {user && <NextBadgeCard />}
         {user && <MatchmakingSocialCard />}
