@@ -40,32 +40,6 @@ const HeroSection = () => {
   const image1 = content?.landing_image_1;
   const image2 = content?.landing_image_2;
 
-  const liveRoutes = new Set(["/loyalty", "/matchmaker", "/habits"]);
-  const filteredActions = user ? actions.filter(a => !liveRoutes.has(a.to)) : actions;
-
-  const routeIconMap: Record<string, React.ReactNode> = {
-    "/book": <CalendarDays className="h-6 w-6" />,
-    "/academy": <AcademiesIcon className="h-6 w-6" />,
-    "/clubs": <ClubsIcon className="h-6 w-6" />,
-    "/loyalty": <LoyaltyIcon className="h-6 w-6" />,
-    "/matchmaker": <MatchmakerIcon className="h-6 w-6" />,
-    "/habits": <HabitTrackerIcon className="h-6 w-6" />,
-    "/community": <LayoutGrid className="h-6 w-6" />,
-    "/profile": <Heart className="h-6 w-6" />,
-  };
-
-  const getFallbackIcon = (label: string): React.ReactNode => {
-    const l = label.toLowerCase();
-    if (l.includes("match")) return <MatchmakerIcon className="h-6 w-6" />;
-    if (l.includes("habit") || l.includes("track")) return <HabitTrackerIcon className="h-6 w-6" />;
-    if (l.includes("loyal") || l.includes("reward")) return <LoyaltyIcon className="h-6 w-6" />;
-    if (l.includes("book") || l.includes("calendar")) return <CalendarDays className="h-6 w-6" />;
-    if (l.includes("academ") || l.includes("train")) return <AcademiesIcon className="h-6 w-6" />;
-    if (l.includes("club") || l.includes("partner")) return <ClubsIcon className="h-6 w-6" />;
-    if (l.includes("communit")) return <LayoutGrid className="h-6 w-6" />;
-    if (l.includes("fitness") || l.includes("workout")) return <Dumbbell className="h-6 w-6" />;
-    return <Trophy className="h-6 w-6" />;
-  };
 
   return (
     <section className="relative flex flex-col items-center page-offset-top pb-6 md:pb-8 overflow-hidden">
