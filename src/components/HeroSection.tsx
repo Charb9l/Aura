@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { CalendarDays, GraduationCap, LayoutGrid, Heart, Dumbbell, Trophy } from "lucide-react";
 import FeaturedClubsStrip from "@/components/FeaturedClubsStrip";
 import HeroProgressCard from "@/components/HeroProgressCard";
 import LiveFeatureIcons from "@/components/LiveFeatureIcons";
