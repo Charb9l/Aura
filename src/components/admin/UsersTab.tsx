@@ -52,6 +52,7 @@ interface BadgeAssignment {
 }
 
 const UsersTab = ({ allUsers, adminUsers, clubs, onUpdateUser, onUpdateAdmin, onDeleteAdmin, onAdminCreated, isMasterAdmin, initialViewUserId, onInitialViewHandled }: UsersTabProps) => {
+  const { user: currentUser } = useAuth();
   const [subTab, setSubTab] = useState<"customers" | "admins">("customers");
   const [userSearch, setUserSearch] = useState("");
   const [adminSearch, setAdminSearch] = useState("");
