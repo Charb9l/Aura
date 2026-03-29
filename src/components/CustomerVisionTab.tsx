@@ -816,54 +816,73 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
             </div>
 
 
-            {/* Landing Images */}
+            {/* Landing Images Carousel */}
             <div className="border-t border-border pt-6">
-              <h3 className="text-base font-heading font-semibold text-foreground mb-1">📷 Landing Images</h3>
-              <p className="text-xs text-muted-foreground mb-4">Two rectangular image bubbles displayed under the action buttons on the landing page.</p>
-              <div className="grid grid-cols-2 gap-4">
-                {[1, 2].map((num) => {
-                  const imgUrl = num === 1 ? landingImage1 : landingImage2;
-                  const setImg = num === 1 ? setLandingImage1 : setLandingImage2;
-                  const inputId = `landing-img-${num}`;
-                  return (
-                    <div key={num} className="space-y-2">
-                      <Label className="text-xs font-medium text-muted-foreground">Image {num}</Label>
-                      {imgUrl ? (
-                        <div className="relative rounded-xl overflow-hidden border border-border aspect-[4/3] group">
-                          <img src={imgUrl} alt={`Landing ${num}`} className="w-full h-full object-cover" />
-                          <div className="absolute inset-0 bg-background/0 group-hover:bg-background/60 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
-                            <button onClick={() => setImg("")} className="rounded-full bg-destructive p-2 text-destructive-foreground shadow-lg">
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div
-                          onClick={() => document.getElementById(inputId)?.click()}
-                          className="border-2 border-dashed border-border rounded-xl aspect-[4/3] flex flex-col items-center justify-center cursor-pointer hover:border-muted-foreground/50 transition-all"
-                        >
-                          <Upload className="h-5 w-5 text-muted-foreground mb-1" />
-                          <p className="text-xs text-muted-foreground">Upload</p>
-                        </div>
-                      )}
-                      <input id={inputId} type="file" accept="image/*" className="hidden" onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-                        setUploadingLanding(num as 1 | 2);
-                        const id = crypto.randomUUID();
-                        const ext = file.name.split(".").pop() || "jpg";
-                        const filePath = `landing-${num}-${id}.${ext}`;
-                        const { error } = await supabase.storage.from("hero-pictures").upload(filePath, file, { cacheControl: "3600" });
-                        if (error) { toast.error("Upload failed"); setUploadingLanding(null); return; }
-                        const { data: urlData } = supabase.storage.from("hero-pictures").getPublicUrl(filePath);
-                        setImg(urlData.publicUrl);
-                        setUploadingLanding(null);
-                        e.target.value = "";
-                      }} />
-                    </div>
-                  );
-                })}
+              <h3 className="text-base font-heading font-semibold text-foreground mb-1">📷 Landing Carousel Images</h3>
+              <p className="text-xs text-muted-foreground mb-4">Images shown in a swipeable carousel on the landing page (2 visible at a time). You can add up to 12 images.</p>
+              
+              {/* Upload new */}
+              <div
+                onClick={() => document.getElementById("carousel-upload-input")?.click()}
+                className="border-2 border-dashed border-border rounded-xl p-4 text-center cursor-pointer hover:border-muted-foreground/50 transition-all mb-4"
+              >
+                <Upload className="h-5 w-5 text-muted-foreground mx-auto mb-1" />
+                <p className="text-xs text-muted-foreground">Click to add images</p>
               </div>
+              <input id="carousel-upload-input" type="file" accept="image/*" multiple className="hidden" onChange={async (e) => {
+                const files = Array.from(e.target.files || []).filter(f => f.type.startsWith("image/"));
+                if (!files.length) return;
+                setUploadingLanding(1);
+                const newUrls: string[] = [];
+                for (const file of files) {
+                  if (file.size > 10 * 1024 * 1024) { toast.error(`${file.name} too large (max 10MB)`); continue; }
+                  const id = crypto.randomUUID();
+                  const ext = file.name.split(".").pop() || "jpg";
+                  const filePath = `carousel-${id}.${ext}`;
+                  const { error } = await supabase.storage.from("hero-pictures").upload(filePath, file, { cacheControl: "3600" });
+                  if (error) { toast.error("Upload failed"); continue; }
+                  const { data: urlData } = supabase.storage.from("hero-pictures").getPublicUrl(filePath);
+                  newUrls.push(urlData.publicUrl);
+                }
+                if (newUrls.length) {
+                  setLandingImages(prev => [...prev, ...newUrls]);
+                  toast.success(`${newUrls.length} image(s) added`);
+                }
+                setUploadingLanding(null);
+                e.target.value = "";
+              }} />
+
+              {/* Grid of existing images */}
+              {landingImages.length > 0 ? (
+                <div className="grid grid-cols-3 gap-3">
+                  {landingImages.map((url, i) => (
+                    <div key={i} className="group relative rounded-lg overflow-hidden border border-border bg-card aspect-[4/3]">
+                      <img src={url} alt={`Carousel ${i + 1}`} className="w-full h-full object-cover" loading="lazy" />
+                      <div className="absolute top-1 left-1 z-10 rounded bg-background/80 px-1.5 py-0.5">
+                        <span className="text-[9px] font-bold text-foreground">{i + 1}</span>
+                      </div>
+                      <div className="absolute inset-0 bg-background/0 group-hover:bg-background/60 transition-all flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100">
+                        {i > 0 && (
+                          <button onClick={() => { const arr = [...landingImages]; [arr[i - 1], arr[i]] = [arr[i], arr[i - 1]]; setLandingImages(arr); }} className="rounded-full bg-secondary p-1.5 text-foreground shadow-lg hover:bg-secondary/80">
+                            <ArrowUp className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                        {i < landingImages.length - 1 && (
+                          <button onClick={() => { const arr = [...landingImages]; [arr[i], arr[i + 1]] = [arr[i + 1], arr[i]]; setLandingImages(arr); }} className="rounded-full bg-secondary p-1.5 text-foreground shadow-lg hover:bg-secondary/80">
+                            <ArrowDown className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                        <button onClick={() => setLandingImages(prev => prev.filter((_, idx) => idx !== i))} className="rounded-full bg-destructive p-1.5 text-destructive-foreground shadow-lg hover:bg-destructive/90">
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-4">No carousel images yet. Upload some above.</p>
+              )}
+            </div>
             </div>
 
             {/* Featured Club & Academy Selection */}
