@@ -115,7 +115,6 @@ const HeroSection = () => {
         )}
 
         {user && <NextBadgeCard />}
-        {user && <MatchmakingSocialCard />}
         {user && <LiveActivityStrip />}
 
         {(image1 || image2) && (
