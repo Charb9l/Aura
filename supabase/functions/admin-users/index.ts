@@ -65,11 +65,11 @@ Deno.serve(async (req) => {
         });
       }
 
-      let adminRoles: { user_id: string; club_id: string | null }[] = [];
+      let adminRoles: { user_id: string; club_id: string | null; admin_code: string | null }[] = [];
       if (action === "list-admins") {
         const { data: roles } = await adminClient
           .from("user_roles")
-          .select("user_id, club_id")
+          .select("user_id, club_id, admin_code")
           .eq("role", "admin");
         adminRoles = roles || [];
       }
@@ -77,6 +77,7 @@ Deno.serve(async (req) => {
         ? new Set(adminRoles.map(r => r.user_id))
         : null;
       const adminClubMap = new Map(adminRoles.map(r => [r.user_id, r.club_id]));
+      const adminCodeMap = new Map(adminRoles.map(r => [r.user_id, r.admin_code]));
 
       const { data: profiles } = await adminClient
         .from("profiles")
@@ -92,6 +93,7 @@ Deno.serve(async (req) => {
         created_at: profileMap.get(u.id)?.created_at || u.created_at,
         club_id: adminClubMap.get(u.id) || null,
         suspended: profileMap.get(u.id)?.suspended || false,
+        admin_code: adminCodeMap.get(u.id) || null,
       }));
 
       if (adminUserIds) {
@@ -232,13 +234,18 @@ Deno.serve(async (req) => {
         await adminClient.from("profiles").update(profileUpdate).eq("user_id", user_id);
       }
 
-      // Update club assignment if provided
-      if (club_id !== undefined) {
-        await adminClient
-          .from("user_roles")
-          .update({ club_id: club_id || null })
-          .eq("user_id", user_id)
-          .eq("role", "admin");
+      // Update club assignment and admin_code if provided
+      if (club_id !== undefined || body.admin_code !== undefined) {
+        const roleUpdate: Record<string, unknown> = {};
+        if (club_id !== undefined) roleUpdate.club_id = club_id || null;
+        if (body.admin_code !== undefined) roleUpdate.admin_code = body.admin_code || null;
+        if (Object.keys(roleUpdate).length > 0) {
+          await adminClient
+            .from("user_roles")
+            .update(roleUpdate)
+            .eq("user_id", user_id)
+            .eq("role", "admin");
+        }
       }
 
       return new Response(JSON.stringify({ success: true }), {
