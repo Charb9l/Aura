@@ -106,6 +106,18 @@ const SettingsTab = () => {
       }
     }
 
+    // Save admin code via edge function
+    if (adminCode.length === 6) {
+      const { error: codeErr } = await supabase.functions.invoke("admin-users", {
+        body: { action: "update", user_id: user.id, admin_code: adminCode },
+      });
+      if (codeErr) {
+        toast.error("Failed to update admin code");
+        setSaving(false);
+        return;
+      }
+    }
+
     setSaving(false);
     setNewPassword("");
     setConfirmPassword("");
