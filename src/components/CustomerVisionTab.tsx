@@ -538,6 +538,7 @@ const CustomerVisionTab = ({ onNavigateTab }: { onNavigateTab?: (tab: string) =>
       setShowScrollIndicator(content.show_scroll_indicator ?? false);
       setLandingImage1(content.landing_image_1 || "");
       setLandingImage2(content.landing_image_2 || "");
+      setLandingImages(content.landing_images || []);
       setFeaturedClubId(content.featured_club_id || "");
       setFeaturedAcademyId(content.featured_academy_id || "");
       setFeaturedClubId2(content.featured_club_id_2 || "");
